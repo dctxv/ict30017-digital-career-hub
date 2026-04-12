@@ -12,9 +12,12 @@ const customDir = join(rootDir, 'custom');
 function resolveTargetFiles() {
   const cliArg = process.argv[2];
   if (cliArg) {
-    const absPath = resolve(cliArg);
+    // Try custom/ first, then fall back to resolving as a path
+    const inCustom = join(customDir, cliArg);
+    const absPath = existsSync(inCustom) ? inCustom : resolve(cliArg);
     if (!existsSync(absPath)) {
-      console.error(`File not found: ${absPath}`);
+      console.error(`File not found: ${cliArg}`);
+      console.error(`Looked in: ${inCustom}`);
       process.exit(1);
     }
     return [{ label: basename(absPath), path: absPath }];
@@ -23,7 +26,7 @@ function resolveTargetFiles() {
   if (existsSync(customDir)) {
     const customFiles = readdirSync(customDir).filter((f) => f.endsWith('.txt'));
     if (customFiles.length > 0) {
-      console.log(`Found ${customFiles.length} resume(s) in custom/ â€” reviewing those.\n`);
+      console.log(`Found ${customFiles.length} resume(s) in custom/ - reviewing those.\n`);
       return customFiles.map((f) => ({ label: f, path: join(customDir, f) }));
     }
   }
@@ -35,7 +38,7 @@ function resolveTargetFiles() {
 }
 
 function printResult(label, result) {
-  const divider = 'â”€'.repeat(60);
+  const divider = '-'.repeat(60);
   console.log(divider);
   console.log(`Resume: ${label}`);
   console.log(divider);
@@ -45,19 +48,19 @@ function printResult(label, result) {
   console.log(`Content Quality:  ${result.content_quality.score}/10`);
   console.log(`Language:         ${result.language_and_grammar.score}/10`);
 
-  console.log('\nFormatting â€” Strengths:');
+  console.log('\nFormatting - Strengths:');
   result.formatting_feedback.strengths.forEach((s) => console.log(`  + ${s}`));
-  console.log('Formatting â€” Improvements:');
+  console.log('Formatting - Improvements:');
   result.formatting_feedback.improvements.forEach((s) => console.log(`  ! ${s}`));
 
-  console.log('\nContent Quality â€” Strengths:');
+  console.log('\nContent Quality - Strengths:');
   result.content_quality.strengths.forEach((s) => console.log(`  + ${s}`));
-  console.log('Content Quality â€” Improvements:');
+  console.log('Content Quality - Improvements:');
   result.content_quality.improvements.forEach((s) => console.log(`  ! ${s}`));
 
-  console.log('\nLanguage & Grammar â€” Strengths:');
+  console.log('\nLanguage & Grammar - Strengths:');
   result.language_and_grammar.strengths.forEach((s) => console.log(`  + ${s}`));
-  console.log('Language & Grammar â€” Improvements:');
+  console.log('Language & Grammar - Improvements:');
   result.language_and_grammar.improvements.forEach((s) => console.log(`  ! ${s}`));
 
   console.log('\nAction Items (priority order):');

@@ -1,0 +1,42 @@
+CURRICULUM VITAE
+
+OF
+ARIF MAHMUD
+
+Mobile: 01XXXXXXXXX
+Email: arif.dev@email.com
+
+CAREER OBJECTIVE:
+To work in IT sector and develop scalable software solutions.
+
+EDUCATION:
+
+M.Sc. in CSE
+AIUB
+CGPA: 3.60 | 2023
+
+B.Sc. in CSE
+CGPA: 3.40 | 2021
+
+EXPERIENCE:
+Software Developer (1 year)
+ABC Tech Ltd.
+
+SKILLS:
+Python, Django, MySQL
+
+LANGUAGE:
+English – Fluent
+Bengali – Native
+
+PERSONAL:
+Nationality: Bangladeshi
+
+REFERENCE:
+Tech Lead, ABC Tech
+
+DECLARATION:
+Information is true.
+
+Signature
+Arif Mahmud
