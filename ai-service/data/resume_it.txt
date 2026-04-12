@@ -1,0 +1,51 @@
+MD. RAFI HOSSAIN
+Dhaka, Bangladesh | rafi.hossain@gmail.com | +880-1711-234567
+LinkedIn: linkedin.com/in/rafihossain | GitHub: github.com/rafihossain
+
+OBJECTIVE
+Seeking a Junior Software Developer position where I can apply my skills in web development and contribute to innovative IT solutions in Bangladesh's growing tech industry.
+
+EDUCATION
+Bachelor of Science in Computer Science and Engineering
+Bangladesh University of Engineering and Technology (BUET), Dhaka
+Graduation: November 2023 | CGPA: 3.21 / 4.00
+
+Higher Secondary Certificate (HSC)
+Dhaka College, Dhaka Board | GPA: 5.00 / 5.00 | Year: 2019
+
+SKILLS
+Programming Languages: Python, JavaScript, Java, C++
+Web Technologies: HTML5, CSS3, React.js, Node.js, Express.js
+Databases: MySQL, MongoDB
+Tools & Platforms: Git, GitHub, VS Code, Postman, Linux
+Soft Skills: Team work, problem solving, communication
+
+WORK EXPERIENCE
+Software Development Intern
+Brain Station 23 Ltd., Dhaka
+January 2023 – June 2023
+- Worked on front-end components using React.js for a client project
+- Fixed several bugs in the existing codebase
+- Participated in daily scrum meetings
+- Wrote some unit tests for API endpoints
+
+PROJECTS
+E-Commerce Website (Final Year Project)
+- Built a full-stack e-commerce platform for local Bangladeshi artisans
+- Used React.js frontend, Node.js/Express backend, MongoDB database
+- Implemented user authentication with JWT
+- Deployed on Heroku
+
+University Result Management System
+- Developed a web app to manage student results for department use
+- Used PHP and MySQL
+
+CERTIFICATIONS
+- JavaScript Algorithms and Data Structures – freeCodeCamp (2022)
+- Python for Everybody – Coursera (2021)
+
+LANGUAGES
+Bengali (Native), English (Professional)
+
+REFERENCES
+Available upon request.
