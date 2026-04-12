@@ -1,0 +1,20 @@
+# Global fallback — either admin (Darius or Isar) can review anything
+* @dctxv @Dwijesh07
+
+# Frontend & full-stack (Isar)
+/client/src/ @Dwijesh07
+
+# AI service (Darius)
+/ai-service/ @dctxv
+
+# Server security/middleware
+/server/src/middleware/ @PubuGitUser
+
+# Database
+/server/src/database/ @sineth-username
+
+# Localisation
+/client/src/localisation/ @ian-username
+
+# Documentation
+/docs/ @shalitha-username
