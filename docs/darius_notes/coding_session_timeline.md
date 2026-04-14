@@ -8,9 +8,6 @@
 ---
 
 ## Session 1 — 6 March 2026
-
-**Commits:** `Initial commit`, `Update README.md`
-
 ### What Was Done
 
 - Initialised the GitHub repository with `.gitattributes` and a base `README.md`.
@@ -39,9 +36,6 @@ Research material available locally. These resumes became the basis for all prom
 ---
 
 ## Session 3 — 13 April 2026
-
-**Commits:** `test 01`, `v1.0`, `Prompt Engineering Update`
-
 ### What Was Done
 
 **Project scaffold (`test 01`)**
@@ -74,9 +68,6 @@ Research material available locally. These resumes became the basis for all prom
 ---
 
 ## Session 4 — 14 April 2026
-
-**No commits **
-
 ### What Was Done
 
 - **Fixed garbled Unicode output** in the test runner. Box-drawing characters (`─`) and em dashes (`—`) were rendering as `â"€` / `â€"` on Windows terminals. Replaced all with plain ASCII (`-`).
@@ -91,8 +82,6 @@ Test runner is stable and user-friendly. Schema validation no longer crashes on 
 ---
 
 ## Session 5 — 14 April 2026 (continued)
-
-**No commits **
 
 ### What Was Done
 
@@ -125,20 +114,17 @@ Built the full file ingestion pipeline inside `server/` as a standalone Express.
 ---
 
 ## Session 6 — 14 April 2026 (continued)
-
-**No commits — in-session fixes via Claude Code**
-
 ### What Was Done
 
 **Switched AI provider from Groq to OpenRouter**
 - Replaced `groq-sdk` with the `openai` npm package (OpenRouter uses the OpenAI-compatible API).
 - Updated `aiClient.js` to point at `https://openrouter.ai/api/v1` with `OPENROUTER_API_KEY`.
 - Removed `GROQ_API_KEY` and `GROQ_MODEL` from both `.env` files. New variables: `OPENROUTER_API_KEY` and `AI_MODEL`.
-- Model set to `openai/gpt-5o-mini`.
+- Model set to `openai/gpt-5-mini`.
 - No changes required to `resumeReviewer.js` or any other file — the OpenAI SDK response shape is identical.
 
 **Fixed: model returning objects instead of strings in improvements arrays**
-- `gpt-5o-mini` responded to the "quote the exact error and provide the correction" instruction by returning structured objects (e.g. `{"error": "a successfully career", "correction": "a successful career"}`) instead of plain strings.
+- `gpt-5-mini` responded to the "quote the exact error and provide the correction" instruction by returning structured objects (e.g. `{"error": "a successfully career", "correction": "a successful career"}`) instead of plain strings.
 - Added `itemToString()` helper that detects common object shapes (`error`/`correction`, `issue`/`fix`, `quote`/`rewrite`, `original`/`suggested`) and formats them as readable strings (e.g. `"a successfully career" → "a successful career"`). Falls back to joining all string values with ` — `.
 - Updated `normalizeSection()` to run every array item through `itemToString()` before Zod validation, covering both `strengths` and `improvements`.
 
@@ -147,9 +133,9 @@ Built the full file ingestion pipeline inside `server/` as a standalone Express.
 - Removed the MIME type check from `upload.js`. Extension is now the sole gate. The real content validation is downstream — `mammoth` throws on any file that isn't a valid DOCX, so renaming a non-DOCX to `.docx` still gets caught at extraction.
 
 **Fixed: action_items exceeding schema max(10)**
-- `gpt-5o-mini` returned more than 10 action items, failing Zod's `.max(10)` constraint.
+- `gpt-5-mini` returned more than 10 action items, failing Zod's `.max(10)` constraint.
 - Added `.slice(0, 10)` in `normalizeResponse()` so oversized lists are trimmed rather than rejected. Priority order is preserved since the model returns items in descending priority.
 
 ### Outcome
 
-End-to-end pipeline confirmed working with `gpt-5o-mini` via OpenRouter on both PDF (`BD_Resume_Test_01.pdf`) and DOCX (`BD_Resume_Test_02.docx`) inputs. Schema normalizer is now robust against the three failure modes observed across two different model providers.
+End-to-end pipeline confirmed working with `gpt-5-mini` via OpenRouter on both PDF (`BD_Resume_Test_01.pdf`) and DOCX (`BD_Resume_Test_02.docx`) inputs. Schema normalizer is now robust against the three failure modes observed across two different model providers.
