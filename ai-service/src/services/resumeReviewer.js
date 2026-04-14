@@ -18,28 +18,34 @@ BANGLADESH-SPECIFIC CONTEXT:
 - Soft skills are valued in the Bangladeshi corporate culture. Evaluate whether listed soft skills are relevant to the candidate's apparent target sector rather than generic.
 - Generic objective statements ("seeking a challenging position in a dynamic environment") are common but weak. Advise replacing with a targeted professional summary that names the specific sector and highlights key qualifications.
 - Experience bullet points should quantify achievements where possible (numbers, percentages, scale). Flag experience sections that only list duties or job titles without measurable outcomes, and suggest the CAR method (Context, Action, Result).
-- Experience entries must include date ranges (e.g. "Jan 2023 – Mar 2023"), not just durations ("3 months"). Recruiters need to know WHEN you worked, not only how long.
+- Experience and training entries must include date ranges (e.g. "Jan 2023 – Mar 2023"), not just durations ("3 months" or "6 Month"). Recruiters need to know WHEN you worked or trained, not only how long. Check EVERY entry in both Experience and Training sections.
 - Weak or passive verbs ("Responsible for", "Helped with", "Assisted in") should be replaced with strong action verbs ("Spearheaded", "Engineered", "Optimised").
 
 LEGACY SECTIONS AND OUTDATED CONVENTIONS:
 - Declaration sections ("I hereby declare that all information is true and correct") are a legacy Bangladeshi CV convention that adds no value. Advise removal to reclaim space.
-- Reference sections with full contact details on the resume are outdated. Advise replacing with "References available upon request" or removing entirely to save space.
+- Reference sections with full contact details on the resume are outdated. Advise replacing with "References available upon request" or removing entirely to save space. Flag any blank or incomplete reference entries (e.g. a numbered slot with no content).
 - Outdated section headings should be flagged. For example, "Computer Knowledge" or "Computer Skills" should be "Technical Skills", "Educational Qualification" or "Academic Qualification" should be "Education", "Curriculum Vitae" or "Resume Of" as a title should be replaced with the candidate's name as the header.
+- Misspelled or malformed document titles (e.g. "RESUM" instead of "RESUME") must be flagged as a critical error — this is the first thing a recruiter sees.
 - Missing LinkedIn URL in the contact header is a gap — Bangladeshi recruiters at larger firms and MNCs increasingly verify professional digital footprints before interviews.
 - Evaluate the absence of expected sections, not just the quality of sections that exist. A resume missing an Experience, Projects, or Internships section entirely should be flagged as a significant content gap.
-- Obsolete skills: Listing basic competencies like "Internet", "Email Communication", or "MS Office" without specificity signals outdated awareness. Flag these and advise replacing with role-relevant tools (e.g. "Google Analytics", "CRM platforms", "Advanced Excel with pivot tables").
-- Language proficiency: Vague descriptors like "Good command" are weaker than "Fluent" or "Proficient". Advise using internationally recognised descriptors or being specific (e.g. "Professional working proficiency" or "IELTS 7.5").
+- Obsolete skills: Listing basic competencies like "Internet", "Email Communication", or "MS Office" without specificity signals outdated awareness. Also flag end-of-life technologies (e.g. "Windows XP", "Windows 7") as outdated. Advise replacing with role-relevant, current tools.
+- Language proficiency: Vague descriptors like "Good command" or just "Good" are weaker than "Fluent" or "Proficient". Advise using internationally recognised descriptors or being specific (e.g. "Professional working proficiency" or "IELTS 7.5").
+
+QUALITY OF STRENGTHS:
+- Only list genuine, meaningful strengths. A section that contains only generic content (e.g. vague interests, cliché soft skills) is not a strength worth highlighting.
+- An Experience section that lists topic areas or equipment names without any actual job role, employer, dates, or descriptions is not a strength — it is a critical content gap.
 
 FEEDBACK RULES:
 - Be precise and actionable. Do NOT give vague feedback like "improve your resume" or "enhance your skills section".
 - Quote the actual section that needs improvement and provide a suggested rewrite.
 - Explain WHY each suggestion matters specifically for Bangladeshi employers.
 - Each action item must state WHAT to change, WHERE in the resume, and WHY.
+- Flag ALL grammatical errors individually. Quote the exact error and provide the correction (e.g. "a successfully career" should be "a successful career"). Do not summarise multiple errors as a single generic comment.
 
 CATEGORISATION RULES:
 - formatting_feedback: Layout, structure, section order, visual presentation, section headings, page length, contact header, presence/absence of sections, legacy conventions (Declaration, References, Personal Details, photos).
 - content_quality: Substance, achievements, qualifications, relevance to target sector, professional summary quality, CAR method usage, CGPA denominator notation, skills relevance, experience detail level.
-- language_and_grammar: Spelling, grammar, tense consistency, British/American English dialect, verb strength, parallel structure, language proficiency descriptors, capitalisation.
+- language_and_grammar: Spelling, grammar, tense consistency, British/American English dialect, verb strength, parallel structure, language proficiency descriptors, capitalisation consistency.
 Do not duplicate the same issue across multiple categories.
 
 SCORING:
@@ -49,7 +55,9 @@ SCORING:
 - 4–6: Functional but unoptimised — standard information present but lacks impact.
 - 7–8: Competitive — modern, well-structured, uses strong language.
 - 9–10: Exemplary — quantified achievements, perfect consistency, sector-targeted.
-- Formatting calibration: A resume retaining 3 or more legacy conventions (Declaration, full References, Personal Details, outdated headings, "Resume/CV Of" title) should not score above 4 in formatting regardless of other structural qualities.
+- Formatting calibration: A resume retaining 3 or more legacy conventions (Declaration, full References, Personal Details, outdated headings, "Resume/CV Of" title) should not score above 4 in formatting.
+- Content calibration: If the Experience section is missing entirely, or lists only topic areas/equipment without actual job roles, employers, and dates, content should not score above 3.
+- Language calibration: If the document contains 3 or more distinct grammatical errors (not just spelling), language should not score above 4.
 
 OUTPUT FORMAT:
 Respond with ONLY a single valid JSON object. No markdown, no explanation, no text outside the JSON.
@@ -73,8 +81,27 @@ Respond with ONLY a single valid JSON object. No markdown, no explanation, no te
   "action_items": [<string>, ...]
 }`;
 
-// The model sometimes nests the improvements list as an array inside strengths
-// instead of as a separate key. This normalizes those cases before Zod validation.
+// Coerces a single array item to a plain string regardless of what the model returned.
+// Models like gpt-5o-mini sometimes return structured objects (e.g. {error, correction})
+// instead of the plain strings the schema requires.
+function itemToString(item) {
+  if (typeof item === 'string') return item;
+  if (Array.isArray(item)) return item.map(itemToString).join(' ');
+  if (item && typeof item === 'object') {
+    // Common object shapes the model uses for grammar feedback
+    if (item.error && item.correction) return `"${item.error}" → "${item.correction}"`;
+    if (item.issue && item.fix) return `"${item.issue}" → "${item.fix}"`;
+    if (item.quote && item.rewrite) return `"${item.quote}" → "${item.rewrite}"`;
+    if (item.original && item.suggested) return `"${item.original}" → "${item.suggested}"`;
+    // Generic fallback: join all string values with a separator
+    const values = Object.values(item).filter((v) => typeof v === 'string');
+    if (values.length > 0) return values.join(' — ');
+  }
+  return String(item);
+}
+
+// Normalises a feedback section before Zod validation.
+// Handles: nested arrays in strengths, missing improvements key, and object items.
 function normalizeSection(raw) {
   if (!raw || typeof raw !== 'object') return raw;
 
@@ -83,21 +110,20 @@ function normalizeSection(raw) {
 
   if (Array.isArray(raw.strengths)) {
     for (const item of raw.strengths) {
-      if (typeof item === 'string') {
-        strengths.push(item);
-      } else if (Array.isArray(item)) {
-        extracted.push(...item.filter((s) => typeof s === 'string'));
+      if (Array.isArray(item)) {
+        // Nested array was likely meant to be the improvements list
+        extracted.push(...item.map(itemToString));
+      } else {
+        strengths.push(itemToString(item));
       }
     }
   }
 
-  return {
-    ...raw,
-    strengths,
-    improvements: Array.isArray(raw.improvements)
-      ? raw.improvements
-      : extracted,
-  };
+  const improvements = Array.isArray(raw.improvements)
+    ? raw.improvements.map(itemToString)
+    : extracted;
+
+  return { ...raw, strengths, improvements };
 }
 
 function normalizeResponse(raw) {
@@ -107,6 +133,9 @@ function normalizeResponse(raw) {
     formatting_feedback: normalizeSection(raw.formatting_feedback),
     content_quality: normalizeSection(raw.content_quality),
     language_and_grammar: normalizeSection(raw.language_and_grammar),
+    action_items: Array.isArray(raw.action_items)
+      ? raw.action_items.map(itemToString).slice(0, 10)
+      : [],
   };
   normalized.overall_score = calculateOverallScore(normalized);
   return normalized;
