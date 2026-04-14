@@ -1,20 +1,23 @@
 import 'dotenv/config';
-import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 
-let _groqClient = null;
+let _client = null;
 
 export function getGroqClient() {
-  if (!_groqClient) {
-    if (!process.env.GROQ_API_KEY) {
+  if (!_client) {
+    if (!process.env.OPENROUTER_API_KEY) {
       throw new Error(
-        'GROQ_API_KEY is not set. Copy .env.example to .env and add your key.'
+        'OPENROUTER_API_KEY is not set. Add it to your .env file.'
       );
     }
-    _groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    _client = new OpenAI({
+      apiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: 'https://openrouter.ai/api/v1',
+    });
   }
-  return _groqClient;
+  return _client;
 }
 
 export function getModel() {
-  return process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+  return process.env.AI_MODEL || 'openai/gpt-4o-mini';
 }
