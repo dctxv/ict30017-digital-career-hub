@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "groq-sdk": "^0.9.1",
+    "openai": "^4.104.0",
     "zod": "^3.23.8"
   }
 }
