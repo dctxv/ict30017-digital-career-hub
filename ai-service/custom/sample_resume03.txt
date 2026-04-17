@@ -1,6 +1,3 @@
-CURRICULUM VITAE
-
-OF
 SAIFUR RAHMAN
 
 Mobile: 01XXXXXXXXX
@@ -38,8 +35,9 @@ RESEARCH INTERESTS:
 - Renewable Energy
 - Materials Science
 
-COMPUTER KNOWLEDGE:
-- MS Office
+TECHNICAL SKILLS:
+- Microsoft Excel
+- LaTeX
 - MATLAB
 - Basic Python
 
@@ -52,20 +50,6 @@ KEY STRENGTHS:
 - Critical thinking
 - Dedication to work
 
-PERSONAL INFORMATION:
-Nationality: Bangladeshi
-Sex: Male
-Marital Status: Unmarried
-
 REFERENCE:
-Dr. Hasan Ali
-Associate Professor
-Jahangirnagar University
-Mobile: 01XXXXXXXXX
 
-DECLARATION:
-I solemnly declare that all information stated above is correct.
-
-Signature
-Saifur Rahman
-Date: __________
+'References available upon request'

@@ -9,6 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
+app.set('json spaces', 2);
 app.use(express.json());
 
 // Ensure uploads/ exists at startup so Multer never writes to a missing directory
