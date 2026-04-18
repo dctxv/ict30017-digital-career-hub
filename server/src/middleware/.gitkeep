@@ -1,0 +1,191 @@
+// =========================
+// Simple Full-Stack JWT Auth Example
+// Node.js + Express + MongoDB + JWT + Role-Based Access
+// =========================
+
+// ---------- BACKEND (server.js) ----------
+
+const express = require('express');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const cors = require('cors');
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+// ---- CONFIG ----
+const JWT_SECRET = "your_secret_key";
+
+// ---- DB CONNECT ----
+mongoose.connect('mongodb://127.0.0.1:27017/auth_demo')
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log(err));
+
+// ---- USER MODEL ----
+const UserSchema = new mongoose.Schema({
+  username: String,
+  email: String,
+  password: String,
+  role: { type: String, default: 'user' } // user | admin
+});
+
+const User = mongoose.model('User', UserSchema);
+
+// ---- MIDDLEWARE: AUTH ----
+function authMiddleware(req, res, next) {
+  const token = req.headers['authorization'];
+  if (!token) return res.status(401).json({ message: 'No token' });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+}
+
+// ---- ROLE CHECK ----
+function roleMiddleware(role) {
+  return (req, res, next) => {
+    if (req.user.role !== role) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    next();
+  };
+}
+
+// ---- REGISTER ----
+app.post('/register', async (req, res) => {
+  const { username, email, password } = req.body;
+
+  const hashed = await bcrypt.hash(password, 10);
+
+  const user = new User({ username, email, password: hashed });
+  await user.save();
+
+  res.json({ message: 'User registered' });
+});
+
+// ---- LOGIN ----
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(400).json({ message: 'User not found' });
+
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) return res.status(400).json({ message: 'Invalid password' });
+
+  const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+    expiresIn: '1h'
+  });
+
+  res.json({ token });
+});
+
+// ---- PROTECTED ROUTE ----
+app.get('/profile', authMiddleware, (req, res) => {
+  res.json({ message: 'Profile data', user: req.user });
+});
+
+// ---- ADMIN ONLY ----
+app.get('/admin', authMiddleware, roleMiddleware('admin'), (req, res) => {
+  res.json({ message: 'Admin dashboard' });
+});
+
+app.listen(5000, () => console.log('Server running on port 5000'));
+
+
+// =========================
+// FRONTEND (index.html)
+// =========================
+
+/*
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Auth System</title>
+</head>
+<body>
+
+<h2>Register</h2>
+<input id="regUser" placeholder="Username">
+<input id="regEmail" placeholder="Email">
+<input id="regPass" type="password" placeholder="Password">
+<button onclick="register()">Register</button>
+
+<h2>Login</h2>
+<input id="loginEmail" placeholder="Email">
+<input id="loginPass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+
+<h2>Actions</h2>
+<button onclick="getProfile()">Get Profile</button>
+<button onclick="getAdmin()">Admin Panel</button>
+
+<script>
+const API = 'http://localhost:5000';
+
+async function register() {
+  await fetch(API + '/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: regUser.value,
+      email: regEmail.value,
+      password: regPass.value
+    })
+  });
+  alert('Registered');
+}
+
+async function login() {
+  const res = await fetch(API + '/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: loginEmail.value,
+      password: loginPass.value
+    })
+  });
+
+  const data = await res.json();
+  localStorage.setItem('token', data.token);
+  alert('Logged in');
+}
+
+async function getProfile() {
+  const token = localStorage.getItem('token');
+
+  const res = await fetch(API + '/profile', {
+    headers: { 'Authorization': token }
+  });
+
+  console.log(await res.json());
+}
+
+async function getAdmin() {
+  const token = localStorage.getItem('token');
+
+  const res = await fetch(API + '/admin', {
+    headers: { 'Authorization': token }
+  });
+
+  console.log(await res.json());
+}
+</script>
+
+</body>
+</html>
+*/
+
+// =========================
+// HOW TO RUN
+// =========================
+// 1. npm init -y
+// 2. npm install express mongoose bcryptjs jsonwebtoken cors
+// 3. node server.js
+// 4. Open index.html in browser
