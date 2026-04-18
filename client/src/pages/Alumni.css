@@ -1,0 +1,110 @@
+.alumni-header {
+  background: var(--green-50);
+  padding: 48px 24px 32px;
+  border-bottom: 1px solid var(--border);
+}
+.alumni-header-inner { max-width: 1100px; margin: 0 auto; }
+.alumni-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--green-900);
+  margin-bottom: 8px;
+}
+.alumni-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  max-width: 620px;
+  line-height: 1.6;
+}
+.alumni-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+.alumni-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.alumni-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  transition: box-shadow var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.alumni-card:hover { box-shadow: var(--shadow-md); }
+.alumni-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.alumni-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.alumni-avatar span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--green-900);
+}
+.alumni-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.alumni-role {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.alumni-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.alumni-tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+.alumni-tag--disc { background: var(--green-200); color: var(--green-900); }
+.alumni-tag--year { background: var(--green-50); color: var(--text-muted); }
+.alumni-bio {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.alumni-card-footer {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.alumni-story-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--green-500);
+}
+.alumni-story-link:hover { color: var(--green-700); }
+.alumni-share-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--green-500);
+}
+.alumni-share-link:hover { color: var(--green-700); }
+@media (max-width: 900px) { .alumni-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 580px) { .alumni-grid { grid-template-columns: 1fr; } }
