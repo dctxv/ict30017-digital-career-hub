@@ -1,17 +1,28 @@
+.rr-page {
+  animation: fadeUp 0.35s ease forwards;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 .rr-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - 60px);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 .rr-left {
   padding: 36px 32px;
   border-right: 1px solid var(--border);
   overflow-y: auto;
+  min-height: 0;
 }
 .rr-right {
   padding: 36px 32px;
   background: var(--green-50);
   overflow-y: auto;
+  min-height: 0;
 }
 .rr-title { font-family: var(--font-display); font-size: 20px; color: var(--green-900); margin-bottom: 6px; }
 .rr-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
@@ -118,7 +129,53 @@
 }
 .fb-empty-icon { font-size: 40px; }
 .fb-empty p { font-size: 14px; max-width: 260px; line-height: 1.6; }
+.fb-empty--error { color: var(--amber-text); }
+.fb-empty-icon--spin {
+  display: inline-block;
+  animation: fb-spin 1.4s linear infinite;
+}
+@keyframes fb-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.fb-score-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; margin-bottom: 18px;
+  background: var(--green-200); border-radius: var(--radius-md);
+}
+.fb-score-label { font-size: 13px; font-weight: 500; color: var(--green-900); }
+.fb-score-value {
+  font-family: var(--font-display);
+  font-size: 18px; color: var(--green-900);
+  background: white; padding: 4px 14px; border-radius: var(--radius-pill);
+}
+.fb-subheading {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--text-muted);
+  padding: 10px 16px 0;
+}
+.fb-warning {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 14px; margin-bottom: 14px;
+  background: var(--amber-bg); border: 1px solid var(--amber-border);
+  border-radius: var(--radius-md);
+  font-size: 12px; color: var(--amber-text);
+}
+.fb-warning-icon { font-weight: 700; }
 @media (max-width: 768px) {
-  .rr-layout { grid-template-columns: 1fr; }
-  .rr-left { border-right: none; border-bottom: 1px solid var(--border); }
+  .rr-page {
+    height: auto;
+    overflow: visible;
+  }
+  .rr-layout {
+    grid-template-columns: 1fr;
+    flex: none;
+    overflow: visible;
+  }
+  .rr-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: visible;
+  }
+  .rr-right { overflow-y: visible; }
 }
