@@ -1,31 +1,11 @@
 {
   "home_title": "বাংলাদেশি গ্র্যাজুয়েটদের জন্য ক্যারিয়ার গাইডেন্স",
-  "home_sub": "আপনার রেজুমেতে AI ফিডব্যাক পান এবং ক্যারিয়ার পথ অন্বেষণ করুন",
+  "home_sub": "আপনার রেজুমেতে AI ফিডব্যাক পান",
   "review_resume": "রেজুমে রিভিউ করুন",
-  "explore_careers": "ক্যারিয়ার অন্বেষণ করুন",
-  "section_label": "আপনি যা করতে পারেন",
-
-  "feature_ai_title": "AI রেজুমে রিভিউ",
-  "feature_ai_desc": "আপনার রেজুমে আপলোড করুন এবং সঠিক ফিডব্যাক পান",
-  "feature_ai_badge": "প্রধান ফিচার",
-
-  "feature_resources_title": "ক্যারিয়ার রিসোর্স",
-  "feature_resources_desc": "রেজুমে লেখা এবং ইন্টারভিউ প্রস্তুতি শিখুন",
-  "feature_resources_badge": "সব বিষয়",
-
-  "feature_paths_title": "ক্যারিয়ার পথ",
-  "feature_paths_desc": "বিভিন্ন ক্যারিয়ার অপশন দেখুন",
-  "feature_paths_badge": "সব ইন্ডাস্ট্রি",
-
-  "feature_chatbot_title": "ক্যারিয়ার চ্যাটবট",
-  "feature_chatbot_desc": "ক্যারিয়ার সংক্রান্ত প্রশ্ন করুন",
-  "feature_chatbot_badge": "EN / BN",
-
-  "feature_alumni_title": "অ্যালামনাই নেটওয়ার্ক",
-  "feature_alumni_desc": "গ্র্যাজুয়েটদের বাস্তব অভিজ্ঞতা দেখুন",
-  "feature_alumni_badge": "বাস্তব গল্প",
-
-  "feature_lang_title": "বাংলা ভাষা সাপোর্ট",
-  "feature_lang_desc": "এক ক্লিকে বাংলা ভাষায় পরিবর্তন করুন",
-  "feature_lang_badge": "EN / BN"
+  "login_title": "আবার স্বাগতম",
+  "register_title": "অ্যাকাউন্ট তৈরি করুন",
+  "email": "ইমেইল ঠিকানা",
+  "password": "পাসওয়ার্ড",
+  "analyse": "রেজুমে বিশ্লেষণ করুন",
+  "resume_title": "রেজুমে রিভিউ"
 }
