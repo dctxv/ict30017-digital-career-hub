@@ -1,52 +1,34 @@
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import './Home.css'
-import { useTranslation } from "react-i18next"   // ✅ ADDED
+
+const features = [
+  { icon: '📄', title: 'AI resume review', desc: 'Upload your resume and get precise, actionable feedback based on Bangladeshi job market standards.', badge: 'Primary feature', badgeClass: 'badge-blue' },
+  { icon: '📚', title: 'Career resources', desc: 'Browse guides, videos, and articles covering resume writing, interview prep, and job searching in Bangladesh.', badge: 'All disciplines', badgeClass: 'badge-neutral' },
+  { icon: '🗺️', title: 'Career path explorer', desc: 'Explore career paths across IT, Finance, Science, Engineering, and more — with local salary and skills data.', badge: 'All industries', badgeClass: 'badge-neutral' },
+  { icon: '💬', title: 'Career chatbot', desc: 'Ask career questions and get guidance on job searching, interviews, and professional development.', badge: 'EN / BN', badgeClass: 'badge-neutral' },
+  { icon: '👥', title: 'Alumni network', desc: 'See real career journeys from Bangladeshi graduates across all disciplines and industries.', badge: 'Real stories', badgeClass: 'badge-neutral' },
+  { icon: '🌐', title: 'Bangla language support', desc: 'Switch the entire platform to Bangla with one click — including AI feedback and chatbot responses.', badge: 'EN / BN toggle', badgeClass: 'badge-green', highlight: true },
+]
 
 export default function Home() {
-  const { t } = useTranslation()   // ✅ ADDED
-
-  const features = [
-    { icon: '📄', title: t('feature_ai_title'), desc: t('feature_ai_desc'), badge: t('feature_ai_badge'), badgeClass: 'badge-blue' },
-    { icon: '📚', title: t('feature_resources_title'), desc: t('feature_resources_desc'), badge: t('feature_resources_badge'), badgeClass: 'badge-neutral' },
-    { icon: '🗺️', title: t('feature_paths_title'), desc: t('feature_paths_desc'), badge: t('feature_paths_badge'), badgeClass: 'badge-neutral' },
-    { icon: '💬', title: t('feature_chatbot_title'), desc: t('feature_chatbot_desc'), badge: t('feature_chatbot_badge'), badgeClass: 'badge-neutral' },
-    { icon: '👥', title: t('feature_alumni_title'), desc: t('feature_alumni_desc'), badge: t('feature_alumni_badge'), badgeClass: 'badge-neutral' },
-    { icon: '🌐', title: t('feature_lang_title'), desc: t('feature_lang_desc'), badge: t('feature_lang_badge'), badgeClass: 'badge-green', highlight: true },
-  ]
-
   return (
     <div className="page-enter">
       <Navbar />
-
       <section className="hero">
         <div className="hero-inner">
-          <h1 className="hero-title">
-            {t('home_title')}  {/* ✅ UPDATED */}
-          </h1>
-
-          <p className="hero-sub">
-            {t('home_sub')}  {/* ✅ UPDATED */}
-          </p>
-
+          <h1 className="hero-title">Career guidance built for<br />Bangladeshi graduates</h1>
+          <p className="hero-sub">Get AI-powered feedback on your resume, explore career paths across all industries, and access resources tailored to the Bangladeshi job market.</p>
           <div className="hero-btns">
-            <Link to="/resume-review" className="btn-primary-lg">
-              {t('review_resume')} {/* ✅ UPDATED */}
-            </Link>
-
-            <Link to="/careers" className="btn-outline-lg">
-              {t('explore_careers')} {/* ✅ UPDATED */}
-            </Link>
+            <Link to="/resume-review" className="btn-primary-lg">Review my resume</Link>
+            <Link to="/careers" className="btn-outline-lg">Explore careers</Link>
           </div>
         </div>
       </section>
 
       <section className="features">
         <div className="features-inner">
-          <p className="section-label">
-            {t('section_label')} {/* ✅ UPDATED */}
-          </p>
-
+          <p className="section-label">What you can do</p>
           <div className="features-grid">
             {features.map((f, i) => (
               <div key={i} className={`feat-card ${f.highlight ? 'feat-card--highlight' : ''}`}>
