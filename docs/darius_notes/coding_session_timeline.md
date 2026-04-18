@@ -1,13 +1,16 @@
 # Coding Session Timeline
 
-| Field | Value |
-| --- | --- |
-| Project | P83 Digital Career Hub |
-| Author | Darius Clay Tan Yi (AI Lead) |
+
+| Field   | Value                        |
+| ------- | ---------------------------- |
+| Project | P83 Digital Career Hub       |
+| Author  | Darius Clay Tan Yi (AI Lead) |
+
 
 ---
 
 ## Session 1 — 6 March 2026
+
 ### What Was Done
 
 - Initialised the GitHub repository with `.gitattributes` and a base `README.md`.
@@ -36,9 +39,11 @@ Research material available locally. These resumes became the basis for all prom
 ---
 
 ## Session 3 — 13 April 2026
+
 ### What Was Done
 
 **Project scaffold (`test 01`)**
+
 - Set up the full monorepo folder structure: `ai-service/`, `server/`, `client/`, `docs/`.
 - Built the `ai-service` module end-to-end:
   - `src/schemas/resumeSchema.js` — Zod schema defining the expected JSON shape from the AI (`overall_score`, `formatting_feedback`, `content_quality`, `language_and_grammar`, `action_items`).
@@ -52,6 +57,7 @@ Research material available locally. These resumes became the basis for all prom
 - Added progress and test result docs under `docs/`.
 
 **Prompt engineering (`Prompt Engineering Update`)**
+
 - Iterated the system prompt through 4 versions (documented in `ai_prompting_engineering.md`):
   - Iteration 0: Baseline — basic JSON schema, no detection rules.
   - Iteration 1: Research-driven — weighted scoring, CAR method, CGPA detection.
@@ -68,6 +74,7 @@ Research material available locally. These resumes became the basis for all prom
 ---
 
 ## Session 4 — 14 April 2026
+
 ### What Was Done
 
 - **Fixed garbled Unicode output** in the test runner. Box-drawing characters (`─`) and em dashes (`—`) were rendering as `â"€` / `â€"` on Windows terminals. Replaced all with plain ASCII (`-`).
@@ -100,6 +107,7 @@ Built the full file ingestion pipeline inside `server/` as a standalone Express.
 - `server/src/app.js` — Express entry point. Creates `uploads/` at startup. Registers the resume router. 4-argument error middleware catches Multer rejections and returns `413`/`415` with clean messages.
 
 **Improvements over the guide:**
+
 - Server is ESM (`import`/`export`) throughout — the guide used CommonJS `require()`, which cannot load the ESM `ai-service` module.
 - Multer filename uses `crypto.randomBytes` instead of `file.originalname` to eliminate path traversal risk.
 - `fileParser.js` uses `fs.promises.readFile` (async) instead of `fs.readFileSync`.
@@ -114,9 +122,11 @@ Built the full file ingestion pipeline inside `server/` as a standalone Express.
 ---
 
 ## Session 6 — 14 April 2026 (continued)
+
 ### What Was Done
 
 **Switched AI provider from Groq to OpenRouter**
+
 - Replaced `groq-sdk` with the `openai` npm package (OpenRouter uses the OpenAI-compatible API).
 - Updated `aiClient.js` to point at `https://openrouter.ai/api/v1` with `OPENROUTER_API_KEY`.
 - Removed `GROQ_API_KEY` and `GROQ_MODEL` from both `.env` files. New variables: `OPENROUTER_API_KEY` and `AI_MODEL`.
@@ -124,15 +134,18 @@ Built the full file ingestion pipeline inside `server/` as a standalone Express.
 - No changes required to `resumeReviewer.js` or any other file — the OpenAI SDK response shape is identical.
 
 **Fixed: model returning objects instead of strings in improvements arrays**
+
 - `gpt-5-mini` responded to the "quote the exact error and provide the correction" instruction by returning structured objects (e.g. `{"error": "a successfully career", "correction": "a successful career"}`) instead of plain strings.
-- Added `itemToString()` helper that detects common object shapes (`error`/`correction`, `issue`/`fix`, `quote`/`rewrite`, `original`/`suggested`) and formats them as readable strings (e.g. `"a successfully career" → "a successful career"`). Falls back to joining all string values with ` — `.
+- Added `itemToString()` helper that detects common object shapes (`error`/`correction`, `issue`/`fix`, `quote`/`rewrite`, `original`/`suggested`) and formats them as readable strings (e.g. `"a successfully career" → "a successful career"`). Falls back to joining all string values with `—`.
 - Updated `normalizeSection()` to run every array item through `itemToString()` before Zod validation, covering both `strengths` and `improvements`.
 
 **Fixed: DOCX upload rejected with 415**
+
 - curl sends `application/octet-stream` for DOCX files instead of the full DOCX MIME type, causing the dual MIME+extension validation to reject valid files.
 - Removed the MIME type check from `upload.js`. Extension is now the sole gate. The real content validation is downstream — `mammoth` throws on any file that isn't a valid DOCX, so renaming a non-DOCX to `.docx` still gets caught at extraction.
 
 **Fixed: action_items exceeding schema max(10)**
+
 - `gpt-5-mini` returned more than 10 action items, failing Zod's `.max(10)` constraint.
 - Added `.slice(0, 10)` in `normalizeResponse()` so oversized lists are trimmed rather than rejected. Priority order is preserved since the model returns items in descending priority.
 
