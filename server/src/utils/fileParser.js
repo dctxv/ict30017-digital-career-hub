@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import pdfParse from 'pdf-parse';
+import { getDocument, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import mammoth from 'mammoth';
 
 /**
@@ -24,21 +24,43 @@ export async function extractText(filePath) {
 }
 
 /**
- * Extract text from a PDF using pdf-parse.
+ * Extract text from a PDF using pdfjs-dist (Mozilla, maintained).
  * Only the text layer is read — the binary file is never executed or rendered.
  * Security reference: AI Architecture Doc §5 — "Resume file abuse (malware)"
  */
 async function extractFromPDF(filePath) {
   const buffer = await fs.readFile(filePath);
-  const data = await pdfParse(buffer);
+  const data = new Uint8Array(buffer);
 
-  if (!data.text || data.text.trim().length === 0) {
+  // verbosity: ERRORS suppresses the "standardFontDataUrl" noise — we only
+  // read the text layer, so glyph-rendering assets are irrelevant.
+  const loadingTask = getDocument({
+    data,
+    disableFontFace: true,
+    useSystemFonts: false,
+    verbosity: VerbosityLevel.ERRORS,
+  });
+  const pdf = await loadingTask.promise;
+
+  let fullText = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items
+      .map((item) => ('str' in item ? item.str : ''))
+      .join(' ');
+    fullText += pageText + '\n';
+  }
+  await pdf.cleanup();
+  await pdf.destroy();
+
+  if (!fullText.trim()) {
     throw new Error(
       'PDF appears to be empty or is a scanned image with no text layer. Only text-based PDFs are supported.'
     );
   }
 
-  return data.text;
+  return fullText;
 }
 
 /**
