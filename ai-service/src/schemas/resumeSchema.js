@@ -28,7 +28,6 @@ export const ResumeReviewSchema = z.object({
 
   action_items: z
     .array(z.string())
-    .min(1)
     .max(10)
     .describe(
       'Prioritised list of the most impactful changes the candidate should make immediately'
