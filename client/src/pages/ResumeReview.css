@@ -1,8 +1,16 @@
+.rr-page {
+  animation: fadeUp 0.35s ease forwards;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 .rr-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  height: calc(100vh - 60px);
+  flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 .rr-left {
   padding: 36px 32px;
@@ -155,10 +163,14 @@
 }
 .fb-warning-icon { font-weight: 700; }
 @media (max-width: 768px) {
+  .rr-page {
+    height: auto;
+    overflow: visible;
+  }
   .rr-layout {
     grid-template-columns: 1fr;
-    height: auto;
-    min-height: calc(100vh - 60px);
+    flex: none;
+    overflow: visible;
   }
   .rr-left {
     border-right: none;

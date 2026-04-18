@@ -141,7 +141,7 @@ export default function ResumeReview() {
   }
 
   return (
-    <div className="page-enter">
+    <div className="rr-page">
       <Navbar user={{ name: 'Isar Ujoodah' }} />
       <div className="rr-layout">
         <div className="rr-left">
