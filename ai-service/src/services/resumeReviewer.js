@@ -149,6 +149,69 @@ function calculateOverallScore(data) {
   return Math.round(content * 0.45 + language * 0.35 + formatting * 0.20);
 }
 
+export async function analyzeResumeStream(resumeText, { onToken } = {}) {
+  if (!resumeText || resumeText.trim().length === 0) {
+    throw new Error('Resume text cannot be empty.');
+  }
+
+  const client = getGroqClient();
+  const model = getModel();
+
+  let rawContent = '';
+  try {
+    const stream = await client.chat.completions.create({
+      model,
+      temperature: 0.3,
+      response_format: { type: 'json_object' },
+      stream: true,
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        {
+          role: 'user',
+          content: `Please review the following resume and return your feedback as a JSON object:\n\n---\n${resumeText}\n---`,
+        },
+      ],
+    });
+
+    for await (const chunk of stream) {
+      const piece = chunk?.choices?.[0]?.delta?.content;
+      if (piece) {
+        rawContent += piece;
+        if (typeof onToken === 'function') onToken(piece);
+      }
+    }
+
+    if (!rawContent) {
+      throw new Error('AI returned an empty response.');
+    }
+  } catch (err) {
+    if (err?.status === 429 || err?.message?.includes('429')) {
+      return {
+        error: 'AI is currently busy, please try again in a minute.',
+        code: 'RATE_LIMIT',
+      };
+    }
+    throw err;
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(rawContent);
+  } catch {
+    throw new Error(`AI returned invalid JSON: ${rawContent}`);
+  }
+
+  const normalized = normalizeResponse(parsed);
+  const result = ResumeReviewSchema.safeParse(normalized);
+  if (!result.success) {
+    throw new Error(
+      `AI response did not match expected schema: ${JSON.stringify(result.error.issues, null, 2)}`
+    );
+  }
+
+  return result.data;
+}
+
 export async function analyzeResume(resumeText) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');

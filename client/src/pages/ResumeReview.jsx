@@ -1,24 +1,99 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
+import { streamResumeReview } from '../api/reviewResume'
 import './ResumeReview.css'
 
-const mockFeedback = {
-  general: [
-    'Your objective statement is too generic — specify your target role and key strengths in 2 sentences.',
-    'Work experience section lacks measurable outcomes. Add numbers where possible (e.g. "reduced load time by 30%").',
-    'Skills section lists generic tools — organise by category (Programming, Frameworks, Tools).',
-  ],
-  spelling: [
-    'Line 14: "Mangaed" should be "Managed"',
-    'Inconsistent date format — use MM/YYYY throughout',
-    'Mixed use of past and present tense in job descriptions',
-  ],
-  gaps: [
-    'Job ad requires "REST API experience" — not mentioned in your resume',
-    'Missing keyword: "Agile methodology"',
-    'Role requires "team leadership" — no evidence in current resume',
-    'Missing: "PostgreSQL" listed in job requirements',
-  ],
+function FeedbackCards({ feedback }) {
+  if (!feedback) return null
+
+  const formatting = feedback.formatting_feedback
+  const content = feedback.content_quality
+  const language = feedback.language_and_grammar
+  const actions = Array.isArray(feedback.action_items) ? feedback.action_items : []
+
+  return (
+    <>
+      {typeof feedback.overall_score === 'number' && (
+        <div className="fb-score-banner">
+          <span className="fb-score-label">Overall score</span>
+          <span className="fb-score-value">{feedback.overall_score} / 10</span>
+        </div>
+      )}
+
+      <FeedbackSection
+        title="Content quality"
+        tone="green"
+        section={content}
+      />
+      <FeedbackSection
+        title="Language and grammar"
+        tone="amber"
+        section={language}
+      />
+      <FeedbackSection
+        title="Formatting and structure"
+        tone="blue"
+        section={formatting}
+      />
+
+      {actions.length > 0 && (
+        <div className="fb-section fb-section--green">
+          <div className="fb-header">
+            <span className="fb-heading">Action items</span>
+            <span className="fb-pill fb-pill--green">{actions.length} items</span>
+          </div>
+          <ul className="fb-list">
+            {actions.map((t, i) => (
+              typeof t === 'string' && t.length > 0 ? (
+                <li key={i}><span className="fb-dot fb-dot--green" />{t}</li>
+              ) : null
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  )
+}
+
+function FeedbackSection({ title, tone, section }) {
+  if (!section || typeof section !== 'object') return null
+
+  const strengths = Array.isArray(section.strengths) ? section.strengths.filter(s => typeof s === 'string' && s.length) : []
+  const improvements = Array.isArray(section.improvements) ? section.improvements.filter(s => typeof s === 'string' && s.length) : []
+  const score = typeof section.score === 'number' ? section.score : null
+
+  if (strengths.length === 0 && improvements.length === 0 && score === null) return null
+
+  return (
+    <div className={`fb-section fb-section--${tone}`}>
+      <div className="fb-header">
+        <span className="fb-heading">{title}</span>
+        {score !== null && (
+          <span className={`fb-pill fb-pill--${tone}`}>{score} / 10</span>
+        )}
+      </div>
+      {strengths.length > 0 && (
+        <>
+          <div className="fb-subheading">Strengths</div>
+          <ul className="fb-list">
+            {strengths.map((t, i) => (
+              <li key={`s-${i}`}><span className={`fb-dot fb-dot--${tone}`} />{t}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      {improvements.length > 0 && (
+        <>
+          <div className="fb-subheading">Improvements</div>
+          <ul className="fb-list">
+            {improvements.map((t, i) => (
+              <li key={`i-${i}`}><span className={`fb-dot fb-dot--${tone}`} />{t}</li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  )
 }
 
 export default function ResumeReview() {
@@ -27,6 +102,8 @@ export default function ResumeReview() {
   const [jobAd, setJobAd] = useState('')
   const [analysed, setAnalysed] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [feedback, setFeedback] = useState(null)
+  const [streamError, setStreamError] = useState(null)
 
   function handleFile(e) {
     const f = e.target.files[0]
@@ -39,10 +116,28 @@ export default function ResumeReview() {
     if (f) setFile(f)
   }
 
-  function analyse() {
+  async function analyse() {
     if (!file) return
     setLoading(true)
-    setTimeout(() => { setLoading(false); setAnalysed(true) }, 1800)
+    setAnalysed(false)
+    setFeedback(null)
+    setStreamError(null)
+
+    await streamResumeReview(file, {
+      onPartial: (partial) => {
+        setFeedback(partial)
+        setAnalysed(true)
+      },
+      onDone: (final) => {
+        setFeedback(final)
+        setAnalysed(true)
+        setLoading(false)
+      },
+      onError: (_code, msg) => {
+        setStreamError(msg || 'Something went wrong during analysis.')
+        setLoading(false)
+      },
+    })
   }
 
   return (
@@ -110,49 +205,21 @@ export default function ResumeReview() {
 
         <div className="rr-right">
           <h2 className="rr-title">Feedback</h2>
-          {analysed ? (
+          {streamError ? (
+            <div className="fb-empty fb-empty--error">
+              <div className="fb-empty-icon">⚠️</div>
+              <p>{streamError}</p>
+            </div>
+          ) : analysed && feedback ? (
             <>
               <p className="rr-sub">Results for: <strong>{file?.name}</strong>{jobRole ? ` — ${jobRole}` : ''}</p>
-              <div className="fb-section fb-section--green">
-                <div className="fb-header">
-                  <span className="fb-heading">General improvements</span>
-                  <span className="fb-pill fb-pill--green">72 / 100</span>
-                </div>
-                <ul className="fb-list">
-                  {mockFeedback.general.map((t, i) => (
-                    <li key={i}><span className="fb-dot fb-dot--green" />{t}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="fb-section fb-section--amber">
-                <div className="fb-header">
-                  <span className="fb-heading">Spelling and consistency</span>
-                  <span className="fb-pill fb-pill--amber">{mockFeedback.spelling.length} issues</span>
-                </div>
-                <ul className="fb-list">
-                  {mockFeedback.spelling.map((t, i) => (
-                    <li key={i}><span className="fb-dot fb-dot--amber" />{t}</li>
-                  ))}
-                </ul>
-              </div>
-              {jobAd && (
-                <div className="fb-section fb-section--blue">
-                  <div className="fb-header">
-                    <span className="fb-heading">Job ad gap analysis</span>
-                    <span className="fb-pill fb-pill--blue">{mockFeedback.gaps.length} gaps found</span>
-                  </div>
-                  <ul className="fb-list">
-                    {mockFeedback.gaps.map((t, i) => (
-                      <li key={i}><span className="fb-dot fb-dot--blue" />{t}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div className="fb-actions">
-                <button className="btn-translate">Translate to Bangla</button>
-                <button className="btn-download">Download PDF report</button>
-              </div>
+              <FeedbackCards feedback={feedback} />
             </>
+          ) : loading ? (
+            <div className="fb-empty">
+              <div className="fb-empty-icon fb-empty-icon--spin">⏳</div>
+              <p>Analysing your resume…</p>
+            </div>
           ) : (
             <div className="fb-empty">
               <div className="fb-empty-icon">🔍</div>

@@ -3,7 +3,7 @@ import fs from 'fs';
 import upload from '../middleware/upload.js';
 import { extractText } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
-import { analyzeResume } from '../../../ai-service/index.js';
+import { analyzeResume, analyzeResumeStream } from '../../../ai-service/index.js';
 
 const router = express.Router();
 
@@ -67,6 +67,75 @@ router.post('/analyze', upload.single('resume'), async (req, res) => {
     if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
       fs.unlinkSync(uploadedFilePath);
       console.log(`[resume] Temp file deleted: ${uploadedFilePath}`);
+    }
+  }
+});
+
+/**
+ * POST /api/resume/analyze-stream
+ *
+ * Same contract as /analyze but streams the AI output token-by-token as SSE.
+ * The client accumulates tokens, tolerant-parses partial JSON, and renders
+ * feedback cards progressively.
+ *
+ * Frames:
+ *   data: {"t":"<token piece>"}\n\n
+ *   data: {"done":true,"feedback":{...validated object...}}\n\n
+ *   data: {"error":"RATE_LIMIT"|"INTERNAL","message":"..."}\n\n
+ */
+router.post('/analyze-stream', upload.single('resume'), async (req, res) => {
+  const uploadedFilePath = req.file?.path ?? null;
+
+  const writeFrame = (obj) => {
+    res.write(`data: ${JSON.stringify(obj)}\n\n`);
+  };
+
+  try {
+    if (!req.file) {
+      res.status(400).json({
+        error: 'No file uploaded. Please attach a PDF or DOCX resume.',
+      });
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+
+    console.log(`[resume-stream] Extracting text from: ${req.file.originalname}`);
+    const rawText = await extractText(uploadedFilePath);
+    const cleanText = sanitiseResumeText(rawText);
+    console.log(`[resume-stream] Sanitised text length: ${cleanText.length} chars`);
+
+    console.log('[resume-stream] Streaming from AI service...');
+    const feedback = await analyzeResumeStream(cleanText, {
+      onToken: (t) => writeFrame({ t }),
+    });
+
+    if (feedback?.code === 'RATE_LIMIT') {
+      writeFrame({ error: 'RATE_LIMIT', message: feedback.error });
+      res.end();
+      return;
+    }
+
+    writeFrame({ done: true, filename: req.file.originalname, feedback });
+    res.end();
+
+  } catch (err) {
+    console.error('[resume-stream] Error during analysis:', err.message);
+    if (res.headersSent) {
+      writeFrame({ error: 'INTERNAL', message: err.message || 'Analysis failed.' });
+      res.end();
+    } else {
+      res.status(500).json({ error: err.message || 'Analysis failed.' });
+    }
+
+  } finally {
+    if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
+      fs.unlinkSync(uploadedFilePath);
+      console.log(`[resume-stream] Temp file deleted: ${uploadedFilePath}`);
     }
   }
 });
