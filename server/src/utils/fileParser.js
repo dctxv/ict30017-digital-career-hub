@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { getDocument, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import mammoth from 'mammoth';
 
 /**
@@ -32,7 +32,14 @@ async function extractFromPDF(filePath) {
   const buffer = await fs.readFile(filePath);
   const data = new Uint8Array(buffer);
 
-  const loadingTask = getDocument({ data, disableFontFace: true, useSystemFonts: false });
+  // verbosity: ERRORS suppresses the "standardFontDataUrl" noise — we only
+  // read the text layer, so glyph-rendering assets are irrelevant.
+  const loadingTask = getDocument({
+    data,
+    disableFontFace: true,
+    useSystemFonts: false,
+    verbosity: VerbosityLevel.ERRORS,
+  });
   const pdf = await loadingTask.promise;
 
   let fullText = '';
