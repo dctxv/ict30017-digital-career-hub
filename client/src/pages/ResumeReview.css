@@ -143,6 +143,14 @@
   letter-spacing: 0.04em; color: var(--text-muted);
   padding: 10px 16px 0;
 }
+.fb-warning {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 14px; margin-bottom: 14px;
+  background: var(--amber-bg); border: 1px solid var(--amber-border);
+  border-radius: var(--radius-md);
+  font-size: 12px; color: var(--amber-text);
+}
+.fb-warning-icon { font-weight: 700; }
 @media (max-width: 768px) {
   .rr-layout { grid-template-columns: 1fr; }
   .rr-left { border-right: none; border-bottom: 1px solid var(--border); }

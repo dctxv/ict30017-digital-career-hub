@@ -205,16 +205,22 @@ export default function ResumeReview() {
 
         <div className="rr-right">
           <h2 className="rr-title">Feedback</h2>
-          {streamError ? (
+          {analysed && feedback ? (
+            <>
+              <p className="rr-sub">Results for: <strong>{file?.name}</strong>{jobRole ? ` — ${jobRole}` : ''}</p>
+              {streamError && (
+                <div className="fb-warning">
+                  <span className="fb-warning-icon">⚠</span>
+                  <span>Feedback may be incomplete: {streamError}</span>
+                </div>
+              )}
+              <FeedbackCards feedback={feedback} />
+            </>
+          ) : streamError ? (
             <div className="fb-empty fb-empty--error">
               <div className="fb-empty-icon">⚠️</div>
               <p>{streamError}</p>
             </div>
-          ) : analysed && feedback ? (
-            <>
-              <p className="rr-sub">Results for: <strong>{file?.name}</strong>{jobRole ? ` — ${jobRole}` : ''}</p>
-              <FeedbackCards feedback={feedback} />
-            </>
           ) : loading ? (
             <div className="fb-empty">
               <div className="fb-empty-icon fb-empty-icon--spin">⏳</div>
