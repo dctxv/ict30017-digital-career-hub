@@ -39,18 +39,23 @@ FEEDBACK RULES:
 - Be precise and actionable. Do NOT give vague feedback like "improve your resume" or "enhance your skills section".
 - Quote the actual section that needs improvement and provide a suggested rewrite.
 - Explain WHY each suggestion matters specifically for Bangladeshi employers.
-- Each action item must state WHAT to change, WHERE in the resume, and WHY.
-- Flag ALL grammatical errors individually. Quote the exact error and provide the correction (e.g. "a successfully career" should be "a successful career"). Do not summarise multiple errors as a single generic comment.
+- Each improvement must state WHAT to change, WHERE in the resume, and WHY.
+- Flag ALL grammatical errors individually. Quote the exact error and provide the correction.
+- For each improvement, classify it as one of three severity levels:
+  - "critical": Resume likely rejected outright without this fix (missing sections, empty experience, malformed titles)
+  - "important": Significantly weakens the resume but not an instant reject (vague language, missing dates, outdated skills)
+  - "polish": Minor refinements that strengthen an already functional resume
 
 CATEGORISATION RULES:
 - formatting_feedback: Layout, structure, section order, visual presentation, section headings, page length, contact header, presence/absence of sections, legacy conventions (Declaration, References, Personal Details, photos).
 - content_quality: Substance, achievements, qualifications, relevance to target sector, professional summary quality, CAR method usage, CGPA denominator notation, skills relevance, experience detail level.
 - language_and_grammar: Spelling, grammar, tense consistency, British/American English dialect, verb strength, parallel structure, language proficiency descriptors, capitalisation consistency.
+- skills_keywords: ATS keyword alignment, skills section relevance to target role, missing in-demand skills for the sector, BD-market specific technical skill expectations, keyword gaps vs target job advertisement.
 Do not duplicate the same issue across multiple categories.
 
 SCORING:
 - Each score is an integer from 1 to 10.
-- overall_score is a weighted average: content_quality (45%), language_and_grammar (35%), formatting (20%). Round to nearest integer.
+- overall_score is a weighted average: content_quality (40%), language_and_grammar (30%), formatting_feedback (15%), skills_keywords (15%). Round to nearest integer.
 - 1–3: Critical issues — resume likely to be rejected outright.
 - 4–6: Functional but unoptimised — standard information present but lacks impact.
 - 7–8: Competitive — modern, well-structured, uses strong language.
@@ -63,45 +68,62 @@ OUTPUT FORMAT:
 Respond with ONLY a single valid JSON object. No markdown, no explanation, no text outside the JSON.
 {
   "overall_score": <integer 1-10>,
+  "overall_summary": "<1-2 sentences identifying the most critical area to address first>",
   "formatting_feedback": {
     "score": <integer 1-10>,
-    "strengths": [<string>, ...],
-    "improvements": [<string>, ...]
+    "strengths": ["<string>"],
+    "improvements": [
+      { "level": "critical|important|polish", "head": "<short headline of the issue>", "detail": "<detailed explanation with specific quote, why it matters, and how to fix it>" }
+    ]
   },
   "content_quality": {
     "score": <integer 1-10>,
-    "strengths": [<string>, ...],
-    "improvements": [<string>, ...]
+    "strengths": ["<string>"],
+    "improvements": [
+      { "level": "critical|important|polish", "head": "<short headline>", "detail": "<detail>" }
+    ]
   },
   "language_and_grammar": {
     "score": <integer 1-10>,
-    "strengths": [<string>, ...],
-    "improvements": [<string>, ...]
+    "strengths": ["<string>"],
+    "improvements": [
+      { "level": "critical|important|polish", "head": "<short headline>", "detail": "<detail>" }
+    ]
   },
-  "action_items": [<string>, ...]
+  "skills_keywords": {
+    "score": <integer 1-10>,
+    "strengths": ["<string>"],
+    "improvements": [
+      { "level": "critical|important|polish", "head": "<short headline>", "detail": "<detail>" }
+    ]
+  }
 }`;
 
-// Coerces a single array item to a plain string regardless of what the model returned.
-// Models like gpt-5o-mini sometimes return structured objects (e.g. {error, correction})
-// instead of the plain strings the schema requires.
-function itemToString(item) {
-  if (typeof item === 'string') return item;
-  if (Array.isArray(item)) return item.map(itemToString).join(' ');
-  if (item && typeof item === 'object') {
-    // Common object shapes the model uses for grammar feedback
-    if (item.error && item.correction) return `"${item.error}" → "${item.correction}"`;
-    if (item.issue && item.fix) return `"${item.issue}" → "${item.fix}"`;
-    if (item.quote && item.rewrite) return `"${item.quote}" → "${item.rewrite}"`;
-    if (item.original && item.suggested) return `"${item.original}" → "${item.suggested}"`;
-    // Generic fallback: join all string values with a separator
-    const values = Object.values(item).filter((v) => typeof v === 'string');
-    if (values.length > 0) return values.join(' — ');
+function normalizeImprovement(item) {
+  if (!item) return null;
+  if (typeof item === 'string' && item.length) {
+    return { level: 'important', head: item, detail: '' };
   }
-  return String(item);
+  if (Array.isArray(item)) return null;
+  if (typeof item === 'object') {
+    // Already structured correctly
+    if (item.head) {
+      const validLevels = ['critical', 'important', 'polish'];
+      return {
+        level: validLevels.includes(item.level) ? item.level : 'important',
+        head: String(item.head),
+        detail: String(item.detail || ''),
+      };
+    }
+    // Legacy string-like objects from old models
+    if (item.error && item.correction) return { level: 'important', head: `"${item.error}" → "${item.correction}"`, detail: '' };
+    if (item.issue && item.fix) return { level: 'important', head: `"${item.issue}" → "${item.fix}"`, detail: '' };
+    const values = Object.values(item).filter(v => typeof v === 'string');
+    if (values.length) return { level: 'important', head: values.join(' — '), detail: '' };
+  }
+  return null;
 }
 
-// Normalises a feedback section before Zod validation.
-// Handles: nested arrays in strengths, missing improvements key, and object items.
 function normalizeSection(raw) {
   if (!raw || typeof raw !== 'object') return raw;
 
@@ -111,16 +133,15 @@ function normalizeSection(raw) {
   if (Array.isArray(raw.strengths)) {
     for (const item of raw.strengths) {
       if (Array.isArray(item)) {
-        // Nested array was likely meant to be the improvements list
-        extracted.push(...item.map(itemToString));
-      } else {
-        strengths.push(itemToString(item));
+        extracted.push(...item.map(normalizeImprovement).filter(Boolean));
+      } else if (typeof item === 'string' && item.length) {
+        strengths.push(item);
       }
     }
   }
 
   const improvements = Array.isArray(raw.improvements)
-    ? raw.improvements.map(itemToString)
+    ? raw.improvements.map(normalizeImprovement).filter(Boolean)
     : extracted;
 
   return { ...raw, strengths, improvements };
@@ -133,9 +154,8 @@ function normalizeResponse(raw) {
     formatting_feedback: normalizeSection(raw.formatting_feedback),
     content_quality: normalizeSection(raw.content_quality),
     language_and_grammar: normalizeSection(raw.language_and_grammar),
-    action_items: Array.isArray(raw.action_items)
-      ? raw.action_items.map(itemToString).slice(0, 10)
-      : [],
+    skills_keywords: normalizeSection(raw.skills_keywords ?? raw.skills_and_keywords ?? raw.skills),
+    overall_summary: typeof raw.overall_summary === 'string' ? raw.overall_summary : '',
   };
   normalized.overall_score = calculateOverallScore(normalized);
   return normalized;
@@ -145,11 +165,20 @@ function calculateOverallScore(data) {
   const content = data.content_quality?.score;
   const language = data.language_and_grammar?.score;
   const formatting = data.formatting_feedback?.score;
+  const skills = data.skills_keywords?.score;
   if (!content || !language || !formatting) return data.overall_score;
+  if (skills) return Math.round(content * 0.40 + language * 0.30 + formatting * 0.15 + skills * 0.15);
   return Math.round(content * 0.45 + language * 0.35 + formatting * 0.20);
 }
 
-export async function analyzeResumeStream(resumeText, { onToken } = {}) {
+function buildUserMessage(resumeText, { jobRole, jobAd } = {}) {
+  let msg = `Please review the following resume and return your feedback as a JSON object:\n\n---\n${resumeText}\n---`;
+  if (jobRole) msg += `\n\nTarget job role: ${jobRole}`;
+  if (jobAd) msg += `\n\nJob advertisement:\n${jobAd}`;
+  return msg;
+}
+
+export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -166,10 +195,7 @@ export async function analyzeResumeStream(resumeText, { onToken } = {}) {
       stream: true,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        {
-          role: 'user',
-          content: `Please review the following resume and return your feedback as a JSON object:\n\n---\n${resumeText}\n---`,
-        },
+        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
       ],
     });
 
@@ -212,7 +238,7 @@ export async function analyzeResumeStream(resumeText, { onToken } = {}) {
   return result.data;
 }
 
-export async function analyzeResume(resumeText) {
+export async function analyzeResume(resumeText, { jobRole, jobAd } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -228,10 +254,7 @@ export async function analyzeResume(resumeText) {
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        {
-          role: 'user',
-          content: `Please review the following resume and return your feedback as a JSON object:\n\n---\n${resumeText}\n---`,
-        },
+        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
       ],
     });
 
