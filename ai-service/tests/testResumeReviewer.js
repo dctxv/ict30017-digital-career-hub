@@ -1,8 +1,13 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve, basename, extname } from 'path';
+
+// Load env from server/.env so there's only one source of truth.
+dotenv.config({
+  path: resolve(dirname(fileURLToPath(import.meta.url)), '../../server/.env'),
+});
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');

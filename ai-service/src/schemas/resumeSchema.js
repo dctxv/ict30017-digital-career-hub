@@ -1,9 +1,15 @@
 import { z } from 'zod';
 
+const ImprovementItem = z.object({
+  level: z.enum(['critical', 'important', 'polish']),
+  head: z.string(),
+  detail: z.string(),
+});
+
 const FeedbackSection = z.object({
   score: z.number().int().min(1).max(10).describe('Quality score out of 10'),
   strengths: z.array(z.string()).describe('What the candidate did well in this area'),
-  improvements: z.array(z.string()).describe('Specific, actionable improvements needed'),
+  improvements: z.array(ImprovementItem).describe('Specific, actionable improvements needed'),
 });
 
 export const ResumeReviewSchema = z.object({
@@ -13,6 +19,10 @@ export const ResumeReviewSchema = z.object({
     .min(1)
     .max(10)
     .describe('Overall resume quality score out of 10'),
+
+  overall_summary: z
+    .string()
+    .describe('1-2 sentence summary of the most critical area to address first'),
 
   formatting_feedback: FeedbackSection.describe(
     'Feedback on layout, visual structure, section ordering, and consistency'
@@ -26,10 +36,7 @@ export const ResumeReviewSchema = z.object({
     'Feedback on grammar, spelling, word choice, and professional tone'
   ),
 
-  action_items: z
-    .array(z.string())
-    .max(10)
-    .describe(
-      'Prioritised list of the most impactful changes the candidate should make immediately'
-    ),
+  skills_keywords: FeedbackSection.describe(
+    'Feedback on skills relevance, ATS keyword alignment, and target-role match for the BD job market'
+  ),
 });
