@@ -11,7 +11,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 app.set('json spaces', 2);
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'] }));
+app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], credentials: true }));
 app.use(express.json());
 
 // Ensure uploads/ exists at startup so Multer never writes to a missing directory
@@ -22,7 +22,9 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Routes
 import resumeRouter from './routes/resume.js';
+import chatbotRouter from './routes/chatbot.js';
 app.use('/api/resume', resumeRouter);
+app.use('/api/chat', chatbotRouter);
 
 // Multer error handler — must be a 4-argument Express error middleware
 // Catches file size (413) and file type (415) rejections from upload.js
