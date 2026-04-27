@@ -36,7 +36,7 @@ app.use((err, req, res, next) => {
   console.error('[app] Unhandled error:', err.message);
   return res.status(500).json({ error: 'Internal server error.' });
 });
-console.log("Database setup ready for integration");
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

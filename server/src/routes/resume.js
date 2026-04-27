@@ -41,7 +41,9 @@ router.post('/analyze', upload.single('resume'), async (req, res) => {
 
     // Step 3 — Call AI service
     console.log('[resume] Sending to AI service...');
-    const feedback = await analyzeResume(cleanText);
+    const jobRole = typeof req.body?.jobRole === 'string' ? req.body.jobRole.slice(0, 200) : undefined;
+    const jobAd = typeof req.body?.jobAd === 'string' ? req.body.jobAd.slice(0, 4000) : undefined;
+    const feedback = await analyzeResume(cleanText, { jobRole, jobAd });
 
     if (feedback.code === 'RATE_LIMIT') {
       return res.status(429).json({ error: feedback.error });
@@ -110,8 +112,12 @@ router.post('/analyze-stream', upload.single('resume'), async (req, res) => {
     console.log(`[resume-stream] Sanitised text length: ${cleanText.length} chars`);
 
     console.log('[resume-stream] Streaming from AI service...');
+    const jobRole = typeof req.body?.jobRole === 'string' ? req.body.jobRole.slice(0, 200) : undefined;
+    const jobAd = typeof req.body?.jobAd === 'string' ? req.body.jobAd.slice(0, 4000) : undefined;
     const feedback = await analyzeResumeStream(cleanText, {
       onToken: (t) => writeFrame({ t }),
+      jobRole,
+      jobAd,
     });
 
     if (feedback?.code === 'RATE_LIMIT') {

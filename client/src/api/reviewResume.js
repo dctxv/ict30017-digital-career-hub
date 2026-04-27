@@ -5,19 +5,16 @@ const ENDPOINT = 'http://localhost:3000/api/resume/analyze-stream';
 /**
  * Streams an AI resume review from the backend.
  *
- * The server emits SSE frames:
- *   data: {"t":"<token piece>"}         — append to accumulator, try partial parse
- *   data: {"done":true,"feedback":{…}}  — final validated object
- *   data: {"error":"…","message":"…"}   — terminal error
- *
  * Callbacks:
  *   onPartial(obj)         — fired as the JSON becomes parseable (may be missing fields)
  *   onDone(feedback)       — fired once with the final validated feedback
  *   onError(code, message) — fired on server-side error; stream ends after
  */
-export async function streamResumeReview(file, { onPartial, onDone, onError }) {
+export async function streamResumeReview(file, { jobRole, jobAd, onPartial, onDone, onError }) {
   const form = new FormData();
   form.append('resume', file);
+  if (jobRole) form.append('jobRole', jobRole);
+  if (jobAd) form.append('jobAd', jobAd);
 
   let response;
   try {

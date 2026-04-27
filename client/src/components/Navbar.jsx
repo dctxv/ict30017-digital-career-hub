@@ -1,18 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import './Navbar.css'
-import { useTranslation } from 'react-i18next'
-
-export default function Navbar() {
-  const { i18n } = useTranslation();
-
-  return (
-    <div>
-      <button onClick={() => i18n.changeLanguage("en")}>EN</button>
-      <button onClick={() => i18n.changeLanguage("bn")}>BN</button>
-    </div>
-  );
-}
 
 export default function Navbar({ user = null }) {
   const [lang, setLang] = useState('EN')
