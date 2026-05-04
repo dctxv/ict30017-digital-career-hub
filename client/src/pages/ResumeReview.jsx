@@ -3,66 +3,79 @@ import Navbar from '../components/Navbar'
 import { streamResumeReview } from '../api/reviewResume'
 import './ResumeReview.css'
 
-/* ── Hardcoded sample data (for "See a sample review") ──────────── */
+/* ── Hardcoded sample data ───────────────────────────────────────── */
 const SAMPLE = {
-  overall_score: 3,
-  overall_summary: "Start with the Experience section — it's essentially empty and is the first gap Bangladeshi recruiters will flag. Add real roles, dates, and outcomes using the CAR method.",
+  overall_score: 52,
+  formatting: {
+    score: 61,
+    feedback: 'The resume has a clear section structure and readable layout. However, several legacy Bangladeshi conventions are present that would limit performance in modern ATS systems used by multinationals.',
+    issues: [
+      { section: 'Contact header', issue: 'Missing LinkedIn URL', suggestion: 'Add your LinkedIn profile URL (e.g. linkedin.com/in/yourname) — Bangladeshi MNC recruiters increasingly verify digital footprints before shortlisting.' },
+      { section: 'Skills', issue: '"Computer Knowledge" heading is outdated', suggestion: 'Rename to "Technical Skills" — modern recruiters and ATS systems expect this standard heading.' },
+      { section: 'Footer', issue: 'Declaration section adds no value', suggestion: 'Remove the declaration section entirely to reclaim space for skills or achievements.' },
+    ],
+  },
   content_quality: {
-    score: 2,
+    score: 48,
+    feedback: 'The educational background is solid but the experience section critically lacks quantified achievements. Recruiters will not shortlist without specific outcomes using the CAR method.',
     strengths: [
       'Educational background shows relevant qualification (Diploma in Power Technology)',
-      'Training includes practical skills — Electrical House Wiring, Industrial Attachment',
+      'Training section includes practical hands-on skills aligned to the electrical sector',
     ],
-    improvements: [
-      { level: 'critical', head: 'Experience section is essentially empty', detail: 'Only lists topic areas without actual job roles, employers, dates, or descriptions. Add real entries using the CAR method (Context, Action, Result) — this is the single biggest gap recruiters will flag.' },
-      { level: 'critical', head: 'Training entries lack date ranges', detail: 'Show start–end dates e.g. Jan 2023 – Mar 2023. Recruiters need to know when you trained, not just how long.' },
-      { level: 'important', head: 'Career objective is too vague', detail: 'Replace with a professional summary targeting a specific sector — e.g. power sector, electrical engineering, or renewable energy.' },
-      { level: 'polish', head: 'Remove INTERESTS section', detail: '"Gaming, Internet browse" adds no professional value and may appear unprofessional to BD recruiters at MNCs.' },
-    ],
-  },
-  language_and_grammar: {
-    score: 4,
-    strengths: [
-      'Consistent punctuation maintained within most sections',
-      'Generally readable structure throughout the document',
-    ],
-    improvements: [
-      { level: 'important', head: 'Vague language proficiency descriptors', detail: 'Replace "fluent" and "Professional working proficiency" with specific levels (B2/C1) or test scores like IELTS 7.0. Bangladeshi MNCs expect specificity.' },
-      { level: 'important', head: 'Career objective uses passive, vague language', detail: 'Use active verbs and specific role targets to sound more confident and direct. Avoid phrases like "seeking a suitable position".' },
-      { level: 'polish', head: 'Inconsistent capitalisation in section headers', detail: 'Pick Title Case or ALL CAPS and apply it consistently throughout the document.' },
+    weaknesses: [
+      'Experience section lists topic areas only — no actual job roles, employers, dates, or outcomes',
+      'Career objective is generic ("seeking a challenging position in a dynamic environment") — replace with a targeted professional summary naming the power sector and your key qualifications',
+      'Training entries missing date ranges — show "Jan 2023 – Mar 2023", not just "3 months"',
     ],
   },
-  formatting_feedback: {
-    score: 7,
-    strengths: [
-      'Sections are clearly separated and labelled',
-      'Contact information is at the top and easy to find',
-      'Good use of white space — the document is easy to scan',
-    ],
-    improvements: [
-      { level: 'important', head: 'Missing LinkedIn URL', detail: 'Bangladeshi recruiters at MNCs increasingly verify digital footprints before interviews — add your LinkedIn profile URL to the contact section.' },
-      { level: 'polish', head: 'Computer Knowledge lists outdated operating systems', detail: 'Remove Windows XP and Windows 7 — these signal an outdated skills profile to modern employers.' },
+  language_grammar: {
+    score: 61,
+    feedback: 'Generally readable, but weak verb choices and vague descriptors reduce professional impact. British English should be standardised throughout.',
+    issues: [
+      { original: 'Responsible for handling electrical maintenance', corrected: 'Spearheaded electrical maintenance operations for a 12-unit residential complex', type: 'Weak action verb' },
+      { original: 'Good command in English', corrected: 'Professional working proficiency in English (IELTS 6.5)', type: 'Vague language descriptor' },
+      { original: 'organization (used alongside "organisation")', corrected: 'organisation — standardise to British English throughout', type: 'British/American English mix' },
     ],
   },
-  skills_keywords: {
-    score: 5,
-    strengths: [
-      'Technical skills listed are relevant to the electrical engineering field',
-      'Diploma subject areas broadly align with common Power sector role requirements',
+  action_items: [
+    'Experience section: Add at least 2 real job roles with employer, date range, and 2–3 CAR-method bullet points each — this is the single biggest gap recruiters will flag.',
+    'Training section: Add start–end dates to all entries (e.g. "Jan 2023 – Mar 2023") — dates show WHEN you trained, not just how long.',
+    'Career objective: Replace with a 2-sentence professional summary targeting a specific sector (power, electrical, or renewable energy) and naming your strongest qualification.',
+    'Skills section: Research 5 current job ads in your target sector and mirror their exact keyword language — ATS systems score heavily on keyword match.',
+  ],
+  ats_analysis: {
+    inferred_role: 'Electrical Engineer',
+    inferred_industry: 'Power & Energy',
+    keyword_hits: ['Electrical Wiring', 'Power Systems', 'Industrial Attachment', 'AutoCAD', 'Circuit Design'],
+    keyword_gaps: ['PLC Programming', 'SCADA', 'Load Flow Analysis', 'IEEE Standards', 'Energy Audit'],
+    heading_risks: [
+      { original: 'Computer Knowledge', issue: 'Non-standard heading — many ATS systems will fail to map this to a recognised section', recommended: 'Technical Skills' },
     ],
-    improvements: [
-      { level: 'important', head: 'Skills section not aligned to target role keywords', detail: 'Research job ads in your target sector and mirror their exact keyword language — ATS systems score heavily on keyword match, and BD recruiters search for specific terms.' },
-      { level: 'important', head: 'Renewable energy not mentioned', detail: 'Solar and renewable energy is a high-growth area in Bangladesh — if you have relevant training or interest, add it explicitly to increase matches with current job ads.' },
+    ats_tips: [
+      'Add "PLC Programming" and "SCADA" explicitly to the Technical Skills section — these are high-frequency keywords in Bangladeshi power sector job ads.',
+      'Replace the "Computer Knowledge" heading with "Technical Skills" — ATS parsers at multinationals use this as the standard identifier.',
+      'Include the CGPA denominator for all academic entries (e.g. "3.72/4.00") — missing denominators cause ATS misreads on the dual 4.00/5.00 Bangladesh scale.',
     ],
+    standard: 'international/multinational ATS',
+    ats_score: 44,
   },
+  job_match: null,
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
 const displayFilename = name => name.replace(/_/g, ' ')
-const bandLabel = score => score <= 3 ? 'Needs significant work' : score <= 6 ? 'Functional but unoptimised' : score <= 8 ? 'Competitive' : 'Exemplary'
-const scoreColorClass = score => score <= 4 ? 'sc-red' : score <= 6 ? 'sc-amber' : 'sc-green'
-const scoreIcon = score => score <= 4 ? '⚠' : score <= 6 ? '!' : '✓'
-const sectionHeaderClass = score => score <= 4 ? 'sh-red' : score <= 6 ? 'sh-amber' : 'sh-green'
+
+const bandLabel = score =>
+  score <= 30 ? 'Needs significant work'
+  : score <= 60 ? 'Functional but unoptimised'
+  : score <= 80 ? 'Competitive'
+  : 'Exemplary'
+
+const scoreColorClass = score => score <= 40 ? 'sc-red' : score <= 65 ? 'sc-amber' : 'sc-green'
+const scoreIcon       = score => score <= 40 ? '⚠' : score <= 65 ? '!' : '✓'
+const sectionHeaderClass = score => score <= 40 ? 'sh-red' : score <= 65 ? 'sh-amber' : 'sh-green'
+
+const priorityClass = p => p === 'high' ? 'priority--high' : p === 'medium' ? 'priority--med' : 'priority--low'
 
 /* ── ScoreBadge ──────────────────────────────────────────────────── */
 function ScoreBadge({ score, small }) {
@@ -70,7 +83,7 @@ function ScoreBadge({ score, small }) {
   return (
     <span className={`score-badge ${scoreColorClass(score)}${small ? ' score-badge--sm' : ''}`}>
       <span className="score-badge__icon">{scoreIcon(score)}</span>
-      {score}/10
+      {score}
     </span>
   )
 }
@@ -85,7 +98,7 @@ function ScoreRing({ score, size = 96 }) {
 
   const r = size / 2 - 8
   const circ = +(2 * Math.PI * r).toFixed(2)
-  const offset = drawn ? +((1 - score / 10) * circ).toFixed(2) : circ
+  const offset = drawn ? +((1 - score / 100) * circ).toFixed(2) : circ
   const colorClass = scoreColorClass(score)
   const colors = { 'sc-red': '#be3535', 'sc-amber': '#9a5100', 'sc-green': 'var(--green-700)' }
   const color = colors[colorClass]
@@ -104,89 +117,296 @@ function ScoreRing({ score, size = 96 }) {
       </svg>
       <div className="score-ring__label">
         <span className="score-ring__num">{score}</span>
-        <span className="score-ring__denom">/10</span>
+        <span className="score-ring__denom">/100</span>
       </div>
     </div>
   )
 }
 
-/* ── ImprovementItem ─────────────────────────────────────────────── */
-function ImprovementItem({ item }) {
-  const [open, setOpen] = useState(item.level !== 'polish')
-  if (!item || !item.head) return null
-  const cls = item.level === 'critical' ? 'imp-crit' : item.level === 'important' ? 'imp-impt' : 'imp-pols'
+/* ── Shared section card shell ───────────────────────────────────── */
+function SectionCard({ id, title, score, children }) {
+  return (
+    <div className="section-card" id={id}>
+      <div className={`section-card__header ${typeof score === 'number' ? sectionHeaderClass(score) : 'sh-amber'}`}>
+        <span className="section-card__title">{title}</span>
+        {typeof score === 'number' && <ScoreBadge score={score} />}
+      </div>
+      <div className="section-card__body">{children}</div>
+    </div>
+  )
+}
+
+/* ── Shared feedback intro ───────────────────────────────────────── */
+function FeedbackIntro({ text }) {
+  if (!text) return null
+  return <p className="section-feedback">{text}</p>
+}
+
+/* ── Strength / weakness items ───────────────────────────────────── */
+function StrengthItem({ text }) {
+  return (
+    <div className="strength-item">
+      <span className="strength-item__check">
+        <svg width="10" height="8" viewBox="0 0 10 8">
+          <path d="M1 4l3 3 5-6" stroke="var(--green-700)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      <span className="strength-item__text">{text}</span>
+    </div>
+  )
+}
+
+function WeaknessItem({ text }) {
+  return (
+    <div className="weakness-item">
+      <span className="weakness-item__dot" />
+      <span className="weakness-item__text">{text}</span>
+    </div>
+  )
+}
+
+/* ── Content quality body ────────────────────────────────────────── */
+function ContentBody({ sec }) {
+  if (!sec) return null
+  const strengths  = Array.isArray(sec.strengths)  ? sec.strengths.filter(Boolean)  : []
+  const weaknesses = Array.isArray(sec.weaknesses) ? sec.weaknesses.filter(Boolean) : []
+  return (
+    <>
+      <FeedbackIntro text={sec.feedback} />
+      {strengths.length > 0 && (
+        <div className="section-group">
+          <div className="group-label group-label--green">Strengths <span className="group-label__count">({strengths.length})</span></div>
+          {strengths.map((s, i) => <StrengthItem key={i} text={s} />)}
+        </div>
+      )}
+      {weaknesses.length > 0 && strengths.length > 0 && <div className="section-divider" />}
+      {weaknesses.length > 0 && (
+        <div className="section-group">
+          <div className="group-label group-label--amber">Weaknesses <span className="group-label__count">({weaknesses.length})</span></div>
+          {weaknesses.map((w, i) => <WeaknessItem key={i} text={w} />)}
+        </div>
+      )}
+    </>
+  )
+}
+
+/* ── Formatting body ─────────────────────────────────────────────── */
+function FormattingIssueItem({ item }) {
+  const [open, setOpen] = useState(true)
+  if (!item?.issue) return null
   return (
     <div
-      className={`imp-item ${cls}`}
+      className="fmt-issue"
       onClick={() => setOpen(o => !o)}
       role="button"
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && setOpen(o => !o)}
     >
-      <div className="imp-item__row">
-        <span className="imp-item__dot" />
-        <div className="imp-item__content">
-          <div className="imp-item__head">{item.head}</div>
-          {open && item.detail && (
-            <div className="imp-item__detail">{item.detail}</div>
-          )}
-        </div>
-        {item.detail && (
-          <span className="imp-item__chevron">{open ? '▴' : '▾'}</span>
-        )}
+      <div className="fmt-issue__row">
+        <span className="fmt-issue__section">{item.section}</span>
+        <span className="fmt-issue__issue">{item.issue}</span>
+        {item.suggestion && <span className="imp-item__chevron">{open ? '▴' : '▾'}</span>}
       </div>
+      {open && item.suggestion && (
+        <div className="fmt-issue__suggestion">
+          <span className="fmt-issue__suggestion-label">Suggestion</span>
+          {item.suggestion}
+        </div>
+      )}
     </div>
   )
 }
 
-/* ── SectionCard ─────────────────────────────────────────────────── */
-function SectionCard({ id, sec }) {
-  if (!sec || typeof sec !== 'object') return null
+function FormattingBody({ sec }) {
+  if (!sec) return null
+  const issues = Array.isArray(sec.issues) ? sec.issues.filter(x => x?.issue) : []
+  return (
+    <>
+      <FeedbackIntro text={sec.feedback} />
+      {issues.length > 0 && (
+        <div className="section-group">
+          <div className="group-label group-label--amber">Issues <span className="group-label__count">({issues.length})</span></div>
+          {issues.map((item, i) => <FormattingIssueItem key={i} item={item} />)}
+        </div>
+      )}
+    </>
+  )
+}
 
-  const strengths = Array.isArray(sec.strengths) ? sec.strengths.filter(s => typeof s === 'string' && s) : []
-  const allImprovements = Array.isArray(sec.improvements) ? sec.improvements.filter(x => x && x.head) : []
+/* ── Language grammar body ───────────────────────────────────────── */
+function LanguageIssueItem({ item }) {
+  if (!item?.original) return null
+  return (
+    <div className="lang-issue">
+      <div className="lang-issue__type">{item.type}</div>
+      <div className="lang-issue__original">{item.original}</div>
+      <div className="lang-issue__arrow">→</div>
+      <div className="lang-issue__corrected">{item.corrected}</div>
+    </div>
+  )
+}
 
-  const groups = [
-    { key: 'critical', label: 'Critical fixes', colorClass: 'group-label--red', items: allImprovements.filter(x => x.level === 'critical') },
-    { key: 'important', label: 'Important improvements', colorClass: 'group-label--amber', items: allImprovements.filter(x => x.level === 'important') },
-    { key: 'polish', label: 'Polish', colorClass: 'group-label--muted', items: allImprovements.filter(x => x.level === 'polish') },
-  ].filter(g => g.items.length)
+function LanguageBody({ sec }) {
+  if (!sec) return null
+  const issues = Array.isArray(sec.issues) ? sec.issues.filter(x => x?.original) : []
+  return (
+    <>
+      <FeedbackIntro text={sec.feedback} />
+      {issues.length > 0 && (
+        <div className="section-group">
+          <div className="group-label group-label--amber">Issues <span className="group-label__count">({issues.length})</span></div>
+          {issues.map((item, i) => <LanguageIssueItem key={i} item={item} />)}
+        </div>
+      )}
+    </>
+  )
+}
 
-  if (strengths.length === 0 && allImprovements.length === 0 && typeof sec.score !== 'number') return null
+/* ── Action items card ───────────────────────────────────────────── */
+function ActionItemsCard({ items }) {
+  if (!Array.isArray(items) || items.length === 0) return null
+  return (
+    <SectionCard id="sec-actions" title="Priority action items">
+      <div className="action-list">
+        {items.map((item, i) => (
+          <div key={i} className="action-item">
+            <span className="action-item__num">{i + 1}</span>
+            <span className="action-item__text">{item}</span>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  )
+}
+
+/* ── ATS analysis card ───────────────────────────────────────────── */
+function ATSAnalysisCard({ ats }) {
+  if (!ats) return null
+  const hits   = Array.isArray(ats.keyword_hits)  ? ats.keyword_hits  : []
+  const gaps   = Array.isArray(ats.keyword_gaps)  ? ats.keyword_gaps  : []
+  const risks  = Array.isArray(ats.heading_risks) ? ats.heading_risks : []
+  const tips   = Array.isArray(ats.ats_tips)      ? ats.ats_tips      : []
 
   return (
-    <div className="section-card" id={id}>
-      <div className={`section-card__header ${sectionHeaderClass(sec.score)}`}>
-        <span className="section-card__title">{sec.label}</span>
-        <ScoreBadge score={sec.score} />
-      </div>
-      <div className="section-card__body">
-        {strengths.length > 0 && (
-          <div className="section-group">
-            <div className="group-label group-label--green">Strengths <span className="group-label__count">({strengths.length})</span></div>
-            {strengths.map((s, i) => (
-              <div key={i} className="strength-item">
-                <span className="strength-item__check">
-                  <svg width="10" height="8" viewBox="0 0 10 8">
-                    <path d="M1 4l3 3 5-6" stroke="var(--green-700)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-                <span className="strength-item__text">{s}</span>
+    <SectionCard
+      id="sec-ats"
+      title="ATS analysis"
+      score={typeof ats.ats_score === 'number' ? ats.ats_score : undefined}
+    >
+      {(ats.inferred_role || ats.inferred_industry) && (
+        <div className="ats-meta">
+          {ats.inferred_role && <span className="ats-meta__item"><strong>Inferred role:</strong> {ats.inferred_role}</span>}
+          {ats.inferred_industry && <span className="ats-meta__item"><strong>Industry:</strong> {ats.inferred_industry}</span>}
+        </div>
+      )}
+
+      {(hits.length > 0 || gaps.length > 0) && (
+        <div className="keyword-row">
+          {hits.length > 0 && (
+            <div className="keyword-col">
+              <div className="group-label group-label--green">Keywords found <span className="group-label__count">({hits.length})</span></div>
+              <div className="keyword-chips">
+                {hits.map((k, i) => <span key={i} className="keyword-chip keyword-chip--hit">{k}</span>)}
+              </div>
+            </div>
+          )}
+          {gaps.length > 0 && (
+            <div className="keyword-col">
+              <div className="group-label group-label--red">Keyword gaps <span className="group-label__count">({gaps.length})</span></div>
+              <div className="keyword-chips">
+                {gaps.map((k, i) => <span key={i} className="keyword-chip keyword-chip--gap">{k}</span>)}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {risks.length > 0 && (
+        <div className="section-group" style={{ marginTop: 14 }}>
+          <div className="group-label group-label--amber">Heading risks <span className="group-label__count">({risks.length})</span></div>
+          {risks.map((r, i) => (
+            <div key={i} className="heading-risk">
+              <span className="heading-risk__original">"{r.original}"</span>
+              <span className="heading-risk__arrow">→</span>
+              <span className="heading-risk__recommended">"{r.recommended}"</span>
+              <div className="heading-risk__issue">{r.issue}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tips.length > 0 && (
+        <div className="section-group" style={{ marginTop: 14 }}>
+          <div className="group-label group-label--green">ATS tips</div>
+          {tips.map((tip, i) => (
+            <div key={i} className="ats-tip">
+              <span className="ats-tip__num">{i + 1}</span>
+              <span className="ats-tip__text">{tip}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </SectionCard>
+  )
+}
+
+/* ── Job match card ──────────────────────────────────────────────── */
+function JobMatchCard({ match }) {
+  if (!match) return null
+  const matched = Array.isArray(match.matched_keywords)  ? match.matched_keywords  : []
+  const partial = Array.isArray(match.partial_keywords)  ? match.partial_keywords  : []
+  const missing = Array.isArray(match.missing_keywords)  ? match.missing_keywords  : []
+  const recs    = Array.isArray(match.recommendations)   ? match.recommendations   : []
+
+  return (
+    <SectionCard id="sec-jobmatch" title="Job match" score={match.match_score}>
+      <div className="job-match-grid">
+        {matched.length > 0 && (
+          <div className="keyword-col">
+            <div className="group-label group-label--green">Matched <span className="group-label__count">({matched.length})</span></div>
+            <div className="keyword-chips">
+              {matched.map((k, i) => <span key={i} className="keyword-chip keyword-chip--hit">{k}</span>)}
+            </div>
+          </div>
+        )}
+        {partial.length > 0 && (
+          <div className="keyword-col">
+            <div className="group-label group-label--amber">Partial <span className="group-label__count">({partial.length})</span></div>
+            {partial.map((p, i) => (
+              <div key={i} className="partial-keyword">
+                <span>{p.resume_term}</span>
+                <span className="partial-keyword__arrow">→</span>
+                <span className="partial-keyword__target">{p.required_term}</span>
               </div>
             ))}
           </div>
         )}
-        {groups.length > 0 && strengths.length > 0 && <div className="section-divider" />}
-        {groups.map(g => (
-          <div key={g.key} className="section-group">
-            <div className={`group-label ${g.colorClass}`}>
-              {g.label} <span className="group-label__count">({g.items.length})</span>
-            </div>
-            {g.items.map((item, i) => <ImprovementItem key={i} item={item} />)}
+        {missing.length > 0 && (
+          <div className="keyword-col">
+            <div className="group-label group-label--red">Missing <span className="group-label__count">({missing.length})</span></div>
+            {missing.map((m, i) => (
+              <div key={i} className="missing-keyword">
+                <span className={`priority-badge ${priorityClass(m.priority)}`}>{m.priority}</span>
+                <span>{m.keyword}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
-    </div>
+
+      {recs.length > 0 && (
+        <div className="section-group" style={{ marginTop: 14 }}>
+          <div className="section-divider" style={{ marginBottom: 14 }} />
+          <div className="group-label group-label--green">Recommendations</div>
+          {recs.map((r, i) => (
+            <div key={i} className="action-item">
+              <span className="action-item__num">{i + 1}</span>
+              <span className="action-item__text">{r}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </SectionCard>
   )
 }
 
@@ -270,7 +490,7 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, onAna
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Job advertisement <span className="optional">(optional — paste for gap analysis)</span></label>
+                  <label className="form-label">Job advertisement <span className="optional">(optional — paste for job match analysis)</span></label>
                   <textarea
                     className="form-textarea"
                     rows={4}
@@ -302,10 +522,10 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, onAna
         <div className="val-section__label">What the analysis covers</div>
         <div className="val-grid">
           {[
-            ['📋', 'Content quality', 'Does your experience use the CAR method? Are dates, roles, and results specific?'],
-            ['✏️', 'Language & grammar', 'Consistent tenses, professional tone, and specific proficiency levels.'],
-            ['📐', 'Format & structure', 'ATS-friendly layout, correct section order, and complete contact details.'],
-            ['🛠', 'Skills & keywords', 'Aligned to your target role and keywords BD recruiters actually search for.'],
+            ['📋', 'Content quality', 'Specific experience, CAR-method achievements, and quantified outcomes.'],
+            ['✏️', 'Language & grammar', 'Tense consistency, strong action verbs, and professional tone.'],
+            ['📐', 'Format & structure', 'ATS-friendly headings, section order, and contact completeness.'],
+            ['🔍', 'ATS analysis', 'Keyword coverage, heading risks, and role-specific gap analysis.'],
           ].map(([icon, title, desc]) => (
             <div key={title} className="val-card">
               <div className="val-card__icon">{icon}</div>
@@ -333,7 +553,7 @@ function AnalysingView({ filename }) {
     'Checking content completeness…',
     'Reviewing language quality…',
     'Evaluating format & structure…',
-    'Matching skills to BD market…',
+    'Analysing ATS compatibility…',
   ]
   return (
     <div className="rr-analysing">
@@ -378,14 +598,18 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
     window.scrollTo({ top, behavior: 'smooth' })
   }
 
-  const sections = [
-    { id: 'content', label: 'Content', sec: feedback?.content_quality },
-    { id: 'language', label: 'Language', sec: feedback?.language_and_grammar },
-    { id: 'format', label: 'Format', sec: feedback?.formatting_feedback },
-    { id: 'skills', label: 'Skills', sec: feedback?.skills_keywords },
-  ]
-
   const overallScore = typeof feedback?.overall_score === 'number' ? feedback.overall_score : null
+  const hasJobMatch  = feedback?.job_match != null
+
+  const navItems = [
+    { id: 'overall',   label: 'Overall',   score: null },
+    { id: 'content',   label: 'Content',   score: feedback?.content_quality?.score },
+    { id: 'language',  label: 'Language',  score: feedback?.language_grammar?.score },
+    { id: 'format',    label: 'Format',    score: feedback?.formatting?.score },
+    { id: 'actions',   label: 'Actions',   score: null },
+    { id: 'ats',       label: 'ATS',       score: feedback?.ats_analysis?.ats_score },
+    ...(hasJobMatch ? [{ id: 'jobmatch', label: 'Job match', score: feedback?.job_match?.match_score }] : []),
+  ]
 
   return (
     <div className="rr-results">
@@ -395,11 +619,9 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
         </div>
       )}
 
-      {/* Single sticky block — banner + optional enhance strip + section nav */}
       <div className="sticky-header" ref={stickyRef}>
         <div className="result-banner">
           <div className="result-banner__inner">
-            {/* Clickable file pill — opens file picker to swap resume */}
             <button
               className="file-pill file-pill--swap"
               title="Click to upload a different resume"
@@ -446,9 +668,10 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
               </div>
               <div className="form-group">
                 <label className="form-label">Job advertisement</label>
-                <input
-                  className="form-input"
-                  placeholder="Paste job description…"
+                <textarea
+                  className="form-textarea"
+                  rows={3}
+                  placeholder="Paste job description for job match analysis…"
                   value={jobAd}
                   onChange={e => setJobAd(e.target.value)}
                 />
@@ -462,20 +685,14 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
 
         <div className="sec-nav">
           <div className="sec-nav__pills">
-            <button
-              className={`nav-pill${activeNav === 'overall' ? ' nav-pill--active' : ''}`}
-              onClick={() => scrollTo('overall')}
-            >
-              Overall
-            </button>
-            {sections.map(({ id, label, sec }) => (
+            {navItems.map(({ id, label, score }) => (
               <button
                 key={id}
                 className={`nav-pill${activeNav === id ? ' nav-pill--active' : ''}`}
                 onClick={() => scrollTo(id)}
               >
                 {label}
-                {typeof sec?.score === 'number' && <ScoreBadge score={sec.score} small />}
+                {typeof score === 'number' && <ScoreBadge score={score} small />}
               </button>
             ))}
           </div>
@@ -493,6 +710,7 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
           </div>
         )}
 
+        {/* Overall score card */}
         <div className="overall-card" id="sec-overall">
           {overallScore !== null ? (
             <div className="overall-card__inner">
@@ -500,13 +718,22 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
               <div className="overall-card__text">
                 <div className="overall-card__row">
                   <h2 className="overall-card__heading">Overall score</h2>
-                  <span className={`band-badge ${overallScore <= 4 ? 'band-badge--red' : overallScore <= 6 ? 'band-badge--amber' : 'band-badge--green'}`}>
+                  <span className={`band-badge ${overallScore <= 40 ? 'band-badge--red' : overallScore <= 65 ? 'band-badge--amber' : 'band-badge--green'}`}>
                     {bandLabel(overallScore)}
                   </span>
                 </div>
-                {feedback?.overall_summary && (
-                  <p className="overall-card__summary">{feedback.overall_summary}</p>
-                )}
+                <div className="overall-card__miniscores">
+                  {[
+                    { label: 'Content',  score: feedback?.content_quality?.score },
+                    { label: 'Language', score: feedback?.language_grammar?.score },
+                    { label: 'Format',   score: feedback?.formatting?.score },
+                  ].filter(x => typeof x.score === 'number').map(({ label, score }) => (
+                    <div key={label} className="miniscore">
+                      <span className="miniscore__label">{label}</span>
+                      <ScoreBadge score={score} small />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
@@ -517,10 +744,40 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
         </div>
 
         <div className="section-cards">
-          {sections.map(({ id, label, sec }) =>
-            sec ? (
-              <SectionCard key={id} id={`sec-${id}`} sec={{ ...sec, label }} />
-            ) : null
+          {/* Content quality */}
+          {feedback?.content_quality && (
+            <SectionCard id="sec-content" title="Content quality" score={feedback.content_quality.score}>
+              <ContentBody sec={feedback.content_quality} />
+            </SectionCard>
+          )}
+
+          {/* Language & grammar */}
+          {feedback?.language_grammar && (
+            <SectionCard id="sec-language" title="Language & grammar" score={feedback.language_grammar.score}>
+              <LanguageBody sec={feedback.language_grammar} />
+            </SectionCard>
+          )}
+
+          {/* Formatting */}
+          {feedback?.formatting && (
+            <SectionCard id="sec-format" title="Format & structure" score={feedback.formatting.score}>
+              <FormattingBody sec={feedback.formatting} />
+            </SectionCard>
+          )}
+
+          {/* Action items */}
+          {feedback?.action_items && (
+            <ActionItemsCard items={feedback.action_items} />
+          )}
+
+          {/* ATS analysis */}
+          {feedback?.ats_analysis && (
+            <ATSAnalysisCard ats={feedback.ats_analysis} />
+          )}
+
+          {/* Job match (only when job ad was provided) */}
+          {feedback?.job_match && (
+            <JobMatchCard match={feedback.job_match} />
           )}
         </div>
 
@@ -533,7 +790,7 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
               <button className="btn btn-outline">✉ Email to myself</button>
             </div>
             <div className="cta-strip__tip">
-              <strong>Tip:</strong> Address the critical items in the section with the lowest score first — that will have the biggest impact.
+              <strong>Tip:</strong> Work through the priority action items first — each one is tied to a specific section and will have the biggest impact on recruiter shortlisting.
             </div>
           </div>
         )}

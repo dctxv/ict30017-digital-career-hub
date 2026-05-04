@@ -1,42 +1,82 @@
 import { z } from 'zod';
 
-const ImprovementItem = z.object({
-  level: z.enum(['critical', 'important', 'polish']),
-  head: z.string(),
-  detail: z.string(),
+// Coerce scores to integers — the AI sometimes returns floats like 72.5
+const Score = z.number().min(0).max(100).transform(Math.round);
+
+const FormattingIssueSchema = z.object({
+  section:    z.string(),
+  issue:      z.string(),
+  suggestion: z.string(),
 });
 
-const FeedbackSection = z.object({
-  score: z.number().int().min(1).max(10).describe('Quality score out of 10'),
-  strengths: z.array(z.string()).describe('What the candidate did well in this area'),
-  improvements: z.array(ImprovementItem).describe('Specific, actionable improvements needed'),
+const FormattingSchema = z.object({
+  score:    Score,
+  feedback: z.string(),
+  issues:   z.array(FormattingIssueSchema),
 });
 
-export const ResumeReviewSchema = z.object({
-  overall_score: z
-    .number()
-    .int()
-    .min(1)
-    .max(10)
-    .describe('Overall resume quality score out of 10'),
+const ContentQualitySchema = z.object({
+  score:      Score,
+  feedback:   z.string(),
+  strengths:  z.array(z.string()),
+  weaknesses: z.array(z.string()),
+});
 
-  overall_summary: z
-    .string()
-    .describe('1-2 sentence summary of the most critical area to address first'),
+const LanguageIssueSchema = z.object({
+  original:  z.string(),
+  corrected: z.string(),
+  type:      z.string(),
+});
 
-  formatting_feedback: FeedbackSection.describe(
-    'Feedback on layout, visual structure, section ordering, and consistency'
-  ),
+const LanguageGrammarSchema = z.object({
+  score:    Score,
+  feedback: z.string(),
+  issues:   z.array(LanguageIssueSchema),
+});
 
-  content_quality: FeedbackSection.describe(
-    'Feedback on the substance of experience, achievements, and projects'
-  ),
+const ATSHeadingRiskSchema = z.object({
+  original:    z.string(),
+  issue:       z.string(),
+  recommended: z.string(),
+});
 
-  language_and_grammar: FeedbackSection.describe(
-    'Feedback on grammar, spelling, word choice, and professional tone'
-  ),
+const ATSAnalysisSchema = z.object({
+  inferred_role:     z.string(),
+  inferred_industry: z.string(),
+  keyword_hits:      z.array(z.string()),
+  keyword_gaps:      z.array(z.string()).max(3),
+  heading_risks:     z.array(ATSHeadingRiskSchema),
+  ats_tips:          z.array(z.string()).max(3),
+  standard:          z.string().optional(),
+  ats_score:         z.number().optional(),
+});
 
-  skills_keywords: FeedbackSection.describe(
-    'Feedback on skills relevance, ATS keyword alignment, and target-role match for the BD job market'
-  ),
+const MissingKeywordSchema = z.object({
+  keyword:  z.string(),
+  priority: z.enum(['high', 'medium', 'low']),
+});
+
+const PartialKeywordSchema = z.object({
+  resume_term:   z.string(),
+  required_term: z.string(),
+});
+
+const JobMatchSchema = z.object({
+  match_score:       Score,
+  matched_keywords:  z.array(z.string()),
+  partial_keywords:  z.array(PartialKeywordSchema),
+  missing_keywords:  z.array(MissingKeywordSchema),
+  // The AI sometimes returns 2 recommendations — don't hard-fail on count
+  recommendations:   z.array(z.string()).min(1),
+});
+
+export const ReviewResponseSchema = z.object({
+  formatting:       FormattingSchema,
+  content_quality:  ContentQualitySchema,
+  language_grammar: LanguageGrammarSchema,
+  action_items:     z.array(z.string()),
+  // ats_analysis and job_match may be absent if the response was truncated
+  ats_analysis:     ATSAnalysisSchema.optional(),
+  job_match:        JobMatchSchema.nullable().optional(),
+  overall_score:    Score,
 });
