@@ -1,155 +1,420 @@
 import { getGroqClient, getModel } from '../utils/aiClient.js';
-import { ResumeReviewSchema } from '../schemas/resumeSchema.js';
+import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
 
-const SYSTEM_PROMPT = `You are an expert career advisor specialising in the Bangladesh job market. You have deep knowledge of local recruitment standards, resume formatting conventions, and industry expectations in Bangladesh.
+const SYSTEM_PROMPT = `
+You are an expert career advisor specialising in the Bangladesh job market. You have deep
+knowledge of local recruitment standards, resume formatting conventions, and industry
+expectations in Bangladesh.
 
-You are reviewing a resume uploaded by a Bangladeshi job seeker. Bangladeshi resumes differ from Western formats — they commonly include personal details (photograph, date of birth, parents' names, religion, marital status), use CGPA-based academic grading, and follow different structural conventions. You must understand and account for these local practices in your evaluation.
+CRITICAL — BANGLADESH CV CONVENTIONS
+The following sections and content are CONFIRMED STANDARD practice for the Bangladeshi
+job market. They have been validated with the client.
 
-EVALUATION REQUIREMENTS:
-1. General improvements to structure, formatting, content, and presentation
-2. Spelling errors, mixed tenses, inconsistent capitalisation, and formatting inconsistencies
-3. Language consistency — British English is the formal standard in Bangladesh. Flag any mixing of British and American spelling (e.g. "organisation" vs "organization", "colour" vs "color") and advise standardising. Check EVERY instance — do not assume consistency if one section is correct.
-4. Content quality — whether the resume effectively communicates the candidate's qualifications for the Bangladeshi job market
+Do NOT flag, penalise, recommend removing, or suggest modifying the following in ANY
+section of your response — not in formatting issues, content weaknesses, action items,
+heading risks, or ATS tips:
 
-BANGLADESH-SPECIFIC CONTEXT:
-- CGPA scales: SSC/HSC results use a scale out of 5.00. University degrees (BSc, MSc, BBA, MBA) use a scale out of 4.00. Check EVERY academic entry individually — if any entry lists a CGPA or GPA without the denominator (e.g. "GPA 4.80" instead of "GPA 4.80/5.00"), flag it even if other entries are correctly formatted. Recruiters may misinterpret scores due to the dual-scale system.
-- Personal details sections (parents' names, religion, marital status, sex, blood group) are a legacy convention. While common in traditional Bangladeshi CVs, modern corporate employers and multinational firms increasingly consider these obsolete. If present, advise the candidate that removing them can free space for skills and achievements, and reduce potential for unconscious hiring bias. Frame this as a recommendation, not a penalty.
-- Photographs embedded in resumes can cause issues with Applicant Tracking Systems (ATS) used by larger Bangladeshi corporations. If detected, advise removal with an explanation of why.
-- Soft skills are valued in the Bangladeshi corporate culture. Evaluate whether listed soft skills are relevant to the candidate's apparent target sector rather than generic.
-- Generic objective statements ("seeking a challenging position in a dynamic environment") are common but weak. Advise replacing with a targeted professional summary that names the specific sector and highlights key qualifications.
-- Experience bullet points should quantify achievements where possible (numbers, percentages, scale). Flag experience sections that only list duties or job titles without measurable outcomes, and suggest the CAR method (Context, Action, Result).
-- Experience and training entries must include date ranges (e.g. "Jan 2023 – Mar 2023"), not just durations ("3 months" or "6 Month"). Recruiters need to know WHEN you worked or trained, not only how long. Check EVERY entry in both Experience and Training sections.
-- Weak or passive verbs ("Responsible for", "Helped with", "Assisted in") should be replaced with strong action verbs ("Spearheaded", "Engineered", "Optimised").
+- Personal Information / Personal Details section (including father's name, mother's name,
+  NID number, blood group, religion, marital status, DOB)
+- Declaration section
+- Photograph
+- Career Objective heading (flag as low risk only — never recommend removal)
+- Academic Qualification / Educational Qualification heading
+- Technical Skills heading
 
-LEGACY SECTIONS AND OUTDATED CONVENTIONS:
-- Declaration sections ("I hereby declare that all information is true and correct") are a legacy Bangladeshi CV convention that adds no value. Advise removal to reclaim space.
-- Reference sections with full contact details on the resume are outdated. Advise replacing with "References available upon request" or removing entirely to save space. Flag any blank or incomplete reference entries (e.g. a numbered slot with no content).
-- Outdated section headings should be flagged. For example, "Computer Knowledge" or "Computer Skills" should be "Technical Skills", "Educational Qualification" or "Academic Qualification" should be "Education", "Curriculum Vitae" or "Resume Of" as a title should be replaced with the candidate's name as the header.
-- Misspelled or malformed document titles (e.g. "RESUM" instead of "RESUME") must be flagged as a critical error — this is the first thing a recruiter sees.
-- Missing LinkedIn URL in the contact header is a gap — Bangladeshi recruiters at larger firms and MNCs increasingly verify professional digital footprints before interviews.
-- Evaluate the absence of expected sections, not just the quality of sections that exist. A resume missing an Experience, Projects, or Internships section entirely should be flagged as a significant content gap.
-- Obsolete skills: Listing basic competencies like "Internet", "Email Communication", or "MS Office" without specificity signals outdated awareness. Also flag end-of-life technologies (e.g. "Windows XP", "Windows 7") as outdated. Advise replacing with role-relevant, current tools.
-- Language proficiency: Vague descriptors like "Good command" or just "Good" are weaker than "Fluent" or "Proficient". Advise using internationally recognised descriptors or being specific (e.g. "Professional working proficiency" or "IELTS 7.5").
+These apply globally. Any instruction in later sections that appears to conflict with
+this block is overridden by this block.
 
-QUALITY OF STRENGTHS:
-- Only list genuine, meaningful strengths. A section that contains only generic content (e.g. vague interests, cliché soft skills) is not a strength worth highlighting.
-- An Experience section that lists topic areas or equipment names without any actual job role, employer, dates, or descriptions is not a strength — it is a critical content gap.
+Review the resume provided and produce structured feedback as a single valid JSON object
+with exactly these keys: formatting, content_quality, language_grammar, action_items,
+ats_analysis, job_match, overall_score.
 
-FEEDBACK RULES:
-- Be precise and actionable. Do NOT give vague feedback like "improve your resume" or "enhance your skills section".
-- Quote the actual section that needs improvement and provide a suggested rewrite.
-- Explain WHY each suggestion matters specifically for Bangladeshi employers.
-- Each action item must state WHAT to change, WHERE in the resume, and WHY.
-- Flag ALL grammatical errors individually. Quote the exact error and provide the correction (e.g. "a successfully career" should be "a successful career"). Do not summarise multiple errors as a single generic comment.
+Give precise, actionable suggestions. Do not give vague advice. Quote the actual section
+that needs improvement and provide a suggested rewrite where applicable.
+Do not echo personal details (name, address, phone, email) anywhere in your response.
+Return only the JSON object — no markdown, no explanation outside the JSON.
 
-CATEGORISATION RULES:
-- formatting_feedback: Layout, structure, section order, visual presentation, section headings, page length, contact header, presence/absence of sections, legacy conventions (Declaration, References, Personal Details, photos).
-- content_quality: Substance, achievements, qualifications, relevance to target sector, professional summary quality, CAR method usage, CGPA denominator notation, skills relevance, experience detail level.
-- language_and_grammar: Spelling, grammar, tense consistency, British/American English dialect, verb strength, parallel structure, language proficiency descriptors, capitalisation consistency.
-Do not duplicate the same issue across multiple categories.
+---
 
-SCORING:
-- Each score is an integer from 1 to 10.
-- overall_score is a weighted average: content_quality (45%), language_and_grammar (35%), formatting (20%). Round to nearest integer.
-- 1–3: Critical issues — resume likely to be rejected outright.
-- 4–6: Functional but unoptimised — standard information present but lacks impact.
-- 7–8: Competitive — modern, well-structured, uses strong language.
-- 9–10: Exemplary — quantified achievements, perfect consistency, sector-targeted.
-- Formatting calibration: A resume retaining 3 or more legacy conventions (Declaration, full References, Personal Details, outdated headings, "Resume/CV Of" title) should not score above 4 in formatting.
-- Content calibration: If the Experience section is missing entirely, or lists only topic areas/equipment without actual job roles, employers, and dates, content should not score above 3.
-- Language calibration: If the document contains 3 or more distinct grammatical errors (not just spelling), language should not score above 4.
+SECTION 1 — formatting
+Score the visual and structural presentation of the resume (0–100).
+Identify specific formatting issues: inconsistent spacing, misaligned sections, poor use of
+bullet points, unprofessional fonts, or overly dense text blocks.
 
-OUTPUT FORMAT:
-Respond with ONLY a single valid JSON object. No markdown, no explanation, no text outside the JSON.
+Note: CGPA formatted as X.XX/4.00 or X.XX/5.00 is correct — only flag if the denominator
+is missing or clearly wrong. Apply a formatting score ceiling of 75 if the resume contains
+three or more Bangladeshi CV conventions (see CRITICAL block above); frame this as an
+educational note about modern digital applications, not a penalty.
+
+Return:
 {
-  "overall_score": <integer 1-10>,
-  "formatting_feedback": {
-    "score": <integer 1-10>,
-    "strengths": [<string>, ...],
-    "improvements": [<string>, ...]
-  },
-  "content_quality": {
-    "score": <integer 1-10>,
-    "strengths": [<string>, ...],
-    "improvements": [<string>, ...]
-  },
-  "language_and_grammar": {
-    "score": <integer 1-10>,
-    "strengths": [<string>, ...],
-    "improvements": [<string>, ...]
-  },
-  "action_items": [<string>, ...]
-}`;
-
-// Coerces a single array item to a plain string regardless of what the model returned.
-// Models like gpt-5o-mini sometimes return structured objects (e.g. {error, correction})
-// instead of the plain strings the schema requires.
-function itemToString(item) {
-  if (typeof item === 'string') return item;
-  if (Array.isArray(item)) return item.map(itemToString).join(' ');
-  if (item && typeof item === 'object') {
-    // Common object shapes the model uses for grammar feedback
-    if (item.error && item.correction) return `"${item.error}" → "${item.correction}"`;
-    if (item.issue && item.fix) return `"${item.issue}" → "${item.fix}"`;
-    if (item.quote && item.rewrite) return `"${item.quote}" → "${item.rewrite}"`;
-    if (item.original && item.suggested) return `"${item.original}" → "${item.suggested}"`;
-    // Generic fallback: join all string values with a separator
-    const values = Object.values(item).filter((v) => typeof v === 'string');
-    if (values.length > 0) return values.join(' — ');
-  }
-  return String(item);
+  "score": number (0–100),
+  "feedback": string,
+  "issues": Array<{ "section": string, "issue": string, "suggestion": string }>
 }
 
-// Normalises a feedback section before Zod validation.
-// Handles: nested arrays in strengths, missing improvements key, and object items.
-function normalizeSection(raw) {
-  if (!raw || typeof raw !== 'object') return raw;
+---
 
-  const strengths = [];
-  const extracted = [];
+SECTION 2 — content_quality
+Score the substance and relevance of the resume content (0–100).
+Identify strengths (what the candidate does well) and weaknesses (gaps, vague claims,
+missing quantification). Flag missing sections expected for the inferred role.
 
-  if (Array.isArray(raw.strengths)) {
-    for (const item of raw.strengths) {
-      if (Array.isArray(item)) {
-        // Nested array was likely meant to be the improvements list
-        extracted.push(...item.map(itemToString));
-      } else {
-        strengths.push(itemToString(item));
-      }
-    }
-  }
+Pay particular attention to internship and junior role bullet points — these are commonly
+under-quantified. Flag any bullet that uses vague language such as 'assisted with',
+'helped with', 'did data work', 'maintained', or 'supported' without a specific outcome
+or metric as a content weakness.
 
-  const improvements = Array.isArray(raw.improvements)
-    ? raw.improvements.map(itemToString)
-    : extracted;
+Return:
+{
+  "score": number (0–100),
+  "feedback": string,
+  "strengths": string[],
+  "weaknesses": string[]
+}
 
-  return { ...raw, strengths, improvements };
+---
+
+SECTION 3 — language_grammar
+Score the language quality (0–100).
+Identify specific spelling errors, mixed tenses, inconsistent capitalisation, grammatical
+errors, and weak action verbs. Quote the exact phrase and provide a corrected version.
+
+IMPORTANT — This resume targets the Bangladesh job market. Commonwealth/British English
+spelling is correct and must NOT be flagged as an error (e.g. optimise, organise, colour,
+analyse, behaviour, programme, centre). Only flag genuine spelling errors, not
+Commonwealth variant spellings.
+
+Return:
+{
+  "score": number (0–100),
+  "feedback": string,
+  "issues": Array<{ "original": string, "corrected": string, "type": string }>
+}
+
+---
+
+SECTION 4 — action_items
+Provide exactly 3–5 prioritised action items the candidate should act on immediately.
+Each item must reference a specific section of the resume. No generic advice.
+
+Return: string[]
+
+---
+
+SECTION 5 — ats_analysis
+Evaluate how well this resume would perform when scanned by an Applicant Tracking System
+used by international companies and multinationals.
+
+Step 1 — Infer the candidate's target role and industry from the resume. Use the most
+recent job title, degree, or stated objective as the primary signal. If ambiguous, use
+the skills section. If the user message includes a 'Target role:' line, treat that as
+the primary signal for role inference and use the resume to confirm or supplement it.
+
+Step 2 — keyword_hits: list terms already present in the resume that are commonly
+required by ATS systems for the inferred role. List actual keywords, not categories.
+
+Step 3 — keyword_gaps: list up to 3 of the most impactful keywords commonly
+expected by ATS systems for the inferred role that are absent from the resume.
+If the resume already covers most keywords, return fewer — only list genuine gaps.
+
+Step 4 — heading_risks: identify section headings that some ATS systems may fail to
+parse. For each, provide the original heading, the issue, and the recommended alternative.
+
+Flag non-standard headings that a Western multinational ATS would struggle with. See the
+CRITICAL block above for headings that must never be flagged.
+
+Step 5 — ats_tips: provide up to 3 tips to improve ATS performance. Each tip must be
+an improvement action — never a positive observation about what the resume already does
+well. If the resume scores well on a dimension, use that tip slot for the next most
+impactful gap instead. Each tip must reference something specific found or missing in
+this resume. Return fewer than 3 only if fewer genuine improvement actions exist.
+
+Return:
+{
+  "inferred_role": string,
+  "inferred_industry": string,
+  "keyword_hits": string[],
+  "keyword_gaps": string[],
+  "heading_risks": Array<{ "original": string, "issue": string, "recommended": string }>,
+  "ats_tips": string[],
+  "standard": "international/multinational ATS"
+}
+
+---
+
+SECTION 6 — job_match
+Only complete this section if a job advertisement is provided after the resume text.
+If no job advertisement is provided, return null for job_match.
+
+If a job advertisement is provided, perform a two-step analysis:
+
+Step 1 — Extract all required skills, qualifications, tools, and keywords from the job
+advertisement. Identify which are explicitly required versus preferred.
+
+Step 2 — For each extracted keyword, check whether it is present, partially present,
+or absent from the resume. Classify each as:
+- "matched": clearly present in the resume
+- "partial": concept present but keyword not explicit (e.g. resume says "version control"
+  but job ad requires "Git")
+- "missing": absent entirely
+
+Assign priority to each missing keyword:
+- "high": appears multiple times in the job ad or listed under required qualifications
+- "medium": appears once under requirements
+- "low": appears only under preferred or nice-to-have
+
+Return:
+{
+  "match_score": number (0–100, your estimate — will be recalculated server-side),
+  "matched_keywords": string[],
+  "partial_keywords": Array<{ "resume_term": string, "required_term": string }>,
+  "missing_keywords": Array<{ "keyword": string, "priority": "high" | "medium" | "low" }>,
+  "recommendations": string[]
+}
+
+Provide exactly 3–5 recommendations. Each must be specific to a gap found — not generic advice.
+
+---
+
+SECTION 7 — overall_score
+Return a single integer (0–100). This will be recalculated server-side using the formula:
+content_quality 45% + language_grammar 35% + formatting 20%.
+Provide your best estimate consistent with the section scores above.
+`.trim();
+
+/* ── Score recalculation (server-side overrides AI estimates) ── */
+
+function calculateATSScore({ keyword_hits, keyword_gaps, heading_risks }) {
+  const total = keyword_hits.length + keyword_gaps.length;
+  const keywordScore = total > 0
+    ? Math.round((keyword_hits.length / total) * 100)
+    : 100;
+  const headingPenalty = Math.min(heading_risks.length * 10, 30);
+  return Math.max(0, Math.round(keywordScore * 0.7 + (100 - headingPenalty) * 0.3));
+}
+
+function calculateMatchScore({ matched_keywords, partial_keywords, missing_keywords }) {
+  const matched = matched_keywords.length;
+  const partial = partial_keywords.length;
+  const missing = missing_keywords.length;
+  const total = matched + partial + missing;
+  if (total === 0) return 0;
+  return Math.max(0, Math.round(((matched + partial * 0.5) / total) * 100));
+}
+
+function recalculateScores(parsed) {
+  // Guard against missing sections — use 0 so the formula still produces a number
+  const cScore = parsed.content_quality?.score  ?? 0;
+  const lScore = parsed.language_grammar?.score ?? 0;
+  const fScore = parsed.formatting?.score       ?? 0;
+
+  const overall_score = Math.round(cScore * 0.45 + lScore * 0.35 + fScore * 0.20);
+
+  const ats_score = parsed.ats_analysis
+    ? calculateATSScore(parsed.ats_analysis)
+    : undefined;
+
+  const match_score = parsed.job_match
+    ? calculateMatchScore(parsed.job_match)
+    : null;
+
+  return {
+    ...parsed,
+    overall_score,
+    ats_analysis: parsed.ats_analysis
+      ? { ...parsed.ats_analysis, ats_score }
+      : parsed.ats_analysis,
+    job_match: parsed.job_match
+      ? { ...parsed.job_match, match_score }
+      : null,
+  };
 }
 
 function normalizeResponse(raw) {
   if (!raw || typeof raw !== 'object') return raw;
-  const normalized = {
+
+  // Remap old key names the AI sometimes uses
+  const withAliases = {
     ...raw,
-    formatting_feedback: normalizeSection(raw.formatting_feedback),
-    content_quality: normalizeSection(raw.content_quality),
-    language_and_grammar: normalizeSection(raw.language_and_grammar),
-    action_items: Array.isArray(raw.action_items)
-      ? raw.action_items.map(itemToString).slice(0, 10)
-      : [],
+    formatting:       raw.formatting       ?? raw.formatting_feedback ?? null,
+    language_grammar: raw.language_grammar ?? raw.language_and_grammar ?? null,
+    job_match:        raw.job_match        ?? null,
+    action_items:     raw.action_items     ?? [],
   };
-  normalized.overall_score = calculateOverallScore(normalized);
-  return normalized;
+
+  // Cap ATS arrays — AI may over-generate; trim to keep only the most impactful entries
+  if (withAliases.ats_analysis) {
+    const gaps = withAliases.ats_analysis.keyword_gaps ?? [];
+    const tips = withAliases.ats_analysis.ats_tips ?? [];
+    if (gaps.length > 3) console.warn('[AI] keyword_gaps exceeded 3 — trimmed. Prompt may need tightening.');
+    if (tips.length > 3) console.warn('[AI] ats_tips exceeded 3 — trimmed. Prompt may need tightening.');
+    withAliases.ats_analysis = {
+      ...withAliases.ats_analysis,
+      keyword_gaps: gaps.slice(0, 3),
+      ats_tips:     tips.slice(0, 3),
+    };
+  }
+
+  return recalculateScores(withAliases);
 }
 
-function calculateOverallScore(data) {
-  const content = data.content_quality?.score;
-  const language = data.language_and_grammar?.score;
-  const formatting = data.formatting_feedback?.score;
-  if (!content || !language || !formatting) return data.overall_score;
-  return Math.round(content * 0.45 + language * 0.35 + formatting * 0.20);
+/* ── Robust AI JSON parser ── */
+
+// Walk the text to find where the outermost { ... } ends.
+// Returns the slice if balanced, or everything from { to end if truncated.
+function extractBalancedJSON(text) {
+  const start = text.indexOf('{');
+  if (start === -1) return text;
+
+  let depth = 0, inStr = false, esc = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (esc)       { esc = false; continue; }
+    if (ch === '\\') { esc = true;  continue; }
+    if (ch === '"')  { inStr = !inStr; continue; }
+    if (inStr)       continue;
+    if (ch === '{')  depth++;
+    if (ch === '}' && --depth === 0) return text.slice(start, i + 1);
+  }
+  return text.slice(start); // truncated — caller will repair
 }
 
-export async function analyzeResumeStream(resumeText, { onToken } = {}) {
+// Escape literal control characters (e.g. real newlines) inside JSON strings.
+function escapeControlChars(text) {
+  let inStr = false, esc = false, out = '';
+  for (const ch of text) {
+    if (esc) {
+      esc = false;
+      // If a backslash was followed by a literal control char (e.g. model outputs \<LF>),
+      // the backslash we already wrote is wrong — replace the pair with a proper escape.
+      if (inStr && ch.charCodeAt(0) < 0x20) {
+        out = out.slice(0, -1); // remove the \ already written
+        out += ch === '\n' ? '\\n' : ch === '\r' ? '\\r' : ch === '\t' ? '\\t'
+             : `\\u${ch.charCodeAt(0).toString(16).padStart(4, '0')}`;
+      } else {
+        out += ch;
+      }
+      continue;
+    }
+    if (ch === '\\') { esc = true;  out += ch; continue; }
+    if (ch === '"')  { inStr = !inStr; out += ch; continue; }
+    if (inStr) {
+      const code = ch.charCodeAt(0);
+      if (code < 0x20) {
+        out += ch === '\n' ? '\\n' : ch === '\r' ? '\\r' : ch === '\t' ? '\\t'
+             : `\\u${code.toString(16).padStart(4, '0')}`;
+        continue;
+      }
+    }
+    out += ch;
+  }
+  return out;
+}
+
+// Escape unescaped double quotes inside JSON string values.
+// Handles the case where the model quotes resume text verbatim, e.g.:
+//   "issue": "The bullet "assisted with" lacks quantification"
+// Strategy: when inside a string, a " that is NOT followed (after optional whitespace)
+// by a JSON structural character (: , } ]) is an inner quote and must be escaped.
+function repairUnescapedQuotes(text) {
+  let inStr = false, esc = false, out = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (esc) { esc = false; out += ch; continue; }
+    if (ch === '\\') { esc = true; out += ch; continue; }
+    if (ch === '"') {
+      if (!inStr) {
+        inStr = true;
+        out += ch;
+      } else {
+        // Peek past whitespace to see what follows this quote
+        let j = i + 1;
+        while (j < text.length && (text[j] === ' ' || text[j] === '\t')) j++;
+        const next = text[j];
+        if (next === ':' || next === ',' || next === '}' || next === ']' || j >= text.length) {
+          inStr = false; // closing quote
+          out += ch;
+        } else {
+          out += '\\"'; // inner unescaped quote — escape it
+        }
+      }
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+// Close any unclosed braces/brackets left by truncation.
+function repairJSON(text) {
+  const stack = [];
+  let inStr = false, esc = false, out = '';
+  for (const ch of text) {
+    out += ch;
+    if (esc)         { esc = false; continue; }
+    if (ch === '\\') { esc = true;  continue; }
+    if (ch === '"')  { inStr = !inStr; continue; }
+    if (inStr)       continue;
+    if (ch === '{' || ch === '[') stack.push(ch === '{' ? '}' : ']');
+    if (ch === '}' || ch === ']') stack.pop();
+  }
+  if (inStr) out += '"';
+  out = out.replace(/,\s*$/, '');
+  while (stack.length) out += stack.pop();
+  return out;
+}
+
+// Master parser: strip fences → find balanced JSON → sanitize → parse → repair if needed.
+function parseAIJSON(rawText) {
+  const text = rawText?.trim() ?? '';
+  if (!text) throw new Error('empty response');
+
+  // 1. Strip markdown code fences if present
+  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/s);
+  const unwrapped  = fenceMatch ? fenceMatch[1].trim() : text;
+
+  // 2. Extract the outermost JSON object (handles trailing model commentary)
+  const slice     = extractBalancedJSON(unwrapped);
+
+  // 3. Escape any literal control characters inside string values
+  const sanitized = escapeControlChars(slice);
+
+  // 4. Direct parse (happy path)
+  try { return JSON.parse(sanitized); } catch (e1) {
+    console.warn('[AI] Direct JSON.parse failed:', e1.message);
+  }
+
+  // 5. Repair unescaped inner quotes, then try again
+  const quotesFixed = repairUnescapedQuotes(sanitized);
+  try { return JSON.parse(quotesFixed); } catch { /* fall through */ }
+
+  // 6. Repair truncation on the quote-fixed version, then parse
+  try { return JSON.parse(repairJSON(quotesFixed)); } catch (e2) {
+    console.error('[AI] All repair strategies failed:', e2.message);
+    throw e2;
+  }
+}
+
+/* ── Message builders ── */
+
+function buildUserMessage(resumeText, { jobAd, jobRole } = {}) {
+  if (jobAd) {
+    const roleNote = jobRole ? `\n\nTarget role: ${jobRole}` : '';
+    return [
+      `Please review the following resume:\n\n${resumeText}`,
+      roleNote,
+      `\n\n---JOB ADVERTISEMENT---\n\n${jobAd}`,
+    ].join('');
+  }
+  let msg = `Please review the following resume:\n\n${resumeText}`;
+  if (jobRole) msg += `\n\nTarget role: ${jobRole}`;
+  return msg;
+}
+
+/* ── Streaming export ── */
+
+export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -162,14 +427,11 @@ export async function analyzeResumeStream(resumeText, { onToken } = {}) {
     const stream = await client.chat.completions.create({
       model,
       temperature: 0.3,
-      response_format: { type: 'json_object' },
+      max_tokens: 4096,
       stream: true,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        {
-          role: 'user',
-          content: `Please review the following resume and return your feedback as a JSON object:\n\n---\n${resumeText}\n---`,
-        },
+        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
       ],
     });
 
@@ -181,38 +443,41 @@ export async function analyzeResumeStream(resumeText, { onToken } = {}) {
       }
     }
 
-    if (!rawContent) {
-      throw new Error('AI returned an empty response.');
-    }
+    if (!rawContent) throw new Error('AI returned an empty response.');
   } catch (err) {
     if (err?.status === 429 || err?.message?.includes('429')) {
-      return {
-        error: 'AI is currently busy, please try again in a minute.',
-        code: 'RATE_LIMIT',
-      };
+      return { error: 'AI is currently busy, please try again in a minute.', code: 'RATE_LIMIT' };
     }
     throw err;
   }
 
+  const inputEstimate = Math.round(SYSTEM_PROMPT.length / 4);
+  const outputEstimate = Math.round(rawContent.length / 4);
+  console.log(`[AI-stream] Raw response length: ${rawContent.length} chars`);
+  console.log(`[AI-stream] Token estimate — input: ~${inputEstimate}, output: ~${outputEstimate}, total: ~${inputEstimate + outputEstimate}`);
+
   let parsed;
   try {
-    parsed = JSON.parse(rawContent);
+    parsed = parseAIJSON(rawContent);
   } catch {
-    throw new Error(`AI returned invalid JSON: ${rawContent}`);
+    console.error('[AI-stream] First 200 chars:', rawContent.slice(0, 200));
+    console.error('[AI-stream] Last 300 chars:', rawContent.slice(-300));
+    throw new Error('AI returned an unreadable response. Please try again.');
   }
 
   const normalized = normalizeResponse(parsed);
-  const result = ResumeReviewSchema.safeParse(normalized);
+  const result = ReviewResponseSchema.safeParse(normalized);
   if (!result.success) {
-    throw new Error(
-      `AI response did not match expected schema: ${JSON.stringify(result.error.issues, null, 2)}`
-    );
+    console.error('[AI] Schema validation failed:', JSON.stringify(result.error.issues, null, 2));
+    throw new Error('The AI returned an unexpected response format. Please try again.');
   }
 
   return result.data;
 }
 
-export async function analyzeResume(resumeText) {
+/* ── One-shot export ── */
+
+export async function analyzeResume(resumeText, { jobRole, jobAd } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -225,44 +490,39 @@ export async function analyzeResume(resumeText) {
     const response = await client.chat.completions.create({
       model,
       temperature: 0.3,
-      response_format: { type: 'json_object' },
+      max_tokens: 4096,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        {
-          role: 'user',
-          content: `Please review the following resume and return your feedback as a JSON object:\n\n---\n${resumeText}\n---`,
-        },
+        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
       ],
     });
 
     rawContent = response.choices[0]?.message?.content;
-
-    if (!rawContent) {
-      throw new Error('AI returned an empty response.');
-    }
+    if (!rawContent) throw new Error('AI returned an empty response.');
   } catch (err) {
     if (err?.status === 429 || err?.message?.includes('429')) {
-      return {
-        error: 'AI is currently busy, please try again in a minute.',
-        code: 'RATE_LIMIT',
-      };
+      return { error: 'AI is currently busy, please try again in a minute.', code: 'RATE_LIMIT' };
     }
     throw err;
   }
 
+  const inputEstimate = Math.round(SYSTEM_PROMPT.length / 4);
+  const outputEstimate = Math.round(rawContent.length / 4);
+  console.log(`[AI] Token estimate — input: ~${inputEstimate}, output: ~${outputEstimate}, total: ~${inputEstimate + outputEstimate}`);
+
   let parsed;
   try {
-    parsed = JSON.parse(rawContent);
+    parsed = parseAIJSON(rawContent);
   } catch {
-    throw new Error(`AI returned invalid JSON: ${rawContent}`);
+    console.error('[AI] Last 300 chars of raw response:', rawContent.slice(-300));
+    throw new Error('AI returned an unreadable response. Please try again.');
   }
 
   const normalized = normalizeResponse(parsed);
-  const result = ResumeReviewSchema.safeParse(normalized);
+  const result = ReviewResponseSchema.safeParse(normalized);
   if (!result.success) {
-    throw new Error(
-      `AI response did not match expected schema: ${JSON.stringify(result.error.issues, null, 2)}`
-    );
+    console.error('[AI] Schema validation failed:', JSON.stringify(result.error.issues, null, 2));
+    throw new Error('The AI returned an unexpected response format. Please try again.');
   }
 
   return result.data;

@@ -1,5 +1,12 @@
-import 'dotenv/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 import OpenAI from 'openai';
+
+// Single source of truth: server/.env. Resolved relative to this file so it
+// works regardless of the CWD the ai-service is invoked from.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../../../server/.env') });
 
 let _client = null;
 

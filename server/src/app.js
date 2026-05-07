@@ -12,7 +12,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 app.set('json spaces', 2);
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'] }));
+app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], credentials: true }));
 app.use(express.json());
 
 // Ensure uploads/ exists at startup
@@ -43,6 +43,9 @@ import resumeRouter from './routes/resume.js';
 import authRouter from './routes/auth.js';
 app.use('/api/resume', resumeRouter);
 app.use('/api/auth', authRouter);
+import chatbotRouter from './routes/chatbot.js';
+app.use('/api/resume', resumeRouter);
+app.use('/api/chat', chatbotRouter);
 
 // Error handler
 app.use((err, req, res, next) => {
