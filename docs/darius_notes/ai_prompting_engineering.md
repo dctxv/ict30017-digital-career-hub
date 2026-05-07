@@ -1,11 +1,13 @@
 # Resume Reviewer System Prompt Iteration Log
 
-| Field | Value |
-| --- | --- |
-| Project | P83 Digital Career Hub |
-| Author | Darius Clay Tan Yi (AI Lead) |
+
+| Field   | Value                            |
+| ------- | -------------------------------- |
+| Project | P83 Digital Career Hub           |
+| Author  | Darius Clay Tan Yi (AI Lead)     |
 | Feature | AI Resume Reviewer (GPT-4o-mini) |
-| Sprint | 1 |
+| Sprint  | 1                                |
+
 
 ## Iteration 0 - Baseline Prompt
 
@@ -36,13 +38,11 @@ This version integrated findings from Bangladesh job market research into explic
   - Language 35%
   - Formatting 20%
 - Baseline-of-5 additive/deductive model.
-
 - Score range definitions:
   - `1-3`: critical
   - `4-6`: average
   - `7-8`: competitive
   - `9-10`: exemplary
-
 - Explicit penalties for:
   - personal details
   - photos
@@ -50,12 +50,10 @@ This version integrated findings from Bangladesh job market research into explic
   - cliche objectives
   - weak verbs
   - dialect mixing
-
 - 3-tier action item priority:
   - ATS failures
   - content gaps
   - language polish
-
 - Sector keyword taxonomy:
   - IT
   - RMG
@@ -200,10 +198,11 @@ Sample Resume 2: re-run
 
 ## Summary
 
-| Iteration | Token Cost | Key Fix | Test Impact |
-| --- | ---: | --- | --- |
-| 0 | ~350 | Baseline prompt | No detection rules, arbitrary scores |
-| 1 | ~850 | Research-driven rules | Comprehensive, but not fully validated by client |
-| 2 | ~650 | Client-grounded rewrite | More specific feedback, but still missed legacy conventions |
-| 3 | ~780 | Legacy convention block | Caught Declaration, headings, LinkedIn, and missing sections |
-| 4 | ~850 | Per-entry checks and score calibration | All known issues caught, formatting scores became accurate |
+
+| Iteration | Token Cost | Key Fix                                | Test Impact                                                  |
+| --------- | ---------- | -------------------------------------- | ------------------------------------------------------------ |
+| 0         | ~350       | Baseline prompt                        | No detection rules, arbitrary scores                         |
+| 1         | ~850       | Research-driven rules                  | Comprehensive, but not fully validated by client             |
+| 2         | ~650       | Client-grounded rewrite                | More specific feedback, but still missed legacy conventions  |
+| 3         | ~780       | Legacy convention block                | Caught Declaration, headings, LinkedIn, and missing sections |
+| 4         | ~850       | Per-entry checks and score calibration | All known issues caught, formatting scores became accurate   |
