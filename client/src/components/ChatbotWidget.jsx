@@ -1,123 +1,258 @@
-import { useState, useRef, useEffect } from 'react'
-import './ChatbotWidget.css'
+/**
+ * Module: ChatbotWidget
+ * Responsibility: Floating AI career chatbot UI with POST-based SSE streaming.
+ */
 
-const INITIAL_MSG = {
-  role: 'bot',
-  text: "Hi! I can help with career guidance, resume tips, interview prep, and job searching in Bangladesh. What would you like to know?",
-  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+import { useEffect, useRef, useState } from 'react'
+import styles from './ChatbotWidget.module.css'
+
+const INITIAL_MESSAGE = {
+  role: 'assistant',
+  content: 'Hi! I can help with career guidance, resume tips, interview prep, and job searching in Bangladesh.',
+}
+
+const LIMIT_MESSAGE = "You've reached your daily chat limit. Upgrade to Premium for unlimited access."
+const GENERIC_ERROR = 'Something went wrong. Please try again.'
+
+function readCurrentLanguage() {
+  const activeToggle = document.querySelector('.lang-btn.active')
+  const activeText = activeToggle?.textContent?.trim().toLowerCase()
+
+  if (activeText === 'bn') return 'bn'
+  if (document.documentElement.lang?.toLowerCase().startsWith('bn')) return 'bn'
+  if (navigator.language?.toLowerCase().startsWith('bn')) return 'bn'
+
+  return 'en'
+}
+
+function parseSseFrame(frame) {
+  const dataLines = frame
+    .split(/\r?\n/)
+    .filter(line => line.startsWith('data:'))
+    .map(line => {
+      const value = line.slice(5)
+      return value.startsWith(' ') ? value.slice(1) : value
+    })
+
+  return dataLines.join('\n')
+}
+
+function updateAssistantAt(history, index, content) {
+  return history.map((message, currentIndex) => {
+    if (currentIndex !== index || message.role !== 'assistant') return message
+    return { ...message, content }
+  })
 }
 
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState([INITIAL_MSG])
+  const [conversationHistory, setConversationHistory] = useState([INITIAL_MESSAGE])
   const [input, setInput] = useState('')
-  const [typing, setTyping] = useState(false)
-  const [lang, setLang] = useState('EN')
+  const [isResponding, setIsResponding] = useState(false)
+  const [error, setError] = useState('')
+  const [language, setLanguage] = useState(() => readCurrentLanguage())
   const bottomRef = useRef(null)
 
   useEffect(() => {
-    if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, open])
+    const syncLanguage = () => setLanguage(readCurrentLanguage())
+    const onDocumentClick = () => window.setTimeout(syncLanguage, 0)
 
-  function send() {
-    if (!input.trim()) return
-    const userMsg = {
-      role: 'user',
-      text: input.trim(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-    setMessages(m => [...m, userMsg])
+    syncLanguage()
+    document.addEventListener('click', onDocumentClick)
+
+    return () => document.removeEventListener('click', onDocumentClick)
+  }, [])
+
+  useEffect(() => {
+    if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [conversationHistory, isResponding, open])
+
+  async function sendMessage() {
+    const message = input.trim()
+    if (!message || isResponding) return
+
+    const historyBeforeSend = conversationHistory.filter(item => item.content.trim())
+    const userMessage = { role: 'user', content: message }
+    const assistantIndex = historyBeforeSend.length + 1
+
+    setConversationHistory([...historyBeforeSend, userMessage, { role: 'assistant', content: '' }])
     setInput('')
-    setTyping(true)
-    setTimeout(() => {
-      setTyping(false)
-      setMessages(m => [...m, {
-        role: 'bot',
-        text: "That's a great career question. For the most relevant guidance in the Bangladeshi job market, I'd recommend researching local industry norms and connecting with alumni in your target field. Would you like more specific advice?",
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }])
-    }, 1400)
+    setError('')
+    setIsResponding(true)
+
+    let response
+    try {
+      response = await fetch('/api/chat', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          conversationHistory: historyBeforeSend,
+          language,
+        }),
+      })
+    } catch {
+      setConversationHistory([...historyBeforeSend, userMessage])
+      setError(GENERIC_ERROR)
+      setIsResponding(false)
+      return
+    }
+
+    if (response.status === 401) {
+      setConversationHistory([...historyBeforeSend, userMessage])
+      setError(GENERIC_ERROR)
+      setIsResponding(false)
+      return
+    }
+
+    if (response.status === 429) {
+      setConversationHistory([...historyBeforeSend, userMessage])
+      setError(LIMIT_MESSAGE)
+      setIsResponding(false)
+      return
+    }
+
+    if (!response.ok || !response.body) {
+      setConversationHistory([...historyBeforeSend, userMessage])
+      setError(GENERIC_ERROR)
+      setIsResponding(false)
+      return
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let assistantContent = ''
+
+    try {
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+
+        let frameEnd = buffer.indexOf('\n\n')
+        while (frameEnd !== -1) {
+          const frame = buffer.slice(0, frameEnd)
+          buffer = buffer.slice(frameEnd + 2)
+          const payload = parseSseFrame(frame)
+
+          if (payload === '[DONE]') {
+            setIsResponding(false)
+            return
+          }
+
+          if (payload === '[ERROR]') {
+            setError(GENERIC_ERROR)
+            setIsResponding(false)
+            return
+          }
+
+          if (payload) {
+            const nextChunk = assistantContent ? payload : payload.replace(/^\s+/, '')
+            if (!nextChunk) {
+              frameEnd = buffer.indexOf('\n\n')
+              continue
+            }
+
+            assistantContent += nextChunk
+            setConversationHistory(history => updateAssistantAt(history, assistantIndex, assistantContent))
+          }
+
+          frameEnd = buffer.indexOf('\n\n')
+        }
+      }
+
+      setIsResponding(false)
+    } catch {
+      setError(GENERIC_ERROR)
+      setIsResponding(false)
+    }
   }
+
+  const canSend = input.trim().length > 0 && !isResponding
+  const visibleMessages = conversationHistory.filter(message => message.content.trim().length > 0)
+  const isThinking = isResponding && conversationHistory.at(-1)?.role === 'assistant' && !conversationHistory.at(-1)?.content
 
   return (
     <>
       {open && (
-        <div className="chat-widget">
-          <div className="chat-header">
-            <div className="chat-header-left">
-              <div className="bot-avatar">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <rect x="3" y="5" width="10" height="8" rx="2" stroke="white" strokeWidth="1.2"/>
-                  <circle cx="6" cy="9" r="1" fill="white"/>
-                  <circle cx="10" cy="9" r="1" fill="white"/>
-                  <path d="M6 5V3M10 5V3" stroke="white" strokeWidth="1.2" strokeLinecap="round"/>
-                  <path d="M8 3H8" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+        <section className={styles.widget} aria-label="Career chatbot">
+          <header className={styles.header}>
+            <div className={styles.headerIdentity}>
+              <div className={styles.avatar} aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                  <path d="M4 5.5A2.5 2.5 0 016.5 3h7A2.5 2.5 0 0116 5.5v5A2.5 2.5 0 0113.5 13H9l-4 3v-3.1A2.5 2.5 0 014 10.5v-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                  <path d="M7 8h.01M10 8h.01M13 8h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </div>
               <div>
-                <div className="chat-title">Career Assistant</div>
-                <div className="chat-subtitle">Career guidance only · EN / BN</div>
+                <div className={styles.title}>Career Assistant</div>
+                <div className={styles.subtitle}>{language === 'bn' ? 'Bangla' : 'English'}</div>
               </div>
             </div>
-            <div className="chat-header-right">
-              <button className="chat-ctrl" onClick={() => setOpen(false)}>—</button>
-              <button className="chat-ctrl" onClick={() => setOpen(false)}>✕</button>
-            </div>
-          </div>
-
-          <div className="chat-lang-bar">
-            <span>Responding in {lang === 'EN' ? 'English' : 'Bangla'}</span>
-            <button onClick={() => setLang(l => l === 'EN' ? 'BN' : 'EN')}>
-              Switch to {lang === 'EN' ? 'Bangla' : 'English'}
+            <button className={styles.iconButton} type="button" onClick={() => setOpen(false)} aria-label="Close chat">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
             </button>
-          </div>
+          </header>
 
-          <div className="chat-messages">
-            {messages.map((m, i) => (
-              <div key={i} className={`chat-bubble-wrap ${m.role}`}>
-                <div className={`chat-bubble ${m.role}`}>{m.text}</div>
-                <div className="chat-time">{m.time}</div>
+          <div className={styles.messages}>
+            {visibleMessages.map((message, index) => (
+              <div key={`${message.role}-${index}`} className={`${styles.messageRow} ${styles[message.role]}`}>
+                <div className={styles.bubble}>{message.content}</div>
               </div>
             ))}
-            {typing && (
-              <div className="chat-bubble-wrap bot">
-                <div className="chat-bubble bot typing">
-                  <span /><span /><span />
+            {isThinking && (
+              <div className={`${styles.messageRow} ${styles.assistant}`}>
+                <div className={`${styles.bubble} ${styles.thinking}`}>
+                  <span className={styles.thinkingDot} aria-hidden="true" />
+                  <span className={styles.thinkingDot} aria-hidden="true" />
+                  <span className={styles.thinkingDot} aria-hidden="true" />
                 </div>
               </div>
             )}
             <div ref={bottomRef} />
           </div>
 
-          <div className="chat-input-area">
-            <input
-              className="chat-input"
+          {error && <div className={styles.inlineError}>{error}</div>}
+
+          <form className={styles.inputArea} onSubmit={(event) => { event.preventDefault(); sendMessage() }}>
+            <textarea
+              className={styles.input}
+              rows={1}
               placeholder="Ask a career question..."
               value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && send()}
+              onChange={event => setInput(event.target.value)}
+              onKeyDown={event => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault()
+                  sendMessage()
+                }
+              }}
+              disabled={isResponding}
             />
-            <button className="chat-send" onClick={send}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M14 8L2 2L5 8L2 14L14 8Z" fill="white"/>
+            <button className={styles.sendButton} type="submit" disabled={!canSend} aria-label="Send message">
+              <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
+                <path d="M15.75 2.25L8.25 9.75M15.75 2.25l-4.5 13.5-3-6-6-3 13.5-4.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-          </div>
-          <div className="chat-scope-note">Scoped to career topics only</div>
-        </div>
+          </form>
+        </section>
       )}
 
-      <button className="chat-trigger" onClick={() => setOpen(o => !o)}>
+      <button className={styles.trigger} type="button" onClick={() => setOpen(value => !value)} aria-label={open ? 'Close career chatbot' : 'Open career chatbot'}>
         {open ? (
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M5 5L15 15M15 5L5 15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         ) : (
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M4 4h14a2 2 0 012 2v8a2 2 0 01-2 2H7l-4 3V6a2 2 0 012-2z" stroke="white" strokeWidth="1.8" strokeLinejoin="round"/>
+            <path d="M4 5.5A2.5 2.5 0 016.5 3h9A2.5 2.5 0 0118 5.5v6A2.5 2.5 0 0115.5 14H9l-5 4v-4.5A2.5 2.5 0 011.5 11V5.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
           </svg>
         )}
-        <span className="chat-trigger-dot" />
       </button>
     </>
   )
