@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+
+
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -9,6 +11,7 @@ import CareerPaths from './pages/CareerPaths'
 import ChatbotWidget from './components/ChatbotWidget'
 
 export default function App() {
+
   return (
     <BrowserRouter>
       <Routes>
