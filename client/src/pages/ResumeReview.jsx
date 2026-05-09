@@ -424,7 +424,7 @@ function FileIcon({ size = 36 }) {
 }
 
 /* ── UploadView ──────────────────────────────────────────────────── */
-function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, onAnalyse, onSample }) {
+function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marketMode, setMarketMode, onAnalyse, onSample }) {
   const [drag, setDrag] = useState(false)
   const [enhanceOpen, setEnhanceOpen] = useState(false)
   const inputRef = useRef()
@@ -469,6 +469,33 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, onAna
               {file.name}
             </span>
             <button className="btn btn-ghost btn-sm" onClick={() => setFile(null)}>✕ Remove</button>
+          </div>
+
+          <div className="market-mode-card">
+            <div className="market-mode-label">
+              <span className="market-mode-icon">🎯</span>
+              <span className="market-mode-title">Who are you applying to?</span>
+            </div>
+            <div className="market-mode-options">
+              <button
+                className={`market-mode-btn ${marketMode === 'bangladesh' ? 'market-mode-btn--active' : ''}`}
+                onClick={() => setMarketMode('bangladesh')}
+              >
+                <span className="market-mode-btn-label">Bangladesh employers</span>
+                <span className="market-mode-btn-desc">
+                  Personal details, declarations and local conventions are treated as standard practice
+                </span>
+              </button>
+              <button
+                className={`market-mode-btn ${marketMode === 'international' ? 'market-mode-btn--active' : ''}`}
+                onClick={() => setMarketMode('international')}
+              >
+                <span className="market-mode-btn-label">International / multinational</span>
+                <span className="market-mode-btn-desc">
+                  Personal details, declarations and photos flagged for removal per Western standards
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="enhance-card">
@@ -806,6 +833,7 @@ export default function ResumeReview() {
   const [file, setFile] = useState(null)
   const [jobRole, setJobRole] = useState('')
   const [jobAd, setJobAd] = useState('')
+  const [marketMode, setMarketMode] = useState('bangladesh')
   const [feedback, setFeedback] = useState(null)
   const [streamError, setStreamError] = useState(null)
   const [filename, setFilename] = useState('')
@@ -825,6 +853,7 @@ export default function ResumeReview() {
     await streamResumeReview(f, {
       jobRole: jobRole || undefined,
       jobAd: jobAd || undefined,
+      marketMode,
       onPartial: (partial) => {
         setFeedback(partial)
         setView('results')
@@ -873,6 +902,8 @@ export default function ResumeReview() {
           setJobRole={setJobRole}
           jobAd={jobAd}
           setJobAd={setJobAd}
+          marketMode={marketMode}
+          setMarketMode={setMarketMode}
           onAnalyse={analyse}
           onSample={showSample}
         />
