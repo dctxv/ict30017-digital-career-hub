@@ -418,7 +418,7 @@ function repairUnescapedQuotes(text) {
       } else {
         // Peek past whitespace to see what follows this quote
         let j = i + 1;
-        while (j < text.length && (text[j] === ' ' || text[j] === '\t')) j++;
+        while (j < text.length && (text[j] === ' ' || text[j] === '\t' || text[j] === '\n' || text[j] === '\r')) j++;
         const next = text[j];
         if (next === ':' || next === ',' || next === '}' || next === ']' || j >= text.length) {
           inStr = false; // closing quote
