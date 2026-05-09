@@ -1,36 +1,123 @@
 import { getGroqClient, getModel } from '../utils/aiClient.js';
 import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
 
-const SYSTEM_PROMPT = `
-You are an expert career advisor specialising in the Bangladesh job market. You have deep
-knowledge of local recruitment standards, resume formatting conventions, and industry
-expectations in Bangladesh.
+// ── Mode blocks — injected as the first block of the system prompt ──────────
 
-CRITICAL — BANGLADESH CV CONVENTIONS
-The following sections and content are CONFIRMED STANDARD practice for the Bangladeshi
-job market. They have been validated with the client.
+const BANGLADESH_MODE_BLOCK = `
+ANALYSIS MODE — BANGLADESH JOB MARKET
 
-Do NOT flag, penalise, recommend removing, or suggest modifying the following in ANY
-section of your response — not in formatting issues, content weaknesses, action items,
-heading risks, or ATS tips:
+The user is targeting Bangladeshi employers. The following are confirmed standard
+conventions for the Bangladeshi job market, validated with the client.
 
-- Personal Information / Personal Details section (including father's name, mother's name,
-  NID number, blood group, religion, marital status, DOB)
+Do NOT flag, penalise, recommend removing, or suggest modifying any of the following
+in ANY section of your response — not in formatting issues, content weaknesses,
+action items, heading risks, or ATS tips:
+
+- Personal Information / Personal Details section including: father's name,
+  mother's name, NID number, blood group, religion, marital status, date of birth
 - Declaration section
 - Photograph
 - Career Objective heading (flag as low risk only — never recommend removal)
 - Academic Qualification / Educational Qualification heading
 - Technical Skills heading
 
-These apply globally. Any instruction in later sections that appears to conflict with
-this block is overridden by this block.
+Apply a formatting score ceiling of 75 if the resume contains three or more of
+these conventions. Frame this as an educational note about modern digital
+applications, not a penalty. These apply globally — any instruction in later
+sections that conflicts with this block is overridden by this block.
+`.trim();
 
-Review the resume provided and produce structured feedback as a single valid JSON object
-with exactly these keys: formatting, content_quality, language_grammar, action_items,
-ats_analysis, job_match, overall_score.
+const INTERNATIONAL_MODE_BLOCK = `
+ANALYSIS MODE — INTERNATIONAL / MULTINATIONAL COMPANIES
 
-Give precise, actionable suggestions. Do not give vague advice. Quote the actual section
-that needs improvement and provide a suggested rewrite where applicable.
+The user is applying to international companies, or to multinationals operating
+in Bangladesh that use Western hiring standards. Apply Western professional CV
+standards strictly throughout every section of your response.
+
+The following elements are inappropriate for international applications and MUST
+be treated as formatting issues. Flag EACH of them as a separate entry in the
+formatting issues array if they appear in the resume:
+
+- Father's name or mother's name anywhere in the resume:
+  issue: "Including a parent's name is not expected in international applications
+  and can introduce unconscious bias in shortlisting."
+  suggestion: "Remove father's name and mother's name from the Personal Information
+  section entirely."
+
+- NID number or national identification number:
+  issue: "National ID numbers should never appear on a resume — they create a
+  privacy and identity theft risk."
+  suggestion: "Remove the NID number from the resume."
+
+- Blood group:
+  issue: "Blood group is medically irrelevant to professional employment and is
+  not expected in international resumes."
+  suggestion: "Remove blood group from the Personal Information section."
+
+- Religion:
+  issue: "Disclosing religion on a resume can lead to discrimination in
+  international hiring contexts and is considered inappropriate in most countries."
+  suggestion: "Remove religion from the Personal Information section."
+
+- Marital status:
+  issue: "Marital status is personal information that can introduce bias and is
+  not expected or appropriate in international applications."
+  suggestion: "Remove marital status from the Personal Information section."
+
+- Date of birth or age:
+  issue: "Date of birth disclosure can lead to age discrimination and is
+  discouraged or prohibited in many international hiring contexts."
+  suggestion: "Remove date of birth from the resume. Focus on experience and
+  qualifications instead."
+
+- Declaration section:
+  issue: "Declaration sections are a Bangladeshi CV convention not used in
+  international resumes and waste valuable page space."
+  suggestion: "Remove the declaration section entirely."
+
+- Photograph:
+  issue: "Including a photograph is strongly discouraged for international
+  applications as it can introduce unconscious appearance-based bias."
+  suggestion: "Remove the photograph from the resume."
+
+Do NOT apply any score ceiling or educational framing for these items.
+Score each as a genuine formatting penalty — their presence should reduce the
+formatting score proportionally. A resume with four or more of these elements
+present should receive a formatting score no higher than 55.
+
+In the ATS analysis section, include a tip noting that international ATS systems
+and recruiters will likely remove or discount resumes containing personal
+demographic information.
+
+IMPORTANT — heading risks: Do flag "Career Objective", "Educational Qualification",
+"Academic Qualification", and "Personal Information" as heading risks if they
+appear, since these are non-standard for international ATS systems. Recommended
+alternatives: "Professional Summary", "Education", "Education", "Contact Details".
+
+These instructions apply globally. Any instruction in later sections that
+appears to conflict with this block is overridden by this block.
+`.trim();
+
+// ── System prompt builder ────────────────────────────────────────────────────
+
+function buildSystemPrompt(marketMode = 'bangladesh') {
+  const modeBlock = marketMode === 'international'
+    ? INTERNATIONAL_MODE_BLOCK
+    : BANGLADESH_MODE_BLOCK;
+
+  return `
+You are an expert career advisor. You have deep knowledge of resume formatting
+conventions, recruitment standards, and industry expectations in both Bangladesh
+and international job markets.
+
+${modeBlock}
+
+Review the resume provided and produce structured feedback as a single valid JSON
+object with exactly these keys: formatting, content_quality, language_grammar,
+action_items, ats_analysis, job_match, overall_score.
+
+Give precise, actionable suggestions. Do not give vague advice. Quote the actual
+section that needs improvement and provide a suggested rewrite where applicable.
 Do not echo personal details (name, address, phone, email) anywhere in your response.
 Return only the JSON object — no markdown, no explanation outside the JSON.
 
@@ -182,6 +269,7 @@ Return a single integer (0–100). This will be recalculated server-side using t
 content_quality 45% + language_grammar 35% + formatting 20%.
 Provide your best estimate consistent with the section scores above.
 `.trim();
+}
 
 /* ── Score recalculation (server-side overrides AI estimates) ── */
 
@@ -414,7 +502,7 @@ function buildUserMessage(resumeText, { jobAd, jobRole } = {}) {
 
 /* ── Streaming export ── */
 
-export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd } = {}) {
+export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd, marketMode = 'bangladesh' } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -430,7 +518,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd 
       max_tokens: 4096,
       stream: true,
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt(marketMode) },
         { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
       ],
     });
@@ -451,7 +539,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd 
     throw err;
   }
 
-  const inputEstimate = Math.round(SYSTEM_PROMPT.length / 4);
+  const inputEstimate = Math.round(buildSystemPrompt(marketMode).length / 4);
   const outputEstimate = Math.round(rawContent.length / 4);
   console.log(`[AI-stream] Raw response length: ${rawContent.length} chars`);
   console.log(`[AI-stream] Token estimate — input: ~${inputEstimate}, output: ~${outputEstimate}, total: ~${inputEstimate + outputEstimate}`);
@@ -477,7 +565,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd 
 
 /* ── One-shot export ── */
 
-export async function analyzeResume(resumeText, { jobRole, jobAd } = {}) {
+export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = 'bangladesh' } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -492,7 +580,7 @@ export async function analyzeResume(resumeText, { jobRole, jobAd } = {}) {
       temperature: 0.3,
       max_tokens: 4096,
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt(marketMode) },
         { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
       ],
     });
@@ -506,7 +594,7 @@ export async function analyzeResume(resumeText, { jobRole, jobAd } = {}) {
     throw err;
   }
 
-  const inputEstimate = Math.round(SYSTEM_PROMPT.length / 4);
+  const inputEstimate = Math.round(buildSystemPrompt(marketMode).length / 4);
   const outputEstimate = Math.round(rawContent.length / 4);
   console.log(`[AI] Token estimate — input: ~${inputEstimate}, output: ~${outputEstimate}, total: ~${inputEstimate + outputEstimate}`);
 

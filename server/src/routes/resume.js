@@ -43,7 +43,8 @@ router.post('/analyze', upload.single('resume'), async (req, res) => {
     console.log('[resume] Sending to AI service...');
     const jobRole = typeof req.body?.jobRole === 'string' ? req.body.jobRole.slice(0, 200) : undefined;
     const jobAd = typeof req.body?.jobAd === 'string' ? req.body.jobAd.slice(0, 4000) : undefined;
-    const feedback = await analyzeResume(cleanText, { jobRole, jobAd });
+    const marketMode = req.body?.marketMode === 'international' ? 'international' : 'bangladesh';
+    const feedback = await analyzeResume(cleanText, { jobRole, jobAd, marketMode });
 
     if (feedback.code === 'RATE_LIMIT') {
       return res.status(429).json({ error: feedback.error });
@@ -114,10 +115,12 @@ router.post('/analyze-stream', upload.single('resume'), async (req, res) => {
     console.log('[resume-stream] Streaming from AI service...');
     const jobRole = typeof req.body?.jobRole === 'string' ? req.body.jobRole.slice(0, 200) : undefined;
     const jobAd = typeof req.body?.jobAd === 'string' ? req.body.jobAd.slice(0, 4000) : undefined;
+    const marketMode = req.body?.marketMode === 'international' ? 'international' : 'bangladesh';
     const feedback = await analyzeResumeStream(cleanText, {
       onToken: (t) => writeFrame({ t }),
       jobRole,
       jobAd,
+      marketMode,
     });
 
     if (feedback?.code === 'RATE_LIMIT') {
