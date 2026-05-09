@@ -97,6 +97,74 @@
   margin-left: 2px;
 }
 
+/* ── Market Mode Card ────────────────────────────────────────────── */
+.market-mode-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.market-mode-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.market-mode-icon { font-size: 16px; }
+.market-mode-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.market-mode-options {
+  display: flex;
+  background: #f5f3ef;
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 4px;
+}
+@media (max-width: 560px) {
+  .market-mode-options { flex-direction: column; }
+}
+.market-mode-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.market-mode-btn:hover:not(.market-mode-btn--active) {
+  background: rgba(255, 255, 255, 0.5);
+}
+.market-mode-btn--active {
+  background: var(--white);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.market-mode-btn-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.market-mode-btn--active .market-mode-btn-label {
+  color: var(--green-700);
+}
+.market-mode-btn-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 /* ── Enhance card (upload state) ─────────────────────────────────── */
 .enhance-card {
   border: 1.5px dashed var(--green-200);
