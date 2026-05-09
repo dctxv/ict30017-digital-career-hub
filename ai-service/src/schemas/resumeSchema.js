@@ -41,12 +41,12 @@ const ATSHeadingRiskSchema = z.object({
 });
 
 const ATSAnalysisSchema = z.object({
-  inferred_role:     z.string(),
-  inferred_industry: z.string(),
-  keyword_hits:      z.array(z.string()),
-  keyword_gaps:      z.array(z.string()).max(3),
-  heading_risks:     z.array(ATSHeadingRiskSchema),
-  ats_tips:          z.array(z.string()).max(3),
+  inferred_role:     z.string().optional(),
+  inferred_industry: z.string().optional(),
+  keyword_hits:      z.array(z.string()).optional(),
+  keyword_gaps:      z.array(z.string()).max(3).optional(),
+  heading_risks:     z.array(ATSHeadingRiskSchema).optional(),
+  ats_tips:          z.array(z.string()).max(3).optional(),
   standard:          z.string().optional(),
   ats_score:         z.number().optional(),
 });
