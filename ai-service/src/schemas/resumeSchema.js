@@ -71,10 +71,10 @@ const JobMatchSchema = z.object({
 });
 
 export const ReviewResponseSchema = z.object({
-  formatting:       FormattingSchema,
-  content_quality:  ContentQualitySchema,
-  language_grammar: LanguageGrammarSchema,
-  action_items:     z.array(z.string()),
+  formatting:       FormattingSchema.nullable().optional(),
+  content_quality:  ContentQualitySchema.nullable().optional(),
+  language_grammar: LanguageGrammarSchema.nullable().optional(),
+  action_items:     z.array(z.string()).nullable().optional(),
   // ats_analysis and job_match may be absent if the response was truncated
   ats_analysis:     ATSAnalysisSchema.optional(),
   job_match:        JobMatchSchema.nullable().optional(),

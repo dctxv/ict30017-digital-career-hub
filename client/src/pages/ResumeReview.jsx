@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import html2pdf from 'html2pdf.js'
 import Navbar from '../components/Navbar'
 import { streamResumeReview } from '../api/reviewResume'
 import './ResumeReview.css'
@@ -625,6 +626,29 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
     window.scrollTo({ top, behavior: 'smooth' })
   }
 
+  const handleDownloadPDF = () => {
+    const element = document.querySelector('.rr-results');
+    if (!element) return;
+
+    const opt = {
+      margin:       [0.3, 0.3, 0.3, 0.3],
+      filename:     `Resume_Review_${filename ? filename.replace('.pdf', '') : 'Result'}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true,
+        scrollY: 0,
+        onclone: (clonedDoc) => {
+          const els = clonedDoc.querySelectorAll('.sec-nav, .cta-strip, .sticky-header, .sample-notice, .stream-warning');
+          els.forEach(el => el.style.display = 'none');
+        }
+      },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
+  };
+
   const overallScore = typeof feedback?.overall_score === 'number' ? feedback.overall_score : null
   const hasJobMatch  = feedback?.job_match != null
 
@@ -724,7 +748,7 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
             ))}
           </div>
           <div className="sec-nav__actions">
-            <button className="btn btn-ghost btn-sm">⬇ PDF</button>
+            <button className="btn btn-ghost btn-sm" onClick={handleDownloadPDF}>⬇ PDF</button>
             <button className="btn btn-ghost btn-sm">✉ Email</button>
           </div>
         </div>
@@ -813,7 +837,7 @@ function ResultsView({ filename, isSample, feedback, isLoading, streamError, job
             <div className="cta-strip__title">What next?</div>
             <div className="cta-strip__btns">
               <button className="btn btn-primary" onClick={onUploadNew}>↑ Upload new resume</button>
-              <button className="btn btn-outline">⬇ Download PDF</button>
+              <button className="btn btn-outline" onClick={handleDownloadPDF}>⬇ Download PDF</button>
               <button className="btn btn-outline">✉ Email to myself</button>
             </div>
             <div className="cta-strip__tip">
