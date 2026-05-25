@@ -1,7 +1,7 @@
 import { getGroqClient, getModel } from '../utils/aiClient.js';
-import { ResumeReviewSchema } from '../schemas/resumeSchema.js';
+import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
 
-const SYSTEM_PROMPT = `You are an expert career consultant and resume reviewer specialising in the Bangladesh job market.
+const BANGLADESH_MODE_BLOCK = `You are an expert career consultant and resume reviewer specialising in the Bangladesh job market.
 Your role is to critically evaluate resumes for job seekers in Bangladesh â€” including sectors such as IT/software, RMG, banking, NGOs, civil engineering, and business.
 
 Context you must understand:
@@ -12,10 +12,6 @@ Context you must understand:
 - Action-oriented bullet points with quantifiable achievements (numbers, percentages) are strongly preferred.
 - Skills sections should list both technical and soft skills relevant to the local market.
 
-<<<<<<< Updated upstream
-Your output MUST be a single, valid JSON object with NO additional text, explanation, or markdown formatting around it.
-The JSON must strictly follow this structure:
-=======
 The user is targeting Bangladeshi employers. The following are confirmed standard
 conventions for the Bangladeshi job market, validated with the client.
 
@@ -215,33 +211,14 @@ three or more Bangladeshi CV conventions (see CRITICAL block above); frame this 
 educational note about modern digital applications, not a penalty.
 
 Return:
->>>>>>> Stashed changes
 {
-  "overall_score": <integer 1-10>,
-  "formatting_feedback": {
-    "score": <integer 1-10>,
-    "strengths": [<string>, ...],
-    "improvements": [<string>, ...]
-  },
-  "content_quality": {
-    "score": <integer 1-10>,
-    "strengths": [<string>, ...],
-    "improvements": [<string>, ...]
-  },
-  "language_and_grammar": {
-    "score": <integer 1-10>,
-    "strengths": [<string>, ...],
-    "improvements": [<string>, ...]
-  },
-  "action_items": [<string>, ...]
+  "score": number (0–100),
+  "feedback": string,
+  "issues": Array<{ "section": string, "issue": string, "suggestion": string }>
 }
 
-Be specific and actionable. Do NOT give vague feedback like "improve your resume".
-Instead say exactly what to change and why it matters for Bangladeshi employers.`;
+---
 
-<<<<<<< Updated upstream
-export async function analyzeResume(resumeText) {
-=======
 SECTION 2 — content_quality
 Score the substance and relevance of the resume content (0–100).
 Identify strengths (what the candidate does well) and weaknesses (gaps, vague claims,
@@ -667,7 +644,6 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
 /* ── One-shot export ── */
 
 export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = 'bangladesh' } = {}) {
->>>>>>> Stashed changes
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -679,21 +655,13 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
   try {
     const response = await client.chat.completions.create({
       model,
-<<<<<<< Updated upstream
-      temperature: 0.3,
-      response_format: { type: 'json_object' },
-=======
       temperature: 0.1,
       frequency_penalty: 0.1,
       presence_penalty: 0.1,
       max_tokens: 4096,
->>>>>>> Stashed changes
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        {
-          role: 'user',
-          content: `Please review the following resume and return your feedback as a JSON object:\n\n---\n${resumeText}\n---`,
-        },
+        { role: 'system', content: buildSystemPrompt(marketMode) },
+        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
       ],
     });
 
@@ -712,18 +680,25 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
     throw err;
   }
 
+  const inputEstimate = Math.round(buildSystemPrompt(marketMode).length / 4);
+  const outputEstimate = Math.round(rawContent.length / 4);
+  console.log(`[AI] Raw response length: ${rawContent.length} chars`);
+  console.log(`[AI] Token estimate — input: ~${inputEstimate}, output: ~${outputEstimate}, total: ~${inputEstimate + outputEstimate}`);
+
   let parsed;
   try {
-    parsed = JSON.parse(rawContent);
+    parsed = parseAIJSON(rawContent);
   } catch {
-    throw new Error(`AI returned invalid JSON: ${rawContent}`);
+    console.error('[AI] First 200 chars:', rawContent.slice(0, 200));
+    console.error('[AI] Last 300 chars:', rawContent.slice(-300));
+    throw new Error('AI returned an unreadable response. Please try again.');
   }
 
-  const result = ResumeReviewSchema.safeParse(parsed);
+  const normalized = normalizeResponse(parsed);
+  const result = ReviewResponseSchema.safeParse(normalized);
   if (!result.success) {
-    throw new Error(
-      `AI response did not match expected schema: ${result.error.message}`
-    );
+    console.error('[AI] Schema validation failed:', JSON.stringify(result.error.issues, null, 2));
+    throw new Error('The AI returned an unexpected response format. Please try again.');
   }
 
   return result.data;
