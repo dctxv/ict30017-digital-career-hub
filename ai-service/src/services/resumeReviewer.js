@@ -1,10 +1,16 @@
 import { getGroqClient, getModel } from '../utils/aiClient.js';
 import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
 
-// ── Mode blocks — injected as the first block of the system prompt ──────────
+const BANGLADESH_MODE_BLOCK = `You are an expert career consultant and resume reviewer specialising in the Bangladesh job market.
+Your role is to critically evaluate resumes for job seekers in Bangladesh â€” including sectors such as IT/software, RMG, banking, NGOs, civil engineering, and business.
 
-const BANGLADESH_MODE_BLOCK = `
-ANALYSIS MODE — BANGLADESH JOB MARKET
+Context you must understand:
+- Bangladeshi employers typically expect a clear objective/summary section.
+- CGPA-based academic results (out of 4.00 or 5.00) are standard and must be included.
+- Most corporate job applications in Bangladesh require English-language resumes.
+- Spelling consistency between British English (preferred in Bangladesh) and American English matters.
+- Action-oriented bullet points with quantifiable achievements (numbers, percentages) are strongly preferred.
+- Skills sections should list both technical and soft skills relevant to the local market.
 
 The user is targeting Bangladeshi employers. The following are confirmed standard
 conventions for the Bangladeshi job market, validated with the client.
@@ -20,6 +26,77 @@ action items, heading risks, or ATS tips:
 - Career Objective heading (flag as low risk only — never recommend removal)
 - Academic Qualification / Educational Qualification heading
 - Technical Skills heading
+
+However, do evaluate the quality of the Career Objective content in the
+content_quality section. A Career Objective that uses generic language such as
+"seeking a challenging position", "utilise my skills", "reputable organisation",
+or "career growth" without specifying a target role, industry, or concrete value
+proposition is a content weakness. Flag it as such and provide a rewritten version
+that references the candidate's specific background, target role, and one concrete
+strength. Do not flag the heading itself — only the content quality.
+
+Bangladesh employers, particularly in banking, government, and large corporates,
+expect 2 to 3 named references with full contact details: full name, designation,
+organisation, phone number, and email address. "References available upon request"
+is not standard practice in the Bangladesh market.
+
+Check the resume for a References section:
+- If no References section exists at all, flag this as a content weakness:
+  "A References section with at least two named referees including their
+  designation, organisation, and contact details is expected by most Bangladesh
+  employers."
+- If a References section exists but only contains "available upon request" or
+  equivalent, flag this as a content weakness with the same suggestion.
+- If at least one full reference with name and contact details is present, do not
+  flag this as a weakness. Do not penalise a resume that has partial reference
+  details (name and organisation but no phone) — only flag complete absence.
+
+For candidates inferred to be fresh graduates or recent postgraduates (graduation
+within the last 3 years or fewer than 2 years of work experience), check whether
+the resume includes a section for extracurricular activities, co-curricular
+activities, voluntary work, club memberships, competitions, or equivalent.
+Bangladesh employers in banking, FMCG, and the public sector use this section to
+assess leadership potential and initiative where work experience is limited.
+
+If no such section exists, flag this as a content weakness: "Bangladeshi employers
+value extracurricular involvement for fresh graduates. Consider adding a section
+covering club memberships, volunteer work, academic competitions, or community
+activities."
+
+Do not flag this for candidates with 3 or more years of work experience. Quality
+check: if the section exists but lists only one-word entries with no context (e.g.
+"Cricket" or "Reading"), flag it as a content weakness and suggest expanding each
+entry with role and duration.
+
+For candidates who appear to be fresh graduates or recent postgraduates (inferred
+from graduation year within the last 5 years or absence of substantial work
+history), check whether the Education section includes both SSC and HSC results.
+Each entry should include: full exam name (Secondary School Certificate or Higher
+Secondary Certificate), GPA out of 5.00, passing year, institution name, and
+Education Board name (e.g. Dhaka Board, Chittagong Board, Rajshahi Board).
+
+If SSC or HSC results are absent entirely from the Education section, flag this as
+a content weakness with a specific suggestion to add them. If either entry is
+present but missing the GPA denominator (/5.00), flag it as a formatting issue
+identical to how university CGPA denominator errors are handled.
+Do not apply this check to candidates with 5 or more years of continuous work
+experience.
+
+For candidates whose highest qualification appears to be a Bachelor's degree or
+above and who graduated within the last 5 years, check whether the resume includes
+a thesis, dissertation, or final year project entry. This is expected in Bangladesh
+for engineering, IT, science, and research-adjacent roles. The entry should include
+at minimum: project or thesis title and a one-line description of the topic or
+outcome. Supervisor name is standard but not mandatory.
+
+If no such entry exists and the candidate's background suggests a research or
+technical degree, flag this as a content weakness: "Including your final year
+project or thesis title with a brief description demonstrates research exposure and
+is expected by Bangladesh employers for recent graduates."
+
+Do not flag this for candidates whose background is clearly non-technical (e.g.
+arts, business, or management degrees with no technical indicators), or for
+candidates with 5 or more years of work experience.
 
 Apply a formatting score ceiling of 75 if the resume contains three or more of
 these conventions. Frame this as an educational note about modern digital
@@ -100,7 +177,7 @@ appears to conflict with this block is overridden by this block.
 
 // ── System prompt builder ────────────────────────────────────────────────────
 
-function buildSystemPrompt(marketMode = 'bangladesh') {
+export function buildSystemPrompt(marketMode = 'bangladesh') {
   const modeBlock = marketMode === 'international'
     ? INTERNATIONAL_MODE_BLOCK
     : BANGLADESH_MODE_BLOCK;
@@ -167,10 +244,9 @@ Score the language quality (0–100).
 Identify specific spelling errors, mixed tenses, inconsistent capitalisation, grammatical
 errors, and weak action verbs. Quote the exact phrase and provide a corrected version.
 
-IMPORTANT — This resume targets the Bangladesh job market. Commonwealth/British English
-spelling is correct and must NOT be flagged as an error (e.g. optimise, organise, colour,
-analyse, behaviour, programme, centre). Only flag genuine spelling errors, not
-Commonwealth variant spellings.
+IMPORTANT — Commonwealth/British English spelling is correct and must NOT be flagged as
+an error (e.g. optimise, organise, colour, analyse, behaviour, programme, centre). Only
+flag genuine spelling errors, not Commonwealth variant spellings.
 
 Return:
 {
@@ -514,7 +590,9 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
   try {
     const stream = await client.chat.completions.create({
       model,
-      temperature: 0.3,
+      temperature: 0.1,
+      frequency_penalty: 0.1,
+      presence_penalty: 0.1,
       max_tokens: 4096,
       stream: true,
       messages: [
@@ -577,7 +655,9 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
   try {
     const response = await client.chat.completions.create({
       model,
-      temperature: 0.3,
+      temperature: 0.1,
+      frequency_penalty: 0.1,
+      presence_penalty: 0.1,
       max_tokens: 4096,
       messages: [
         { role: 'system', content: buildSystemPrompt(marketMode) },
@@ -586,23 +666,31 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
     });
 
     rawContent = response.choices[0]?.message?.content;
-    if (!rawContent) throw new Error('AI returned an empty response.');
+
+    if (!rawContent) {
+      throw new Error('AI returned an empty response.');
+    }
   } catch (err) {
     if (err?.status === 429 || err?.message?.includes('429')) {
-      return { error: 'AI is currently busy, please try again in a minute.', code: 'RATE_LIMIT' };
+      return {
+        error: 'AI is currently busy, please try again in a minute.',
+        code: 'RATE_LIMIT',
+      };
     }
     throw err;
   }
 
   const inputEstimate = Math.round(buildSystemPrompt(marketMode).length / 4);
   const outputEstimate = Math.round(rawContent.length / 4);
+  console.log(`[AI] Raw response length: ${rawContent.length} chars`);
   console.log(`[AI] Token estimate — input: ~${inputEstimate}, output: ~${outputEstimate}, total: ~${inputEstimate + outputEstimate}`);
 
   let parsed;
   try {
     parsed = parseAIJSON(rawContent);
   } catch {
-    console.error('[AI] Last 300 chars of raw response:', rawContent.slice(-300));
+    console.error('[AI] First 200 chars:', rawContent.slice(0, 200));
+    console.error('[AI] Last 300 chars:', rawContent.slice(-300));
     throw new Error('AI returned an unreadable response. Please try again.');
   }
 
