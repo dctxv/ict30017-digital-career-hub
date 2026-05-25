@@ -1,0 +1,123 @@
+CURRICULUM VITAE
+
+Samin Yaseer Mahmud
+
+Email: smahmud@ncsu.edu
+Website: saminmahmud.com
+
+---
+
+EDUCATION
+
+North Carolina State University
+Raleigh, NC
+Ph.D in Computer Science (CGPA 3.89)
+August 2018 - August 2023 (Expected)
+
+Dissertation Title: Compliance of Android Payment Applications to Industry Security Standards
+Research Interest: Software Security, Payment Security, Privacy
+
+Bangladesh University of Engineering and Technology (BUET)
+Dhaka, Bangladesh
+Bachelor of Engineering in Computer Science and Engineering (CGPA 3.75)
+Graduated March 2016
+
+---
+
+EXPERIENCE
+
+Wolfpack Security and Privacy Research Lab
+NCSU, Raleigh, NC
+Research Assistant
+May 2018 - present
+
+Area: My research broadly falls within the areas of systems security and privacy. I apply program analysis and reverse engineering techniques to solve security problems. I build tools to identify vulnerabilities and security weaknesses in softwares and systems. I disclose vulnerability reports to software vendors and provide security recommendations
+
+Samsung Research America
+Mountain View, CA
+Research Intern (KNOX Security)
+Summer 2023
+
+Payment SDK compliance: Research how hardware security features might meet payment card industry's security standard goals more effectively compared to software implementations.
+
+Meta Platforms
+Menlo Park, CA
+Research Intern (AI Security and Privacy)
+Summer 2022
+
+Fuzzing enhancement: Improved crash triaging process by including stacktrace information in the fuzzing tool report.
+Storing ACL Policy: Designed and implemented a recursive structure for securely storing ACL policy of Meta's AI assets.
+
+PayPal Inc.
+Scottsdale, AZ
+Research Intern (InfoSec)
+Summer 2021
+
+Mobile payment SDK misuse: Identified and measured several ways PayPal's in house mobile Payment SDKs (i.e., Braintree, PayPal) could be misused in both Android and iOS. Utilised industry graded tools to find SDK version usage in Android apps. Reverse engineered iOS apps on jail-broken device to pinpoint iOS payment SDK usage.
+
+KONA
+Dhaka, Bangladesh
+Full-Stack Software Engineer
+March 2016 - July 2018
+
+Front end development: Develop front end payment apps in Android and iOS. Design and implement UI/UX. Implement front end of USSD services. Design front end pages of websites using NodeJS, Javascript, Python.
+
+Back end Development: Implement backend infrastructure and expose API services using Spring Boot framework.
+
+---
+
+ACADEMIC RESEARCH PROJECTS
+
+AARDroid (Investigating security weaknesses in Android Payment SDKs)
+Built a static analysis tool to analyse 50 payment SDKs in Android. Our findings report saving unencrypted credit card information, use of insecure cryptographic primitives, insecure input methods for credit card information, insecure use of WebViews, etc.
+
+Cardpliance (PCI DSS compliance in Android apps)
+Built an analysis tool to measure if credit card asking android applications are adhering to industry security standards like PCI-DSS. Our study indicate the compliance landscape of popular consumer applications collected from Google Play is fairly positive.
+
+Investigating self contradicting privacy policy
+We built a tool that uses NER to extract entities from privacy policies to build an ontology. It later uses NLP to perform entity sensitive analysis on the privacy policy to find internal inconsistencies. Furthermore it reasons over the app behaviour of data collecting and sharing practices with the privacy policies.
+
+---
+
+SELECTED PUBLICATIONS
+
+Analysis of Payment Service Provider SDKs in Android
+In Proceedings of the Annual Computer Security Applications Conference (ACSAC), December 2022, Austin, TX, USA. (acceptance rate = 24.1%)
+
+Cardpliance: PCI DSS Compliance of Android Applications
+In Proceedings of the USENIX Security Symposium, Boston, MA, USA, 2020 (acceptance rate = 16.3%)
+
+Actions Speak Louder than Words: Entity-Sensitive Privacy Policy and Dataflow Analysis with PoliCheck
+In Proceedings of the USENIX Security Symposium, Boston, MA, USA, 2020 (acceptance rate = 16.3%)
+
+PolicyLint: Investigating Internal Privacy Policy Contradictions on Google Play
+In Proceedings of the USENIX Security Symposium, Santa Clara, CA, 2019 (acceptance rate = 16.2%)
+
+---
+
+SKILLS SUMMARY
+
+Languages: Java (Preferred), Python, C++, PHP, Hack, Scala, SQL, Thrift, Swift
+
+Analysis Frameworks: Amandroid, Flowdroid, UiRef, QARK, CodeQL, Androguard, Wireshark, LibScout
+
+Reverse Engineering: APKTool, ADB, dex2Jar, JADX, Ghidra, IDA Pro, Byteviewer, JEB, Frida, Hopper
+
+Others: Linux, Android, iOS, Git, Latex
+
+---
+
+HONOURS AND AWARDS
+
+Awarded Best Poster Award in Hot Topics in Science of Security (HotSoS) Symposium - April 2022
+
+University Dean's Merit list, March 2016
+
+---
+
+VOLUNTEER EXPERIENCE
+
+Workshop Lead at DiamondHacks '21
+NCSU, Raleigh, NC
+Conducted a workshop on Android application development at DiamondHacks 2021
+March 2021
