@@ -1,0 +1,15 @@
+---
+resume: raisa
+mode: international
+model: mistral_small_4
+date: 2026-05-15
+metadata:
+  tokens_per_second: 131.1
+  token_count: 603
+  cost_usd: 0.00099638
+  duration_seconds: 4.6
+---
+
+## Analysis Output
+
+{"formatting": {"score": 85, "feedback": "The resume is well-structured with clear section separation and consistent formatting. Minor improvements can be made to enhance readability and professionalism.", "issues": [{"section": "Education and Qualifications", "issue": "Section title uses 'AND' in uppercase which is unconventional for international resumes.", "suggestion": "Replace with 'Education'."}, {"section": "Record of Employment", "issue": "Section title uses 'RECORD OF EMPLOYMENT' which is non-standard and may confuse ATS systems.", "suggestion": "Replace with 'Professional Experience'."}, {"section": "Selected Publications and Outputs", "issue": "Section title is overly verbose and uses inconsistent capitalisation.", "suggestion": "Replace with 'Publications and Research Outputs'."}, {"section": "Extracurricular Activities", "issue": "Section title uses 'EXTRACURRICULAR ACTIVITIES' which is non-standard and may confuse ATS systems.", "suggestion": "Replace with 'Extracurricular Involvement'."}]}, "content_quality": {"score": 88, "feedback": "The resume demonstrates strong academic and professional background in economics and research. Publications and internships are well-highlighted. Consider adding more quantifiable achievements to bullet points.", "strengths": ["Strong academic background with a Bachelor of Science in Economics from a reputable university.", "Relevant professional experience in research roles at BIGD and UNDP.", "Published research output in a peer-reviewed journal, demonstrating academic rigor.", "Diverse extracurricular leadership roles showing soft skills and initiative."], "weaknesses": ["Bullet points under professional experience lack quantifiable achievements or metrics.", "Publications section could benefit from a brief description of the candidate's specific contributions.", "No mention of technical skills (e.g., statistical software, data analysis tools) relevant to economics research."]}, "language_grammar": {"score": 95, "feedback": "Language quality is excellent with no grammatical errors. Minor improvements can be made to action verb strength.", "issues": [{"original": "Yearly In-Charge, North South University Art & Photography Club (2020-2021)", "corrected": "Led annual initiatives as In-Charge, North South University Art & Photography Club (2020-2021)", "type": "weak_action_verb"}, {"original": "Vice President of Department of Events and Workshop, Viqarunnisa Noon Earth Club (2019-2021)", "corrected": "Served as Vice President of the Department of Events and Workshops, Viqarunnisa Noon Earth Club (2019-2021)", "type": "grammar"}]}

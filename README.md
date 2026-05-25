@@ -5,12 +5,14 @@
 A web platform designed to help students and job seekers improve their career readiness through curated resources, AI-powered resume analysis, and an interactive career chatbot.
 
 ## Team Members
-
 - Isar Ujoodah
 - Ian Rashmika
 - Darius Tan
 - Sineth Munasinghe
 - Shalitha Senadeerage
+<<<<<<< Updated upstream
+- Pubuditha Hettiarachchi
+=======
 - Pubuditha Hettiarachchi
 
   ## How to run the web / backend
@@ -26,3 +28,5 @@ Then open a second powershell terminal, and use the following:
 - npm run dev
 
 and open the localhost from the client (should be http://localhost:5173/)
+
+>>>>>>> Stashed changes
