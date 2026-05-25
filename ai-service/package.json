@@ -9,7 +9,7 @@
     "test:resume": "node tests/testResumeReviewer.js"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "mammoth": "^1.12.0",
     "openai": "^4.104.0",
     "pdf-parse": "^1.1.4",
