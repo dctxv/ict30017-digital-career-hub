@@ -1,0 +1,124 @@
+---
+resume: tasneem
+mode: bangladesh
+model: gpt_5.4_nano
+date: 2026-05-15
+metadata:
+  tokens_per_second: 125.5
+  token_count: 1144
+  cost_usd: 0.00182376
+  duration_seconds: 9.1
+---
+
+## Analysis Output
+
+## **TASNEEM BINTE ABDULLAH — Resume (Clean & Formatted)**
+
+**Address:** Flat 3C, 5/2 Shyamoli, Dhaka-1207  
+**Mobile:** 01819-562347  
+**Email:** tasneem.abdullah@gmail.com  
+
+---
+
+## **CAREER OBJECTIVE**
+To contribute to the development sector by utilising my academic background and field experience in a challenging role at a reputed national or international NGO or development organisation where I can grow professionally.
+
+---
+
+## **EDUCATIONAL QUALIFICATION**
+- **Master of Social Science (MSS) in Development Studies** — University of Dhaka  
+  Session: **2017–2018** | **CGPA: 3.22/4.00**  
+  **Thesis Title:** Barriers to Maternal Healthcare Utilisation among Urban Slum Women in Dhaka
+
+- **Bachelor of Social Science (BSS) in Economics** — University of Dhaka  
+  Session: **2013–2014** | **CGPA: 3.18/4.00**
+
+- **Higher Secondary Certificate (H.S.C)** — Rajuk Uttara Model College, Dhaka  
+  Group: Humanities | Year of Passing: **2013** | **GPA: 4.25/5.00**
+
+- **Secondary School Certificate (S.S.C)** — Rajuk Uttara Model College, Dhaka  
+  Group: Humanities | Year of Passing: **2011** | **GPA: 4.50/5.00**
+
+---
+
+## **PROFESSIONAL EXPERIENCE**
+### **Programme Officer – Livelihood and Urban Resilience**  
+**CARE Bangladesh, Dhaka** | **March 2021 – Present**
+- Managed implementation of livelihood programme activities across **6 urban slum communities** in **Dhaka North City Corporation** under the **EU-funded Urban Resilience Project**
+- Conducted **12 community needs assessments** using **participatory rural appraisal (PRA)** tools and produced synthesis reports used for programme adaptation
+- Coordinated with **4 local partner NGOs** to ensure implementation quality and compliance with donor reporting requirements
+- Monitored monthly activity targets and produced progress reports submitted to the **EU Country Office**
+- Supported baseline and end-line data collection for programme evaluation, managing a field team of **8 enumerators** across **3 wards**
+
+### **Programme Assistant**  
+**ActionAid Bangladesh, Gender and Social Justice Programme, Dhaka** | **September 2019 – February 2021**
+- Assisted in conducting training sessions for community women groups on prevention of **gender-based violence** across **3 upazilas** in Manikganj district
+- Helped in documentation of **case studies** and field stories for donor narrative reports
+- Supported the project coordinator in planning and logistics for community events
+- Completed **data entry and basic analysis** for quarterly monitoring and evaluation reports
+
+### **Research Assistant (Part-time)**  
+**BRAC Institute of Governance and Development (BIGD), Dhaka** | **January 2019 – August 2019**
+- Supported field data collection for a mixed-methods study on women's economic empowerment in **Sylhet division**
+- Transcribed and translated **FGD** recordings from **Bengali to English**
+
+---
+
+## **TRAINING**
+- Participatory Monitoring and Evaluation — **Dhaka Ahsania Mission (2021)**
+- Gender Transformative Approaches in Programming — **ActionAid Bangladesh (2020)**
+- Logical Framework Analysis and Project Cycle Management — **NGOAB (2020)**
+- ODK and KoBoToolbox Data Collection — **CARE Bangladesh (2021)**
+
+---
+
+## **COMPUTER SKILLS**
+- MS Office Suite  
+- SPSS (Intermediate)  
+- ODK Collect  
+- KoBoToolbox  
+- Zotero  
+
+---
+
+## **LANGUAGE PROFICIENCY**
+- **Bengali:** Native (Excellent)  
+- **English:** Proficient — Reading, Writing and Speaking  
+
+---
+
+## **PERSONAL INFORMATION**
+- Father's Name: **Abdullah Al Faruk**  
+- Mother's Name: **Rahela Begum**  
+- Date of Birth: **5 June 1995**  
+- Gender: **Female**  
+- Religion: **Islam**  
+- Marital Status: **Unmarried**  
+- Nationality: **Bangladeshi**  
+- Blood Group: **A (+)**  
+- Present Address: Flat 3C, 5/2 Shyamoli, Dhaka-1207  
+- Permanent Address: 22 Station Road, Sylhet Sadar, Sylhet-3100  
+
+---
+
+## **REFERENCES**
+- **Dr. Meherun Nessa**  
+  Associate Professor, Department of Development Studies  
+  University of Dhaka, Dhaka-1000  
+  Email: meherun.dev@du.ac.bd  
+
+- **Ms. Shaila Rahman**  
+  Programme Manager, Urban Resilience Programme  
+  CARE Bangladesh, Dhaka-1212  
+  Email: shaila.rahman@care.org  
+
+---
+
+## **DECLARATION**
+I declare that all information provided above is true and complete to the best of my knowledge and belief.
+
+**Signature:** Tasneem Binte Abdullah  
+
+---
+
+If you tell me the **target role** (e.g., *Programme Officer / Monitoring & Evaluation Officer / Research Assistant*) and preferred **CV length** (1 page or 2 pages), I can tailor the objective and highlight the most relevant bullets.
