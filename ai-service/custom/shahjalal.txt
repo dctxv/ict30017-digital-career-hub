@@ -1,0 +1,196 @@
+RESUME
+
+MD. SHAH JALAL HRIDOY
+
+Address: 76/2, North Jatrabari, Dhaka-1204, Bangladesh
+Phone: 01520103220
+Email: shahjalalhridoy@gmail.com
+
+---
+
+CAREER OBJECTIVES
+
+To merge innovative ideas, techniques, knowledge and experience for positive contribution towards the IT, Telecommunication and Software industry where my conceptual, analytical and technical skills can be utilised and to further enhance my knowledge.
+
+---
+
+CAREER SUMMARY
+
+I have extensive knowledge in computers, which include Software Development, Database Management and MIS. I am enthusiastic in seeking new things and interested in innovation. I worked in number of companies where I found myself as an energetic, hardworking and persistent person.
+
+---
+
+TECHNICAL KNOWLEDGE
+
+- Have good knowledge in structured programming language C
+- Work in C#, ASP.Net, OOP, Java, PHP Framework - Codeigniter
+- Database design in SQL Server, MySQL
+- Web design in HTML, CSS, JavaScript, Angular JS, Bootstrap, Web service
+- Working experience in Android platform and Firefox OS
+- Reporting skill - Crystal Report, Jasper Report
+
+---
+
+SCHOLASTIC STATUS
+
+M.Sc. in Computer Science & Engineering
+Jagannath University
+Session: 2015-2016
+Status: Ongoing
+
+B.Sc. in Computer Science & Engineering
+Jagannath University
+Session: 2010-2011
+Result: 3.03 (CGPA)
+
+H.S.C (Higher Secondary School Certificate)
+College: Dhaka College
+Year of Passing: 2010
+Group: Science
+Board: Dhaka
+Result: 5.00 (GPA)
+
+S.S.C (Secondary School Certificate)
+School: Motijheel Govt. Boys' High School
+Year of Passing: 2008
+Group: Science
+Board: Dhaka
+Result: 5.00 (GPA)
+
+---
+
+PERSONAL INFORMATION
+
+Father's Name: Md. Abdul Hye
+Mother's Name: Selina Akter
+Gender: Male
+Date of Birth: 27/10/1993
+Religion: Islam
+Nationality: Bangladeshi
+Marital Status: Unmarried
+
+---
+
+PROFESSIONAL EXPERIENCE
+
+RRMSense Global Systech Limited
+(Concern of RRM Group)
+Plot # 44, Main Road, Block# J, Baridhara, Dhaka-1212, Bangladesh
+
+Designation: Sr Software Engineer
+Duration: 11-December-2016 To Present
+
+Softrithm IT Limited
+76/1 Sky view Tower, Manik Nogor, Dhaka-1203
+
+Designation: Software Engineer
+Duration: 01-January-2017 To 10-December-2016
+
+Vintage IT Limited
+46, Kawran Bazar, Dhaka-1215, Bangladesh
+
+Designation: Junior Software Engineer
+Duration: 03-January-2015 To 31-December-2015
+
+---
+
+WHY ME
+
+- Able to work under pressure and challenging environment
+- Sincere and eager to learn
+- Strong interpersonal, team building
+- Willing to work in team
+- Organised and self-motivated
+- Strong analytical capability and target oriented
+- Ability to Self-Manage
+- Curiosity & Love of Learning
+
+---
+
+SOFTWARE DEVELOPMENT EXPERIENCE
+
+ERP Solution (Purchase Module) - For RRM Group, using PHP Framework (Codeigniter), MySQL, HTML Report, DOM Pdf Report
+
+ERP Solution (Sales Module) - For RRM Group, using PHP, MySQL, HTML Report, DOM Pdf Report
+
+ERP Solution (HR Module) - For RRM Group, using PHP, MySQL, HTML Report, DOM Pdf Report
+
+Bangabandhu Library Management System - For Bangladesh Army, using C#, MS SQL Server, Crystal Report
+
+Restaurant Management System - For Golf Club, using C#, MS SQL Server, Crystal Report
+
+Extended POS System - For Super Shop, using PHP, MySQL, HTML Report, DOM Pdf Report
+
+Inventory System - For Chemical Shop, using PHP Framework (Codeigniter), MySQL, HTML Report, DOM Pdf Report
+
+Softrithm IT - Website For own using, using PHP, MySQL
+
+MyLab Inc - Website For American Client, using PHP Framework (Codeigniter), MySQL
+
+Hotel Management System - C#, MS SQL Server, Crystal Report
+
+ID Card & Barcode Maker - C#, MS SQL Server, Crystal Report
+
+Education Management System - C#, MS SQL Server, Crystal Report
+
+Create some Websites for local clients, using PHP, MySQL, HTML Report
+
+Virtual Diary - University Project, using PHP, MySQL, HTML Report
+
+Helping Hand (Volunteer) - University Project, using PHP, MySQL, HTML Report
+
+Dhakaiya - Android app for ICT Ministry
+
+---
+
+TRAINING
+
+DOT NET Training
+BASIS Institute of Technology & Management (BITM)
+April 2015 - June 2015 (3 months)
+The training program on DOT NET under Skills for Employment Investment Program (SEIP)
+
+Android App Development Training
+North South University
+January 2015 - May 2015 (5 months)
+It is a training on android app development sponsored by ICT ministry and organised by EATL
+
+Wireless Mobile Application Development
+Information Technology Research and Resource Center, Jagannath University
+07-26 July 2014
+
+---
+
+ACHIEVEMENTS
+
+Professional Memberships:
+- Associate Member of Bangladesh Computer Society (An organisation of Computer Professionals)
+  Membership No.: AM11861
+- Campus Ambassador of Google Development Group - GDG Bangla
+- Former Member of Association of CSE, Jagannath University
+
+Volunteer:
+The Duke of Edinburgh's Award Foundation, Bangladesh
+The Duke of Edinburgh's Award Foundation, Bangladesh is a noble initiative of six national and multinational organisations to bring the world's most prestigious award for young people "The Duke of Edinburgh's Award" to Bangladesh. The Duke of Edinburgh's Award Foundation, Bangladesh is a non-profit organisation that administers "The Duke of Edinburgh's Award" in Bangladesh.
+
+---
+
+REFERENCES
+
+Uzzal Kumar Acharjee
+Professor and Chairman, Department of CSE, Jagannath University
+Director, Networking and IT Office, Jagannath University
+Email: uzzal@cse.jnu.ac.bd
+Contact: 01625099037
+
+Nujhat Nahar
+Deputy Senior Vice President
+Green Delta Insurance Company Limited
+Email: nujhat.nahar@green-delta.com
+Contact: 01711082464
+
+---
+
+DECLARATION
+
+I do hereby declare that the information provided here is true to the best of my knowledge and belief.

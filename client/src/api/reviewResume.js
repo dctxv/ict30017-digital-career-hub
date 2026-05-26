@@ -10,11 +10,12 @@ const ENDPOINT = 'http://localhost:3000/api/resume/analyze-stream';
  *   onDone(feedback)       — fired once with the final validated feedback
  *   onError(code, message) — fired on server-side error; stream ends after
  */
-export async function streamResumeReview(file, { jobRole, jobAd, onPartial, onDone, onError }) {
+export async function streamResumeReview(file, { jobRole, jobAd, marketMode, onPartial, onDone, onError }) {
   const form = new FormData();
   form.append('resume', file);
   if (jobRole) form.append('jobRole', jobRole);
   if (jobAd) form.append('jobAd', jobAd);
+  if (marketMode) form.append('marketMode', marketMode);
 
   let response;
   try {

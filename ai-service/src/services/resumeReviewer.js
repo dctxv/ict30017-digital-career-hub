@@ -1,36 +1,200 @@
 import { getGroqClient, getModel } from '../utils/aiClient.js';
 import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
 
-const SYSTEM_PROMPT = `
-You are an expert career advisor specialising in the Bangladesh job market. You have deep
-knowledge of local recruitment standards, resume formatting conventions, and industry
-expectations in Bangladesh.
+const BANGLADESH_MODE_BLOCK = `You are an expert career consultant and resume reviewer specialising in the Bangladesh job market.
+Your role is to critically evaluate resumes for job seekers in Bangladesh â€” including sectors such as IT/software, RMG, banking, NGOs, civil engineering, and business.
 
-CRITICAL — BANGLADESH CV CONVENTIONS
-The following sections and content are CONFIRMED STANDARD practice for the Bangladeshi
-job market. They have been validated with the client.
+Context you must understand:
+- Bangladeshi employers typically expect a clear objective/summary section.
+- CGPA-based academic results (out of 4.00 or 5.00) are standard and must be included.
+- Most corporate job applications in Bangladesh require English-language resumes.
+- Spelling consistency between British English (preferred in Bangladesh) and American English matters.
+- Action-oriented bullet points with quantifiable achievements (numbers, percentages) are strongly preferred.
+- Skills sections should list both technical and soft skills relevant to the local market.
 
-Do NOT flag, penalise, recommend removing, or suggest modifying the following in ANY
-section of your response — not in formatting issues, content weaknesses, action items,
-heading risks, or ATS tips:
+The user is targeting Bangladeshi employers. The following are confirmed standard
+conventions for the Bangladeshi job market, validated with the client.
 
-- Personal Information / Personal Details section (including father's name, mother's name,
-  NID number, blood group, religion, marital status, DOB)
+Do NOT flag, penalise, recommend removing, or suggest modifying any of the following
+in ANY section of your response — not in formatting issues, content weaknesses,
+action items, heading risks, or ATS tips:
+
+- Personal Information / Personal Details section including: father's name,
+  mother's name, NID number, blood group, religion, marital status, date of birth
 - Declaration section
 - Photograph
 - Career Objective heading (flag as low risk only — never recommend removal)
 - Academic Qualification / Educational Qualification heading
 - Technical Skills heading
 
-These apply globally. Any instruction in later sections that appears to conflict with
-this block is overridden by this block.
+However, do evaluate the quality of the Career Objective content in the
+content_quality section. A Career Objective that uses generic language such as
+"seeking a challenging position", "utilise my skills", "reputable organisation",
+or "career growth" without specifying a target role, industry, or concrete value
+proposition is a content weakness. Flag it as such and provide a rewritten version
+that references the candidate's specific background, target role, and one concrete
+strength. Do not flag the heading itself — only the content quality.
 
-Review the resume provided and produce structured feedback as a single valid JSON object
-with exactly these keys: formatting, content_quality, language_grammar, action_items,
-ats_analysis, job_match, overall_score.
+Bangladesh employers, particularly in banking, government, and large corporates,
+expect 2 to 3 named references with full contact details: full name, designation,
+organisation, phone number, and email address. "References available upon request"
+is not standard practice in the Bangladesh market.
 
-Give precise, actionable suggestions. Do not give vague advice. Quote the actual section
-that needs improvement and provide a suggested rewrite where applicable.
+Check the resume for a References section:
+- If no References section exists at all, flag this as a content weakness:
+  "A References section with at least two named referees including their
+  designation, organisation, and contact details is expected by most Bangladesh
+  employers."
+- If a References section exists but only contains "available upon request" or
+  equivalent, flag this as a content weakness with the same suggestion.
+- If at least one full reference with name and contact details is present, do not
+  flag this as a weakness. Do not penalise a resume that has partial reference
+  details (name and organisation but no phone) — only flag complete absence.
+
+For candidates inferred to be fresh graduates or recent postgraduates (graduation
+within the last 3 years or fewer than 2 years of work experience), check whether
+the resume includes a section for extracurricular activities, co-curricular
+activities, voluntary work, club memberships, competitions, or equivalent.
+Bangladesh employers in banking, FMCG, and the public sector use this section to
+assess leadership potential and initiative where work experience is limited.
+
+If no such section exists, flag this as a content weakness: "Bangladeshi employers
+value extracurricular involvement for fresh graduates. Consider adding a section
+covering club memberships, volunteer work, academic competitions, or community
+activities."
+
+Do not flag this for candidates with 3 or more years of work experience. Quality
+check: if the section exists but lists only one-word entries with no context (e.g.
+"Cricket" or "Reading"), flag it as a content weakness and suggest expanding each
+entry with role and duration.
+
+For candidates who appear to be fresh graduates or recent postgraduates (inferred
+from graduation year within the last 5 years or absence of substantial work
+history), check whether the Education section includes both SSC and HSC results.
+Each entry should include: full exam name (Secondary School Certificate or Higher
+Secondary Certificate), GPA out of 5.00, passing year, institution name, and
+Education Board name (e.g. Dhaka Board, Chittagong Board, Rajshahi Board).
+
+If SSC or HSC results are absent entirely from the Education section, flag this as
+a content weakness with a specific suggestion to add them. If either entry is
+present but missing the GPA denominator (/5.00), flag it as a formatting issue
+identical to how university CGPA denominator errors are handled.
+Do not apply this check to candidates with 5 or more years of continuous work
+experience.
+
+For candidates whose highest qualification appears to be a Bachelor's degree or
+above and who graduated within the last 5 years, check whether the resume includes
+a thesis, dissertation, or final year project entry. This is expected in Bangladesh
+for engineering, IT, science, and research-adjacent roles. The entry should include
+at minimum: project or thesis title and a one-line description of the topic or
+outcome. Supervisor name is standard but not mandatory.
+
+If no such entry exists and the candidate's background suggests a research or
+technical degree, flag this as a content weakness: "Including your final year
+project or thesis title with a brief description demonstrates research exposure and
+is expected by Bangladesh employers for recent graduates."
+
+Do not flag this for candidates whose background is clearly non-technical (e.g.
+arts, business, or management degrees with no technical indicators), or for
+candidates with 5 or more years of work experience.
+
+Apply a formatting score ceiling of 75 if the resume contains three or more of
+these conventions. Frame this as an educational note about modern digital
+applications, not a penalty. These apply globally — any instruction in later
+sections that conflicts with this block is overridden by this block.
+`.trim();
+
+const INTERNATIONAL_MODE_BLOCK = `
+ANALYSIS MODE — INTERNATIONAL / MULTINATIONAL COMPANIES
+
+The user is applying to international companies, or to multinationals operating
+in Bangladesh that use Western hiring standards. Apply Western professional CV
+standards strictly throughout every section of your response.
+
+The following elements are inappropriate for international applications and MUST
+be treated as formatting issues. Flag EACH of them as a separate entry in the
+formatting issues array if they appear in the resume:
+
+- Father's name or mother's name anywhere in the resume:
+  issue: "Including a parent's name is not expected in international applications
+  and can introduce unconscious bias in shortlisting."
+  suggestion: "Remove father's name and mother's name from the Personal Information
+  section entirely."
+
+- NID number or national identification number:
+  issue: "National ID numbers should never appear on a resume — they create a
+  privacy and identity theft risk."
+  suggestion: "Remove the NID number from the resume."
+
+- Blood group:
+  issue: "Blood group is medically irrelevant to professional employment and is
+  not expected in international resumes."
+  suggestion: "Remove blood group from the Personal Information section."
+
+- Religion:
+  issue: "Disclosing religion on a resume can lead to discrimination in
+  international hiring contexts and is considered inappropriate in most countries."
+  suggestion: "Remove religion from the Personal Information section."
+
+- Marital status:
+  issue: "Marital status is personal information that can introduce bias and is
+  not expected or appropriate in international applications."
+  suggestion: "Remove marital status from the Personal Information section."
+
+- Date of birth or age:
+  issue: "Date of birth disclosure can lead to age discrimination and is
+  discouraged or prohibited in many international hiring contexts."
+  suggestion: "Remove date of birth from the resume. Focus on experience and
+  qualifications instead."
+
+- Declaration section:
+  issue: "Declaration sections are a Bangladeshi CV convention not used in
+  international resumes and waste valuable page space."
+  suggestion: "Remove the declaration section entirely."
+
+- Photograph:
+  issue: "Including a photograph is strongly discouraged for international
+  applications as it can introduce unconscious appearance-based bias."
+  suggestion: "Remove the photograph from the resume."
+
+Do NOT apply any score ceiling or educational framing for these items.
+Score each as a genuine formatting penalty — their presence should reduce the
+formatting score proportionally. A resume with four or more of these elements
+present should receive a formatting score no higher than 55.
+
+In the ATS analysis section, include a tip noting that international ATS systems
+and recruiters will likely remove or discount resumes containing personal
+demographic information.
+
+IMPORTANT — heading risks: Do flag "Career Objective", "Educational Qualification",
+"Academic Qualification", and "Personal Information" as heading risks if they
+appear, since these are non-standard for international ATS systems. Recommended
+alternatives: "Professional Summary", "Education", "Education", "Contact Details".
+
+These instructions apply globally. Any instruction in later sections that
+appears to conflict with this block is overridden by this block.
+`.trim();
+
+// ── System prompt builder ────────────────────────────────────────────────────
+
+export function buildSystemPrompt(marketMode = 'bangladesh') {
+  const modeBlock = marketMode === 'international'
+    ? INTERNATIONAL_MODE_BLOCK
+    : BANGLADESH_MODE_BLOCK;
+
+  return `
+You are an expert career advisor. You have deep knowledge of resume formatting
+conventions, recruitment standards, and industry expectations in both Bangladesh
+and international job markets.
+
+${modeBlock}
+
+Review the resume provided and produce structured feedback as a single valid JSON
+object with exactly these keys: formatting, content_quality, language_grammar,
+action_items, ats_analysis, job_match, overall_score.
+
+Give precise, actionable suggestions. Do not give vague advice. Quote the actual
+section that needs improvement and provide a suggested rewrite where applicable.
 Do not echo personal details (name, address, phone, email) anywhere in your response.
 Return only the JSON object — no markdown, no explanation outside the JSON.
 
@@ -80,10 +244,9 @@ Score the language quality (0–100).
 Identify specific spelling errors, mixed tenses, inconsistent capitalisation, grammatical
 errors, and weak action verbs. Quote the exact phrase and provide a corrected version.
 
-IMPORTANT — This resume targets the Bangladesh job market. Commonwealth/British English
-spelling is correct and must NOT be flagged as an error (e.g. optimise, organise, colour,
-analyse, behaviour, programme, centre). Only flag genuine spelling errors, not
-Commonwealth variant spellings.
+IMPORTANT — Commonwealth/British English spelling is correct and must NOT be flagged as
+an error (e.g. optimise, organise, colour, analyse, behaviour, programme, centre). Only
+flag genuine spelling errors, not Commonwealth variant spellings.
 
 Return:
 {
@@ -182,6 +345,7 @@ Return a single integer (0–100). This will be recalculated server-side using t
 content_quality 45% + language_grammar 35% + formatting 20%.
 Provide your best estimate consistent with the section scores above.
 `.trim();
+}
 
 /* ── Score recalculation (server-side overrides AI estimates) ── */
 
@@ -330,7 +494,7 @@ function repairUnescapedQuotes(text) {
       } else {
         // Peek past whitespace to see what follows this quote
         let j = i + 1;
-        while (j < text.length && (text[j] === ' ' || text[j] === '\t')) j++;
+        while (j < text.length && (text[j] === ' ' || text[j] === '\t' || text[j] === '\n' || text[j] === '\r')) j++;
         const next = text[j];
         if (next === ':' || next === ',' || next === '}' || next === ']' || j >= text.length) {
           inStr = false; // closing quote
@@ -414,7 +578,7 @@ function buildUserMessage(resumeText, { jobAd, jobRole } = {}) {
 
 /* ── Streaming export ── */
 
-export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd } = {}) {
+export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd, marketMode = 'bangladesh' } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -426,11 +590,13 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd 
   try {
     const stream = await client.chat.completions.create({
       model,
-      temperature: 0.3,
+      temperature: 0.1,
+      frequency_penalty: 0.1,
+      presence_penalty: 0.1,
       max_tokens: 4096,
       stream: true,
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt(marketMode) },
         { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
       ],
     });
@@ -451,7 +617,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd 
     throw err;
   }
 
-  const inputEstimate = Math.round(SYSTEM_PROMPT.length / 4);
+  const inputEstimate = Math.round(buildSystemPrompt(marketMode).length / 4);
   const outputEstimate = Math.round(rawContent.length / 4);
   console.log(`[AI-stream] Raw response length: ${rawContent.length} chars`);
   console.log(`[AI-stream] Token estimate — input: ~${inputEstimate}, output: ~${outputEstimate}, total: ~${inputEstimate + outputEstimate}`);
@@ -477,7 +643,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd 
 
 /* ── One-shot export ── */
 
-export async function analyzeResume(resumeText, { jobRole, jobAd } = {}) {
+export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = 'bangladesh' } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -489,32 +655,42 @@ export async function analyzeResume(resumeText, { jobRole, jobAd } = {}) {
   try {
     const response = await client.chat.completions.create({
       model,
-      temperature: 0.3,
+      temperature: 0.1,
+      frequency_penalty: 0.1,
+      presence_penalty: 0.1,
       max_tokens: 4096,
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt(marketMode) },
         { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
       ],
     });
 
     rawContent = response.choices[0]?.message?.content;
-    if (!rawContent) throw new Error('AI returned an empty response.');
+
+    if (!rawContent) {
+      throw new Error('AI returned an empty response.');
+    }
   } catch (err) {
     if (err?.status === 429 || err?.message?.includes('429')) {
-      return { error: 'AI is currently busy, please try again in a minute.', code: 'RATE_LIMIT' };
+      return {
+        error: 'AI is currently busy, please try again in a minute.',
+        code: 'RATE_LIMIT',
+      };
     }
     throw err;
   }
 
-  const inputEstimate = Math.round(SYSTEM_PROMPT.length / 4);
+  const inputEstimate = Math.round(buildSystemPrompt(marketMode).length / 4);
   const outputEstimate = Math.round(rawContent.length / 4);
+  console.log(`[AI] Raw response length: ${rawContent.length} chars`);
   console.log(`[AI] Token estimate — input: ~${inputEstimate}, output: ~${outputEstimate}, total: ~${inputEstimate + outputEstimate}`);
 
   let parsed;
   try {
     parsed = parseAIJSON(rawContent);
   } catch {
-    console.error('[AI] Last 300 chars of raw response:', rawContent.slice(-300));
+    console.error('[AI] First 200 chars:', rawContent.slice(0, 200));
+    console.error('[AI] Last 300 chars:', rawContent.slice(-300));
     throw new Error('AI returned an unreadable response. Please try again.');
   }
 
