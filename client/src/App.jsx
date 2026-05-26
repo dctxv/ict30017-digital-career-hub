@@ -9,6 +9,7 @@ import Resources from './pages/Resources'
 import Alumni from './pages/Alumni'
 import CareerPaths from './pages/CareerPaths'
 import ChatbotWidget from './components/ChatbotWidget'
+import AdminDashboard from './pages/AdminDashboard'
 
 export default function App() {
 
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/resources" element={<Resources />} />
         <Route path="/alumni" element={<Alumni />} />
         <Route path="/careers" element={<CareerPaths />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
       <ChatbotWidget />
     </BrowserRouter>
