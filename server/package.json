@@ -9,6 +9,7 @@
     "dev": "nodemon src/app.js"
   },
   "dependencies": {
+    "ai-service": "file:../ai-service",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.19.2",
