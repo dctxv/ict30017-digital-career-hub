@@ -1,18 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import './Resources.css'
 
 const categories = ['All', 'Resume Writing', 'Interview Prep', 'Job Search', 'Soft Skills', 'Skill Development']
-const disciplines = ['All disciplines', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
-
-const resources = [
-  { title: 'How to write a strong CV for finance roles in Bangladesh', type: 'Guide', discipline: 'Finance', category: 'Resume Writing', desc: 'A step-by-step guide to structuring your CV for Bangladeshi finance employers, including what local recruiters look for.' },
-  { title: 'Interview preparation guide for fresh graduates', type: 'Article', discipline: 'All disciplines', category: 'Interview Prep', desc: 'Common interview question formats, expected behaviours, and how to present yourself confidently to Bangladeshi employers.' },
-  { title: 'Understanding Bangladesh job market trends 2026', type: 'Article', discipline: 'All disciplines', category: 'Job Search', desc: 'A breakdown of which sectors are hiring, what skills are in demand, and how to position yourself effectively.' },
-  { title: 'Soft skills in Asian professional culture — what employers expect', type: 'Video', discipline: 'All disciplines', category: 'Soft Skills', desc: 'How professional soft skills differ between Asian and Western workplace cultures, and how to demonstrate them.' },
-  { title: 'Building technical skills for software engineering roles', type: 'Course', discipline: 'IT', category: 'Skill Development', desc: 'A curated learning path covering the technical skills most sought after by Bangladeshi tech companies.' },
-  { title: 'How to write a cover letter for Bangladeshi employers', type: 'Guide', discipline: 'All disciplines', category: 'Resume Writing', desc: 'Cover letter conventions for the Bangladeshi job market, with structure, tone, and example phrases.' },
-]
 
 const typeColors = {
   Guide: '#D8F3DC',
@@ -31,6 +21,53 @@ export default function Resources() {
   const [cat, setCat] = useState('All')
   const [disc, setDisc] = useState('All disciplines')
   const [query, setQuery] = useState('')
+  const [disciplines, setDisciplines] = useState(['All disciplines'])
+  const [resources, setResources] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch disciplines from API
+  useEffect(() => {
+    const fetchDisciplines = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/disciplines')
+        const data = await response.json()
+        const disciplineNames = ['All disciplines', ...data.map(d => d.name)]
+        setDisciplines(disciplineNames)
+      } catch (error) {
+        console.error('Error fetching disciplines:', error)
+        setDisciplines(['All disciplines', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education'])
+      }
+    }
+    
+    fetchDisciplines()
+  }, [])
+
+  // Fetch resources from API
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/resources')
+        const data = await response.json()
+        setResources(data)
+      } catch (error) {
+        console.error('Error fetching resources:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchResources()
+  }, [])
+
+  // Check if coming from Career Paths page and auto-apply discipline filter
+  useEffect(() => {
+    const savedDiscipline = localStorage.getItem('selectedDiscipline')
+    if (savedDiscipline) {
+      setDisc(savedDiscipline)
+      localStorage.removeItem('selectedDiscipline')
+      localStorage.removeItem('selectedCareer')
+    }
+  }, [])
 
   const filtered = resources.filter(r => {
     const matchCat = cat === 'All' || r.category === cat
@@ -38,6 +75,15 @@ export default function Resources() {
     const matchQ = !query || r.title.toLowerCase().includes(query.toLowerCase())
     return matchCat && matchDisc && matchQ
   })
+
+  if (loading) {
+    return (
+      <div className="page-enter">
+        <Navbar />
+        <div style={{ textAlign: 'center', padding: '50px' }}>Loading resources...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="page-enter">
@@ -81,7 +127,9 @@ export default function Resources() {
                   <span className="res-tag">{r.category}</span>
                 </div>
                 <div className="res-card-footer">
-                  <a href="#" className="res-read-more">{r.type === 'Video' ? 'Watch →' : 'Read more →'}</a>
+                  <a href={r.url || "#"} className="res-read-more" target="_blank" rel="noopener noreferrer">
+                    {r.type === 'Video' ? 'Watch →' : 'Read more →'}
+                  </a>
                 </div>
               </div>
             </div>

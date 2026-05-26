@@ -1,66 +1,113 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
-import './Auth.css'
+import './Alumni.css'
 
-export default function Register() {
-  const [show, setShow] = useState(false)
-  const [tier, setTier] = useState('free')
-  const [agreed, setAgreed] = useState(false)
+export default function Alumni() {
+  const [disc, setDisc] = useState('All')
+  const [disciplines, setDisciplines] = useState(['All'])
+  const [alumni, setAlumni] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch disciplines from API
+  useEffect(() => {
+    const fetchDisciplines = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/disciplines')
+        const data = await response.json()
+        const disciplineNames = ['All', ...data.map(d => d.name)]
+        setDisciplines(disciplineNames)
+      } catch (error) {
+        console.error('Error fetching disciplines:', error)
+        setDisciplines(['All', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education'])
+      }
+    }
+    
+    fetchDisciplines()
+  }, [])
+
+  // Fetch alumni from API
+  useEffect(() => {
+    const fetchAlumni = async () => {
+      try {
+        let url = 'http://localhost:3000/api/alumni'
+        if (disc !== 'All') {
+          url = `http://localhost:3000/api/alumni/discipline/${disc}`
+        }
+        const response = await fetch(url)
+        const data = await response.json()
+        setAlumni(data)
+      } catch (error) {
+        console.error('Error fetching alumni:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchAlumni()
+  }, [disc])
+
+  // Function to get initials for avatar
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  }
+
+  if (loading) {
+    return (
+      <div className="page-enter">
+        <Navbar />
+        <div style={{ textAlign: 'center', padding: '50px' }}>Loading alumni...</div>
+      </div>
+    )
+  }
 
   return (
-    <div className="page-enter auth-page">
+    <div className="page-enter">
       <Navbar />
-      <div className="auth-bg">
-        <div className="auth-card auth-card--wide">
-          <div className="auth-brand">Digital Career Hub</div>
-          <h1 className="auth-title">Create your account</h1>
-          <p className="auth-sub">Join to access career tools and AI resume review</p>
+      
+      <div className="alumni-header">
+        <div className="alumni-header-inner">
+          <h1 className="alumni-title">Alumni Network</h1>
+          <p className="alumni-sub">
+            Connect with the journeys of Bangladeshi graduates who have built successful careers across different industries.
+          </p>
+          <div className="filter-row">
+            {disciplines.map(d => (
+              <button
+                key={d}
+                className={`filter-pill ${disc === d ? 'active' : ''}`}
+                onClick={() => setDisc(d)}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-          <div className="form-group">
-            <label className="form-label">Full name</label>
-            <input className="form-input" type="text" placeholder="Your full name" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Email address</label>
-            <input className="form-input" type="email" placeholder="you@example.com" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <div className="input-row">
-              <input className="form-input" type={show ? 'text' : 'password'} placeholder="Create a password" />
-              <button className="show-btn" onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Confirm password</label>
-            <input className="form-input" type="password" placeholder="Repeat your password" />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Choose your plan</label>
-            <div className="tier-cards">
-              <div className={`tier-card ${tier === 'free' ? 'tier-card--active' : ''}`} onClick={() => setTier('free')}>
-                <div className="tier-name">Free</div>
-                <div className="tier-desc">3 resume reviews per day</div>
+      <div className="alumni-content">
+        <div className="alumni-grid">
+          {alumni.length === 0 && (
+            <div className="alumni-empty">No alumni found for this discipline.</div>
+          )}
+          {alumni.map(alum => (
+            <div key={alum.id} className="alumni-card">
+              <div className="alumni-avatar">
+                <div className="alumni-avatar-initials">{alum.image_initials || getInitials(alum.full_name)}</div>
               </div>
-              <div className={`tier-card ${tier === 'premium' ? 'tier-card--active' : ''}`} onClick={() => setTier('premium')}>
-                <span className="tier-recommended">Recommended</span>
-                <div className="tier-name">Premium</div>
-                <div className="tier-desc">Unlimited reviews + priority feedback</div>
+              <div className="alumni-info">
+                <h3 className="alumni-name">{alum.full_name}</h3>
+                <div className="alumni-details">
+                  <span className="alumni-institution">{alum.institution} · {alum.graduation_year}</span>
+                  <span className="alumni-role">{alum.current_role}</span>
+                  <span className="alumni-industry">{alum.industry}</span>
+                </div>
+                <p className="alumni-bio">{alum.bio}</p>
+                <div className="alumni-tags">
+                  <span className="alumni-tag">{alum.discipline}</span>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="form-group checkbox-group">
-            <input type="checkbox" id="terms" checked={agreed} onChange={e => setAgreed(e.target.checked)} />
-            <label htmlFor="terms" className="checkbox-label">
-              I agree to the <Link to="/terms" className="link-green">Terms of Service</Link> and <Link to="/privacy" className="link-green">Privacy Policy</Link>
-            </label>
-          </div>
-
-          <button className="btn-auth">Create account</button>
-          <p className="auth-switch">Already have an account? <Link to="/login" className="link-green">Log in</Link></p>
+          ))}
         </div>
       </div>
     </div>
