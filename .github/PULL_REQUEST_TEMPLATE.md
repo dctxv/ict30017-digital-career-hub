@@ -6,3 +6,6 @@
 - [ ] Bug fix
 - [ ] Config / setup
 - [ ] Documentation
+
+## Notes for reviewer
+<!-- Anything the reviewer should know before reading the code. -->

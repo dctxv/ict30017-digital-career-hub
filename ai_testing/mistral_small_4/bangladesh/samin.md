@@ -1,0 +1,27 @@
+---
+resume: samin
+mode: bangladesh
+model: mistral_small_4
+date: 2026-05-15
+metadata:
+  tokens_per_second: 133.7
+  token_count: 1163
+  cost_usd: 0.0013047
+  duration_seconds: 8.7
+---
+
+## Analysis Output
+
+{"formatting": {"score": 85, "feedback": "The resume is well-structured with clear section headings and consistent formatting. Minor improvements can be made to bullet point consistency and spacing in the Experience section.", "issues": [{"section": "EXPERIENCE", "issue": "Inconsistent bullet point formatting in Wolfpack Security and Privacy Research Lab entry (no bullet points, dense text block).", "suggestion": "Rewrite the Wolfpack Security and Privacy Research Lab entry using bullet points for clarity. Example: '• Applied program analysis and reverse engineering techniques to solve security problems.'"}, {"section": "ACADEMIC RESEARCH PROJECTS", "issue": "Bullet points lack consistent structure and quantification.", "suggestion": "Rewrite each project entry with a clear bullet point structure. Example: '• Built a static analysis tool to analyse 50 payment SDKs in Android, identifying vulnerabilities such as unencrypted credit card information storage and insecure cryptographic primitives.'"}]}}
+
+{"content_quality": {"score": 92, "feedback": "The resume demonstrates strong technical depth and relevance for research and security roles. The content is highly specific, quantifiable, and aligned with industry expectations. Minor improvements can be made to the Career Objective and bullet point clarity.", "strengths": ["Strong technical skills section with specific tools and frameworks.", "Quantifiable achievements in research projects and internships (e.g., 'analysed 50 payment SDKs', 'improved crash triaging process').", "Relevant publications in top-tier security conferences (e.g., USENIX, ACSAC).", "Clear progression from internships to research roles."], "weaknesses": ["Career Objective is missing entirely — this is a content weakness for the Bangladesh job market.", "Bullet points in the Wolfpack Security and Privacy Research Lab entry lack quantification and specific outcomes.", "Volunteer experience entry is minimal and lacks context (e.g., duration, scale of workshop)."]}}
+
+{"language_grammar": {"score": 95, "feedback": "The language quality is excellent with no grammatical errors. Minor improvements can be made to verb consistency and phrasing.", "issues": [{"original": "I apply program analysis and reverse engineering techniques to solve security problems.", "corrected": "Applied program analysis and reverse engineering techniques to solve security problems.", "type": "tense inconsistency"}, {"original": "I build tools to identify vulnerabilities and security weaknesses in softwares and systems.", "corrected": "Built tools to identify vulnerabilities and security weaknesses in software and systems.", "type": "tense inconsistency and spelling (softwares → software)"}]}}
+
+{"action_items": ["Add a Career Objective section under the PERSONAL INFORMATION section with a specific target role (e.g., 'Seeking a Research Scientist role in software security at a leading technology firm') and one concrete strength (e.g., 'with expertise in Android payment SDK security and PCI-DSS compliance').", "Rewrite the Wolfpack Security and Privacy Research Lab entry using bullet points with quantified outcomes. Example: '• Applied program analysis and reverse engineering techniques to identify vulnerabilities in Android payment SDKs, leading to 3 high-severity vulnerability disclosures to vendors.'", "Expand the Volunteer Experience entry to include duration, scale, and impact. Example: 'Led a 2-day workshop on Android application development for 50+ participants at DiamondHacks 2021, covering UI/UX design and security best practices.'"]}
+
+{"ats_analysis": {"inferred_role": "Research Scientist / Software Security Engineer", "inferred_industry": "Technology / Cybersecurity / Fintech", "keyword_hits": ["Android", "iOS", "Java", "Python", "C++", "SQL", "Git", "Linux", "Android SDK", "reverse engineering", "program analysis", "vulnerability", "security", "PCI-DSS", "fuzzing", "static analysis", "dynamic analysis", "APKTool", "Ghidra", "IDA Pro", "JEB", "Frida", "Amandroid", "Flowdroid", "CodeQL", "Wireshark", "Spring Boot", "NodeJS", "Javascript", "Python", "Thrift", "Hack", "Scala", "Swift"], "keyword_gaps": ["PCI DSS", "NIST", "OWASP", "CWE", "CVSS"], "heading_risks": [{"original": "ACADEMIC RESEARCH PROJECTS", "issue": "Non-standard heading that may not parse well in ATS systems.", "recommended": "Projects"}, {"original": "SELECTED PUBLICATIONS", "issue": "Non-standard heading that may not parse well in ATS systems.", "recommended": "Publications"}], "ats_tips": ["Replace 'ACADEMIC RESEARCH PROJECTS' with 'Projects' and 'SELECTED PUBLICATIONS' with 'Publications' to improve ATS parsing.", "Add 'PCI DSS', 'NIST', 'OWASP', and 'CVSS' to the Skills Summary section to align with industry-standard security frameworks.", "Include a 'Technical Skills' subsection under 'SKILLS SUMMARY' to group related tools and frameworks (e.g., 'Static Analysis Tools: Amandroid, Flowdroid, CodeQL')."], "standard": "international/multinational ATS"}
+
+{"job_match": null}
+
+{"overall_score": 91}
