@@ -12,7 +12,7 @@ export default function Alumni() {
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/disciplines')
+        const response = await fetch('/api/disciplines')
         const data = await response.json()
         const disciplineNames = ['All', ...data.map(d => d.name)]
         setDisciplines(disciplineNames)
@@ -29,9 +29,9 @@ export default function Alumni() {
   useEffect(() => {
     const fetchAlumni = async () => {
       try {
-        let url = 'http://localhost:3000/api/alumni'
+        let url = '/api/alumni'
         if (disc !== 'All') {
-          url = `http://localhost:3000/api/alumni/discipline/${disc}`
+          url = `/api/alumni/discipline/${disc}`
         }
         const response = await fetch(url)
         const data = await response.json()

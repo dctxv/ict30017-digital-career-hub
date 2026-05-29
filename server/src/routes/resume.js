@@ -1,11 +1,20 @@
 import express from 'express';
 import fs from 'fs';
+import rateLimit from 'express-rate-limit';
 import upload from '../middleware/upload.js';
 import { extractText } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
 import { analyzeResume, analyzeResumeStream } from '../../../ai-service/index.js';
 
 const router = express.Router();
+
+const resumeRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many resume analysis requests. Please try again in an hour.' },
+});
 
 /**
  * POST /api/resume/analyze
@@ -21,7 +30,7 @@ const router = express.Router();
  *   curl -X POST http://localhost:3000/api/resume/analyze \
  *     -F "resume=@/path/to/your/resume.pdf"
  */
-router.post('/analyze', upload.single('resume'), async (req, res) => {
+router.post('/analyze', resumeRateLimit, upload.single('resume'), async (req, res) => {
   const uploadedFilePath = req.file?.path ?? null;
 
   try {
@@ -58,10 +67,9 @@ router.post('/analyze', upload.single('resume'), async (req, res) => {
     });
 
   } catch (err) {
-    console.error('[resume] Error during analysis:', err.message);
-    // Never expose internal stack traces to the client
+    console.error('[resume] Error during analysis:', err);
     return res.status(500).json({
-      error: err.message || 'An error occurred during resume analysis.',
+      error: 'An error occurred during resume analysis.',
     });
 
   } finally {
@@ -86,7 +94,7 @@ router.post('/analyze', upload.single('resume'), async (req, res) => {
  *   data: {"done":true,"feedback":{...validated object...}}\n\n
  *   data: {"error":"RATE_LIMIT"|"INTERNAL","message":"..."}\n\n
  */
-router.post('/analyze-stream', upload.single('resume'), async (req, res) => {
+router.post('/analyze-stream', resumeRateLimit, upload.single('resume'), async (req, res) => {
   const uploadedFilePath = req.file?.path ?? null;
 
   const writeFrame = (obj) => {
@@ -133,12 +141,12 @@ router.post('/analyze-stream', upload.single('resume'), async (req, res) => {
     res.end();
 
   } catch (err) {
-    console.error('[resume-stream] Error during analysis:', err.message);
+    console.error('[resume-stream] Error during analysis:', err);
     if (res.headersSent) {
-      writeFrame({ error: 'INTERNAL', message: err.message || 'Analysis failed.' });
+      writeFrame({ error: 'INTERNAL', message: 'Analysis failed.' });
       res.end();
     } else {
-      res.status(500).json({ error: err.message || 'Analysis failed.' });
+      res.status(500).json({ error: 'Analysis failed.' });
     }
 
   } finally {

@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
-
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -10,9 +9,9 @@ import Alumni from './pages/Alumni'
 import CareerPaths from './pages/CareerPaths'
 import ChatbotWidget from './components/ChatbotWidget'
 import AdminDashboard from './pages/AdminDashboard'
+import RequireAuth from './components/RequireAuth'
 
 export default function App() {
-
   return (
     <BrowserRouter>
       <Routes>
@@ -23,7 +22,14 @@ export default function App() {
         <Route path="/resources" element={<Resources />} />
         <Route path="/alumni" element={<Alumni />} />
         <Route path="/careers" element={<CareerPaths />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth requiredRole="admin">
+              <AdminDashboard />
+            </RequireAuth>
+          }
+        />
       </Routes>
       <ChatbotWidget />
     </BrowserRouter>
