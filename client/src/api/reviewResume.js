@@ -1,6 +1,6 @@
 import { parse as parsePartial } from 'partial-json';
 
-const ENDPOINT = 'http://localhost:3000/api/resume/analyze-stream';
+const ENDPOINT = '/api/resume/analyze-stream';
 
 /**
  * Streams an AI resume review from the backend.

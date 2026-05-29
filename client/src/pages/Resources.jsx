@@ -29,7 +29,7 @@ export default function Resources() {
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/disciplines')
+        const response = await fetch('/api/disciplines')
         const data = await response.json()
         const disciplineNames = ['All disciplines', ...data.map(d => d.name)]
         setDisciplines(disciplineNames)
@@ -46,7 +46,7 @@ export default function Resources() {
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/resources')
+        const response = await fetch('/api/resources')
         const data = await response.json()
         setResources(data)
       } catch (error) {
