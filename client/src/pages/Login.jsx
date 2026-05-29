@@ -1,11 +1,42 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import './Auth.css'
 
 export default function Login() {
   const [show, setShow] = useState(false)
   const [form, setForm] = useState({ email: '', password: '' })
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+
+  const handleLogin = async () => {
+    setMessage('')
+    if (!form.email || !form.password) {
+      setMessage('Email and password are required.')
+      return
+    }
+    try {
+      setLoading(true)
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: form.email, password: form.password }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        setMessage(data.error || 'Login failed.')
+        return
+      }
+      localStorage.setItem('user', JSON.stringify(data.user))
+      navigate('/')
+    } catch {
+      setMessage('Could not connect to server.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="page-enter auth-page">
@@ -19,14 +50,16 @@ export default function Login() {
           <div className="form-group">
             <label className="form-label">Email address</label>
             <input className="form-input" type="email" placeholder="you@example.com"
-              value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+              value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()} />
           </div>
 
           <div className="form-group">
             <label className="form-label">Password</label>
             <div className="input-row">
               <input className="form-input" type={show ? 'text' : 'password'} placeholder="••••••••"
-                value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
+                value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()} />
               <button className="show-btn" onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>
             </div>
             <div className="forgot-row">
@@ -34,7 +67,11 @@ export default function Login() {
             </div>
           </div>
 
-          <button className="btn-auth">Log in</button>
+          {message && <p className="auth-sub" style={{ color: '#c0392b' }}>{message}</p>}
+
+          <button className="btn-auth" onClick={handleLogin} disabled={loading}>
+            {loading ? 'Logging in…' : 'Log in'}
+          </button>
 
           <div className="auth-divider"><span>or</span></div>
 
