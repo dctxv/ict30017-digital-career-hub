@@ -13,7 +13,7 @@ export default function CareerPaths() {
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/disciplines')
+        const response = await fetch('/api/disciplines')
         const data = await response.json()
         const disciplineNames = ['All', ...data.map(d => d.name)]
         setDisciplines(disciplineNames)
@@ -30,7 +30,7 @@ export default function CareerPaths() {
   useEffect(() => {
     const fetchPaths = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/career-paths')
+        const response = await fetch('/api/career-paths')
         const data = await response.json()
         setPaths(data)
         if (data.length > 0 && !selectedId) {
