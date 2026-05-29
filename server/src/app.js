@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -10,9 +11,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:5174'];
+
 const app = express();
-app.set('json spaces', 2);
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], credentials: true }));
+app.use(helmet());
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 // Ensure uploads/ exists at startup
@@ -21,20 +26,13 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Test route for PostgreSQL connection
-app.get('/api/test-db', async (req, res) => {
+// Basic health check — returns no user data
+app.get('/api/health', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM users');
-    res.json({
-      message: 'PostgreSQL connected successfully',
-      users: result.rows,
-    });
-  } catch (error) {
-    console.error('Database connection error:', error);
-    res.status(500).json({
-      message: 'Database connection failed',
-      error: error.message,
-    });
+    await pool.query('SELECT 1');
+    res.json({ ok: true });
+  } catch {
+    res.status(503).json({ ok: false });
   }
 });
 
