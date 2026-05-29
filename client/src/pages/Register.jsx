@@ -36,7 +36,7 @@ export default function Register() {
     try {
       setLoading(true)
 
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ export default function Register() {
         return
       }
 
-      setMessage('Account created successfully. Check PostgreSQL users table.')
+      setMessage('Account created! You can now log in.')
       setFullName('')
       setEmail('')
       setPassword('')
