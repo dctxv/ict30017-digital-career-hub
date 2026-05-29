@@ -72,7 +72,9 @@ function getJwtSecret() {
     if (process.env[key]) return process.env[key];
   }
 
-  return 'your_secret_key';
+  throw new Error(
+    'JWT secret is not configured. Set JWT_SECRET (or JWT_ACCESS_SECRET) in your .env file.'
+  );
 }
 
 function verifyJwt(token) {
@@ -109,7 +111,8 @@ function verifyJwt(token) {
   }
 
   const now = Math.floor(Date.now() / 1000);
-  if (payload.exp && payload.exp < now) return null;
+  if (!payload.exp) return null;
+  if (payload.exp < now) return null;
   if (payload.nbf && payload.nbf > now) return null;
 
   return payload;
@@ -146,13 +149,20 @@ async function getPgPool() {
 
   try {
     const { Pool } = await import('pg');
+
+    if (!process.env.DATABASE_URL && !process.env.PGPASSWORD) {
+      console.warn('[chat] Neither DATABASE_URL nor PGPASSWORD is set — falling back to in-memory counters.');
+      pgUnavailable = true;
+      return null;
+    }
+
     const config = process.env.DATABASE_URL
       ? { connectionString: process.env.DATABASE_URL }
       : {
           user: process.env.PGUSER || 'postgres',
           host: process.env.PGHOST || 'localhost',
-          database: process.env.PGDATABASE || 'auth_demo',
-          password: process.env.PGPASSWORD || 'your_password',
+          database: process.env.PGDATABASE || 'digitalcareerhub',
+          password: process.env.PGPASSWORD,
           port: Number(process.env.PGPORT || 5432),
         };
 
@@ -170,6 +180,11 @@ function todayKey() {
 }
 
 async function incrementInMemoryChatCount(userId) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('[chat] Database unavailable in production — refusing request rather than using in-memory counter.');
+    return { allowed: false, dbUnavailable: true };
+  }
+
   const today = todayKey();
   const current = inMemoryDailyCounts.get(userId);
 
@@ -231,6 +246,10 @@ async function enforceDailyTurnLimit(req, res, next) {
   try {
     const limit = await incrementPostgresChatCount(req.user.id);
 
+    if (limit.dbUnavailable) {
+      return res.status(503).json({ error: 'Service temporarily unavailable.' });
+    }
+
     if (limit.missingUser) {
       return res.status(401).json({ error: 'Authentication required.' });
     }
@@ -246,6 +265,20 @@ async function enforceDailyTurnLimit(req, res, next) {
     console.error('[chat] Failed to update chat turn counter:', err.message);
     return res.status(500).json({ error: 'Could not process chatbot request.' });
   }
+}
+
+function validateCsrfOrigin(req, res, next) {
+  const origin = req.headers.origin;
+  if (!origin) { next(); return; }
+
+  const allowed = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:5174'];
+
+  if (!allowed.includes(origin)) {
+    return res.status(403).json({ error: 'Forbidden.' });
+  }
+  next();
 }
 
 function validateChatBody(req, res, next) {
@@ -273,7 +306,7 @@ function writeSse(res, payload) {
 }
 
 // Guest access is enabled for now, so daily tier limits are not applied to this route.
-router.post('/', chatIpRateLimit, attachOptionalUser, validateChatBody, async (req, res) => {
+router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, validateChatBody, async (req, res) => {
   const { message, conversationHistory } = req.body;
   const language = req.body.language === 'bn' ? 'bn' : 'en';
 

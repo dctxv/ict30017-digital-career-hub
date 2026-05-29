@@ -3,6 +3,25 @@ import path from 'path';
 import { getDocument, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import mammoth from 'mammoth';
 
+const MAGIC_BYTES = {
+  '.pdf': Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2D]), // %PDF-
+  '.docx': Buffer.from([0x50, 0x4B, 0x03, 0x04]),       // PK.. (ZIP)
+};
+
+async function validateMagicBytes(filePath, ext) {
+  const expectedMagic = MAGIC_BYTES[ext];
+  if (!expectedMagic) throw new Error(`Unsupported file type: ${ext}`);
+
+  const handle = await fs.open(filePath, 'r');
+  const buf = Buffer.alloc(expectedMagic.length);
+  await handle.read(buf, 0, expectedMagic.length, 0);
+  await handle.close();
+
+  if (!buf.equals(expectedMagic)) {
+    throw new Error(`File content does not match its extension. Expected a valid ${ext.slice(1).toUpperCase()} file.`);
+  }
+}
+
 /**
  * Extracts plain text from an uploaded resume file.
  * Supports PDF and DOCX only.
@@ -14,12 +33,16 @@ import mammoth from 'mammoth';
 export async function extractText(filePath) {
   const ext = path.extname(filePath).toLowerCase();
 
+  if (ext !== '.pdf' && ext !== '.docx') {
+    throw new Error(`Unsupported file type: ${ext}`);
+  }
+
+  await validateMagicBytes(filePath, ext);
+
   if (ext === '.pdf') {
     return extractFromPDF(filePath);
-  } else if (ext === '.docx') {
-    return extractFromDOCX(filePath);
   } else {
-    throw new Error(`Unsupported file type: ${ext}`);
+    return extractFromDOCX(filePath);
   }
 }
 
