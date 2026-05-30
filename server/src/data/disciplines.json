@@ -1,0 +1,38 @@
+
+[
+  {
+    "id": 1,
+    "name": "IT",
+    "description": "Information Technology and Computer Science"
+  },
+  {
+    "id": 2,
+    "name": "Finance",
+    "description": "Banking, Accounting, and Financial Services"
+  },
+  {
+    "id": 3,
+    "name": "Science",
+    "description": "Pure and Applied Sciences"
+  },
+  {
+    "id": 4,
+    "name": "Engineering",
+    "description": "Civil, Electrical, Mechanical and related"
+  },
+  {
+    "id": 5,
+    "name": "Business",
+    "description": "Marketing, Management, and Commerce"
+  },
+  {
+    "id": 6,
+    "name": "Arts",
+    "description": "Humanities, Social Sciences, and Creative Arts"
+  },
+  {
+    "id": 7,
+    "name": "Education",
+    "description": "Teaching and Educational Leadership"
+  }
+]

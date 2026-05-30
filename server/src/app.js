@@ -38,27 +38,22 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
-// Routes
+// Routes - ALL routes merged
 import resumeRouter from './routes/resume.js';
-<<<<<<< Updated upstream
 import authRouter from './routes/auth.js';
-app.use('/api/resume', resumeRouter);
-app.use('/api/auth', authRouter);
 import chatbotRouter from './routes/chatbot.js';
-app.use('/api/resume', resumeRouter);
-app.use('/api/chat', chatbotRouter);
-=======
 import disciplineRoutes from './routes/disciplines.js';
 import careerPathsRoutes from './routes/careerPaths.js';
 import resourcesRoutes from './routes/resources.js';
 import alumniRoutes from './routes/alumni.js';
-app.use('/api/alumni', alumniRoutes);
 
 app.use('/api/resume', resumeRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/chat', chatbotRouter);
 app.use('/api/disciplines', disciplineRoutes);
 app.use('/api/career-paths', careerPathsRoutes);
 app.use('/api/resources', resourcesRoutes);
->>>>>>> Stashed changes
+app.use('/api/alumni', alumniRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {

@@ -1,0 +1,1192 @@
+[
+  {
+    "id": 1,
+    "title": "Financial Analyst",
+    "industry": "Banking and Finance",
+    "discipline": "Finance",
+    "desc": "Financial Analysts in Bangladesh are in high demand across banks, NGOs, and corporate finance teams. The role involves analysing financial data, preparing reports, and supporting business decisions.",
+    "skills": ["Excel", "Financial Modelling", "Accounting", "Data Analysis", "Report Writing"],
+    "progression": [
+      { "label": "Junior Analyst", "time": "0–1 yr" },
+      { "label": "Financial Analyst", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Analyst", "time": "3–5 yrs" },
+      { "label": "Finance Manager", "time": "5–8 yrs" },
+      { "label": "CFO", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–40,000",
+    "salarySenior": "BDT 80,000–150,000"
+  },
+  {
+    "id": 2,
+    "title": "Bank Relationship Officer",
+    "industry": "Banking",
+    "discipline": "Finance",
+    "desc": "Relationship officers manage client accounts, process loans, and provide customer service at banks like Dutch-Bangla, BRAC Bank, and City Bank.",
+    "skills": ["Customer Service", "Loan Processing", "CRM Software", "Communication", "Sales"],
+    "progression": [
+      { "label": "Trainee Officer", "time": "0–1 yr" },
+      { "label": "Relationship Officer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Officer", "time": "3–5 yrs" },
+      { "label": "Branch Manager", "time": "5–8 yrs" },
+      { "label": "Regional Manager", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–35,000",
+    "salarySenior": "BDT 70,000–120,000"
+  },
+  {
+    "id": 3,
+    "title": "Audit Associate",
+    "industry": "Auditing",
+    "discipline": "Finance",
+    "desc": "Audit associates work at firms like ACNABIN, Rahman Rahman Huq, and KPMG Bangladesh, checking financial records for accuracy and compliance.",
+    "skills": ["Auditing Standards", "Attention to Detail", "Accounting Software", "Analytical Thinking", "Report Writing"],
+    "progression": [
+      { "label": "Audit Trainee", "time": "0–1 yr" },
+      { "label": "Audit Associate", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Auditor", "time": "3–5 yrs" },
+      { "label": "Audit Manager", "time": "5–8 yrs" },
+      { "label": "Partner", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–32,000",
+    "salarySenior": "BDT 80,000–150,000"
+  },
+  {
+    "id": 4,
+    "title": "Tax Consultant",
+    "industry": "Taxation",
+    "discipline": "Finance",
+    "desc": "Tax consultants help individuals and companies file taxes, plan tax strategies, and comply with Bangladesh tax laws.",
+    "skills": ["Tax Laws", "Compliance", "Client Management", "Analytical Skills", "Communication"],
+    "progression": [
+      { "label": "Tax Trainee", "time": "0–1 yr" },
+      { "label": "Tax Consultant", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Consultant", "time": "3–5 yrs" },
+      { "label": "Tax Manager", "time": "5–8 yrs" },
+      { "label": "Tax Partner", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–38,000",
+    "salarySenior": "BDT 90,000–180,000"
+  },
+  {
+    "id": 5,
+    "title": "Investment Analyst",
+    "industry": "Investment",
+    "discipline": "Finance",
+    "desc": "Investment analysts research stocks, bonds, and other investments for brokerage firms and asset management companies in Bangladesh.",
+    "skills": ["Financial Research", "Stock Market", "Valuation", "Bloomberg Terminal", "Risk Assessment"],
+    "progression": [
+      { "label": "Research Assistant", "time": "0–1 yr" },
+      { "label": "Investment Analyst", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Analyst", "time": "3–5 yrs" },
+      { "label": "Portfolio Manager", "time": "5–8 yrs" },
+      { "label": "Investment Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 30,000–45,000",
+    "salarySenior": "BDT 100,000–200,000"
+  },
+  {
+    "id": 6,
+    "title": "Credit Risk Officer",
+    "industry": "Risk Management",
+    "discipline": "Finance",
+    "desc": "Credit risk officers evaluate loan applications, assess borrower risk, and set credit limits for banks and financial institutions.",
+    "skills": ["Risk Assessment", "Credit Scoring", "Financial Analysis", "Regulatory Knowledge", "Decision Making"],
+    "progression": [
+      { "label": "Credit Trainee", "time": "0–1 yr" },
+      { "label": "Credit Officer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Credit Officer", "time": "3–5 yrs" },
+      { "label": "Credit Manager", "time": "5–8 yrs" },
+      { "label": "Chief Risk Officer", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 28,000–42,000",
+    "salarySenior": "BDT 90,000–160,000"
+  },
+  {
+    "id": 7,
+    "title": "Accounts Executive",
+    "industry": "Accounting",
+    "discipline": "Finance",
+    "desc": "Accounts executives manage day-to-day bookkeeping, prepare financial statements, and handle accounts payable/receivable for companies.",
+    "skills": ["Bookkeeping", "Tally/QuickBooks", "Invoice Processing", "Reconciliation", "Financial Reporting"],
+    "progression": [
+      { "label": "Accounts Assistant", "time": "0–1 yr" },
+      { "label": "Accounts Executive", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Accountant", "time": "3–5 yrs" },
+      { "label": "Finance Controller", "time": "5–8 yrs" },
+      { "label": "Finance Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–30,000",
+    "salarySenior": "BDT 60,000–100,000"
+  },
+  {
+    "id": 8,
+    "title": "Treasury Analyst",
+    "industry": "Treasury",
+    "discipline": "Finance",
+    "desc": "Treasury analysts manage company cash flow, foreign exchange exposure, and banking relationships for large corporations in Bangladesh.",
+    "skills": ["Cash Management", "Forex", "Banking", "Excel", "Financial Markets"],
+    "progression": [
+      { "label": "Treasury Assistant", "time": "0–1 yr" },
+      { "label": "Treasury Analyst", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Treasury Analyst", "time": "3–5 yrs" },
+      { "label": "Treasury Manager", "time": "5–8 yrs" },
+      { "label": "Group Treasurer", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 30,000–50,000",
+    "salarySenior": "BDT 100,000–180,000"
+  },
+  {
+    "id": 9,
+    "title": "Microfinance Officer",
+    "industry": "Microfinance",
+    "discipline": "Finance",
+    "desc": "Microfinance officers work with NGOs like BRAC, ASA, and Grameen Bank to provide small loans to rural entrepreneurs.",
+    "skills": ["Field Work", "Client Assessment", "Loan Recovery", "Community Relations", "Documentation"],
+    "progression": [
+      { "label": "Field Officer", "time": "0–1 yr" },
+      { "label": "Microfinance Officer", "time": "1–3 yrs", "current": true },
+      { "label": "Branch Manager", "time": "3–5 yrs" },
+      { "label": "Area Manager", "time": "5–8 yrs" },
+      { "label": "Regional Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 15,000–25,000",
+    "salarySenior": "BDT 50,000–80,000"
+  },
+  {
+    "id": 10,
+    "title": "Insurance Underwriter",
+    "industry": "Insurance",
+    "discipline": "Finance",
+    "desc": "Underwriters evaluate insurance applications, assess risk, and determine coverage amounts for life, health, and property insurance.",
+    "skills": ["Risk Assessment", "Insurance Policies", "Data Analysis", "Medical Terminology", "Legal Knowledge"],
+    "progression": [
+      { "label": "Underwriting Trainee", "time": "0–1 yr" },
+      { "label": "Underwriter", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Underwriter", "time": "3–5 yrs" },
+      { "label": "Underwriting Manager", "time": "5–8 yrs" },
+      { "label": "Chief Underwriter", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–35,000",
+    "salarySenior": "BDT 70,000–130,000"
+  },
+  {
+    "id": 11,
+    "title": "Software Engineer",
+    "industry": "Technology",
+    "discipline": "IT",
+    "desc": "Software engineers design, code, and maintain applications for companies like Pathao, Shohoz, and numerous software outsourcing firms in Bangladesh.",
+    "skills": ["JavaScript", "React", "Node.js", "PostgreSQL", "Git", "REST APIs"],
+    "progression": [
+      { "label": "Junior Developer", "time": "0–1 yr" },
+      { "label": "Software Engineer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "3–6 yrs" },
+      { "label": "Tech Lead", "time": "6–9 yrs" },
+      { "label": "CTO", "time": "9+ yrs" }
+    ],
+    "salaryEntry": "BDT 30,000–55,000",
+    "salarySenior": "BDT 120,000–250,000"
+  },
+  {
+    "id": 12,
+    "title": "Frontend Developer",
+    "industry": "Technology",
+    "discipline": "IT",
+    "desc": "Frontend developers build user interfaces for websites and web applications using HTML, CSS, and JavaScript frameworks.",
+    "skills": ["React", "Vue.js", "HTML/CSS", "JavaScript", "Responsive Design", "Figma"],
+    "progression": [
+      { "label": "Junior Frontend", "time": "0–1 yr" },
+      { "label": "Frontend Developer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Frontend", "time": "3–5 yrs" },
+      { "label": "Frontend Lead", "time": "5–8 yrs" },
+      { "label": "UI/UX Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–45,000",
+    "salarySenior": "BDT 100,000–200,000"
+  },
+  {
+    "id": 13,
+    "title": "Backend Developer",
+    "industry": "Technology",
+    "discipline": "IT",
+    "desc": "Backend developers build server-side logic, databases, and APIs that power web and mobile applications.",
+    "skills": ["Python/Django", "Node.js", "SQL", "API Design", "Server Management", "Security"],
+    "progression": [
+      { "label": "Junior Backend", "time": "0–1 yr" },
+      { "label": "Backend Developer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Backend", "time": "3–5 yrs" },
+      { "label": "Backend Architect", "time": "5–8 yrs" },
+      { "label": "Engineering Manager", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 28,000–50,000",
+    "salarySenior": "BDT 110,000–220,000"
+  },
+  {
+    "id": 14,
+    "title": "DevOps Engineer",
+    "industry": "Technology",
+    "discipline": "IT",
+    "desc": "DevOps engineers manage deployment pipelines, cloud infrastructure, and system reliability for tech companies.",
+    "skills": ["AWS/GCP", "Docker", "Kubernetes", "CI/CD", "Linux", "Monitoring Tools"],
+    "progression": [
+      { "label": "Junior DevOps", "time": "0–1 yr" },
+      { "label": "DevOps Engineer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior DevOps", "time": "3–5 yrs" },
+      { "label": "Platform Architect", "time": "5–8 yrs" },
+      { "label": "Head of Infrastructure", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 35,000–60,000",
+    "salarySenior": "BDT 130,000–250,000"
+  },
+  {
+    "id": 15,
+    "title": "Data Analyst",
+    "industry": "Data",
+    "discipline": "IT",
+    "desc": "Data analysts collect, process, and analyse data to help businesses make informed decisions.",
+    "skills": ["SQL", "Python", "Excel", "Tableau", "Statistical Analysis", "Data Visualization"],
+    "progression": [
+      { "label": "Junior Data Analyst", "time": "0–1 yr" },
+      { "label": "Data Analyst", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Data Analyst", "time": "3–5 yrs" },
+      { "label": "Data Scientist", "time": "5–8 yrs" },
+      { "label": "Head of Data", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–45,000",
+    "salarySenior": "BDT 100,000–200,000"
+  },
+  {
+    "id": 16,
+    "title": "QA Engineer",
+    "industry": "Quality Assurance",
+    "discipline": "IT",
+    "desc": "QA engineers test software, find bugs, and ensure product quality before release.",
+    "skills": ["Manual Testing", "Automation", "Selenium", "Bug Tracking", "Test Cases", "Attention to Detail"],
+    "progression": [
+      { "label": "Junior QA", "time": "0–1 yr" },
+      { "label": "QA Engineer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior QA", "time": "3–5 yrs" },
+      { "label": "QA Lead", "time": "5–8 yrs" },
+      { "label": "QA Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 80,000–150,000"
+  },
+  {
+    "id": 17,
+    "title": "Database Administrator",
+    "industry": "Database",
+    "discipline": "IT",
+    "desc": "DBAs manage, secure, and optimise databases for organisations.",
+    "skills": ["PostgreSQL", "MySQL", "MongoDB", "Backup/Recovery", "Performance Tuning", "Security"],
+    "progression": [
+      { "label": "Junior DBA", "time": "0–1 yr" },
+      { "label": "DBA", "time": "1–3 yrs", "current": true },
+      { "label": "Senior DBA", "time": "3–5 yrs" },
+      { "label": "Database Architect", "time": "5–8 yrs" },
+      { "label": "Data Platform Lead", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–45,000",
+    "salarySenior": "BDT 100,000–180,000"
+  },
+  {
+    "id": 18,
+    "title": "Cybersecurity Analyst",
+    "industry": "Security",
+    "discipline": "IT",
+    "desc": "Cybersecurity analysts protect organisations from cyber threats, monitor systems, and respond to incidents.",
+    "skills": ["Network Security", "Vulnerability Assessment", "SIEM Tools", "Risk Management", "Ethical Hacking"],
+    "progression": [
+      { "label": "Security Trainee", "time": "0–1 yr" },
+      { "label": "Security Analyst", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Security Analyst", "time": "3–5 yrs" },
+      { "label": "Security Manager", "time": "5–8 yrs" },
+      { "label": "CISO", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 30,000–55,000",
+    "salarySenior": "BDT 120,000–250,000"
+  },
+  {
+    "id": 19,
+    "title": "IT Support Specialist",
+    "industry": "IT Support",
+    "discipline": "IT",
+    "desc": "IT support specialists help users with technical issues, maintain hardware, and manage networks.",
+    "skills": ["Hardware Troubleshooting", "Networking", "Windows/Linux", "Customer Service", "Ticketing Systems"],
+    "progression": [
+      { "label": "IT Support Level 1", "time": "0–1 yr" },
+      { "label": "IT Support Specialist", "time": "1–3 yrs", "current": true },
+      { "label": "Senior IT Support", "time": "3–5 yrs" },
+      { "label": "IT Manager", "time": "5–8 yrs" },
+      { "label": "IT Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–30,000",
+    "salarySenior": "BDT 60,000–100,000"
+  },
+  {
+    "id": 20,
+    "title": "Mobile App Developer",
+    "industry": "Mobile Development",
+    "discipline": "IT",
+    "desc": "Mobile developers build Android and iOS apps for Bangladeshi startups and enterprises.",
+    "skills": ["Flutter", "React Native", "Android", "iOS", "App Store Deployment", "REST APIs"],
+    "progression": [
+      { "label": "Junior Mobile Dev", "time": "0–1 yr" },
+      { "label": "Mobile Developer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Mobile Dev", "time": "3–5 yrs" },
+      { "label": "Mobile Tech Lead", "time": "5–8 yrs" },
+      { "label": "Head of Mobile", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 28,000–50,000",
+    "salarySenior": "BDT 110,000–220,000"
+  },
+  {
+    "id": 21,
+    "title": "Civil Engineer",
+    "industry": "Construction",
+    "discipline": "Engineering",
+    "desc": "Civil engineers design and oversee construction of roads, bridges, buildings, and infrastructure projects.",
+    "skills": ["AutoCAD", "Structural Analysis", "Project Management", "Site Supervision", "Cost Estimation"],
+    "progression": [
+      { "label": "Site Engineer", "time": "0–2 yrs" },
+      { "label": "Civil Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "4–7 yrs" },
+      { "label": "Project Manager", "time": "7–10 yrs" },
+      { "label": "Chief Engineer", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–38,000",
+    "salarySenior": "BDT 70,000–130,000"
+  },
+  {
+    "id": 22,
+    "title": "Electrical Engineer",
+    "industry": "Power and Energy",
+    "discipline": "Engineering",
+    "desc": "Electrical engineers design, test, and maintain electrical systems for buildings, factories, and power plants.",
+    "skills": ["Circuit Design", "Power Systems", "AutoCAD Electrical", "PLC Programming", "Safety Standards"],
+    "progression": [
+      { "label": "Junior Engineer", "time": "0–2 yrs" },
+      { "label": "Electrical Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "4–7 yrs" },
+      { "label": "Project Manager", "time": "7–10 yrs" },
+      { "label": "Chief Engineer", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 65,000–120,000"
+  },
+  {
+    "id": 23,
+    "title": "Mechanical Engineer",
+    "industry": "Manufacturing",
+    "discipline": "Engineering",
+    "desc": "Mechanical engineers design and maintain machinery, HVAC systems, and production equipment for factories.",
+    "skills": ["SolidWorks", "Thermodynamics", "Manufacturing Processes", "Maintenance", "CAD"],
+    "progression": [
+      { "label": "Junior Engineer", "time": "0–2 yrs" },
+      { "label": "Mechanical Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "4–7 yrs" },
+      { "label": "Plant Manager", "time": "7–10 yrs" },
+      { "label": "Operations Director", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 65,000–120,000"
+  },
+  {
+    "id": 24,
+    "title": "Chemical Engineer",
+    "industry": "Pharmaceuticals",
+    "discipline": "Engineering",
+    "desc": "Chemical engineers work in pharmaceutical, textile, and fertilizer plants, designing chemical processes.",
+    "skills": ["Process Design", "Safety Protocols", "Quality Control", "Thermodynamics", "Lab Equipment"],
+    "progression": [
+      { "label": "Process Trainee", "time": "0–2 yrs" },
+      { "label": "Chemical Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "4–7 yrs" },
+      { "label": "Production Manager", "time": "7–10 yrs" },
+      { "label": "Plant Director", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–38,000",
+    "salarySenior": "BDT 70,000–130,000"
+  },
+  {
+    "id": 25,
+    "title": "Textile Engineer",
+    "industry": "Textile",
+    "discipline": "Engineering",
+    "desc": "Textile engineers work in Bangladesh's largest export industry, managing production and quality control.",
+    "skills": ["Fabric Production", "Quality Control", "Dyeing Processes", "Supply Chain", "Factory Management"],
+    "progression": [
+      { "label": "Production Trainee", "time": "0–2 yrs" },
+      { "label": "Textile Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "4–7 yrs" },
+      { "label": "Production Manager", "time": "7–10 yrs" },
+      { "label": "Factory Director", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–32,000",
+    "salarySenior": "BDT 60,000–110,000"
+  },
+  {
+    "id": 26,
+    "title": "Industrial Engineer",
+    "industry": "Manufacturing",
+    "discipline": "Engineering",
+    "desc": "Industrial engineers optimise production processes, reduce waste, and improve efficiency.",
+    "skills": ["Process Optimization", "Six Sigma", "Supply Chain", "Data Analysis", "Lean Manufacturing"],
+    "progression": [
+      { "label": "Junior IE", "time": "0–2 yrs" },
+      { "label": "Industrial Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior IE", "time": "4–7 yrs" },
+      { "label": "Operations Manager", "time": "7–10 yrs" },
+      { "label": "COO", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–38,000",
+    "salarySenior": "BDT 70,000–130,000"
+  },
+  {
+    "id": 27,
+    "title": "Environmental Engineer",
+    "industry": "Environment",
+    "discipline": "Engineering",
+    "desc": "Environmental engineers work on waste management, pollution control, and sustainability projects.",
+    "skills": ["Environmental Impact Assessment", "Waste Management", "Water Treatment", "Compliance", "Field Work"],
+    "progression": [
+      { "label": "Junior Engineer", "time": "0–2 yrs" },
+      { "label": "Environmental Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "4–7 yrs" },
+      { "label": "Project Manager", "time": "7–10 yrs" },
+      { "label": "Director of EHS", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 65,000–120,000"
+  },
+  {
+    "id": 28,
+    "title": "Telecommunication Engineer",
+    "industry": "Telecom",
+    "discipline": "Engineering",
+    "desc": "Telecom engineers design and maintain mobile networks, fibre optics, and communication systems.",
+    "skills": ["Network Design", "RF Engineering", "Fiber Optics", "Signal Processing", "Troubleshooting"],
+    "progression": [
+      { "label": "Network Trainee", "time": "0–2 yrs" },
+      { "label": "Telecom Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "4–7 yrs" },
+      { "label": "Network Manager", "time": "7–10 yrs" },
+      { "label": "CTO", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–42,000",
+    "salarySenior": "BDT 80,000–150,000"
+  },
+  {
+    "id": 29,
+    "title": "Automobile Engineer",
+    "industry": "Automotive",
+    "discipline": "Engineering",
+    "desc": "Automobile engineers work in vehicle assembly, maintenance, and design for automotive companies.",
+    "skills": ["Vehicle Systems", "Diagnostics", "CAD", "Mechanical Repair", "Quality Assurance"],
+    "progression": [
+      { "label": "Service Engineer", "time": "0–2 yrs" },
+      { "label": "Automobile Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "4–7 yrs" },
+      { "label": "Service Manager", "time": "7–10 yrs" },
+      { "label": "Operations Director", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–32,000",
+    "salarySenior": "BDT 60,000–110,000"
+  },
+  {
+    "id": 30,
+    "title": "Marine Engineer",
+    "industry": "Maritime",
+    "discipline": "Engineering",
+    "desc": "Marine engineers work on ships, ports, and maritime operations in Chattogram and Dhaka.",
+    "skills": ["Ship Systems", "Marine Safety", "Maintenance", "Navigation Systems", "Regulatory Compliance"],
+    "progression": [
+      { "label": "Junior Engineer", "time": "0–2 yrs" },
+      { "label": "Marine Engineer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Engineer", "time": "4–7 yrs" },
+      { "label": "Chief Engineer", "time": "7–10 yrs" },
+      { "label": "Fleet Manager", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 30,000–50,000",
+    "salarySenior": "BDT 100,000–200,000"
+  },
+  {
+    "id": 31,
+    "title": "Marketing Executive",
+    "industry": "Marketing",
+    "discipline": "Business",
+    "desc": "Marketing executives plan and execute campaigns, manage social media, and analyse market trends.",
+    "skills": ["Digital Marketing", "Social Media", "Market Research", "Campaign Management", "Analytics"],
+    "progression": [
+      { "label": "Marketing Trainee", "time": "0–1 yr" },
+      { "label": "Marketing Executive", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Executive", "time": "3–5 yrs" },
+      { "label": "Brand Manager", "time": "5–8 yrs" },
+      { "label": "Marketing Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 80,000–160,000"
+  },
+  {
+    "id": 32,
+    "title": "HR Executive",
+    "industry": "Human Resources",
+    "discipline": "Business",
+    "desc": "HR executives handle recruitment, onboarding, payroll, and employee relations.",
+    "skills": ["Recruitment", "Payroll", "Labour Laws", "Communication", "Employee Engagement"],
+    "progression": [
+      { "label": "HR Trainee", "time": "0–1 yr" },
+      { "label": "HR Executive", "time": "1–3 yrs", "current": true },
+      { "label": "Senior HR Executive", "time": "3–5 yrs" },
+      { "label": "HR Manager", "time": "5–8 yrs" },
+      { "label": "HR Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–30,000",
+    "salarySenior": "BDT 70,000–130,000"
+  },
+  {
+    "id": 33,
+    "title": "Business Development Officer",
+    "industry": "Sales",
+    "discipline": "Business",
+    "desc": "BDOs identify new business opportunities, build client relationships, and drive revenue growth.",
+    "skills": ["Sales", "Negotiation", "Client Relationship", "Market Research", "Communication"],
+    "progression": [
+      { "label": "Sales Trainee", "time": "0–1 yr" },
+      { "label": "BDO", "time": "1–3 yrs", "current": true },
+      { "label": "Senior BDO", "time": "3–5 yrs" },
+      { "label": "Sales Manager", "time": "5–8 yrs" },
+      { "label": "Sales Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 80,000–200,000"
+  },
+  {
+    "id": 34,
+    "title": "Supply Chain Officer",
+    "industry": "Logistics",
+    "discipline": "Business",
+    "desc": "Supply chain officers manage procurement, warehousing, and distribution for manufacturing and retail companies.",
+    "skills": ["Procurement", "Logistics", "Inventory Management", "Vendor Relations", "ERP Systems"],
+    "progression": [
+      { "label": "Supply Chain Trainee", "time": "0–1 yr" },
+      { "label": "Supply Chain Officer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Officer", "time": "3–5 yrs" },
+      { "label": "Supply Chain Manager", "time": "5–8 yrs" },
+      { "label": "Logistics Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 80,000–150,000"
+  },
+  {
+    "id": 35,
+    "title": "Operations Executive",
+    "industry": "Operations",
+    "discipline": "Business",
+    "desc": "Operations executives ensure smooth day-to-day business operations and process efficiency.",
+    "skills": ["Process Improvement", "Team Management", "Problem Solving", "Reporting", "Coordination"],
+    "progression": [
+      { "label": "Operations Trainee", "time": "0–1 yr" },
+      { "label": "Operations Executive", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Executive", "time": "3–5 yrs" },
+      { "label": "Operations Manager", "time": "5–8 yrs" },
+      { "label": "COO", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–32,000",
+    "salarySenior": "BDT 70,000–140,000"
+  },
+  {
+    "id": 36,
+    "title": "Export-Import Officer",
+    "industry": "International Trade",
+    "discipline": "Business",
+    "desc": "Export-Import officers manage customs, documentation, and international shipping for trading companies.",
+    "skills": ["Customs Documentation", "LC Process", "International Trade Laws", "Freight Forwarding", "Negotiation"],
+    "progression": [
+      { "label": "Trade Trainee", "time": "0–1 yr" },
+      { "label": "Export-Import Officer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Officer", "time": "3–5 yrs" },
+      { "label": "Trade Manager", "time": "5–8 yrs" },
+      { "label": "Trade Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–38,000",
+    "salarySenior": "BDT 80,000–160,000"
+  },
+  {
+    "id": 37,
+    "title": "Customer Success Manager",
+    "industry": "Customer Service",
+    "discipline": "Business",
+    "desc": "CSMs ensure customer satisfaction, retention, and loyalty for tech and service companies.",
+    "skills": ["Customer Service", "Problem Solving", "Communication", "CRM Software", "Retention Strategies"],
+    "progression": [
+      { "label": "Customer Support", "time": "0–1 yr" },
+      { "label": "CSM", "time": "1–3 yrs", "current": true },
+      { "label": "Senior CSM", "time": "3–5 yrs" },
+      { "label": "Customer Success Lead", "time": "5–8 yrs" },
+      { "label": "Head of Customer Success", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 80,000–150,000"
+  },
+  {
+    "id": 38,
+    "title": "Project Coordinator",
+    "industry": "Project Management",
+    "discipline": "Business",
+    "desc": "Project coordinators help plan, track, and deliver projects across various industries.",
+    "skills": ["Project Planning", "MS Project", "Communication", "Risk Management", "Budget Tracking"],
+    "progression": [
+      { "label": "Project Assistant", "time": "0–1 yr" },
+      { "label": "Project Coordinator", "time": "1–3 yrs", "current": true },
+      { "label": "Project Manager", "time": "3–5 yrs" },
+      { "label": "Senior PM", "time": "5–8 yrs" },
+      { "label": "Program Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–38,000",
+    "salarySenior": "BDT 80,000–160,000"
+  },
+  {
+    "id": 39,
+    "title": "E-commerce Manager",
+    "industry": "E-commerce",
+    "discipline": "Business",
+    "desc": "E-commerce managers oversee online stores, manage product listings, and drive sales for platforms like Daraz, Chaldal, and others.",
+    "skills": ["E-commerce Platforms", "Digital Marketing", "Inventory Management", "Customer Experience", "Analytics"],
+    "progression": [
+      { "label": "E-commerce Assistant", "time": "0–1 yr" },
+      { "label": "E-commerce Manager", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Manager", "time": "3–5 yrs" },
+      { "label": "Head of E-commerce", "time": "5–8 yrs" },
+      { "label": "VP of Digital Commerce", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–45,000",
+    "salarySenior": "BDT 100,000–200,000"
+  },
+  {
+    "id": 40,
+    "title": "Management Trainee",
+    "industry": "Management",
+    "discipline": "Business",
+    "desc": "MT programs at Grameenphone, Unilever, BAT, and other multinationals train future leaders.",
+    "skills": ["Leadership", "Problem Solving", "Analytical Thinking", "Communication", "Teamwork"],
+    "progression": [
+      { "label": "Management Trainee", "time": "0–1 yr", "current": true },
+      { "label": "Assistant Manager", "time": "1–3 yrs" },
+      { "label": "Deputy Manager", "time": "3–5 yrs" },
+      { "label": "Manager", "time": "5–8 yrs" },
+      { "label": "Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 40,000–60,000",
+    "salarySenior": "BDT 150,000–250,000"
+  },
+  {
+    "id": 41,
+    "title": "Research Associate",
+    "industry": "Research",
+    "discipline": "Science",
+    "desc": "Research associates work at icddr,b, BARI, BRRI, and university research centres.",
+    "skills": ["Research Methodology", "Data Analysis", "Scientific Writing", "Lab Techniques", "Statistics"],
+    "progression": [
+      { "label": "Research Assistant", "time": "0–2 yrs" },
+      { "label": "Research Associate", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Researcher", "time": "4–7 yrs" },
+      { "label": "Research Scientist", "time": "7–10 yrs" },
+      { "label": "Principal Scientist", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–42,000",
+    "salarySenior": "BDT 75,000–140,000"
+  },
+  {
+    "id": 42,
+    "title": "Biomedical Scientist",
+    "industry": "Healthcare",
+    "discipline": "Science",
+    "desc": "Biomedical scientists work in hospital labs, diagnostic centres, and pharmaceutical companies.",
+    "skills": ["Lab Testing", "Microscopy", "Pathology", "Quality Control", "Medical Terminology"],
+    "progression": [
+      { "label": "Lab Assistant", "time": "0–2 yrs" },
+      { "label": "Biomedical Scientist", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Scientist", "time": "4–7 yrs" },
+      { "label": "Lab Manager", "time": "7–10 yrs" },
+      { "label": "Director of Lab Services", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 60,000–110,000"
+  },
+  {
+    "id": 43,
+    "title": "Quality Control Officer",
+    "industry": "Pharmaceuticals",
+    "discipline": "Science",
+    "desc": "QC officers test raw materials and finished products at Square, Beximco, and other pharma companies.",
+    "skills": ["GMP Standards", "Lab Testing", "Documentation", "Analytical Chemistry", "Attention to Detail"],
+    "progression": [
+      { "label": "QC Trainee", "time": "0–2 yrs" },
+      { "label": "QC Officer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior QC Officer", "time": "4–7 yrs" },
+      { "label": "QC Manager", "time": "7–10 yrs" },
+      { "label": "Quality Director", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 65,000–120,000"
+  },
+  {
+    "id": 44,
+    "title": "Environmental Scientist",
+    "industry": "Environment",
+    "discipline": "Science",
+    "desc": "Environmental scientists work on conservation, pollution monitoring, and climate change projects.",
+    "skills": ["Field Sampling", "Data Analysis", "Environmental Laws", "Report Writing", "GIS"],
+    "progression": [
+      { "label": "Field Assistant", "time": "0–2 yrs" },
+      { "label": "Environmental Scientist", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Scientist", "time": "4–7 yrs" },
+      { "label": "Project Manager", "time": "7–10 yrs" },
+      { "label": "Director", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–38,000",
+    "salarySenior": "BDT 70,000–130,000"
+  },
+  {
+    "id": 45,
+    "title": "Microbiologist",
+    "industry": "Microbiology",
+    "discipline": "Science",
+    "desc": "Microbiologists work in food safety, pharmaceutical labs, and clinical diagnostics.",
+    "skills": ["Culture Techniques", "Sterilization", "Microscopy", "Lab Safety", "Data Recording"],
+    "progression": [
+      { "label": "Lab Technician", "time": "0–2 yrs" },
+      { "label": "Microbiologist", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Microbiologist", "time": "4–7 yrs" },
+      { "label": "Lab Manager", "time": "7–10 yrs" },
+      { "label": "Scientific Director", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 65,000–120,000"
+  },
+  {
+    "id": 46,
+    "title": "Food Scientist",
+    "industry": "Food",
+    "discipline": "Science",
+    "desc": "Food scientists develop new food products, ensure safety, and improve quality for food companies.",
+    "skills": ["Food Safety", "Product Development", "Quality Assurance", "Sensory Evaluation", "Regulations"],
+    "progression": [
+      { "label": "Quality Trainee", "time": "0–2 yrs" },
+      { "label": "Food Scientist", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Food Scientist", "time": "4–7 yrs" },
+      { "label": "R&D Manager", "time": "7–10 yrs" },
+      { "label": "Technical Director", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–38,000",
+    "salarySenior": "BDT 70,000–130,000"
+  },
+  {
+    "id": 47,
+    "title": "Genetic Counselor",
+    "industry": "Genetics",
+    "discipline": "Science",
+    "desc": "Genetic counselors work in hospitals and diagnostic labs, advising patients on genetic conditions.",
+    "skills": ["Genetics Knowledge", "Patient Counseling", "Risk Assessment", "Medical Ethics", "Communication"],
+    "progression": [
+      { "label": "Genetic Assistant", "time": "0–2 yrs" },
+      { "label": "Genetic Counselor", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Counselor", "time": "4–7 yrs" },
+      { "label": "Clinic Manager", "time": "7–10 yrs" },
+      { "label": "Director of Genetics", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 30,000–50,000",
+    "salarySenior": "BDT 90,000–160,000"
+  },
+  {
+    "id": 48,
+    "title": "Agronomist",
+    "industry": "Agriculture",
+    "discipline": "Science",
+    "desc": "Agronomists work in agricultural research, crop management, and farming advisory services.",
+    "skills": ["Crop Science", "Soil Management", "Pest Control", "Field Research", "Farmer Training"],
+    "progression": [
+      { "label": "Field Officer", "time": "0–2 yrs" },
+      { "label": "Agronomist", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Agronomist", "time": "4–7 yrs" },
+      { "label": "Agriculture Manager", "time": "7–10 yrs" },
+      { "label": "Director of Agriculture", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–32,000",
+    "salarySenior": "BDT 60,000–110,000"
+  },
+  {
+    "id": 49,
+    "title": "Fisheries Officer",
+    "industry": "Fisheries",
+    "discipline": "Science",
+    "desc": "Fisheries officers work in aquaculture, fishery management, and marine conservation.",
+    "skills": ["Aquaculture", "Fish Health", "Water Quality", "Stock Assessment", "Regulatory Compliance"],
+    "progression": [
+      { "label": "Fisheries Assistant", "time": "0–2 yrs" },
+      { "label": "Fisheries Officer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Officer", "time": "4–7 yrs" },
+      { "label": "Fisheries Manager", "time": "7–10 yrs" },
+      { "label": "Director of Fisheries", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–32,000",
+    "salarySenior": "BDT 60,000–110,000"
+  },
+  {
+    "id": 50,
+    "title": "Clinical Research Coordinator",
+    "industry": "Clinical Research",
+    "discipline": "Science",
+    "desc": "CRCs manage clinical trials for pharmaceutical companies and research hospitals.",
+    "skills": ["GCP Guidelines", "Patient Recruitment", "Data Collection", "Regulatory Compliance", "Ethics"],
+    "progression": [
+      { "label": "CRC Trainee", "time": "0–2 yrs" },
+      { "label": "Clinical Research Coordinator", "time": "2–4 yrs", "current": true },
+      { "label": "Senior CRC", "time": "4–7 yrs" },
+      { "label": "Clinical Project Manager", "time": "7–10 yrs" },
+      { "label": "Clinical Operations Director", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 30,000–50,000",
+    "salarySenior": "BDT 90,000–170,000"
+  },
+  {
+    "id": 51,
+    "title": "Content Writer",
+    "industry": "Media",
+    "discipline": "Arts",
+    "desc": "Content writers create articles, blogs, and social media content for digital agencies and media houses.",
+    "skills": ["Creative Writing", "SEO", "Research", "Grammar", "Content Strategy"],
+    "progression": [
+      { "label": "Junior Writer", "time": "0–1 yr" },
+      { "label": "Content Writer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Writer", "time": "3–5 yrs" },
+      { "label": "Content Manager", "time": "5–8 yrs" },
+      { "label": "Editorial Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–30,000",
+    "salarySenior": "BDT 50,000–90,000"
+  },
+  {
+    "id": 52,
+    "title": "Graphic Designer",
+    "industry": "Design",
+    "discipline": "Arts",
+    "desc": "Graphic designers create visual content for brands, advertising agencies, and digital media.",
+    "skills": ["Adobe Photoshop", "Illustrator", "Typography", "Branding", "Figma"],
+    "progression": [
+      { "label": "Junior Designer", "time": "0–1 yr" },
+      { "label": "Graphic Designer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Designer", "time": "3–5 yrs" },
+      { "label": "Art Director", "time": "5–8 yrs" },
+      { "label": "Creative Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 60,000–120,000"
+  },
+  {
+    "id": 53,
+    "title": "Journalist",
+    "industry": "News",
+    "discipline": "Arts",
+    "desc": "Journalists report news for newspapers, TV channels, and online news portals in Bangladesh.",
+    "skills": ["Reporting", "Interviewing", "Fact-Checking", "Writing", "Ethics"],
+    "progression": [
+      { "label": "Reporter", "time": "0–1 yr" },
+      { "label": "Journalist", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Reporter", "time": "3–5 yrs" },
+      { "label": "News Editor", "time": "5–8 yrs" },
+      { "label": "Editor-in-Chief", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 15,000–25,000",
+    "salarySenior": "BDT 50,000–100,000"
+  },
+  {
+    "id": 54,
+    "title": "Public Relations Officer",
+    "industry": "PR",
+    "discipline": "Arts",
+    "desc": "PROs manage media relations, press releases, and corporate communications for companies.",
+    "skills": ["Media Relations", "Press Release Writing", "Crisis Communication", "Event Planning", "Networking"],
+    "progression": [
+      { "label": "PR Assistant", "time": "0–1 yr" },
+      { "label": "PRO", "time": "1–3 yrs", "current": true },
+      { "label": "Senior PRO", "time": "3–5 yrs" },
+      { "label": "PR Manager", "time": "5–8 yrs" },
+      { "label": "Communications Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 70,000–140,000"
+  },
+  {
+    "id": 55,
+    "title": "Social Media Manager",
+    "industry": "Digital Marketing",
+    "discipline": "Arts",
+    "desc": "Social media managers plan and execute social media strategies for brands and agencies.",
+    "skills": ["Instagram/Facebook/LinkedIn", "Content Calendar", "Analytics", "Community Management", "Canva"],
+    "progression": [
+      { "label": "Social Media Assistant", "time": "0–1 yr" },
+      { "label": "Social Media Manager", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Manager", "time": "3–5 yrs" },
+      { "label": "Head of Social", "time": "5–8 yrs" },
+      { "label": "Digital Marketing Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–32,000",
+    "salarySenior": "BDT 60,000–120,000"
+  },
+  {
+    "id": 56,
+    "title": "Photographer / Videographer",
+    "industry": "Media",
+    "discipline": "Arts",
+    "desc": "Photographers and videographers work in media houses, wedding photography, and creative agencies.",
+    "skills": ["Photography", "Video Editing", "Lighting", "Adobe Suite", "Storytelling"],
+    "progression": [
+      { "label": "Assistant Photographer", "time": "0–1 yr" },
+      { "label": "Photographer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Photographer", "time": "3–5 yrs" },
+      { "label": "Creative Lead", "time": "5–8 yrs" },
+      { "label": "Director of Photography", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 15,000–28,000",
+    "salarySenior": "BDT 50,000–100,000"
+  },
+  {
+    "id": 57,
+    "title": "UX/UI Designer",
+    "industry": "Tech Design",
+    "discipline": "Arts",
+    "desc": "UX/UI designers create user-friendly interfaces for websites and mobile apps.",
+    "skills": ["Figma", "User Research", "Wireframing", "Prototyping", "Usability Testing"],
+    "progression": [
+      { "label": "Junior Designer", "time": "0–1 yr" },
+      { "label": "UX/UI Designer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Designer", "time": "3–5 yrs" },
+      { "label": "Design Lead", "time": "5–8 yrs" },
+      { "label": "Head of Design", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–45,000",
+    "salarySenior": "BDT 90,000–180,000"
+  },
+  {
+    "id": 58,
+    "title": "Event Manager",
+    "industry": "Events",
+    "discipline": "Arts",
+    "desc": "Event managers plan and execute corporate events, weddings, and conferences.",
+    "skills": ["Event Planning", "Vendor Management", "Budgeting", "Logistics", "Client Communication"],
+    "progression": [
+      { "label": "Event Coordinator", "time": "0–1 yr" },
+      { "label": "Event Manager", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Manager", "time": "3–5 yrs" },
+      { "label": "Event Director", "time": "5–8 yrs" },
+      { "label": "Head of Events", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 18,000–32,000",
+    "salarySenior": "BDT 60,000–120,000"
+  },
+  {
+    "id": 59,
+    "title": "Translator (English-Bangla)",
+    "industry": "Translation",
+    "discipline": "Arts",
+    "desc": "Translators work in publishing, media, and international organisations.",
+    "skills": ["English Fluency", "Bangla Writing", "Translation Tools", "Proofreading", "Cultural Knowledge"],
+    "progression": [
+      { "label": "Translator", "time": "0–2 yrs", "current": true },
+      { "label": "Senior Translator", "time": "2–4 yrs" },
+      { "label": "Translation Editor", "time": "4–6 yrs" },
+      { "label": "Language Lead", "time": "6–8 yrs" },
+      { "label": "Localization Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 60,000–110,000"
+  },
+  {
+    "id": 60,
+    "title": "Copywriter",
+    "industry": "Advertising",
+    "discipline": "Arts",
+    "desc": "Copywriters create advertising copy for brands, agencies, and marketing campaigns.",
+    "skills": ["Creative Writing", "Brand Voice", "Headlines", "Storytelling", "Campaign Strategy"],
+    "progression": [
+      { "label": "Junior Copywriter", "time": "0–1 yr" },
+      { "label": "Copywriter", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Copywriter", "time": "3–5 yrs" },
+      { "label": "Copy Chief", "time": "5–8 yrs" },
+      { "label": "Creative Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 70,000–140,000"
+  },
+  {
+    "id": 61,
+    "title": "School Teacher",
+    "industry": "Education",
+    "discipline": "Education",
+    "desc": "School teachers work in private and public schools across Bangladesh, teaching primary or secondary students.",
+    "skills": ["Lesson Planning", "Classroom Management", "Subject Expertise", "Communication", "Patience"],
+    "progression": [
+      { "label": "Assistant Teacher", "time": "0–2 yrs" },
+      { "label": "Teacher", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Teacher", "time": "4–7 yrs" },
+      { "label": "Department Head", "time": "7–10 yrs" },
+      { "label": "Principal", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 15,000–25,000",
+    "salarySenior": "BDT 50,000–100,000"
+  },
+  {
+    "id": 62,
+    "title": "Education Program Officer",
+    "industry": "NGO",
+    "discipline": "Education",
+    "desc": "Program officers design and manage education initiatives for NGOs like BRAC and Save the Children.",
+    "skills": ["Project Management", "Monitoring & Evaluation", "Report Writing", "Community Engagement", "Data Analysis"],
+    "progression": [
+      { "label": "Program Assistant", "time": "0–1 yr" },
+      { "label": "Program Officer", "time": "1–3 yrs", "current": true },
+      { "label": "Senior Officer", "time": "3–5 yrs" },
+      { "label": "Program Manager", "time": "5–8 yrs" },
+      { "label": "Director", "time": "8+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–40,000",
+    "salarySenior": "BDT 70,000–120,000"
+  },
+  {
+    "id": 63,
+    "title": "Curriculum Developer",
+    "industry": "EdTech",
+    "discipline": "Education",
+    "desc": "Curriculum developers create learning materials, syllabi, and assessments for schools and edtech companies.",
+    "skills": ["Curriculum Design", "Educational Theory", "Content Writing", "Assessment Design", "Research"],
+    "progression": [
+      { "label": "Curriculum Assistant", "time": "0–2 yrs" },
+      { "label": "Curriculum Developer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Developer", "time": "4–7 yrs" },
+      { "label": "Curriculum Manager", "time": "7–10 yrs" },
+      { "label": "Head of Curriculum", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–40,000",
+    "salarySenior": "BDT 80,000–150,000"
+  },
+  {
+    "id": 64,
+    "title": "Educational Counsellor",
+    "industry": "Counselling",
+    "discipline": "Education",
+    "desc": "Educational counsellors advise students on career paths, university admissions, and study abroad options.",
+    "skills": ["Counselling", "Career Guidance", "University Admissions", "Communication", "Problem Solving"],
+    "progression": [
+      { "label": "Counselling Assistant", "time": "0–2 yrs" },
+      { "label": "Educational Counsellor", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Counsellor", "time": "4–7 yrs" },
+      { "label": "Head Counsellor", "time": "7–10 yrs" },
+      { "label": "Director of Student Services", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 60,000–110,000"
+  },
+  {
+    "id": 65,
+    "title": "Instructional Designer",
+    "industry": "EdTech",
+    "discipline": "Education",
+    "desc": "Instructional designers create online courses, e-learning modules, and training materials.",
+    "skills": ["E-learning Tools", "Articulate Storyline", "Instructional Design Models", "Multimedia", "Assessment"],
+    "progression": [
+      { "label": "Junior ID", "time": "0–2 yrs" },
+      { "label": "Instructional Designer", "time": "2–4 yrs", "current": true },
+      { "label": "Senior ID", "time": "4–7 yrs" },
+      { "label": "Learning Experience Manager", "time": "7–10 yrs" },
+      { "label": "Head of Learning Design", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–45,000",
+    "salarySenior": "BDT 80,000–160,000"
+  },
+  {
+    "id": 66,
+    "title": "University Lecturer",
+    "industry": "Higher Education",
+    "discipline": "Education",
+    "desc": "University lecturers teach undergraduate courses and conduct research in their subject area.",
+    "skills": ["Teaching", "Research", "Academic Writing", "Public Speaking", "Subject Mastery"],
+    "progression": [
+      { "label": "Lecturer", "time": "0–3 yrs", "current": true },
+      { "label": "Senior Lecturer", "time": "3–6 yrs" },
+      { "label": "Assistant Professor", "time": "6–9 yrs" },
+      { "label": "Associate Professor", "time": "9–12 yrs" },
+      { "label": "Professor", "time": "12+ yrs" }
+    ],
+    "salaryEntry": "BDT 35,000–55,000",
+    "salarySenior": "BDT 80,000–150,000"
+  },
+  {
+    "id": 67,
+    "title": "Special Education Teacher",
+    "industry": "Special Education",
+    "discipline": "Education",
+    "desc": "Special education teachers work with students who have learning disabilities, physical disabilities, or other special needs.",
+    "skills": ["Individualized Education Plans", "Behaviour Management", "Assistive Technology", "Patience", "Adaptation"],
+    "progression": [
+      { "label": "Special Ed Assistant", "time": "0–2 yrs" },
+      { "label": "Special Ed Teacher", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Teacher", "time": "4–7 yrs" },
+      { "label": "Special Ed Coordinator", "time": "7–10 yrs" },
+      { "label": "Director of Special Education", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 20,000–35,000",
+    "salarySenior": "BDT 60,000–120,000"
+  },
+  {
+    "id": 68,
+    "title": "Education Technology Specialist",
+    "industry": "EdTech",
+    "discipline": "Education",
+    "desc": "EdTech specialists implement technology solutions in schools and educational institutions.",
+    "skills": ["LMS Management", "Teacher Training", "Technical Support", "Educational Technology", "Project Management"],
+    "progression": [
+      { "label": "EdTech Assistant", "time": "0–2 yrs" },
+      { "label": "EdTech Specialist", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Specialist", "time": "4–7 yrs" },
+      { "label": "EdTech Manager", "time": "7–10 yrs" },
+      { "label": "Director of Digital Learning", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 25,000–45,000",
+    "salarySenior": "BDT 80,000–160,000"
+  },
+  {
+    "id": 69,
+    "title": "Training Coordinator",
+    "industry": "Corporate Training",
+    "discipline": "Education",
+    "desc": "Training coordinators organise employee training programs for corporations and NGOs.",
+    "skills": ["Training Logistics", "Needs Assessment", "Vendor Management", "Budgeting", "Communication"],
+    "progression": [
+      { "label": "Training Assistant", "time": "0–2 yrs" },
+      { "label": "Training Coordinator", "time": "2–4 yrs", "current": true },
+      { "label": "Training Manager", "time": "4–7 yrs" },
+      { "label": "Learning & Development Manager", "time": "7–10 yrs" },
+      { "label": "Chief Learning Officer", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 22,000–38,000",
+    "salarySenior": "BDT 70,000–130,000"
+  },
+  {
+    "id": 70,
+    "title": "Early Childhood Educator",
+    "industry": "Early Education",
+    "discipline": "Education",
+    "desc": "Early childhood educators work in preschools and kindergartens, teaching children aged 3-6 years.",
+    "skills": ["Child Development", "Play-based Learning", "Classroom Management", "Parent Communication", "Creativity"],
+    "progression": [
+      { "label": "Assistant Teacher", "time": "0–2 yrs" },
+      { "label": "Lead Teacher", "time": "2–4 yrs", "current": true },
+      { "label": "Senior Teacher", "time": "4–7 yrs" },
+      { "label": "Preschool Director", "time": "7–10 yrs" },
+      { "label": "Early Childhood Consultant", "time": "10+ yrs" }
+    ],
+    "salaryEntry": "BDT 15,000–25,000",
+    "salarySenior": "BDT 50,000–90,000"
+  }
+]
