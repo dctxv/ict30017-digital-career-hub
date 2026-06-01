@@ -12,14 +12,14 @@ let _client = null;
 
 export function getGroqClient() {
   if (!_client) {
-    if (!process.env.DIGITALOCEAN_API_KEY) {
+    if (!process.env.OPENROUTER_API_KEY) {
       throw new Error(
-        'DIGITALOCEAN_API_KEY is not set. Add it to your .env file.'
+        'OPENROUTER_API_KEY is not set. Add it to your .env file.'
       );
     }
     _client = new OpenAI({
-      apiKey: process.env.DIGITALOCEAN_API_KEY,
-      baseURL: 'https://inference.do-ai.run/v1',
+      apiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: 'https://openrouter.ai/api/v1',
     });
   }
   return _client;
