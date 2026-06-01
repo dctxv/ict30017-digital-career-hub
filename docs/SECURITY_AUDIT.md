@@ -725,3 +725,300 @@ On each failed login: the counter increments and if it reaches 10, `lockout_unti
   depth
   methodologies (e.g. rate-limiting, secure headers, strict file-parsing validations, and stateless JWT verifications),
   which make this platform highly resilient to standard web exploitation strategies.
+---
+
+## UPDATE — Round 2 Security Improvements (2026-05-30)
+
+**Auditor:** Claude (AI Security Review — Implementation Pass)
+**Status: ✅ All Round 2 items implemented**
+
+This second pass implemented all remaining improvements on top of the already-fixed Round 1 findings.
+
+---
+
+### NEW-1 — Password Complexity Policy Not Enforced
+
+**Severity: High | Status: ✅ Fixed**
+
+**What was missing:**
+Round 1 added length bounds (12–128 chars) but no complexity requirement. A password like `aaaaaaaaaaaa` (12 `a`s) passed validation.
+
+**Fix:**
+Added a complexity regex to both `auth.js` register and reset-password endpoints:
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one digit
+- At least one special character (`!@#$%^&*` etc.)
+The same requirement is surfaced in the frontend Register page with a live strength indicator (Weak / Fair / Strong).
+
+---
+
+### NEW-2 — No bcrypt DoS Guard on Login
+
+**Severity: High | Status: ✅ Fixed**
+
+**What was missing:**
+bcrypt's computation cost scales with input length. A very long password (e.g. 1 MB) sent to the login endpoint would block the event loop for seconds, enabling DoS with a handful of requests.
+
+**Fix:**
+The login route now rejects passwords longer than `PASSWORD_MAX_LENGTH` (128 chars) *before* calling `bcrypt.compare`. The check uses a string length comparison — no hashing occurs on oversized inputs.
+
+---
+
+### NEW-3 — Login Was Not Constant-Time When User Not Found
+
+**Severity: Medium | Status: ✅ Fixed**
+
+**What was missing:**
+When an email did not exist, the login route returned immediately after the DB query — skipping the bcrypt comparison entirely. An attacker measuring response times could distinguish "email not registered" from "wrong password" even when both return the same error message.
+
+**Fix:**
+Login now always calls `bcrypt.compare` — against the real hash when the user exists, or against a dummy bcrypt hash (`DUMMY_HASH`) when the user is not found. Response time is now consistent regardless of whether the email is registered.
+
+---
+
+### NEW-4 — Role Could Be Sent in Registration Request Body
+
+**Severity: Medium | Status: ✅ Fixed (+ frontend hardened)**
+
+**What was remaining:**
+The Register.jsx frontend still included `role: 'student'` and `plan: tier` fields in the request body. While the server correctly ignores the `role` field, sending it from the client is misleading and teaches bad patterns.
+
+**Fix:**
+Register.jsx now sends only `{ full_name, email, password }`. The `role` and `plan` fields are removed from the fetch payload entirely.
+
+---
+
+### NEW-5 — Shared authMiddleware Was Missing (Hand-Rolled JWT in chatbot.js)
+
+**Severity: High | Status: ✅ Fixed**
+
+**What was missing:**
+The chatbot route contained a 60-line hand-rolled JWT verifier. Hand-rolled crypto is error-prone, hard to audit, and diverges from the `jsonwebtoken` library used in auth.js.
+
+**Fix:**
+Created `server/src/middleware/auth.js` with three exports:
+- `requireAuth` — blocks unauthenticated requests (used by resume routes)
+- `requireRole(role)` — requires a specific role (used for admin routes)
+- `optionalAuth` — enriches `req.user` without blocking guests (used by chatbot)
+
+All three use `jwt.verify()` from the `jsonwebtoken` library with `algorithms: ['HS256']` explicitly specified (prevents algorithm-confusion attacks where `alg: 'none'` is accepted). The chatbot and resume routes now both use this shared middleware.
+
+---
+
+### NEW-6 — Resume Review Routes Had No Authentication
+
+**Severity: High | Status: ✅ Fixed**
+
+**What was missing:**
+Both `/api/resume/analyze` and `/api/resume/analyze-stream` had a comment saying auth would be added "once Pubuditha's JWT auth module is ready" — but auth was never wired up, leaving paid AI calls open to unauthenticated requests.
+
+**Fix:**
+Both resume routes now apply `requireAuth` before `upload.single('resume')`. Unauthenticated requests receive `401 Unauthorized` before any file processing occurs.
+
+---
+
+### NEW-7 — /resume-review Frontend Route Had No Auth Guard
+
+**Severity: Medium | Status: ✅ Fixed**
+
+**What was missing:**
+App.jsx did not wrap `/resume-review` in `RequireAuth`, so the page was accessible to any visitor. The backend was blocking them at the API level, but a user could still navigate to the page and see the upload UI.
+
+**Fix:**
+`/resume-review` is now wrapped in `<RequireAuth>` in App.jsx, redirecting unauthenticated visitors to `/login`.
+
+---
+
+### NEW-8 — ForgotPassword / ResetPassword Pages Were Missing
+
+**Severity: Medium | Status: ✅ Fixed**
+
+**What was missing:**
+The backend routes existed (`/api/auth/forgot-password`, `/api/auth/reset-password`) but there were no frontend pages to use them. The "Forgot password?" link on the Login page went to `/forgot-password` which had no route defined.
+
+**Fix:**
+Created `ForgotPassword.jsx` and `ResetPassword.jsx` pages with full form handling, loading states, and error display. Both routes added to App.jsx. `ResetPassword` reads the `token` and `email` query params from the URL, so the reset link format matches the backend implementation.
+
+---
+
+### NEW-9 — CORS Allowed No-Origin Requests in Production
+
+**Severity: Medium | Status: ✅ Fixed**
+
+**What was missing:**
+The previous CORS config allowed requests with no `Origin` header (server-to-server calls) in all environments. In production this should be restricted.
+
+**Fix:**
+Updated CORS handler: requests with no `Origin` are allowed in development but rejected with `403 Forbidden` in production (`NODE_ENV=production`). This prevents server-to-server abuse from unknown callers in the live environment.
+
+---
+
+### NEW-10 — No Request Body Size Limit
+
+**Severity: Medium | Status: ✅ Fixed**
+
+**What was missing:**
+Express's default JSON body parser accepts up to 100 KB with no configuration. A malicious client could send massive JSON payloads to non-file-upload endpoints (e.g. the chat route), wasting server memory and processing time.
+
+**Fix:**
+Body parser configured with `limit: '50kb'` for both JSON and URL-encoded bodies. 50 KB is more than enough for any JSON API payload in this app. File uploads use multer's own limits (3 MB).
+
+---
+
+### NEW-11 — Chatbot Input Length Not Validated
+
+**Severity: Medium | Status: ✅ Fixed**
+
+**What was missing:**
+The chat endpoint validated that `message` was a non-empty string but set no upper length limit. A client could send a 1 MB message string, flooding AI context and incurring cost.
+
+**Fix:**
+Added `message.length > 4000` check in `validateChatBody` — returns `400` if exceeded. Also added `conversationHistory.length > 100` check to prevent bloated history payloads.
+
+---
+
+### NEW-12 — Database Had No SSL in Production
+
+**Severity: Medium | Status: ✅ Fixed**
+
+**What was missing:**
+`db.js` connected to PostgreSQL with no SSL configuration, meaning database credentials and query results would travel unencrypted on the network in production.
+
+**Fix:**
+`db.js` now sets `ssl: { rejectUnauthorized: true }` when `NODE_ENV=production`. In development SSL is off (typical for local Postgres). `DATABASE_URL` connection string is also supported (preferred for cloud deployments like Heroku, Railway, Render).
+
+---
+
+### NEW-13 — No Database Schema Constraints on Role / Counts
+
+**Severity: Low | Status: ✅ Fixed**
+
+**What was missing:**
+The `users` table had no CHECK constraints. A bug or direct DB manipulation could insert invalid role values or negative counts.
+
+**Fix:**
+New migration `harden_users_table.sql` adds:
+- `CHECK (role IN ('student', 'premium', 'admin'))` — prevents unknown roles
+- `CHECK (failed_login_attempts >= 0)` — prevents negative attempt counts
+- `CHECK (chat_message_count >= 0)` — prevents negative chat counts
+- Unique index on `LOWER(email)` — enforces case-insensitive email uniqueness at the DB level (belt-and-suspenders over application-level normalisation)
+
+---
+
+### NEW-14 — HTML Entity-Encoded Injection Not Caught
+
+**Severity: Medium | Status: ✅ Fixed**
+
+**What was missing:**
+The `sanitiseResumeText` function stripped HTML tags but did not decode HTML entities first. An attacker could encode an injection like `ignore previous instructions` as `&#105;gnore previous instructions` — the tag-stripping regex sees no HTML, but the entity-encoded payload survives to the AI.
+
+**Fix:**
+Added `decodeHtmlEntities()` step in `sanitise.js` that runs *after* tag stripping. Common HTML entities (`&lt;`, `&gt;`, `&amp;`, `&quot;`, `&#x27;`, `&#39;`, `&nbsp;`) are decoded to their character equivalents before the injection pattern pass. Also added additional injection patterns covering `<|im_start|>`, `[INST]`, `###system`, and C-style block comments.
+
+---
+
+### NEW-15 — No Global Rate Limit (Route-Level Only)
+
+**Severity: Low | Status: ✅ Fixed**
+
+**What was missing:**
+Rate limits existed on individual routes (auth: 10/15min, resume: 5/hr, chat: 20/15min) but there was no global catch-all to prevent flooding other endpoints.
+
+**Fix:**
+Added a global `rateLimit` in `app.js`: 300 requests per IP per 15 minutes across all routes. This is generous enough to not affect real users but limits pure flooding. The health endpoint is excluded from this limit.
+
+---
+
+### Summary of Files Changed in Round 2
+
+| File | Change |
+|---|---|
+| `server/src/app.js` | Stricter CSP, body size limit, global rate limit, 404 handler, no-origin CORS block in prod |
+| `server/src/routes/auth.js` | Password complexity, constant-time login, bcrypt DoS guard, sensitiveRateLimit on reset routes |
+| `server/src/routes/resume.js` | `requireAuth` wired on both routes |
+| `server/src/routes/chatbot.js` | Replaced hand-rolled JWT with `optionalAuth`, input length limits |
+| `server/src/middleware/auth.js` | **New** — shared `requireAuth`, `requireRole`, `optionalAuth` |
+| `server/src/middleware/upload.js` | Added `files: 1` and `fields: 5` limits |
+| `server/src/utils/sanitise.js` | HTML entity decoding, 6 new injection patterns, PII redaction |
+| `server/src/db.js` | SSL in production, pool sizing, error handler |
+| `server/migrations/add_last_login_at.sql` | **New** — `last_login_at` column, email + lockout indexes |
+| `server/migrations/harden_users_table.sql` | **New** — role CHECK, count CHECKs, case-insensitive email index |
+| `client/src/App.jsx` | `/resume-review` auth guard, forgot/reset-password routes |
+| `client/src/pages/ForgotPassword.jsx` | **New** — complete forgot-password form |
+| `client/src/pages/ResetPassword.jsx` | **New** — complete reset-password form |
+| `client/src/pages/Register.jsx` | Password strength meter, removed role from request body |
+| `client/src/components/RequireAuth.jsx` | Corrupt-data handling |
+
+
+---
+
+## UPDATE — Round 3: Email Verification (2026-05-30)
+
+**Status: ✅ Fully implemented**
+
+---
+
+### EV-1 — No Email Verification on Registration
+
+**Severity: High | Status: ✅ Fixed**
+
+**What was missing:**
+Accounts were active immediately on registration with no proof that the email address belongs to the registrant. This allowed:
+- Anyone to register with someone else's email address (account squatting)
+- No way to contact users in case of security issues
+- Password reset emails could be sent to uncontrolled addresses
+
+**What was implemented:**
+
+*Database migration (`add_email_verification.sql`):*
+Four columns added to `users`:
+- `is_email_verified BOOLEAN NOT NULL DEFAULT false`
+- `email_verify_token_hash TEXT` — bcrypt hash of the token (never stored plain)
+- `email_verify_expiry TIMESTAMPTZ` — token expires after 24 hours
+- `email_verified_at TIMESTAMPTZ` — audit trail of when verification occurred
+- Partial index on unverified accounts for efficient cleanup queries
+
+*Email service (`server/src/utils/emailService.js`):*
+Provider-agnostic Nodemailer wrapper supporting any SMTP server:
+- Gmail, Outlook, SendGrid SMTP, Resend SMTP, Amazon SES, Mailgun, Mailtrap
+- Configured entirely via environment variables (no code changes to switch providers)
+- HTML email templates with a prominent CTA button and plain-text fallback
+- Development mode: prints token/link to console when SMTP is not configured
+- Production mode: throws a startup error if SMTP is not configured (fail-fast)
+- Separate `sendVerificationEmail()` and `sendPasswordResetEmail()` functions — password reset emails are now also sent via this service (the `console.log` placeholder is replaced)
+
+*Auth routes (`server/src/routes/auth.js`) — four changes:*
+
+1. **`POST /register`** — after inserting the user, generates a 32-byte random token, bcrypt-hashes it, stores hash + 24h expiry, fires `sendVerificationEmail()` non-blocking (registration still succeeds if the email send fails — the user can resend later). Success message tells the user to check their inbox.
+
+2. **`GET /verify-email?token=...&email=...`** — the URL from the email. Looks up the user, checks the token hash with `bcrypt.compare`, checks expiry, marks `is_email_verified = true`, sets `email_verified_at = NOW()`, and clears both token columns (single-use). Returns `{ expired: true }` flag when the link has expired so the frontend can show a "Resend" button.
+
+3. **`POST /resend-verification`** — generates a fresh token for unverified accounts. Rate-limited to 5/hr (same as password reset) to prevent using our domain for spam. Always returns the same generic message to prevent email enumeration.
+
+4. **`POST /login`** — now checks `is_email_verified` after password verification. Unverified accounts receive `403` with `{ unverified: true, email }` — the `unverified` flag lets the frontend surface a "Resend verification email" button inline on the login page. The check deliberately happens *after* password verification: we don't reveal account existence to someone who doesn't know the password.
+
+**Additional security decisions:**
+- `POST /forgot-password` now only sends reset emails to *verified* accounts. An attacker who registers with someone else's email cannot trigger password reset emails to that person.
+- Verification tokens are 32-byte hex = 256 bits of entropy — cannot be brute-forced
+- Tokens are bcrypt-hashed in the DB — a DB breach doesn't yield usable tokens
+- `email_verified_at` provides an audit trail for compliance and incident response
+
+*Frontend:*
+- **`VerifyEmail.jsx`** — handles the link click from the email; shows loading → success/expired/error state; auto-redirects to `/login` on success; includes an inline "Resend" form for expired/invalid links
+- **`Login.jsx`** — detects `unverified: true` in the 403 response and shows an orange "Resend verification email" button inline, without requiring the user to navigate elsewhere
+- **`App.jsx`** — `/verify-email` route added
+
+### Files changed in Round 3
+
+| File | Change |
+|---|---|
+| `server/migrations/add_email_verification.sql` | **New** — 4 columns + partial index |
+| `server/src/utils/emailService.js` | **New** — Nodemailer wrapper, HTML templates |
+| `server/src/routes/auth.js` | Verification on register, verify-email endpoint, resend endpoint, login check, forgot-password guard |
+| `server/package.json` | Added `nodemailer ^6.10.1` |
+| `server/.env` | SMTP config section with provider examples |
+| `client/src/pages/VerifyEmail.jsx` | **New** — verification landing page |
+| `client/src/pages/Login.jsx` | Unverified account handling + resend button |
+| `client/src/App.jsx` | `/verify-email` route |
+
