@@ -4,37 +4,65 @@ import Navbar from '../components/Navbar'
 import './Auth.css'
 
 export default function Login() {
-  const [show, setShow] = useState(false)
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [show,        setShow]        = useState(false)
+  const [form,        setForm]        = useState({ email: '', password: '' })
+  const [message,     setMessage]     = useState('')
+  const [loading,     setLoading]     = useState(false)
+  const [unverified,  setUnverified]  = useState(false)  // show resend UI
+  const [resendSent,  setResendSent]  = useState(false)
+  const [resendBusy,  setResendBusy]  = useState(false)
   const navigate = useNavigate()
 
   const handleLogin = async () => {
     setMessage('')
+    setUnverified(false)
+    setResendSent(false)
+
     if (!form.email || !form.password) {
       setMessage('Email and password are required.')
       return
     }
     try {
       setLoading(true)
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res  = await fetch('/api/auth/login', {
+        method:      'POST',
+        headers:     { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email: form.email, password: form.password }),
+        body:        JSON.stringify({ email: form.email, password: form.password }),
       })
-      const data = await response.json()
-      if (!response.ok) {
+      const data = await res.json()
+
+      if (!res.ok) {
         setMessage(data.error || 'Login failed.')
+        // Backend sets unverified: true when the account exists but isn't verified
+        if (data.unverified) setUnverified(true)
         return
       }
+
       localStorage.setItem('user', JSON.stringify(data.user))
       navigate('/')
     } catch {
       setMessage('Could not connect to server.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    setResendBusy(true)
+    try {
+      const res  = await fetch('/api/auth/resend-verification', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email: form.email }),
+      })
+      const data = await res.json()
+      setMessage(data.message || 'Verification email sent.')
+      setResendSent(true)
+    } catch {
+      setMessage('Could not send email. Please try again.')
+    } finally {
+      setResendBusy(false)
     }
   }
 
@@ -50,7 +78,8 @@ export default function Login() {
           <div className="form-group">
             <label className="form-label">Email address</label>
             <input className="form-input" type="email" placeholder="you@example.com"
-              value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
               onKeyDown={e => e.key === 'Enter' && handleLogin()} />
           </div>
 
@@ -58,38 +87,49 @@ export default function Login() {
             <label className="form-label">Password</label>
             <div className="input-row">
               <input className="form-input" type={show ? 'text' : 'password'} placeholder="••••••••"
-                value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                 onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-              <button className="show-btn" onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>
+              <button className="show-btn" onClick={() => setShow(s => !s)}>
+                {show ? 'Hide' : 'Show'}
+              </button>
             </div>
             <div className="forgot-row">
               <Link to="/forgot-password" className="link-green">Forgot password?</Link>
             </div>
           </div>
 
-          {message && <p className="auth-sub" style={{ color: '#c0392b' }}>{message}</p>}
+          {message && (
+            <p className="auth-sub" style={{ color: unverified ? '#e67e22' : '#c0392b' }}>
+              {message}
+            </p>
+          )}
+
+          {/* Resend verification CTA — only shown for unverified accounts */}
+          {unverified && !resendSent && (
+            <button
+              className="btn-auth"
+              style={{ background: '#e67e22', marginBottom: '0.5rem' }}
+              onClick={handleResend}
+              disabled={resendBusy}
+            >
+              {resendBusy ? 'Sending…' : 'Resend verification email'}
+            </button>
+          )}
 
           <button className="btn-auth" onClick={handleLogin} disabled={loading}>
             {loading ? 'Logging in…' : 'Log in'}
           </button>
 
-          <div className="auth-divider"><span>or</span></div>
-
-          <button className="btn-google">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M15.68 8.18c0-.57-.05-1.11-.14-1.64H8v3.1h4.3a3.68 3.68 0 01-1.6 2.42v2h2.58c1.51-1.39 2.4-3.44 2.4-5.88z" fill="#4285F4"/>
-              <path d="M8 16c2.16 0 3.97-.72 5.3-1.94l-2.58-2c-.72.48-1.63.76-2.72.76-2.09 0-3.86-1.41-4.49-3.3H.85v2.07A8 8 0 008 16z" fill="#34A853"/>
-              <path d="M3.51 9.52A4.8 4.8 0 013.26 8c0-.53.09-1.04.25-1.52V4.41H.85A8 8 0 000 8c0 1.29.31 2.51.85 3.59l2.66-2.07z" fill="#FBBC05"/>
-              <path d="M8 3.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 00.85 4.41l2.66 2.07C4.14 4.59 5.91 3.18 8 3.18z" fill="#EA4335"/>
-            </svg>
-            Continue with Google
-          </button>
-
-          <p className="auth-switch">Don't have an account? <Link to="/register" className="link-green">Sign up</Link></p>
+          <p className="auth-switch">
+            Don't have an account?{' '}
+            <Link to="/register" className="link-green">Sign up</Link>
+          </p>
 
           <div className="auth-secure">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M6 1L2 3v3c0 2.21 1.71 4.28 4 4.77C8.29 10.28 10 8.21 10 6V3L6 1z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
+              <path d="M6 1L2 3v3c0 2.21 1.71 4.28 4 4.77C8.29 10.28 10 8.21 10 6V3L6 1z"
+                    stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
             </svg>
             Your data is protected with end-to-end encryption
           </div>
