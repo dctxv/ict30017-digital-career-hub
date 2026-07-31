@@ -1,0 +1,48 @@
+# Repo-wide ignores.
+#
+# Per-workspace .gitignore files exist in client/, server/ and ai-service/, but
+# they only covered their own directory and the root was uncovered entirely.
+# This file is the backstop.
+#
+# NOTE: a .gitignore has no effect on files git is ALREADY tracking. The repo
+# currently tracks ~13,400 node_modules files across client/, server/,
+# ai-service/ and the root. Untracking those is a separate cleanup — see the
+# salvage notes. This file stops any NEW ones being added.
+
+# Dependencies
+node_modules/
+
+# Environment files — never commit real credentials, use .env.example instead
+.env
+.env.*
+!.env.example
+
+# Build output and caches
+dist/
+dist-ssr/
+build/
+.vite/
+*.local
+
+# Uploads (runtime user content)
+uploads/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
