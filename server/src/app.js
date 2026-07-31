@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -19,6 +20,9 @@ const app = express();
 app.use(helmet());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
+// routes/auth.js issues the JWT as an httpOnly cookie; without this the auth
+// middleware cannot read it and every guarded endpoint would reject.
+app.use(cookieParser());
 
 // Ensure uploads/ exists at startup
 const uploadsDir = path.join(__dirname, '../uploads');
