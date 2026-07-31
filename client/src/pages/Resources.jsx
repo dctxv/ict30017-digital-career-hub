@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
+import { useLanguage } from '../context/LanguageContext'
 import './Resources.css'
 
 const categories = ['All', 'Resume Writing', 'Interview Prep', 'Job Search', 'Soft Skills', 'Skill Development']
@@ -18,6 +19,7 @@ const typeDots = {
 }
 
 export default function Resources() {
+  const { lang } = useLanguage()
   const [cat, setCat] = useState('All')
   const [disc, setDisc] = useState('All disciplines')
   const [query, setQuery] = useState('')
@@ -42,11 +44,13 @@ export default function Resources() {
     fetchDisciplines()
   }, [])
 
-  // Fetch resources from API
+  // Fetch resources from API. Refetches when the navbar language changes —
+  // the API resolves title/desc for the requested language and falls back to
+  // English for anything not yet translated.
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const response = await fetch('/api/resources')
+        const response = await fetch(`/api/resources?lang=${lang}`)
         const data = await response.json()
         setResources(data)
       } catch (error) {
@@ -55,9 +59,9 @@ export default function Resources() {
         setLoading(false)
       }
     }
-    
+
     fetchResources()
-  }, [])
+  }, [lang])
 
   // Check if coming from Career Paths page and auto-apply discipline filter
   useEffect(() => {
