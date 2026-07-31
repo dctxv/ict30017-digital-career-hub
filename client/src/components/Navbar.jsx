@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useLanguage } from '../context/LanguageContext'
 import './Navbar.css'
 
 export default function Navbar({ user = null }) {
-  const [lang, setLang] = useState('EN')
+  const { lang, setLang } = useLanguage()
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
 
@@ -36,12 +37,14 @@ export default function Navbar({ user = null }) {
         <div className="navbar-right">
           <div className="lang-toggle">
             <button
-              className={`lang-btn ${lang === 'EN' ? 'active' : ''}`}
-              onClick={() => setLang('EN')}
+              className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
+              aria-pressed={lang === 'en'}
+              onClick={() => setLang('en')}
             >EN</button>
             <button
-              className={`lang-btn ${lang === 'BN' ? 'active' : ''}`}
-              onClick={() => setLang('BN')}
+              className={`lang-btn ${lang === 'bn' ? 'active' : ''}`}
+              aria-pressed={lang === 'bn'}
+              onClick={() => setLang('bn')}
             >BN</button>
           </div>
 

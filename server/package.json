@@ -11,6 +11,7 @@
   "dependencies": {
     "ai-service": "file:../ai-service",
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.19.2",
