@@ -7,10 +7,21 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
+import { assertModelConfig } from '../../ai-service/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
+
+// Fail on boot rather than on the first user request if the AI model config is
+// missing or names a banned model. getModel() re-validates on every call, so
+// this is the early warning, not the only guard.
+try {
+  assertModelConfig();
+} catch (err) {
+  console.error(`[startup] ${err.message}`);
+  process.exit(1);
+}
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())

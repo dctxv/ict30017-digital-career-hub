@@ -578,13 +578,13 @@ function buildUserMessage(resumeText, { jobAd, jobRole } = {}) {
 
 /* ── Streaming export ── */
 
-export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd, marketMode = 'bangladesh' } = {}) {
+export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd, marketMode = 'bangladesh', tier = 'free' } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
 
   const client = getGroqClient();
-  const model = getModel();
+  const model = getModel(tier);
 
   let rawContent = '';
   try {
@@ -643,13 +643,13 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
 
 /* ── One-shot export ── */
 
-export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = 'bangladesh' } = {}) {
+export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = 'bangladesh', tier = 'free' } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
 
   const client = getGroqClient();
-  const model = getModel();
+  const model = getModel(tier);
 
   let rawContent;
   try {

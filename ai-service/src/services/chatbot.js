@@ -117,13 +117,13 @@ export function buildChatMessages(conversationHistory, newUserMessage) {
   ];
 }
 
-export async function* streamChatbotResponse(conversationHistory, newUserMessage, { userId } = {}) {
+export async function* streamChatbotResponse(conversationHistory, newUserMessage, { userId, tier = 'free' } = {}) {
   if (!newUserMessage || !String(newUserMessage).trim()) {
     throw new Error('Chat message cannot be empty.');
   }
 
   const client = getGroqClient();
-  const model = getModel();
+  const model = getModel(tier);
   const messages = buildChatMessages(conversationHistory, newUserMessage);
 
   const historyTokens = estimateTokens(messages.slice(1).map((message) => message.content).join('\n'));
