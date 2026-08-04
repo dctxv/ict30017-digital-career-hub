@@ -4,9 +4,24 @@ import rateLimit from 'express-rate-limit';
 import upload from '../middleware/upload.js';
 import { extractText } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
+import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
 import { analyzeResume, analyzeResumeStream } from '../../../ai-service/index.js';
 
 const router = express.Router();
+
+/**
+ * Logs which redaction rules fired, never what they matched.
+ *
+ * Medium-confidence rules are called out so a run of them is visible rather
+ * than silent — see the precision/recall note in piiRedactor.js.
+ */
+function logPiiFindings(label, findings) {
+  if (findings.length === 0) return;
+  const summary = findings
+    .map((f) => `${f.rule} x${f.count}${f.confidence === 'medium' ? ' (low confidence)' : ''}`)
+    .join(', ');
+  console.warn(`[resume] PII redacted from ${label}: ${summary}`);
+}
 
 const resumeRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -59,11 +74,19 @@ router.post('/analyze', resumeRateLimit, upload.single('resume'), async (req, re
       return res.status(429).json({ error: feedback.error });
     }
 
-    // Step 4 — Return structured feedback
+    // Step 4 — Strip any candidate PII the model echoed back, before the
+    // response leaves the server. Two models in the May 2026 feasibility study
+    // echoed contact details despite the prompt forbidding it, so this runs
+    // deterministically regardless of which model is configured. See
+    // utils/piiRedactor.js.
+    const { value: safeFeedback, findings } = redactPiiDeepWithFindings(feedback);
+    logPiiFindings('analysis response', findings);
+
+    // Step 5 — Return structured feedback
     return res.status(200).json({
       success: true,
       filename: req.file.originalname,
-      feedback,
+      feedback: safeFeedback,
     });
 
   } catch (err) {
@@ -124,8 +147,17 @@ router.post('/analyze-stream', resumeRateLimit, upload.single('resume'), async (
     const jobRole = typeof req.body?.jobRole === 'string' ? req.body.jobRole.slice(0, 200) : undefined;
     const jobAd = typeof req.body?.jobAd === 'string' ? req.body.jobAd.slice(0, 4000) : undefined;
     const marketMode = req.body?.marketMode === 'international' ? 'international' : 'bangladesh';
+    // Tokens arrive a few characters at a time, so a phone number or email can
+    // straddle a chunk boundary. The stream redactor buffers a trailing window
+    // and only releases text once it is far enough from the write head to be
+    // final — redacting each token in isolation would emit both halves intact.
+    const streamRedactor = createStreamRedactor();
+
     const feedback = await analyzeResumeStream(cleanText, {
-      onToken: (t) => writeFrame({ t }),
+      onToken: (t) => {
+        const safe = streamRedactor.push(t);
+        if (safe) writeFrame({ t: safe });
+      },
       jobRole,
       jobAd,
       marketMode,
@@ -137,7 +169,16 @@ router.post('/analyze-stream', resumeRateLimit, upload.single('resume'), async (
       return;
     }
 
-    writeFrame({ done: true, filename: req.file.originalname, feedback });
+    // Release the withheld tail now no more tokens can arrive.
+    const tail = streamRedactor.flush();
+    if (tail) writeFrame({ t: tail });
+
+    // The authoritative payload is the parsed object, redacted per string
+    // value rather than over serialised JSON so structure cannot be corrupted.
+    const { value: safeFeedback, findings } = redactPiiDeepWithFindings(feedback);
+    logPiiFindings('stream response', findings);
+
+    writeFrame({ done: true, filename: req.file.originalname, feedback: safeFeedback });
     res.end();
 
   } catch (err) {
