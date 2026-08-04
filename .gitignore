@@ -4,10 +4,11 @@
 # they only covered their own directory and the root was uncovered entirely.
 # This file is the backstop.
 #
-# NOTE: a .gitignore has no effect on files git is ALREADY tracking. The repo
-# currently tracks ~13,400 node_modules files across client/, server/,
-# ai-service/ and the root. Untracking those is a separate cleanup — see the
-# salvage notes. This file stops any NEW ones being added.
+# NOTE: a .gitignore has no effect on files git is ALREADY tracking. The 13,435
+# previously-tracked artefacts (node_modules across the root, client/, server/
+# and ai-service/, plus client/dist/index.html) were removed from the index with
+# `git rm -r --cached`. Working-tree copies were kept; all four package-lock.json
+# files remain tracked, so a fresh clone rebuilds with `npm ci`.
 
 # Dependencies
 node_modules/
