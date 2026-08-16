@@ -6,7 +6,8 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "test": "node --test \"src/**/*.test.js\""
   },
   "dependencies": {
     "ai-service": "file:../ai-service",
