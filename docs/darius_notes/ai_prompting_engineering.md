@@ -1,12 +1,23 @@
 # Resume Reviewer System Prompt Iteration Log
 
 
-| Field   | Value                            |
-| ------- | -------------------------------- |
-| Project | P83 Digital Career Hub           |
-| Author  | Darius Clay Tan Yi (AI Lead)     |
-| Feature | AI Resume Reviewer (GPT-4o-mini) |
-| Sprint  | 1                                |
+| Field   | Value                                            |
+| ------- | ------------------------------------------------ |
+| Project | P83 Digital Career Hub                           |
+| Author  | Darius Clay Tan Yi (AI Lead)                     |
+| Feature | AI Resume Reviewer                               |
+| Sprints | 1 to 3                                           |
+| Model   | Resolved per tier from `server/.env` — see below |
+
+Iterations 0 to 4 were developed against GPT-4o-mini. That family is now banned
+as a production model by client decision (May 2026 feasibility report) and is
+rejected at startup and on every model resolution, so the scores recorded
+against those iterations are not reproducible on the current configuration.
+From Iteration 5 onward the model is resolved per tier via `AI_MODEL_FREE` and
+`AI_MODEL_PREMIUM` in `ai-service/src/utils/aiClient.js`.
+
+Prompt snapshots for individual iterations are archived in
+`prompt_iterations/`.
 
 
 ## Iteration 0 - Baseline Prompt
@@ -153,9 +164,12 @@ Sample Resume 2: `Nusrat Jahan` (`Marketing/MBA`)
 - "Good command" was only flagged for grammar, not as a weak descriptor.
 - Experience durations such as "3 months" were not flagged for missing date ranges.
 
-## Iteration 4 - Scoring Calibration and Per-Entry Checks (Current)
+## Iteration 4 - Scoring Calibration and Per-Entry Checks
 
 This version targeted recurring test failures.
+
+Archived prompt: `prompt_iterations/iteration_04_resumeReviewer.js`
+(commit `1f110fd`, 2026-04-14).
 
 ### Key Additions
 
@@ -196,6 +210,114 @@ Sample Resume 2: re-run
 - Temperature is set to `0.3`, which is an appropriate balance between consistency and natural variation.
 - This is not a prompt-fix issue. It is inherent to LLM non-determinism.
 
+## Iteration 5 - Resume Review V2
+
+Commit `f7968c4` (2026-05-04), with a follow-up schema correction in `0e88ed5`.
+
+Iterations 0 to 4 shared one output contract: five keys, scored 1 to 10, with
+every section shaped as `strengths` plus `improvements`. That contract could
+not carry ATS or job-advertisement feedback, both of which the client had asked
+for, so the prompt and the schema were rewritten together.
+
+### Key Changes
+
+- Scoring scale moved from 1 to 10 to 0 to 100. The 1-to-10 band definitions
+  were dropped; the weighting stayed at content 45%, language 35%,
+  formatting 20%.
+- Sections became individually typed rather than a shared strengths and
+  improvements pair:
+  - `formatting`: `issues[{ section, issue, suggestion }]`
+  - `content_quality`: `strengths[]` and `weaknesses[]`
+  - `language_grammar`: `issues[{ original, corrected, type }]`
+- Two new sections were added:
+  - `ats_analysis` — inferred role and industry, keyword hits, keyword gaps,
+    heading risks, and improvement tips.
+  - `job_match` — only populated when a job advertisement is supplied,
+    otherwise null. Classifies each requirement as matched, partial, or
+    missing, and assigns a priority to each missing keyword.
+- Two keys were renamed: `formatting_feedback` to `formatting`, and
+  `language_and_grammar` to `language_grammar`. The old names are still
+  accepted as aliases in `normalizeResponse`, because the model occasionally
+  reverts to them.
+- Scores are now recalculated server-side. The prompt still asks for a score
+  per section, but `recalculateScores` overwrites `overall_score`, `ats_score`,
+  and `match_score` from the section values. The model's own arithmetic is
+  advisory only, which removed a recurring source of run-to-run variance.
+- `ats_score` is derived as 70% keyword hit ratio plus 30% heading score, with
+  a 10-point penalty per heading risk capped at 30.
+- `match_score` counts a partial keyword as half a match.
+
+### Problem Identified
+
+- The prompt now assumed Western ATS conventions throughout, while the
+  Bangladesh-specific rules from Iterations 2 to 4 were still present. A resume
+  following standard Bangladeshi conventions was told both to keep and to
+  remove the same sections.
+
+Full write-up of the integration work: `resume_review_v2_reflection.md`.
+
+## Iteration 6 - Market Mode Split (Current)
+
+Commit `41d30b0` (2026-05-09), hardened over Sprint 3.
+
+This resolved the contradiction left by Iteration 5 by splitting the
+market-specific rules into two mutually exclusive blocks, selected by the user
+before analysis rather than inferred by the model.
+
+### Key Changes
+
+- The single `SYSTEM_PROMPT` constant became `buildSystemPrompt(marketMode)`,
+  which injects one of two blocks ahead of the shared section definitions.
+- `BANGLADESH_MODE_BLOCK` — protects local conventions. Personal details,
+  Declaration sections, photographs, the Career Objective heading, Academic
+  Qualification headings, and Technical Skills headings must never be flagged
+  in any section of the response. Formatting is capped at 75 where three or
+  more such conventions appear, framed as an educational note rather than a
+  penalty.
+- `INTERNATIONAL_MODE_BLOCK` — inverts that stance. The same eight elements
+  become mandatory formatting issues, each with its own required issue and
+  suggestion wording, and four or more of them caps formatting at 55 as a
+  genuine penalty. Career Objective, Educational Qualification, Academic
+  Qualification, and Personal Information are flagged as heading risks with
+  recommended Western equivalents.
+- Both blocks close with an explicit override clause, so the generic section
+  definitions that follow cannot contradict the selected market.
+- Content-quality checks were added to the Bangladesh block over Sprint 3:
+  named referees rather than "references available on request", extracurricular
+  sections for candidates with under two years of experience, SSC and HSC
+  entries carrying GPA denominator and Education Board, and a thesis or final
+  year project entry for recent technical graduates. Each is scoped by
+  inferred experience level so it does not fire on senior candidates.
+- The Career Objective heading is protected in Bangladesh mode, but its
+  *content* is still assessed. Generic phrasing such as "seeking a challenging
+  position" is flagged as a content weakness with a rewrite.
+- `keyword_gaps` and `ats_tips` are capped at three entries. The cap is stated
+  in the prompt, enforced in the Zod schema, and trimmed in `normalizeResponse`
+  as a backstop; a warning is logged when the model exceeds it.
+- `ats_tips` must be improvement actions. Positive observations about what the
+  resume already does well are explicitly disallowed, since they consumed tip
+  slots without giving the candidate anything to act on.
+- A streaming entry point (`analyzeResumeStream`) was added, using the same
+  prompt. JSON repair was added around both paths — fence stripping, balanced
+  object extraction, control character escaping, inner quote repair, and
+  truncation repair — because longer responses are cut off at the token limit.
+- Temperature was lowered from 0.3 to 0.1. The Iteration 4 note recommending
+  0.3 no longer reflects the code.
+
+### Remaining Observations
+
+- The prompt is close to its token ceiling. `max_tokens` is 4096 for both the
+  streaming and one-shot paths, and Bangladesh mode alone costs roughly 3,200
+  tokens of that budget before the resume is appended. The JSON truncation
+  repair exists because responses are already being cut off; adding prompt
+  text makes that more frequent, not less.
+- The tier parameter is threaded through `getModel(tier)` but nothing selects
+  a tier. Registration ignores the chosen plan, so every request resolves to
+  the free model.
+- The scoring weights are stated in three places — the prompt text in
+  Section 7, `recalculateScores`, and the summary table in this document.
+  They can drift independently, and the server value silently wins.
+
 ## Summary
 
 
@@ -206,3 +328,14 @@ Sample Resume 2: re-run
 | 2         | ~650       | Client-grounded rewrite                | More specific feedback, but still missed legacy conventions  |
 | 3         | ~780       | Legacy convention block                | Caught Declaration, headings, LinkedIn, and missing sections |
 | 4         | ~850       | Per-entry checks and score calibration | All known issues caught, formatting scores became accurate   |
+| 5         | ~2,600     | 0-100 scale, typed sections, ATS and job match | New feedback types available, but market rules contradicted each other |
+| 6         | ~3,200 BD / ~2,500 INTL | Market mode split           | Contradiction resolved, market rules now mutually exclusive  |
+
+Token costs for Iterations 0 to 4 are the original working estimates recorded
+at the time. Iterations 5 and 6 are measured from the built prompt using the
+same characters-divided-by-four estimate the service itself logs, so the two
+sets are not directly comparable. Measured for reference: Iteration 4 is
+~2,114 tokens on the same basis.
+
+Iteration 6 is the version currently in `ai-service/src/services/resumeReviewer.js`.
+The next revision is therefore Iteration 7.
