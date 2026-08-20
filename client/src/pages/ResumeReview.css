@@ -1066,3 +1066,40 @@
   .rr-error__actions { flex-direction: column; }
   .rr-error__actions .btn { width: 100%; }
 }
+
+/* ── Application context selectors ─────────────────────────────────────────
+   Optional routing hints. Left alone they send nothing and the server infers,
+   which is why the card reads as helpful rather than as a required form. */
+.context-card {
+  margin-top: 16px;
+  padding: 18px 20px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.context-card__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.context-card__icon { font-size: 16px; }
+.context-card__title { font-weight: 600; font-size: 15px; }
+.context-card__hint {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.context-card__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px 16px;
+}
+.context-card__grid .form-group { margin-bottom: 0; }
+.context-card select.form-input { min-height: 42px; }
+
+@media (max-width: 768px) {
+  .context-card { padding: 16px 14px; }
+  .context-card__grid { grid-template-columns: 1fr; }
+}

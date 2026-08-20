@@ -145,64 +145,74 @@ blanket rule, no score ceiling for their presence, and never reproduce their val
 
 MARKET RULES - APPLICATION CHANNEL
 
-APPLICATION CHANNEL - NOT SPECIFIED
+APPLICATION CHANNEL - CONSULTANCY OR TENDER SUBMISSION
 
-The submission channel was not supplied. Infer it from the resume where you can,
-state your inference in the formatting feedback, and stay conservative:
+The CV forms part of a bid, and the commissioning body's template governs.
 
-- Do not apply channel-specific penalties.
-- Do not demand removal of personal details, photographs or declarations, because
-  they may be required by the channel in use.
-- Do not apply a hard page limit.
-- Where advice would differ by channel, give it conditionally and name the
-  condition, for example "if you are submitting this to a multinational through an
-  online application system, then...".
+- Respect the supplied template completely. Never recommend trimming content the
+  template requires.
+- Assignment-by-assignment detail, dates, client names, countries of experience,
+  language proficiency by mode, education with dates, professional memberships and
+  referee details are all standard and often mandatory.
+- Page limits generally do not apply, and brevity can disqualify a bid.
+- Prioritise the match between the candidate's stated assignments and the terms of
+  reference where one is supplied.
 
 ---
 
 MARKET RULES - EMPLOYER
 
-EMPLOYER TYPE - NOT SPECIFIED
+EMPLOYER TYPE - NGO OR DEVELOPMENT ORGANISATION
 
-The employer type was not supplied. Infer it where the resume gives you evidence,
-state your inference, and remain conservative:
-
-- Do NOT recommend removing personal details, photographs or declarations, because
-  they may be required or conventional for this employer.
-- Where such elements are present, you may note that they are unnecessary for
-  multinational and modern corporate applications, phrased conditionally, without
-  applying a scoring penalty.
-- Do not apply Western heading conventions as though they were universal.
+- Detailed project and assignment history, donor and client names, geographic
+  coverage, community engagement, monitoring and evaluation, and reporting lines
+  are the substance of the document.
+- Language proficiency by mode, professional memberships and named referees are
+  commonly requested and legitimate.
+- Length expectations are looser than corporate. Do not recommend aggressive
+  trimming.
+- Safeguarding, ethics and community accountability experience are relevant where
+  the role touches vulnerable populations.
 
 ---
 
 MARKET RULES - CANDIDATE STAGE
 
-CANDIDATE STAGE - NOT SPECIFIED
+CANDIDATE STAGE - EXPERIENCED
 
-Infer the stage from the resume using the conservative definitions given earlier,
-and state your inference in the content feedback.
+More than roughly five years of relevant experience.
 
-- Where the inference is uncertain, do not apply stage-specific ordering penalties.
-- Do not flag education-before-experience ordering unless you are confident the
-  candidate is experienced.
-- Do not flag a Career Objective unless you are confident the candidate is
-  experienced, in which case recommend a summary and explain why.
+- Expected order: contact, career summary, experience, skills, education,
+  training and credentials, other sections.
+- Experience BEFORE education. A resume leading with education at this stage is
+  worth flagging.
+- A Career Summary replaces the fresher objective. A generic objective at this
+  stage is a genuine weakness.
+- Expect achievement and scope rather than duty lists: team size, budget or volume
+  where the candidate can evidence it, systems owned, outcomes delivered.
+- Do NOT expect SSC and HSC entries, and do not flag their absence.
+- Extracurricular activities are no longer expected. Do not flag their absence.
 
 ---
 
 MARKET RULES - TARGET SECTOR
 
-TARGET SECTOR - NOT SPECIFIED
+TARGET SECTOR - NGO AND DEVELOPMENT
 
-Infer the target sector and role family from the resume, state your inference in
-the ATS analysis, and stay broad.
+Look for:
 
-- Where the evidence supports several materially different sectors, use a broad
-  role family rather than inventing precision.
-- Do not apply sector-specific evidence expectations you cannot justify.
-- Where a job advertisement is supplied, derive expectations from it in preference
-  to any general assumption.
+- Programme or project responsibility, with the candidate's own role identified
+- Communities, districts or regions covered, and beneficiary scale where stated
+- Fieldwork, community mobilisation and stakeholder coordination
+- Monitoring, evaluation, accountability and learning activity
+- Donor reporting, proposal contribution and compliance with donor requirements
+- Safeguarding, protection and ethical practice where the role touches vulnerable
+  groups
+- Sector specialism where relevant: health, WASH, education, livelihoods, climate
+  and disaster resilience, gender, governance
+
+Named donors and partners are meaningful context. Never invent beneficiary numbers
+or outcome figures.
 
 ---
 

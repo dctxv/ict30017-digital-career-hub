@@ -18,7 +18,7 @@
  *    PDF source is derived in priority order: (1) blob URL created from
  *    uploadedFile (the raw File object passed from ResumeReview), (2)
  *    feedback?.fileUrl (Cloudinary URL from backend), (3) renders nothing.
- *    The blob URL is stored in objUrlRef (useRef) so it is created only once
+ *    The blob URL is memoised from the File and revoked on change/unmount
  *    per file reference; URL.revokeObjectURL is called on unmount and before
  *    each new URL is created to prevent memory leaks. DOCX detection uses the
  *    MIME type (uploadedFile?.type) instead of filename string matching.
@@ -44,7 +44,7 @@
  * - onViewInResume prop from all body/item components and all call sites
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import html2pdf from 'html2pdf.js'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
@@ -406,37 +406,27 @@ function JobMatchCard({ match }) {
 // Renders the uploaded resume as a scrollable PDF using react-pdf.
 // PDF source priority: uploadedFile blob URL → feedback?.fileUrl → render nothing.
 // DOCX detection uses the MIME type so it works regardless of filename casing.
-// The blob URL is stored in objUrlRef and only created once per File reference.
+// The blob URL is memoised from the File and revoked when it changes.
 // URL.revokeObjectURL is called on unmount and before each new URL is created.
 function PDFPanel({ uploadedFile, feedback, pdfWidth, numPages, setNumPages }) {
   const [pdfError, setPdfError] = useState(null)
-  const [blobUrl, setBlobUrl] = useState(null)
-  const objUrlRef = useRef(null)
+  // Derived, not state: an object URL is a pure function of the File, so it is
+  // memoised rather than mirrored into state from an effect. The cleanup effect
+  // below revokes each URL when the file changes or the view unmounts.
+  const blobUrl = useMemo(
+    () => (uploadedFile ? URL.createObjectURL(uploadedFile) : null),
+    [uploadedFile]
+  )
 
   const isDocx =
     uploadedFile?.type ===
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
   useEffect(() => {
-    // Revoke the previous object URL before creating a new one
-    if (objUrlRef.current) {
-      URL.revokeObjectURL(objUrlRef.current)
-      objUrlRef.current = null
-    }
-    if (uploadedFile) {
-      const url = URL.createObjectURL(uploadedFile)
-      objUrlRef.current = url
-      setBlobUrl(url)
-    } else {
-      setBlobUrl(null)
-    }
     return () => {
-      if (objUrlRef.current) {
-        URL.revokeObjectURL(objUrlRef.current)
-        objUrlRef.current = null
-      }
+      if (blobUrl) URL.revokeObjectURL(blobUrl)
     }
-  }, [uploadedFile])
+  }, [blobUrl])
 
   // Priority: blob URL from uploadedFile → backend fileUrl → nothing
   const pdfSrc = blobUrl || feedback?.fileUrl || null

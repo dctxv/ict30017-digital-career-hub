@@ -14,6 +14,13 @@ import Navbar from '../components/Navbar'
 import ResumeAnalysisError from './ResumeAnalysisError'
 import { validateResumeFile, ACCEPTED_EXTENSIONS } from '../utils/resumeFile'
 import { apiFetch } from '../utils/apiClient'
+import {
+  EMPTY_REVIEW_CONTEXT,
+  APPLICATION_CHANNEL_OPTIONS,
+  EMPLOYER_TYPE_OPTIONS,
+  CANDIDATE_STAGE_OPTIONS,
+  TARGET_SECTOR_OPTIONS,
+} from '../utils/reviewContext'
 import { useAuth } from '../context/AuthContext'
 import { streamResumeReview } from '../api/reviewResume'
 import ResultsView from './ResultsView'
@@ -129,7 +136,7 @@ function describeQuota(quota, isAuthenticated) {
   return `Free plan — ${quota.remaining} of ${quota.limit} resume ${plural} remaining today`
 }
 
-function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marketMode, setMarketMode, onAnalyse, onSample }) {
+function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marketMode, setMarketMode, reviewContext, setReviewContext, onAnalyse, onSample }) {
   const [drag, setDrag] = useState(false)
   const [enhanceOpen, setEnhanceOpen] = useState(false)
   const inputRef = useRef()
@@ -137,6 +144,27 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
   const [fileError, setFileError] = useState('')
   const { isAuthenticated } = useAuth()
   const quota = useReviewQuota()
+
+  // The coarse market toggle and the precise employer selector answer the same
+  // question at different resolutions, and the server lets the employer type
+  // win. These keep the two visibly consistent so the toggle never lies about
+  // what the review will actually do.
+  const chooseMarket = (mode) => {
+    setMarketMode(mode)
+    if (mode === 'international') {
+      setReviewContext(c => ({ ...c, employerType: 'multinational' }))
+    } else if (reviewContext.employerType === 'multinational') {
+      setReviewContext(c => ({ ...c, employerType: 'unknown' }))
+    }
+  }
+
+  const chooseContext = (key, value) => {
+    setReviewContext(c => ({ ...c, [key]: value }))
+    if (key === 'employerType') {
+      if (value === 'multinational') setMarketMode('international')
+      else if (value !== 'unknown') setMarketMode('bangladesh')
+    }
+  }
   const quotaLabel = describeQuota(quota, isAuthenticated)
 
   // Runs for both the picker and the drop zone. accept=".pdf,.docx" only
@@ -210,7 +238,7 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
             <div className="market-mode-options">
               <button
                 className={`market-mode-btn ${marketMode === 'bangladesh' ? 'market-mode-btn--active' : ''}`}
-                onClick={() => setMarketMode('bangladesh')}
+                onClick={() => chooseMarket('bangladesh')}
               >
                 <span className="market-mode-btn-label">Bangladesh employers</span>
                 <span className="market-mode-btn-desc">
@@ -219,13 +247,48 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
               </button>
               <button
                 className={`market-mode-btn ${marketMode === 'international' ? 'market-mode-btn--active' : ''}`}
-                onClick={() => setMarketMode('international')}
+                onClick={() => chooseMarket('international')}
               >
                 <span className="market-mode-btn-label">International / multinational</span>
                 <span className="market-mode-btn-desc">
                   Personal details, declarations and photos flagged for removal per Western standards
                 </span>
               </button>
+            </div>
+          </div>
+
+          {/* Routes the reviewer's rules. Every field is optional: left alone,
+              the server infers it and reports what it inferred. */}
+          <div className="context-card">
+            <div className="context-card__label">
+              <span className="context-card__icon">🧭</span>
+              <span className="context-card__title">Tell us about this application</span>
+            </div>
+            <p className="context-card__hint">
+              Optional, and it makes the review far more accurate. A Bdjobs profile,
+              a government form and a multinational application are judged differently.
+            </p>
+            <div className="context-card__grid">
+              {[
+                ['applicationChannel', 'How are you applying?', APPLICATION_CHANNEL_OPTIONS],
+                ['employerType', 'What kind of employer?', EMPLOYER_TYPE_OPTIONS],
+                ['candidateStage', 'Where are you in your career?', CANDIDATE_STAGE_OPTIONS],
+                ['targetSector', 'Which sector?', TARGET_SECTOR_OPTIONS],
+              ].map(([key, label, options]) => (
+                <div className="form-group" key={key}>
+                  <label className="form-label" htmlFor={`ctx-${key}`}>{label}</label>
+                  <select
+                    id={`ctx-${key}`}
+                    className="form-input"
+                    value={reviewContext[key]}
+                    onChange={e => chooseContext(key, e.target.value)}
+                  >
+                    {options.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -347,6 +410,7 @@ export default function ResumeReview() {
   const [jobRole, setJobRole] = useState('')
   const [jobAd, setJobAd] = useState('')
   const [marketMode, setMarketMode] = useState('bangladesh')
+  const [reviewContext, setReviewContext] = useState(EMPTY_REVIEW_CONTEXT)
   const [feedback, setFeedback] = useState(null)
   const [streamError, setStreamError] = useState(null)
   // Terminal failure. Distinct from streamError, which annotates feedback that
@@ -372,6 +436,7 @@ export default function ResumeReview() {
       jobRole: jobRole || undefined,
       jobAd: jobAd || undefined,
       marketMode,
+      reviewContext,
       onPartial: (partial) => {
         setFeedback(partial)
         setView('results')
@@ -444,6 +509,8 @@ export default function ResumeReview() {
           setJobAd={setJobAd}
           marketMode={marketMode}
           setMarketMode={setMarketMode}
+          reviewContext={reviewContext}
+          setReviewContext={setReviewContext}
           onAnalyse={analyse}
           onSample={showSample}
         />

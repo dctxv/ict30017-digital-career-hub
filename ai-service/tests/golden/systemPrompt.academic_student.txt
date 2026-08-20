@@ -145,64 +145,72 @@ blanket rule, no score ceiling for their presence, and never reproduce their val
 
 MARKET RULES - APPLICATION CHANNEL
 
-APPLICATION CHANNEL - NOT SPECIFIED
+APPLICATION CHANNEL - ACADEMIC CV
 
-The submission channel was not supplied. Infer it from the resume where you can,
-state your inference in the formatting feedback, and stay conservative:
+An academic CV is comprehensive by design.
 
-- Do not apply channel-specific penalties.
-- Do not demand removal of personal details, photographs or declarations, because
-  they may be required by the channel in use.
-- Do not apply a hard page limit.
-- Where advice would differ by channel, give it conditionally and name the
-  condition, for example "if you are submitting this to a multinational through an
-  online application system, then...".
+- Never apply a one or two page limit, and never recommend trimming for brevity.
+- Prioritise, in roughly this order of relevance to most academic roles: education
+  and degrees, research areas, publications, conference presentations, teaching
+  experience, supervision, grants and funding, awards, and academic or professional
+  service.
+- Thesis and dissertation titles belong here in full, with supervisor where
+  conventional.
+- Corporate conventions such as a career objective, achievement bullets with
+  business metrics, and keyword optimisation for an ATS are usually inappropriate.
+  Do not recommend them.
 
 ---
 
 MARKET RULES - EMPLOYER
 
-EMPLOYER TYPE - NOT SPECIFIED
+EMPLOYER TYPE - ACADEMIC OR RESEARCH INSTITUTION
 
-The employer type was not supplied. Infer it where the resume gives you evidence,
-state your inference, and remain conservative:
-
-- Do NOT recommend removing personal details, photographs or declarations, because
-  they may be required or conventional for this employer.
-- Where such elements are present, you may note that they are unnecessary for
-  multinational and modern corporate applications, phrased conditionally, without
-  applying a scoring penalty.
-- Do not apply Western heading conventions as though they were universal.
+- Publications, research areas, conference presentations, teaching, supervision,
+  grants and academic service carry the document.
+- Do not apply corporate brevity, do not recommend an ATS keyword strategy, and do
+  not recommend replacing an academic structure with a corporate one.
+- Thesis and dissertation detail belongs in full.
+- Where the candidate is early-career, teaching assistantships, research
+  assistantships and conference participation are meaningful evidence.
 
 ---
 
 MARKET RULES - CANDIDATE STAGE
 
-CANDIDATE STAGE - NOT SPECIFIED
+CANDIDATE STAGE - STUDENT
 
-Infer the stage from the resume using the conservative definitions given earlier,
-and state your inference in the content feedback.
+The highest relevant qualification is still ongoing.
 
-- Where the inference is uncertain, do not apply stage-specific ordering penalties.
-- Do not flag education-before-experience ordering unless you are confident the
-  candidate is experienced.
-- Do not flag a Career Objective unless you are confident the candidate is
-  experienced, in which case recommend a summary and explain why.
+- Expected order: contact, objective, education, projects and coursework,
+  training, any internship or part-time work, skills, extracurricular activity.
+- Education BEFORE experience is correct here. Do not flag it.
+- A Career Objective is appropriate.
+- Academic projects, coursework, competitions, club roles and volunteering are the
+  primary evidence. Assess them as seriously as you would employment.
+- Never criticise limited work history as though it were a defect. Assess how well
+  the available evidence is presented.
+- An ongoing qualification must be labelled as ongoing with an expected completion
+  date. That is correct, not an error.
 
 ---
 
 MARKET RULES - TARGET SECTOR
 
-TARGET SECTOR - NOT SPECIFIED
+TARGET SECTOR - ACADEMIC AND RESEARCH
 
-Infer the target sector and role family from the resume, state your inference in
-the ATS analysis, and stay broad.
+Look for:
 
-- Where the evidence supports several materially different sectors, use a broad
-  role family rather than inventing precision.
-- Do not apply sector-specific evidence expectations you cannot justify.
-- Where a job advertisement is supplied, derive expectations from it in preference
-  to any general assumption.
+- Research areas and methods, stated precisely
+- Publications with venue and the candidate's authorship position
+- Conference presentations and posters
+- Teaching, tutoring, supervision and curriculum contribution
+- Grants, funding and scholarships
+- Thesis and dissertation detail in full
+- Academic and professional service
+
+Do not apply corporate conventions such as achievement metrics or ATS keyword
+optimisation. Never invent publications, venues or citation counts.
 
 ---
 

@@ -7,6 +7,7 @@ import { sanitiseResumeText } from '../utils/sanitise.js';
 import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
 import { analyzeResume, analyzeResumeStream } from 'ai-service';
 import { optionalAuth } from '../middleware/auth.js';
+import { attachReviewContext } from '../middleware/reviewContext.js';
 import {
   enforceDailyReviewLimit,
   readReviewQuota,
@@ -53,6 +54,15 @@ const GUEST_HOURLY_BURST_PER_IP = 20;
  */
 function resolveTier(res) {
   return res.locals.reviewQuota?.tier === 'premium' ? 'premium' : 'free';
+}
+
+/*
+ * The validated review context, or all-unknown when none was supplied. The AI
+ * service routes its channel, employer, stage and sector rules off this; without
+ * it every field resolves to unknown and the routing does nothing.
+ */
+function resolveReviewContext(res) {
+  return res.locals.reviewContext ?? {};
 }
 
 function isIdentified(req) {
@@ -123,7 +133,7 @@ router.get('/quota', optionalAuth, async (req, res) => {
  */
 // enforceDailyReviewLimit runs after the upload so a rejected file does not
 // burn one of the caller's daily reviews.
-router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), enforceDailyReviewLimit, async (req, res) => {
+router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), attachReviewContext, enforceDailyReviewLimit, async (req, res) => {
   const uploadedFilePath = req.file?.path ?? null;
 
   try {
@@ -146,7 +156,11 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
     const jobRole = typeof req.body?.jobRole === 'string' ? req.body.jobRole.slice(0, 200) : undefined;
     const jobAd = typeof req.body?.jobAd === 'string' ? req.body.jobAd.slice(0, 4000) : undefined;
     const marketMode = req.body?.marketMode === 'international' ? 'international' : 'bangladesh';
-    const feedback = await analyzeResume(cleanText, { jobRole, jobAd, marketMode, tier: resolveTier(res) });
+    const feedback = await analyzeResume(cleanText, {
+      jobRole, jobAd, marketMode,
+      tier: resolveTier(res),
+      context: resolveReviewContext(res),
+    });
 
     if (feedback.code === 'RATE_LIMIT') {
       return res.status(429).json({ error: feedback.error });
@@ -196,7 +210,7 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
  *   data: {"error":"RATE_LIMIT"|"INTERNAL","message":"..."}\n\n
  */
 // Same ordering as /analyze: the file must be accepted before quota is claimed.
-router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('resume'), enforceDailyReviewLimit, async (req, res) => {
+router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('resume'), attachReviewContext, enforceDailyReviewLimit, async (req, res) => {
   const uploadedFilePath = req.file?.path ?? null;
 
   const writeFrame = (obj) => {
@@ -241,6 +255,7 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
       jobAd,
       marketMode,
       tier: resolveTier(res),
+      context: resolveReviewContext(res),
     });
 
     if (feedback?.code === 'RATE_LIMIT') {

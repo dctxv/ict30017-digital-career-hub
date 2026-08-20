@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ATS_LIST_CAP } from '../config/reviewConstants.js';
+import { ATS_LIST_CAP, ATS_GAP_CAP } from '../config/reviewConstants.js';
 
 // Coerce scores to integers — the AI sometimes returns floats like 72.5
 const Score = z.number().min(0).max(100).transform(Math.round);
@@ -45,7 +45,7 @@ const ATSAnalysisSchema = z.object({
   inferred_role:     z.string().optional(),
   inferred_industry: z.string().optional(),
   keyword_hits:      z.array(z.string()).optional(),
-  keyword_gaps:      z.array(z.string()).max(ATS_LIST_CAP).optional(),
+  keyword_gaps:      z.array(z.string()).max(ATS_GAP_CAP).optional(),
   heading_risks:     z.array(ATSHeadingRiskSchema).optional(),
   ats_tips:          z.array(z.string()).max(ATS_LIST_CAP).optional(),
   standard:          z.string().optional(),

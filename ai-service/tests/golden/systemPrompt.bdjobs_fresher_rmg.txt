@@ -145,64 +145,81 @@ blanket rule, no score ceiling for their presence, and never reproduce their val
 
 MARKET RULES - APPLICATION CHANNEL
 
-APPLICATION CHANNEL - NOT SPECIFIED
+APPLICATION CHANNEL - BDJOBS STRUCTURED PROFILE
 
-The submission channel was not supplied. Infer it from the resume where you can,
-state your inference in the formatting feedback, and stay conservative:
+This is a structured profile on a job portal, not a document the candidate laid
+out. Bdjobs supplies fixed fields for personal details, education and training,
+experience, specialisation, language proficiency, references and a photograph.
 
-- Do not apply channel-specific penalties.
-- Do not demand removal of personal details, photographs or declarations, because
-  they may be required by the channel in use.
-- Do not apply a hard page limit.
-- Where advice would differ by channel, give it conditionally and name the
-  condition, for example "if you are submitting this to a multinational through an
-  online application system, then...".
+- Judge completeness and relevance WITHIN those fields.
+- The platform's standard field names are not invented headings. Never flag
+  "Personal Information", "Specialisation", "Language Proficiency", "Training" or
+  "References" as non-standard headings here.
+- A photograph field is part of the platform. Its presence is not a defect.
+- Page-count advice is meaningless for a profile. Do not give it.
+- Focus instead on: empty or thin fields, specialisation entries that do not match
+  the target role, career objective quality, and whether the experience entries
+  carry evidence rather than duties alone.
 
 ---
 
 MARKET RULES - EMPLOYER
 
-EMPLOYER TYPE - NOT SPECIFIED
+EMPLOYER TYPE - TRADITIONAL LOCAL EMPLOYER
 
-The employer type was not supplied. Infer it where the resume gives you evidence,
-state your inference, and remain conservative:
+Established Bangladeshi companies, many manufacturers, and smaller local firms.
 
-- Do NOT recommend removing personal details, photographs or declarations, because
-  they may be required or conventional for this employer.
-- Where such elements are present, you may note that they are unnecessary for
-  multinational and modern corporate applications, phrased conditionally, without
-  applying a scoring penalty.
-- Do not apply Western heading conventions as though they were universal.
+- Personal Information sections, photographs, declarations, signatures, parents'
+  names, date of birth, marital status, religion and permanent address are
+  CONVENTIONAL here. Do not flag them, do not recommend removing them, and do not
+  penalise them.
+- Named references with designation and organisation are commonly expected.
+- A Career Objective is normal and expected, including from experienced applicants.
+- Focus your critique on evidence quality, relevance to the vacancy, clarity and
+  consistency, not on removing local conventions.
 
 ---
 
 MARKET RULES - CANDIDATE STAGE
 
-CANDIDATE STAGE - NOT SPECIFIED
+CANDIDATE STAGE - FRESHER
 
-Infer the stage from the resume using the conservative definitions given earlier,
-and state your inference in the content feedback.
+Recently graduated, under roughly two years of relevant full-time work.
 
-- Where the inference is uncertain, do not apply stage-specific ordering penalties.
-- Do not flag education-before-experience ordering unless you are confident the
-  candidate is experienced.
-- Do not flag a Career Objective unless you are confident the candidate is
-  experienced, in which case recommend a summary and explain why.
+- Expected order: contact, objective, education, projects or thesis, training,
+  internships and any employment, skills, extracurricular activity.
+- Education BEFORE experience is correct here. Do not flag it.
+- A targeted Career Objective is appropriate and conventional.
+- Internships, industrial attachments, final-year projects and thesis work are
+  primary evidence. Expect the candidate's own contribution to be identifiable.
+- Extracurricular involvement, leadership and volunteering carry real weight for
+  freshers in this market. Their absence is worth raising; one-word hobby lists
+  are not evidence.
+- SSC and HSC or equivalent entries are commonly expected at this stage.
 
 ---
 
 MARKET RULES - TARGET SECTOR
 
-TARGET SECTOR - NOT SPECIFIED
+TARGET SECTOR - RMG, TEXTILES AND MANUFACTURING
 
-Infer the target sector and role family from the resume, state your inference in
-the ATS analysis, and stay broad.
+Identify the candidate's actual FUNCTION first, because expectations differ
+sharply between them: merchandising, production, planning, quality, compliance,
+industrial engineering, supply chain, or technical or textile engineering.
 
-- Where the evidence supports several materially different sectors, use a broad
-  role family rather than inventing precision.
-- Do not apply sector-specific evidence expectations you cannot justify.
-- Where a job advertisement is supplied, derive expectations from it in preference
-  to any general assumption.
+Look for evidence appropriate to that function:
+
+- Merchandising: order handling end to end, sample development and approval,
+  consumption and costing, buyer communication, lead times, shipment follow-up.
+- Production and planning: lines or units managed, capacity, efficiency, output
+  volumes, downtime, line balancing.
+- Quality: inspection systems, AQL, defect and rework rates, corrective actions.
+- Compliance: buyer codes of conduct, social and technical audits, ILO-aligned
+  standards, factory certifications, audit outcomes.
+- Industrial engineering: SMV, method study, layout, productivity improvement.
+
+Buyer and brand names, product categories, factory scale and certifications are
+meaningful context where stated. Never invent buyers, volumes or efficiencies.
 
 ---
 

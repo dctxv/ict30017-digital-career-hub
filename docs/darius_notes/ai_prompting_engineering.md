@@ -318,7 +318,7 @@ before analysis rather than inferred by the model.
   Section 7, `recalculateScores`, and the summary table in this document.
   They can drift independently, and the server value silently wins.
 
-## Iteration 7 - Prompt Debt Paydown (Current)
+## Iteration 7 - Prompt Debt Paydown
 
 A consolidation release. No behaviour change to review output was intended: no
 new detection rules, no output shape change, no reweighting. The goal was to
@@ -450,6 +450,84 @@ verified:
   retire the repair layer, calibration and variance work, or a new capability
   from the handover doc's unbuilt-features list.
 
+## Iteration 8 - Context-Composed Prompt (Current)
+
+**Date:** 20 August 2026
+**Prompt file:** `ai-service/src/prompt/` (composed) - Iteration 7 monolith archived as `prompt_iterations/iteration_07_resumeReviewer.js`
+**Model:** unchanged per tier (`AI_MODEL_FREE` / `AI_MODEL_PREMIUM`)
+
+### Why
+
+The client's standing complaint was that the reviewer "doesn't have context of
+Bangladesh culture." Investigating it showed the complaint was measurably right,
+and that most of it was not missing knowledge but missing *situation*: the
+two-mode prompt reviewed a Bdjobs structured profile, a BPSC prescribed form and
+a multinational ATS submission with the same rules. A research pass against
+Bdjobs guidance, the BCS form instructions, the education board grading system
+and donor CV formats confirmed 14 of 17 required knowledge areas were absent
+from the Iteration 7 prompt.
+
+### Key Changes
+
+- The single mode block is replaced by a composed prompt: a core block
+  (instruction security, anti-fabrication, privacy, rule priority, scoring
+  bands), a Bangladesh market block, and exactly one module each for
+  application channel (7), employer type (7), candidate stage (5) and target
+  sector (7), selected per request. Unknown context loads conservative fallback
+  modules.
+- Review context travels the full stack: four optional selectors on the upload
+  page, Zod-validated enums at the route, `<APPLICATION_CONTEXT>` /
+  `<RESUME>` / `<JOB_ADVERTISEMENT>` delimited blocks in the user message.
+  Legacy `marketMode` callers still work; `international` resolves to the
+  multinational employer module.
+- New Bangladesh knowledge: Dakhil/Alim as SSC/HSC equivalents, O/A Levels with
+  awarding bodies instead of Education Boards, diploma and polytechnic routes,
+  Division and Class results from the pre-GPA era, National University 4.00 vs
+  SSC/HSC 5.00 denominators, ongoing/appeared status, training with provider and
+  duration, reference consent rules, and language proficiency by mode.
+- Both score ceilings (75 BD / 55 INTL) removed in favour of explicit scoring
+  bands. `keyword_gaps` cap raised to 5; `ats_tips` stays at 3.
+- Three deterministic backstops in `normalizeResponse`, because live testing
+  showed prompt wording alone cannot guarantee any of them:
+  context-aware protected headings (`resolveProtectedHeadings`), a filter for
+  advice to remove fields a government form mandates, and coercion of list
+  entries the model returns as objects where the schema demands strings.
+
+### Measured Token Costs
+
+Legacy two-mode calls compose to ~3,612 tokens; fully routed contexts run
+~3,900-3,940 against Iteration 7's ~2,918. The increase buys the channel,
+employer, stage and sector rules; the compression target of ~2,550 was not met
+and further cuts would remove rules rather than prose.
+
+### Test Result
+
+- Run-to-run variance measured at zero across three identical calls
+  (temperature 0.1), so single-run comparisons are signal. This retroactively
+  confirms the Iteration 7 heading regression was real: protected headings
+  leaked 4 times under the Iteration 6 prompt, 6 under Iteration 7, and 0 with
+  the code backstop.
+- 12/12 live checks pass, including three new fixtures a two-mode prompt could
+  not describe: a madrasah candidate (Dakhil/Alim not mistaken for missing
+  SSC/HSC), a Cambridge O/A Level candidate (no Education Board or /5.00
+  demanded), and a pre-GPA veteran (First Class/First Division not flagged as a
+  missing GPA).
+- Context routing demonstrably changes the review: the same resume submitted as
+  a government form versus a multinational ATS application produces opposite
+  advice on personal details, and the government path never advises removing
+  mandated fields (enforced by the backstop after the model advised it anyway).
+- 73 unit tests pass, including golden snapshots for seven representative
+  context combinations.
+
+### Outstanding
+
+- The Iteration 7 ten-resume A/B gate is superseded: the prompt it would have
+  compared against no longer ships. The Iteration 8 baseline for future work is
+  `ai_testing/baseline/` (twelve dual-mode runs) plus `ai_testing/phase4/`.
+- The truncation-repair rate still has no recorded baseline.
+- The client-side selectors default to inference; uptake depends on users
+  actually setting them, which is worth watching once real users touch it.
+
 ## Summary
 
 
@@ -462,7 +540,8 @@ verified:
 | 4         | ~850       | Per-entry checks and score calibration | All known issues caught, formatting scores became accurate   |
 | 5         | ~2,600     | 0-100 scale, typed sections, ATS and job match | New feedback types available, but market rules contradicted each other |
 | 6         | ~3,200 BD / ~2,500 INTL | Market mode split           | Contradiction resolved, market rules now mutually exclusive  |
-| 7         | ~2,918 BD / ~2,040 INTL | Prompt debt paydown         | No behaviour change intended; A/B gate not yet run           |
+| 7         | ~2,918 BD / ~2,040 INTL | Prompt debt paydown         | No behaviour change intended; A/B gate superseded by 8       |
+| 8         | ~3,612-3,940 composed | Context-composed prompt, BD pathways, code backstops | 12/12 live checks; routing changes the review; variance measured 0 |
 
 From Iteration 7 the scoring weights and the ATS list cap are defined once, in
 `ai-service/src/config/reviewConstants.js`, and interpolated into the prompt from
@@ -476,5 +555,8 @@ same characters-divided-by-four estimate the service itself logs, so the two
 sets are not directly comparable. Measured for reference: Iteration 4 is
 ~2,114 tokens on the same basis.
 
-Iteration 7 is the version currently in `ai-service/src/services/resumeReviewer.js`.
-The next revision is therefore Iteration 8.
+Iteration 8 is the version currently live. Its prompt is no longer a single
+file: the modules live under `ai-service/src/prompt/` and are composed per
+request, so the rendered goldens under `ai-service/tests/golden/` are the
+authoritative record of what the model actually receives. The next revision is
+therefore Iteration 9.

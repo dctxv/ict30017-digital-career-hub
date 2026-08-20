@@ -1,0 +1,1203 @@
+[
+ {
+  "file": "tanvir.txt",
+  "mode": "bangladesh",
+  "fb": {
+   "formatting": {
+    "score": 65,
+    "feedback": "The resume follows a standard structure for the Bangladeshi market, but the layout is somewhat basic. The use of bullet points is consistent, but the document lacks visual hierarchy and professional spacing.",
+    "issues": [
+     {
+      "section": "Educational Qualification",
+      "issue": "Missing GPA denominator for SSC and HSC results.",
+      "suggestion": "Add '/5.00' after the GPA for both SSC and HSC to maintain consistency with the BBA result format."
+     },
+     {
+      "section": "General",
+      "issue": "Inconsistent indentation and spacing between sections.",
+      "suggestion": "Ensure uniform vertical spacing (e.g., 10-12pt) between section headings and content blocks."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 50,
+    "feedback": "The content is currently too generic and lacks the depth required to stand out in the competitive banking sector. The experience section relies on passive language that fails to highlight your actual impact.",
+    "strengths": [
+     "Clear educational background relevant to the target industry.",
+     "Relevant internship experience in a reputable bank."
+    ],
+    "weaknesses": [
+     "The Career Objective is generic and lacks a specific value proposition.",
+     "Professional experience bullet points use weak verbs like 'assisted', 'helped', and 'did', which fail to demonstrate competence.",
+     "Missing References section with contact details.",
+     "Missing extracurricular activities or club memberships (relevant for a recent graduate)."
+    ]
+   },
+   "language_grammar": {
+    "score": 85,
+    "feedback": "The language is generally clear and professional. No major grammatical errors, though the phrasing in the objective and experience sections could be more impactful.",
+    "issues": [
+     {
+      "original": "Fairly good in reading and writing",
+      "corrected": "Proficient in reading and writing",
+      "type": "Style"
+     }
+    ]
+   },
+   "action_items": [
+    "Rewrite the Career Objective: 'Aspiring Finance professional seeking to leverage my academic background in BBA Finance and internship experience at Mutual Trust Bank to contribute to the operational efficiency and customer service excellence of [Bank Name].'",
+    "Quantify your internship experience: Instead of 'Assisted in daily customer transaction processing', use 'Processed 30+ daily customer transactions with 100% accuracy, ensuring compliance with bank KYC protocols.'",
+    "Add a References section: Include two professional references (e.g., a university professor and your internship supervisor) with their full names, designations, organizations, phone numbers, and email addresses.",
+    "Expand the Education section: Include your final year project title and a one-line description of the research topic to demonstrate technical exposure.",
+    "Add an Extracurricular section: List any university clubs, volunteer work, or academic competitions to showcase leadership and soft skills."
+   ],
+   "ats_analysis": {
+    "inferred_role": "Junior Executive / Banking Operations",
+    "inferred_industry": "Banking and Financial Services",
+    "keyword_hits": [
+     "BBA",
+     "Finance",
+     "Customer Service",
+     "KYC",
+     "Data Entry",
+     "MS Excel"
+    ],
+    "keyword_gaps": [
+     "Financial Analysis",
+     "Regulatory Compliance",
+     "Banking Software"
+    ],
+    "heading_risks": [
+     {
+      "original": "COMPUTER SKILLS",
+      "issue": "Non-standard heading for modern ATS.",
+      "recommended": "Technical Skills"
+     }
+    ],
+    "ats_tips": [
+     "Replace the 'COMPUTER SKILLS' heading with 'Technical Skills' to ensure better parsing by automated systems.",
+     "Incorporate industry-specific keywords like 'Financial Reporting', 'Risk Assessment', or 'Banking Operations' into your bullet points.",
+     "Ensure your contact details are in plain text and not inside a header or footer, as some ATS struggle to read those areas."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 74
+   },
+   "job_match": null,
+   "overall_score": 65
+  },
+  "err": null
+ },
+ {
+  "file": "tanvir.txt",
+  "mode": "international",
+  "fb": {
+   "formatting": {
+    "score": 50,
+    "feedback": "The resume follows a traditional local format that is unsuitable for international or multinational applications. It contains excessive personal data that creates bias risks and uses non-standard headings.",
+    "issues": [
+     {
+      "section": "Personal Information",
+      "issue": "Inclusion of Father's name and Mother's name.",
+      "suggestion": "Remove these entirely. International recruiters do not require parental information, and it can lead to unconscious bias."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Inclusion of Date of Birth.",
+      "suggestion": "Remove this. Age is a protected characteristic in many jurisdictions; including it exposes the employer to discrimination risks."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Inclusion of Religion.",
+      "suggestion": "Remove this. Religion is irrelevant to professional capability and should never be disclosed in a professional CV."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Inclusion of Marital Status.",
+      "suggestion": "Remove this. Marital status is a private matter and irrelevant to job performance."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Inclusion of Blood Group.",
+      "suggestion": "Remove this. This is sensitive medical information that has no place in a professional application."
+     },
+     {
+      "section": "Declaration",
+      "issue": "Inclusion of a Declaration section.",
+      "suggestion": "Remove this. It is considered outdated and unnecessary in modern international recruitment."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Inclusion of Permanent Address.",
+      "suggestion": "Remove this. Only your current city and contact details are necessary for international applications."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 40,
+    "feedback": "The content is overly passive and lacks the impact required for a competitive finance role. It relies on vague verbs that do not demonstrate value.",
+    "strengths": [
+     "Clear educational background with CGPA provided.",
+     "Relevant internship experience in the banking sector."
+    ],
+    "weaknesses": [
+     "Bullet points are weak and passive (e.g., 'Assisted', 'Helped', 'Did').",
+     "Lack of quantification (e.g., how many transactions processed, volume of data entry, or efficiency improvements).",
+     "The 'Career Objective' is generic and focuses on what the candidate wants rather than what they offer the employer."
+    ]
+   },
+   "language_grammar": {
+    "score": 75,
+    "feedback": "The language is generally clear, though the tone is overly formal and passive. No major spelling errors found.",
+    "issues": [
+     {
+      "original": "Fairly good in reading and writing",
+      "corrected": "Professional proficiency in reading and writing",
+      "type": "Weak phrasing"
+     },
+     {
+      "original": "To get a challenging job",
+      "corrected": "Aspiring Finance professional seeking to leverage analytical skills to contribute to...",
+      "type": "Tone improvement"
+     }
+    ]
+   },
+   "action_items": [
+    "Remove all personal demographic information (Father's name, Religion, Marital status, etc.) to comply with international standards.",
+    "Replace the 'Career Objective' with a 'Professional Summary' that highlights your finance degree and internship achievements.",
+    "Rewrite bullet points using the STAR method (Situation, Task, Action, Result) to quantify your impact at the bank.",
+    "Rename 'Educational Qualification' to 'Education' and 'Computer Skills' to 'Technical Skills' to improve ATS readability.",
+    "Remove the 'Declaration' and 'References' sections to save space for more impactful professional content."
+   ],
+   "ats_analysis": {
+    "inferred_role": "Junior Finance Professional",
+    "inferred_industry": "Banking and Financial Services",
+    "keyword_hits": [
+     "Finance",
+     "BBA",
+     "Customer Service",
+     "KYC",
+     "Data Entry",
+     "Reporting"
+    ],
+    "keyword_gaps": [
+     "Financial Analysis",
+     "Risk Assessment",
+     "MS Excel (Advanced)"
+    ],
+    "heading_risks": [
+     {
+      "original": "CAREER OBJECTIVE",
+      "issue": "Non-standard heading for international ATS.",
+      "recommended": "Professional Summary"
+     },
+     {
+      "original": "EDUCATIONAL QUALIFICATION",
+      "issue": "Non-standard heading for international ATS.",
+      "recommended": "Education"
+     },
+     {
+      "original": "COMPUTER SKILLS",
+      "issue": "Non-standard heading for international ATS.",
+      "recommended": "Technical Skills"
+     }
+    ],
+    "ats_tips": [
+     "International ATS systems are programmed to ignore or flag resumes containing personal demographic data; remove all such fields immediately.",
+     "Use standard headings like 'Education' and 'Professional Experience' to ensure the parser correctly categorizes your data.",
+     "Quantify your experience; instead of 'Assisted in transaction processing', use 'Processed 50+ daily customer transactions with 100% accuracy'."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 68
+   },
+   "job_match": null,
+   "overall_score": 54
+  },
+  "err": null
+ },
+ {
+  "file": "farhana.txt",
+  "mode": "bangladesh",
+  "fb": {
+   "formatting": {
+    "score": 70,
+    "feedback": "The resume follows a clean, professional structure suitable for the Bangladeshi market. However, there are minor inconsistencies in spacing and alignment that should be addressed to improve readability.",
+    "issues": [
+     {
+      "section": "Professional Experience",
+      "issue": "Inconsistent indentation of bullet points.",
+      "suggestion": "Ensure all bullet points are aligned with the same left margin for a cleaner look."
+     },
+     {
+      "section": "References",
+      "issue": "Missing phone numbers for referees.",
+      "suggestion": "A References section with at least two named referees including their designation, organisation, and contact details is expected by most Bangladesh employers. Please add phone numbers."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 75,
+    "feedback": "The content is strong regarding professional achievements, particularly in the ACI Limited role. However, the early career experience and the objective section need refinement to better highlight your value proposition.",
+    "strengths": [
+     "Quantifiable achievements in the ACI Limited role (e.g., 94% activation compliance, 17% increase in offtake).",
+     "Clear and logical educational progression.",
+     "Relevant technical skills listed."
+    ],
+    "weaknesses": [
+     "The Junior Executive role at Pran-RFL uses vague language ('Helped in', 'Assisted', 'Did data collection').",
+     "The Career Objective is slightly generic.",
+     "The Co-curricular activities section lacks detail regarding the specific role or impact within the Marketing Club."
+    ]
+   },
+   "language_grammar": {
+    "score": 90,
+    "feedback": "The language is professional and uses appropriate British English conventions. No major grammatical errors found.",
+    "issues": []
+   },
+   "action_items": [
+    "Rewrite the Junior Executive bullet points to focus on outcomes rather than tasks. For example, change 'Did data collection work' to 'Conducted consumer preference surveys across 50+ retail points, providing actionable insights for product positioning.'",
+    "Expand the Co-curricular activities entry: 'Member, Marketing Club, University of Dhaka (2015–2018)' should include your specific role or key projects managed during that tenure.",
+    "Update the References section to include valid phone numbers for both referees, as this is a standard requirement in Bangladesh.",
+    "Refine the Career Objective: 'To leverage my three years of trade marketing expertise and consumer insights to drive brand growth and market penetration for [Company Name] as a Brand Manager.'"
+   ],
+   "ats_analysis": {
+    "inferred_role": "Trade Marketing Executive / Brand Manager",
+    "inferred_industry": "FMCG",
+    "keyword_hits": [
+     "Trade Marketing",
+     "Consumer Insights",
+     "Brand Management",
+     "BTL",
+     "POSM",
+     "Market Analysis",
+     "Distribution"
+    ],
+    "keyword_gaps": [
+     "Digital Marketing",
+     "Budget Management",
+     "Stakeholder Management"
+    ],
+    "heading_risks": [
+     {
+      "original": "COMPUTER SKILLS",
+      "issue": "Non-standard heading for modern ATS.",
+      "recommended": "Technical Skills"
+     }
+    ],
+    "ats_tips": [
+     "Incorporate 'Budget Management' or 'ROI analysis' into your ACI Limited bullet points to align with senior marketing expectations.",
+     "Ensure the document is saved as a standard PDF or .docx to maintain formatting integrity during parsing.",
+     "Use standard section headings like 'Professional Experience' and 'Education' to ensure the ATS correctly categorizes your data."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 76
+   },
+   "job_match": null,
+   "overall_score": 79
+  },
+  "err": null
+ },
+ {
+  "file": "farhana.txt",
+  "mode": "international",
+  "fb": {
+   "formatting": {
+    "score": 50,
+    "feedback": "The resume structure is clean, but it contains significant non-standard elements that violate international hiring norms. The inclusion of extensive personal demographic data and a declaration section significantly detracts from professional standards.",
+    "issues": [
+     {
+      "section": "Personal Information",
+      "issue": "Father's name is included.",
+      "suggestion": "Remove this entirely. International recruiters do not require parental information, and it can lead to unconscious bias."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Mother's name is included.",
+      "suggestion": "Remove this entirely. It is irrelevant to professional qualifications."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Date of birth is included.",
+      "suggestion": "Remove this. Age is a protected characteristic in many jurisdictions; including it invites age discrimination."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Religion is included.",
+      "suggestion": "Remove this. Religion is a protected characteristic and has no place in a professional CV."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Marital status is included.",
+      "suggestion": "Remove this. It is irrelevant to job performance and can be a source of gender-based bias."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Blood group is included.",
+      "suggestion": "Remove this. It is unnecessary personal medical information."
+     },
+     {
+      "section": "Declaration",
+      "issue": "Declaration section is included.",
+      "suggestion": "Remove this. It is considered outdated and unnecessary in modern international recruitment."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 75,
+    "feedback": "The professional experience section shows good potential with some strong metrics, but the junior-level experience is under-quantified and relies on weak verbs.",
+    "strengths": [
+     "Strong quantification of trade marketing results (e.g., 94% compliance, 17% increase in offtake).",
+     "Clear progression from Junior Executive to Executive roles.",
+     "Relevant educational background from reputable institutions."
+    ],
+    "weaknesses": [
+     "Junior Executive bullet points use weak, passive language ('Helped in', 'Assisted the team', 'Did data collection').",
+     "Lack of specific outcomes for the consumer preference survey.",
+     "The 'Career Objective' is slightly dated; a 'Professional Summary' is preferred."
+    ]
+   },
+   "language_grammar": {
+    "score": 90,
+    "feedback": "The language is professional and clear. No significant grammatical errors were found.",
+    "issues": []
+   },
+   "action_items": [
+    "Remove the entire 'Personal Information' section and the 'Declaration' section to align with international privacy and anti-discrimination standards.",
+    "Rename 'Career Objective' to 'Professional Summary' and rewrite it to focus on your value proposition rather than your career goals.",
+    "Rename 'Educational Qualification' to 'Education' and 'Computer Skills' to 'Technical Skills'.",
+    "Quantify the Junior Executive bullet points. Instead of 'Did data collection work', use 'Analyzed consumer preference data from 500+ respondents to identify key purchasing drivers'."
+   ],
+   "ats_analysis": {
+    "inferred_role": "Trade Marketing Executive",
+    "inferred_industry": "FMCG",
+    "keyword_hits": [
+     "Trade Marketing",
+     "Consumer Insights",
+     "Brand Management",
+     "Marketing Communications",
+     "POSM",
+     "Google Analytics",
+     "SPSS"
+    ],
+    "keyword_gaps": [
+     "Market Research",
+     "ROI Analysis",
+     "Cross-functional Leadership"
+    ],
+    "heading_risks": [
+     {
+      "original": "CAREER OBJECTIVE",
+      "issue": "Non-standard heading for international ATS.",
+      "recommended": "Professional Summary"
+     },
+     {
+      "original": "EDUCATIONAL QUALIFICATION",
+      "issue": "Non-standard heading for international ATS.",
+      "recommended": "Education"
+     },
+     {
+      "original": "COMPUTER SKILLS",
+      "issue": "Non-standard heading for international ATS.",
+      "recommended": "Technical Skills"
+     }
+    ],
+    "ats_tips": [
+     "International ATS systems often automatically discard resumes containing personal demographic data (age, religion, marital status); remove these immediately to ensure your resume is parsed.",
+     "Replace passive verbs like 'Helped' or 'Assisted' with high-impact action verbs like 'Spearheaded', 'Executed', or 'Analyzed'.",
+     "Ensure your contact details are at the top; remove the full physical address and keep only City, Country to protect your privacy."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 70
+   },
+   "job_match": null,
+   "overall_score": 75
+  },
+  "err": null
+ },
+ {
+  "file": "rashed.txt",
+  "mode": "bangladesh",
+  "fb": {
+   "formatting": {
+    "score": 85,
+    "feedback": "The resume is clean, well-structured, and follows standard professional conventions for the Bangladeshi market. The use of clear headings and consistent bullet points makes it easy to read.",
+    "issues": [
+     {
+      "section": "General",
+      "issue": "Inconsistent spacing between sections.",
+      "suggestion": "Ensure uniform vertical spacing (e.g., 10pt or 12pt) between each section heading and the preceding content."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 80,
+    "feedback": "The content is strong for a fresh graduate, particularly the inclusion of specific software and design codes. The Career Objective is slightly generic; it should be more focused on the value you bring.",
+    "strengths": [
+     "Clear inclusion of academic results with denominators.",
+     "Strong technical skills section relevant to structural engineering.",
+     "Detailed project experience with specific software and codes used."
+    ],
+    "weaknesses": [
+     "The Career Objective uses generic phrasing like 'reputable construction firm'.",
+     "The 'Lab and Field Projects' section lacks specific outcomes or metrics (e.g., 'reduced error margin by X%' or 'completed within Y weeks')."
+    ]
+   },
+   "language_grammar": {
+    "score": 95,
+    "feedback": "The language is professional and adheres to British English conventions appropriate for the Bangladeshi market.",
+    "issues": []
+   },
+   "action_items": [
+    "Rewrite the Career Objective: 'Aspiring Structural Engineer with a strong foundation in seismic analysis and ACI 318/BNBC 2020 standards, seeking to leverage my academic research and capstone design experience to contribute to high-quality infrastructure projects at [Company Name].'",
+    "Quantify the 'Lab and Field Projects': Add the duration of the soil investigation and the specific impact of the traffic study (e.g., 'Identified a 15% increase in peak-hour congestion').",
+    "Ensure the 'References' section is fully populated with the required details (already present, keep this format).",
+    "Add a 'Professional Summary' or 'Key Competencies' section if you have space, highlighting your proficiency in ETABS and AutoCAD."
+   ],
+   "ats_analysis": {
+    "inferred_role": "Structural Engineer",
+    "inferred_industry": "Civil Engineering / Construction",
+    "keyword_hits": [
+     "Structural Analysis",
+     "AutoCAD",
+     "ETABS",
+     "BNBC 2020",
+     "ACI 318",
+     "Foundation Design",
+     "Bill of Quantities"
+    ],
+    "keyword_gaps": [
+     "Project Management",
+     "Site Supervision",
+     "AutoCAD Civil 3D"
+    ],
+    "heading_risks": [
+     {
+      "original": "CO-CURRICULAR ACTIVITIES",
+      "issue": "Can be parsed as 'Activities' or 'Leadership'.",
+      "recommended": "Extracurricular Activities"
+     }
+    ],
+    "ats_tips": [
+     "Use standard section headings like 'Education' and 'Experience' to ensure 100% parsing accuracy.",
+     "Ensure your contact information is in the header, not the body, to avoid parsing errors.",
+     "Include 'Site Supervision' or 'Construction Management' if you have any exposure, as these are high-value keywords for entry-level structural roles."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 76
+   },
+   "job_match": null,
+   "overall_score": 86
+  },
+  "err": null
+ },
+ {
+  "file": "rashed.txt",
+  "mode": "international",
+  "fb": {
+   "formatting": {
+    "score": 50,
+    "feedback": "The resume structure is clean but contains several non-standard elements that are detrimental to international applications. The inclusion of personal demographic data and non-standard headings significantly impacts the professional presentation.",
+    "issues": [
+     {
+      "section": "Personal Information",
+      "issue": "Father's name is included.",
+      "suggestion": "Remove this immediately. It is irrelevant to professional qualifications and introduces potential bias in international hiring."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Mother's name is included.",
+      "suggestion": "Remove this immediately. It is irrelevant to professional qualifications and introduces potential bias in international hiring."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Date of birth is included.",
+      "suggestion": "Remove this immediately. Age-related information can lead to unconscious bias and is not required for professional CVs."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Religion is included.",
+      "suggestion": "Remove this immediately. Religion is a protected characteristic and should never be disclosed in a professional CV to avoid discrimination risks."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Marital status is included.",
+      "suggestion": "Remove this immediately. This is considered private information and is irrelevant to job performance."
+     },
+     {
+      "section": "Personal Information",
+      "issue": "Blood group is included.",
+      "suggestion": "Remove this immediately. This is sensitive personal data and has no place in a professional application."
+     },
+     {
+      "section": "Declaration",
+      "issue": "Declaration section is included.",
+      "suggestion": "Remove this section. It is an outdated practice and unnecessary in modern international recruitment."
+     },
+     {
+      "section": "Headings",
+      "issue": "Use of 'CAREER OBJECTIVE' and 'EDUCATIONAL QUALIFICATION'.",
+      "suggestion": "Rename to 'Professional Summary' and 'Education' to align with standard ATS parsing."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 75,
+    "feedback": "The content is technically strong, particularly the project experience. However, it lacks a professional summary and could benefit from more outcome-oriented language.",
+    "strengths": [
+     "Clear articulation of technical software proficiency.",
+     "Strong academic background with relevant thesis work.",
+     "Good quantification of co-curricular impact (400+ students)."
+    ],
+    "weaknesses": [
+     "Missing a 'Professional Summary' to highlight value proposition.",
+     "Project bullet points are slightly passive; could be more results-driven.",
+     "References section is unnecessary; these should be provided only upon request."
+    ]
+   },
+   "language_grammar": {
+    "score": 90,
+    "feedback": "The language is professional and clear. No significant grammatical errors were found.",
+    "issues": []
+   },
+   "action_items": [
+    "Remove the entire 'Personal Information' section and the 'Declaration' section to comply with international privacy and anti-discrimination standards.",
+    "Replace 'CAREER OBJECTIVE' with 'Professional Summary' and 'EDUCATIONAL QUALIFICATION' with 'Education'.",
+    "Remove the 'REFERENCES' section; replace with 'References available upon request' or simply omit it to save space.",
+    "Draft a 3-4 line 'Professional Summary' that highlights your structural engineering focus and key technical competencies."
+   ],
+   "ats_analysis": {
+    "inferred_role": "Structural Engineer",
+    "inferred_industry": "Civil Engineering / Construction",
+    "keyword_hits": [
+     "Structural analysis",
+     "AutoCAD",
+     "ETABS",
+     "SAP2000",
+     "ACI 318",
+     "BNBC 2020",
+     "Structural design"
+    ],
+    "keyword_gaps": [
+     "Project management",
+     "Technical documentation",
+     "Quality assurance"
+    ],
+    "heading_risks": [
+     {
+      "original": "CAREER OBJECTIVE",
+      "issue": "Non-standard heading for ATS parsing.",
+      "recommended": "Professional Summary"
+     },
+     {
+      "original": "EDUCATIONAL QUALIFICATION",
+      "issue": "Non-standard heading for ATS parsing.",
+      "recommended": "Education"
+     }
+    ],
+    "ats_tips": [
+     "International ATS systems often discard resumes containing personal demographic data (age, religion, marital status); ensure these are removed to prevent automatic rejection.",
+     "Use standard section headings like 'Professional Summary', 'Education', and 'Technical Skills' to ensure the ATS correctly categorizes your data.",
+     "Incorporate industry-specific keywords like 'Project Management' or 'Quality Assurance' into your project descriptions to increase relevance scores."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 73
+   },
+   "job_match": null,
+   "overall_score": 75
+  },
+  "err": null
+ },
+ {
+  "file": "sample_resume07.txt",
+  "mode": "bangladesh",
+  "fb": {
+   "formatting": {
+    "score": 65,
+    "feedback": "The resume follows a standard structure but lacks professional polish. The use of 'Curriculum Vitae OF' as a title is outdated; it is better to simply use your name as the header. The document is sparse and needs better spacing to improve readability.",
+    "issues": [
+     {
+      "section": "Header",
+      "issue": "The title 'CURRICULUM VITAE OF' is redundant and takes up unnecessary space.",
+      "suggestion": "Remove the title and place your full name in a larger, bold font at the top."
+     },
+     {
+      "section": "Education",
+      "issue": "Missing GPA denominators (/4.00 or /5.00) for both degrees.",
+      "suggestion": "Update to 'CGPA: 3.70/4.00' and 'CGPA: 3.40/4.00' (or your university's specific scale)."
+     },
+     {
+      "section": "Computer",
+      "issue": "Non-standard heading.",
+      "suggestion": "Rename 'COMPUTER' to 'Technical Skills' to align with industry standards."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 40,
+    "feedback": "The content is currently too brief to be competitive. It lacks the necessary depth regarding your academic projects and professional contributions. The objective is generic and needs to be more value-driven.",
+    "strengths": [
+     "Clear educational progression in relevant fields (Microbiology to MPH)."
+    ],
+    "weaknesses": [
+     "Career Objective is generic and lacks a specific value proposition.",
+     "Experience section lacks quantifiable achievements or detailed responsibilities.",
+     "Missing SSC and HSC results.",
+     "Missing full contact details for references.",
+     "Missing final year project/thesis details.",
+     "Missing extracurricular activities."
+    ]
+   },
+   "language_grammar": {
+    "score": 70,
+    "feedback": "The language is functional but lacks professional impact. Use stronger action verbs to describe your experience.",
+    "issues": [
+     {
+      "original": "To work in NGO sector where I can contribute in public health and community development.",
+      "corrected": "Dedicated Public Health professional seeking to leverage expertise in community health assessment and data analysis to contribute to the BRAC Health Program's mission of improving rural health outcomes.",
+      "type": "Grammar/Style"
+     }
+    ]
+   },
+   "action_items": [
+    "Rewrite the Career Objective to be specific to your target role and include one concrete strength.",
+    "Expand the 'Field Officer (Intern)' role by adding 3-4 bullet points detailing specific tasks, such as 'Conducted health surveys for 200+ households' or 'Analyzed community health data using SPSS'.",
+    "Add a 'References' section with two named individuals, including their full names, designations, organizations, phone numbers, and email addresses.",
+    "Include your SSC and HSC results (GPA, passing year, institution, and Board) in the Education section.",
+    "Add a 'Thesis/Research' section detailing your MPH or B.Sc. final year project title and a brief description of the outcome."
+   ],
+   "ats_analysis": {
+    "inferred_role": "Public Health Field Officer",
+    "inferred_industry": "NGO / Public Health",
+    "keyword_hits": [
+     "Public Health",
+     "Microbiology",
+     "Data collection",
+     "Report writing",
+     "SPSS",
+     "MS Office"
+    ],
+    "keyword_gaps": [
+     "Community Outreach",
+     "Health Surveillance",
+     "Project Coordination"
+    ],
+    "heading_risks": [
+     {
+      "original": "COMPUTER",
+      "issue": "Non-standard heading for ATS parsing.",
+      "recommended": "Technical Skills"
+     }
+    ],
+    "ats_tips": [
+     "Use standard headings like 'Professional Experience' and 'Education' to ensure the ATS correctly categorizes your data.",
+     "Incorporate industry-specific keywords like 'Community Health Assessment', 'Data Analysis', and 'Stakeholder Engagement' into your experience bullet points.",
+     "Avoid using tables or text boxes for your contact information or skills, as these can cause parsing errors."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 74
+   },
+   "job_match": null,
+   "overall_score": 56
+  },
+  "err": null
+ },
+ {
+  "file": "sample_resume07.txt",
+  "mode": "international",
+  "fb": {
+   "formatting": {
+    "score": 45,
+    "feedback": "The resume suffers from significant structural issues that deviate from international professional standards. The inclusion of personal demographic data and non-standard headings creates a cluttered and unprofessional appearance.",
+    "issues": [
+     {
+      "section": "Personal Information",
+      "issue": "Marital status is included, which introduces potential bias and is irrelevant to professional capability.",
+      "suggestion": "Remove the 'Marital Status' line entirely."
+     },
+     {
+      "section": "Declaration",
+      "issue": "A declaration section is redundant and takes up valuable space; it is not used in international hiring.",
+      "suggestion": "Delete the 'Declaration' section and the signature line."
+     },
+     {
+      "section": "Heading",
+      "issue": "The document title 'CURRICULUM VITAE OF' is outdated and non-standard.",
+      "suggestion": "Remove the title entirely; start the document with your name."
+     },
+     {
+      "section": "Heading",
+      "issue": "'CAREER OBJECTIVE' is a dated heading that focuses on what you want rather than what you offer.",
+      "suggestion": "Rename to 'Professional Summary'."
+     },
+     {
+      "section": "Heading",
+      "issue": "'COMPUTER' is an unprofessional heading for technical skills.",
+      "suggestion": "Rename to 'Technical Skills'."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 40,
+    "feedback": "The content is extremely sparse and lacks the necessary detail to demonstrate impact. It fails to quantify achievements or describe the scope of responsibilities.",
+    "strengths": [
+     "Clear educational background in relevant fields (MPH and Microbiology)."
+    ],
+    "weaknesses": [
+     "The 'Field Officer' role lacks any description of duties, outcomes, or metrics.",
+     "Skills are listed as generic tasks rather than competencies.",
+     "The 'Career Objective' is too vague and lacks a value proposition.",
+     "Missing a 'Projects' or 'Research' section, which is critical for a public health candidate."
+    ]
+   },
+   "language_grammar": {
+    "score": 70,
+    "feedback": "The language is functional but lacks professional polish and active voice.",
+    "issues": [
+     {
+      "original": "To work in NGO sector where I can contribute in public health and community development.",
+      "corrected": "Dedicated Public Health professional seeking to leverage expertise in community development and data analysis to support NGO initiatives.",
+      "type": "Grammar/Style"
+     }
+    ]
+   },
+   "action_items": [
+    "Remove all personal demographic information (Marital status, etc.) to comply with international hiring standards.",
+    "Expand the 'Field Officer' experience by adding 3-4 bullet points using the STAR method (Situation, Task, Action, Result) to quantify your impact.",
+    "Replace the 'Career Objective' with a 'Professional Summary' that highlights your MPH degree and specific public health interests.",
+    "Rename 'COMPUTER' to 'Technical Skills' and include specific software or methodologies relevant to public health (e.g., STATA, R, or GIS if applicable).",
+    "Remove the 'Declaration' and 'Reference' sections; references should be provided only upon request."
+   ],
+   "ats_analysis": {
+    "inferred_role": "Public Health Field Officer",
+    "inferred_industry": "NGO / Public Health",
+    "keyword_hits": [
+     "Public Health",
+     "Microbiology",
+     "Data collection",
+     "Report writing",
+     "SPSS",
+     "MS Office"
+    ],
+    "keyword_gaps": [
+     "Community Outreach",
+     "Health Surveillance",
+     "Project Management"
+    ],
+    "heading_risks": [
+     {
+      "original": "CAREER OBJECTIVE",
+      "issue": "Non-standard heading; ATS systems prioritize 'Professional Summary'.",
+      "recommended": "Professional Summary"
+     },
+     {
+      "original": "COMPUTER",
+      "issue": "Non-standard heading; ATS systems look for 'Technical Skills'.",
+      "recommended": "Technical Skills"
+     }
+    ],
+    "ats_tips": [
+     "International ATS systems often automatically discard resumes containing personal demographic data; remove all non-professional details immediately.",
+     "Incorporate industry-specific keywords like 'Health Surveillance', 'Community Engagement', or 'Epidemiology' to improve ranking.",
+     "Use standard section headings to ensure the ATS correctly parses your experience and education history."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 71
+   },
+   "job_match": null,
+   "overall_score": 52
+  },
+  "err": null
+ },
+ {
+  "file": "shahriar.txt",
+  "mode": "bangladesh",
+  "fb": {
+   "formatting": {
+    "score": 70,
+    "feedback": "The resume is professionally structured and easy to read. However, it fails to meet the specific requirement for references in the Bangladesh job market, which impacts the score.",
+    "issues": [
+     {
+      "section": "References",
+      "issue": "The section contains a placeholder instead of actual contact details.",
+      "suggestion": "Replace 'References available upon request' with the names, designations, organizations, and contact details (phone/email) of at least two professional referees."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 85,
+    "feedback": "The content is strong, particularly the professional experience section which uses quantifiable metrics effectively. The career objective is well-tailored and avoids generic fluff.",
+    "strengths": [
+     "Excellent use of metrics (e.g., '180 MW', '40% reduction', 'BDT 450 million').",
+     "Clear progression of responsibility from Junior to Senior roles.",
+     "Strong technical skills section aligned with industry standards."
+    ],
+    "weaknesses": [
+     "A References section with at least two named referees including their designation, organisation, and contact details is expected by most Bangladesh employers."
+    ]
+   },
+   "language_grammar": {
+    "score": 95,
+    "feedback": "The language is professional and uses appropriate British English spelling (e.g., 'programme', 'modernisation').",
+    "issues": []
+   },
+   "action_items": [
+    "Replace the 'References available upon request' placeholder with full contact details for two professional referees.",
+    "Ensure the PMP certification status is updated to 'In Progress' with a clear expected completion date, as currently listed.",
+    "Consider adding a brief 'Key Achievements' or 'Summary of Qualifications' subsection if you wish to highlight your 8+ years of experience more prominently.",
+    "Verify that all contact details for referees are current and that they have been informed of their inclusion."
+   ],
+   "ats_analysis": {
+    "inferred_role": "Senior Electrical Engineer",
+    "inferred_industry": "Power and Energy",
+    "keyword_hits": [
+     "132 kV substation",
+     "SCADA",
+     "ETAP",
+     "AutoCAD Electrical",
+     "IEC 61850",
+     "EPC",
+     "Protection Relay Coordination",
+     "Power System Studies"
+    ],
+    "keyword_gaps": [
+     "Grid Code Compliance",
+     "Power Quality Analysis",
+     "Budget Forecasting"
+    ],
+    "heading_risks": [],
+    "ats_tips": [
+     "Ensure the document is saved as a PDF or .docx to maintain formatting integrity during ATS parsing.",
+     "Use standard headings like 'Education' and 'Skills' to ensure the ATS correctly categorizes your information.",
+     "Incorporate industry-specific keywords like 'Grid Code Compliance' into your bullet points to increase relevance for high-level power sector roles."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 81
+   },
+   "job_match": null,
+   "overall_score": 86
+  },
+  "err": null
+ },
+ {
+  "file": "shahriar.txt",
+  "mode": "international",
+  "fb": {
+   "formatting": {
+    "score": 60,
+    "feedback": "The resume follows a clean, professional layout but includes several non-standard sections that are detrimental to international applications. The inclusion of personal demographic data significantly impacts the professional presentation and introduces bias risks.",
+    "issues": [
+     {
+      "section": "PERSONAL INFORMATION",
+      "issue": "Inclusion of Father's name, Mother's name, Date of Birth, Gender, Religion, and Marital Status.",
+      "suggestion": "Remove the entire 'PERSONAL INFORMATION' section. International recruiters prioritize professional experience over personal demographics to avoid unconscious bias and discrimination."
+     },
+     {
+      "section": "DECLARATION",
+      "issue": "Inclusion of a formal declaration and signature line.",
+      "suggestion": "Remove the 'DECLARATION' section entirely. It is considered redundant and unprofessional in Western hiring standards."
+     },
+     {
+      "section": "REFERENCES",
+      "issue": "The phrase 'References available upon request' is outdated.",
+      "suggestion": "Remove this line. It is assumed that references will be provided if requested; this space is better used for additional professional achievements."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 85,
+    "feedback": "The content is strong, particularly the quantification of engineering achievements. The use of metrics (e.g., '180 MW', '40% reduction', '8% cost saving') is excellent and demonstrates high-level impact.",
+    "strengths": [
+     "Strong use of metrics to quantify project outcomes.",
+     "Clear progression of responsibility from Junior to Senior roles.",
+     "Relevant technical skills and standards are clearly listed."
+    ],
+    "weaknesses": [
+     "The 'Junior Electrical Engineer' role contains slightly weaker bullet points compared to the senior roles.",
+     "The 'Professional Certifications' section includes an 'in progress' certification which is generally discouraged unless it is a major degree."
+    ]
+   },
+   "language_grammar": {
+    "score": 95,
+    "feedback": "The language is professional and clear. The use of British/Commonwealth English (e.g., 'programme', 'specialisation') is correct and appropriate for the context.",
+    "issues": []
+   },
+   "action_items": [
+    "Delete the 'PERSONAL INFORMATION' and 'DECLARATION' sections to align with international privacy and anti-discrimination standards.",
+    "Rename 'CAREER OBJECTIVE' to 'Professional Summary' and 'EDUCATIONAL QUALIFICATION' to 'Education'.",
+    "Remove the 'References available upon request' line to reclaim space for more detailed project descriptions.",
+    "Refine the 'Junior Electrical Engineer' bullet points to focus more on outcomes rather than just tasks performed."
+   ],
+   "ats_analysis": {
+    "inferred_role": "Senior Electrical Engineer",
+    "inferred_industry": "Power and Energy",
+    "keyword_hits": [
+     "132 kV substation",
+     "SCADA",
+     "ETAP",
+     "AutoCAD Electrical",
+     "IEC 61850",
+     "EPC",
+     "Protection relay coordination",
+     "Power system studies"
+    ],
+    "keyword_gaps": [
+     "Grid stability analysis",
+     "Renewable energy integration",
+     "Budget forecasting"
+    ],
+    "heading_risks": [
+     {
+      "original": "CAREER OBJECTIVE",
+      "issue": "Non-standard heading for international ATS.",
+      "recommended": "Professional Summary"
+     },
+     {
+      "original": "EDUCATIONAL QUALIFICATION",
+      "issue": "Non-standard heading for international ATS.",
+      "recommended": "Education"
+     }
+    ],
+    "ats_tips": [
+     "International ATS systems often automatically discard resumes containing personal demographic data (e.g., religion, marital status); ensure these are removed to prevent immediate rejection.",
+     "Ensure your contact details are at the very top; avoid placing them in a header or footer that some ATS parsers might skip.",
+     "Use standard section headings like 'Professional Experience', 'Education', and 'Technical Skills' to ensure the ATS correctly categorizes your data."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 75
+   },
+   "job_match": null,
+   "overall_score": 84
+  },
+  "err": null
+ },
+ {
+  "file": "sharmin.txt",
+  "mode": "bangladesh",
+  "fb": {
+   "formatting": {
+    "score": 70,
+    "feedback": "The resume follows a standard layout suitable for the Bangladeshi market. However, there are inconsistencies in spacing and alignment, particularly in the 'Personal Informations' section. The use of bullet points is generally consistent, but the document lacks a professional, modern structure.",
+    "issues": [
+     {
+      "section": "WORK EXPERIANCE",
+      "issue": "Spelling error in the heading.",
+      "suggestion": "Change 'WORK EXPERIANCE' to 'WORK EXPERIENCE'."
+     },
+     {
+      "section": "PERSONAL INFORMATIONS",
+      "issue": "Pluralization error in the heading.",
+      "suggestion": "Change 'PERSONAL INFORMATIONS' to 'PERSONAL INFORMATION'."
+     },
+     {
+      "section": "General",
+      "issue": "Inconsistent indentation and spacing between bullet points and section headers.",
+      "suggestion": "Standardize the left margin for all bullet points and ensure uniform vertical spacing between sections."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 55,
+    "feedback": "The resume provides a basic overview but lacks the depth required to stand out. It relies heavily on passive language and fails to quantify achievements, which is critical for HR and Administrative roles.",
+    "strengths": [
+     "Clear educational progression.",
+     "Relevant internship and work experience in the target field."
+    ],
+    "weaknesses": [
+     "The Career Objective is generic and lacks a value proposition.",
+     "Bullet points use weak verbs like 'Helping', 'Assisting', 'Support', and 'Doing', which fail to demonstrate impact.",
+     "Missing References section.",
+     "Missing extracurricular or co-curricular activities (relevant for a recent graduate).",
+     "Missing GPA denominator for SSC and HSC results."
+    ]
+   },
+   "language_grammar": {
+    "score": 65,
+    "feedback": "The language is understandable but contains several grammatical errors and awkward phrasing that detract from professionalism.",
+    "issues": [
+     {
+      "original": "I am hereby declared that all the informations given above is correct to my knowledge.",
+      "corrected": "I hereby declare that all the information provided above is true and correct to the best of my knowledge.",
+      "type": "Grammar"
+     },
+     {
+      "original": "Support in managing office supplies, stationary and inventory records",
+      "corrected": "Supported the management of office supplies, stationery, and inventory records.",
+      "type": "Grammar/Spelling"
+     },
+     {
+      "original": "Doing photocopying and scanning works as required",
+      "corrected": "Managed document digitization, including photocopying and scanning, to ensure efficient record-keeping.",
+      "type": "Style"
+     }
+    ]
+   },
+   "action_items": [
+    "Rewrite the Career Objective to be specific: 'Aspiring HR professional with a BBA in HRM and 2 years of experience in administrative and HR support, seeking to leverage expertise in leave management and recruitment coordination to contribute to [Company Name].'",
+    "Add a 'References' section with at least two professional contacts, including their full name, designation, organization, phone number, and email.",
+    "Quantify your achievements: Instead of 'Helping HR team in recruitment', use 'Supported the recruitment process for 10+ monthly hires by screening resumes and scheduling interviews.'",
+    "Update the Education section to include the GPA denominator for SSC and HSC (e.g., 3.50/5.00).",
+    "Add an 'Extracurricular Activities' section detailing any club memberships or volunteer work during your university years to demonstrate leadership and soft skills."
+   ],
+   "ats_analysis": {
+    "inferred_role": "HR/Administrative Assistant",
+    "inferred_industry": "Corporate/Business Services",
+    "keyword_hits": [
+     "Human Resource Management",
+     "Recruitment",
+     "Leave management",
+     "Administrative",
+     "MS Excel",
+     "Employee engagement"
+    ],
+    "keyword_gaps": [
+     "HRIS (Human Resource Information System)",
+     "Payroll processing",
+     "Compliance"
+    ],
+    "heading_risks": [
+     {
+      "original": "WORK EXPERIANCE",
+      "issue": "Spelling error may cause parsing failure.",
+      "recommended": "WORK EXPERIENCE"
+     }
+    ],
+    "ats_tips": [
+     "Use standard section headings like 'Work Experience' and 'Education' to ensure ATS parsers correctly categorize your data.",
+     "Replace vague verbs like 'Helping' or 'Doing' with industry-standard action verbs like 'Coordinated', 'Streamlined', 'Managed', or 'Executed'.",
+     "Include a 'Skills' section that explicitly lists software proficiency (e.g., 'HRIS software', 'Advanced MS Excel') to improve keyword matching."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 74
+   },
+   "job_match": null,
+   "overall_score": 62
+  },
+  "err": null
+ },
+ {
+  "file": "sharmin.txt",
+  "mode": "international",
+  "fb": {
+   "formatting": {
+    "score": 45,
+    "feedback": "The resume follows a traditional, outdated format common in local markets but unsuitable for international standards. It contains significant amounts of irrelevant personal data that distract from professional qualifications.",
+    "issues": [
+     {
+      "section": "PERSONAL INFORMATIONS",
+      "issue": "Inclusion of Father's name and Mother's name.",
+      "suggestion": "Remove these entries entirely. International recruiters do not require parental information, and its inclusion can lead to unconscious bias."
+     },
+     {
+      "section": "PERSONAL INFORMATIONS",
+      "issue": "Inclusion of Date of Birth.",
+      "suggestion": "Remove this. Age is a protected characteristic in many international jurisdictions; providing it creates a risk of age-based discrimination."
+     },
+     {
+      "section": "PERSONAL INFORMATIONS",
+      "issue": "Inclusion of Religion.",
+      "suggestion": "Remove this. Religion is a personal matter and irrelevant to professional capability; it should never appear on a CV."
+     },
+     {
+      "section": "PERSONAL INFORMATIONS",
+      "issue": "Inclusion of Blood Group.",
+      "suggestion": "Remove this. This is irrelevant to job performance and poses a privacy risk."
+     },
+     {
+      "section": "PERSONAL INFORMATIONS",
+      "issue": "Inclusion of Marital Status.",
+      "suggestion": "Remove this. Marital status is irrelevant to professional performance and can be a source of gender-based bias."
+     },
+     {
+      "section": "DECLARATION",
+      "issue": "Inclusion of a Declaration section.",
+      "suggestion": "Remove this section. It is considered redundant and unprofessional in modern international recruitment."
+     }
+    ]
+   },
+   "content_quality": {
+    "score": 40,
+    "feedback": "The content is overly passive and lacks impact. It focuses on tasks performed rather than achievements or results. The 'Career Objective' is generic and does not articulate value to the employer.",
+    "strengths": [
+     "Clear chronological work history.",
+     "Relevant educational background in HRM."
+    ],
+    "weaknesses": [
+     "The Career Objective is vague and self-centered ('prove myself', 'make a good future').",
+     "Bullet points rely on weak verbs like 'Helping', 'Assisting', 'Support in', and 'Doing'.",
+     "Lack of metrics (e.g., how many employees were managed, volume of recruitment, efficiency improvements).",
+     "Skills section is too basic; lacks modern HR software or ATS-friendly terminology."
+    ]
+   },
+   "language_grammar": {
+    "score": 65,
+    "feedback": "The language is generally understandable but suffers from grammatical errors and non-professional phrasing.",
+    "issues": [
+     {
+      "original": "WORK EXPERIANCE",
+      "corrected": "WORK EXPERIENCE",
+      "type": "Spelling"
+     },
+     {
+      "original": "I am hereby declared that all the informations given above is correct",
+      "corrected": "I hereby declare that all information provided above is accurate.",
+      "type": "Grammar"
+     },
+     {
+      "original": "Doing photocopying and scanning works",
+      "corrected": "Managed document digitization and office administrative workflows.",
+      "type": "Professional Phrasing"
+     }
+    ]
+   },
+   "action_items": [
+    "Replace the 'Career Objective' with a 'Professional Summary' that highlights your HRM degree and 2+ years of administrative/HR experience.",
+    "Rewrite all bullet points using the STAR method (Situation, Task, Action, Result) to replace passive verbs like 'helping' with 'managed', 'streamlined', or 'coordinated'.",
+    "Delete the entire 'PERSONAL INFORMATIONS' and 'DECLARATION' sections to comply with international privacy and anti-discrimination standards.",
+    "Update the 'Skills' section to include specific HR tools (e.g., HRIS, Payroll software, LinkedIn Recruiter) rather than just basic MS Office proficiency."
+   ],
+   "ats_analysis": {
+    "inferred_role": "HR Assistant / Administrative Assistant",
+    "inferred_industry": "Human Resources / Administration",
+    "keyword_hits": [
+     "Human Resource Management",
+     "Recruitment",
+     "Attendance",
+     "Leave management",
+     "Administrative",
+     "Office correspondence"
+    ],
+    "keyword_gaps": [
+     "HRIS (Human Resource Information System)",
+     "Onboarding",
+     "Performance Management"
+    ],
+    "heading_risks": [
+     {
+      "original": "CAREER OBJECTIVE",
+      "issue": "Outdated heading that focuses on candidate needs rather than employer value.",
+      "recommended": "Professional Summary"
+     },
+     {
+      "original": "EDUCATIONAL QUALIFICATIONS",
+      "issue": "Non-standard phrasing.",
+      "recommended": "Education"
+     },
+     {
+      "original": "PERSONAL INFORMATIONS",
+      "issue": "Non-standard heading; contains prohibited personal data.",
+      "recommended": "Contact Details"
+     }
+    ],
+    "ats_tips": [
+     "Remove all personal demographic data (Religion, Marital Status, etc.), as international ATS systems are often configured to flag or discard resumes containing these fields to avoid compliance risks.",
+     "Use standard section headings like 'Professional Experience' and 'Education' to ensure the ATS correctly parses your career timeline.",
+     "Quantify your achievements; for example, instead of 'Maintaining attendance', use 'Managed attendance records for 50+ employees, reducing processing time by 15%'."
+    ],
+    "standard": "international/multinational ATS",
+    "ats_score": 68
+   },
+   "job_match": null,
+   "overall_score": 50
+  },
+  "err": null
+ }
+]

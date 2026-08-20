@@ -12,6 +12,12 @@ digging through git history.
 | ---- | --------- | ------------- | ----------- |
 | `iteration_04_resumeReviewer.js` | 4 | `1f110fd` (2026-04-14) | ~2,114 tokens |
 | `iteration_06_resumeReviewer.js` | 6 | `9417938` (2026-08-04) | ~3,206 BD / ~2,478 INTL |
+| `iteration_07_resumeReviewer.js` | 7 | `b877ccf` (2026-08-20) | ~2,918 BD / ~2,040 INTL |
+
+Iteration 8 replaced the single-file prompt with composed modules under
+`ai-service/src/prompt/`, so `iteration_07_resumeReviewer.js` is the last
+snapshot this folder can hold as one file. From Iteration 8 onward the rendered
+goldens under `ai-service/tests/golden/` are the point-in-time record.
 
 Each file is a byte-identical copy of `ai-service/src/services/resumeReviewer.js`
 as it stood at the source commit. They are reference material only — nothing

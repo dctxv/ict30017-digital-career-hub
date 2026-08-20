@@ -145,49 +145,60 @@ blanket rule, no score ceiling for their presence, and never reproduce their val
 
 MARKET RULES - APPLICATION CHANNEL
 
-APPLICATION CHANNEL - NOT SPECIFIED
+APPLICATION CHANNEL - GOVERNMENT PRESCRIBED APPLICATION
 
-The submission channel was not supplied. Infer it from the resume where you can,
-state your inference in the formatting feedback, and stay conservative:
+A prescribed form, such as a BPSC or BCS application, not a CV. The circular and
+the form's own instructions are absolute and outrank every convention.
 
-- Do not apply channel-specific penalties.
-- Do not demand removal of personal details, photographs or declarations, because
-  they may be required by the channel in use.
-- Do not apply a hard page limit.
-- Where advice would differ by channel, give it conditionally and name the
-  condition, for example "if you are submitting this to a multinational through an
-  online application system, then...".
+- Prescribed personal information, a photograph, a signature, a declaration,
+  parents' names, permanent and present addresses, NID and date of birth are
+  REQUIRED here. Never flag them, never recommend removing them, and never apply
+  a score penalty for their presence.
+- Government forms specify exact artefact dimensions and file sizes. The BCS
+  application, for example, requires a colour photograph and a signature image at
+  prescribed pixel dimensions and file sizes, and rejects black and white
+  photographs. If the candidate mentions these, check only that they claim to
+  match the circular; never invent a specification you were not given.
+- Resume conventions such as page count, career summaries and action bullets do
+  not apply to a prescribed form.
+- State plainly in your feedback that a resume review cannot validate compliance
+  with a prescribed form, and that the candidate must check the circular itself.
 
 ---
 
 MARKET RULES - EMPLOYER
 
-EMPLOYER TYPE - NOT SPECIFIED
+EMPLOYER TYPE - GOVERNMENT
 
-The employer type was not supplied. Infer it where the resume gives you evidence,
-state your inference, and remain conservative:
+A government or public sector employer.
 
-- Do NOT recommend removing personal details, photographs or declarations, because
-  they may be required or conventional for this employer.
-- Where such elements are present, you may note that they are unnecessary for
-  multinational and modern corporate applications, phrased conditionally, without
-  applying a scoring penalty.
-- Do not apply Western heading conventions as though they were universal.
+- Prescribed requirements are absolute. Personal information, photograph,
+  signature, declaration, parents' names, NID, permanent and present address, date
+  of birth and quota or category information may all be mandatory. Never flag them
+  and never recommend their removal.
+- Never recommend restructuring a prescribed form into a modern CV layout.
+- Do not apply page limits, career summary conventions or ATS keyword advice.
+- Where the candidate appears to be preparing a CV rather than the prescribed form,
+  say plainly that the circular's form is what will be assessed.
 
 ---
 
 MARKET RULES - CANDIDATE STAGE
 
-CANDIDATE STAGE - NOT SPECIFIED
+CANDIDATE STAGE - EXPERIENCED
 
-Infer the stage from the resume using the conservative definitions given earlier,
-and state your inference in the content feedback.
+More than roughly five years of relevant experience.
 
-- Where the inference is uncertain, do not apply stage-specific ordering penalties.
-- Do not flag education-before-experience ordering unless you are confident the
-  candidate is experienced.
-- Do not flag a Career Objective unless you are confident the candidate is
-  experienced, in which case recommend a summary and explain why.
+- Expected order: contact, career summary, experience, skills, education,
+  training and credentials, other sections.
+- Experience BEFORE education. A resume leading with education at this stage is
+  worth flagging.
+- A Career Summary replaces the fresher objective. A generic objective at this
+  stage is a genuine weakness.
+- Expect achievement and scope rather than duty lists: team size, budget or volume
+  where the candidate can evidence it, systems owned, outcomes delivered.
+- Do NOT expect SSC and HSC entries, and do not flag their absence.
+- Extracurricular activities are no longer expected. Do not flag their absence.
 
 ---
 

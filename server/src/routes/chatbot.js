@@ -8,6 +8,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { streamChatbotResponse } from 'ai-service';
 import { getAllowedOrigins } from '../config/origins.js';
+import sharedPool from '../db.js';
 
 const router = express.Router();
 
@@ -148,32 +149,22 @@ function attachOptionalUser(req, res, next) {
 async function getPgPool() {
   if (pgPool || pgUnavailable) return pgPool;
 
+  // This used to construct its own Pool from DATABASE_URL / PGPASSWORD, env
+  // vars this project has never set — the rest of the server connects through
+  // db.js using the DB_* names. The check always failed, so the daily chat
+  // counter silently ran on the in-memory fallback: it appeared to work because
+  // the fallback also blocks at the free limit, but counts reset on every
+  // restart and the chat_message_count columns were never written. Probe the
+  // shared pool once instead; the in-memory fallback remains for a genuinely
+  // unreachable database in development.
   try {
-    const { Pool } = await import('pg');
-
-    if (!process.env.DATABASE_URL && !process.env.PGPASSWORD) {
-      console.warn('[chat] Neither DATABASE_URL nor PGPASSWORD is set — falling back to in-memory counters.');
-      pgUnavailable = true;
-      return null;
-    }
-
-    const config = process.env.DATABASE_URL
-      ? { connectionString: process.env.DATABASE_URL }
-      : {
-          user: process.env.PGUSER || 'postgres',
-          host: process.env.PGHOST || 'localhost',
-          database: process.env.PGDATABASE || 'digitalcareerhub',
-          password: process.env.PGPASSWORD,
-          port: Number(process.env.PGPORT || 5432),
-        };
-
-    pgPool = new Pool(config);
-    return pgPool;
+    await sharedPool.query('SELECT 1');
+    pgPool = sharedPool;
   } catch (err) {
     pgUnavailable = true;
-    console.warn('[chat] PostgreSQL client unavailable; using in-memory free-tier counters for this process.');
-    return null;
+    console.warn('[chat] Database unreachable; using in-memory free-tier counters for this process:', err.message);
   }
+  return pgPool;
 }
 
 function todayKey() {
@@ -246,9 +237,31 @@ async function enforceDailyTurnLimit(req, res, next) {
     return;
   }
 
-  if (req.user.role === 'premium' || req.user.role === 'admin') {
-    next();
-    return;
+  // Premium is a TIER, not a role. This bypass previously tested
+  // req.user.role === 'premium', which no row can ever satisfy (the only roles
+  // in the users table are admin and student), so premium subscribers were
+  // silently held to the free daily limit. The tier lives in the database, not
+  // the JWT, so it is read here; the resolved value is kept on req.user for the
+  // handler to route the model with.
+  try {
+    const pool = await getPgPool();
+    if (pool) {
+      const who = await pool.query('SELECT tier, role FROM users WHERE user_id = $1', [req.user.id]);
+      if (who.rows.length === 0) {
+        return res.status(401).json({ error: 'Authentication required.' });
+      }
+      req.user.tier = who.rows[0].tier === 'premium' ? 'premium' : 'free';
+      if (req.user.tier === 'premium' || who.rows[0].role === 'admin') {
+        next();
+        return;
+      }
+    } else {
+      // No database available: the tier cannot be known, so count as free.
+      req.user.tier = 'free';
+    }
+  } catch (err) {
+    console.error('[chat] Tier lookup failed, treating as free tier:', err.message);
+    req.user.tier = 'free';
   }
 
   try {
@@ -332,6 +345,9 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforc
     console.log(`[chat] Streaming response for user ${req.user.id}; language=${language}`);
     const tokenStream = streamChatbotResponse(conversationHistory, message, {
       userId: req.user.id,
+      // Resolved from the database by enforceDailyTurnLimit. Premium accounts
+      // route to AI_MODEL_PREMIUM; guests and free accounts use the free model.
+      tier: req.user.tier ?? 'free',
       language,
     });
 

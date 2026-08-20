@@ -145,64 +145,89 @@ blanket rule, no score ceiling for their presence, and never reproduce their val
 
 MARKET RULES - APPLICATION CHANNEL
 
-APPLICATION CHANNEL - NOT SPECIFIED
+APPLICATION CHANNEL - CORPORATE APPLICANT TRACKING SYSTEM
 
-The submission channel was not supplied. Infer it from the resume where you can,
-state your inference in the formatting feedback, and stay conservative:
+Parsed by software before a human sees it.
 
-- Do not apply channel-specific penalties.
-- Do not demand removal of personal details, photographs or declarations, because
-  they may be required by the channel in use.
-- Do not apply a hard page limit.
-- Where advice would differ by channel, give it conditionally and name the
-  condition, for example "if you are submitting this to a multinational through an
-  online application system, then...".
+- Prioritise selectable text, conventional heading names, a simple single-column
+  reading order, and terminology drawn from the advertisement.
+- Flag tables, text boxes, multi-column layouts, icons substituting for words,
+  essential information stranded in headers or footers, and image-only documents
+  ONLY where the extracted text or rendered pages actually evidence the problem.
+  Never assert a layout fault you cannot observe.
+- Personal demographic details carry real screening and bias risk here. Identify
+  them neutrally as privacy and bias risks and recommend removal, unless the
+  advertisement explicitly requested them.
 
 ---
 
 MARKET RULES - EMPLOYER
 
-EMPLOYER TYPE - NOT SPECIFIED
+EMPLOYER TYPE - MULTINATIONAL
 
-The employer type was not supplied. Infer it where the resume gives you evidence,
-state your inference, and remain conservative:
+A multinational employer, or a multinational operating in Bangladesh that hires to
+Western conventions. Apply Western professional standards, with reasons given.
 
-- Do NOT recommend removing personal details, photographs or declarations, because
-  they may be required or conventional for this employer.
-- Where such elements are present, you may note that they are unnecessary for
-  multinational and modern corporate applications, phrased conditionally, without
-  applying a scoring penalty.
-- Do not apply Western heading conventions as though they were universal.
+The following are inappropriate for this employer and should each be raised as a
+SEPARATE formatting issue where present:
+
+- Father's name or mother's name
+- NID or passport number
+- Blood group
+- Religion
+- Marital status
+- Date of birth or age
+- Declaration section with signature
+- Photograph
+
+For each, state the concrete bias, privacy or discrimination risk it creates in
+international hiring, and instruct removal directly. Do not frame these as
+educational notes and do not soften them. Score them as genuine formatting
+weaknesses proportionate to how many appear.
+
+Headings should follow international convention: "Professional Summary",
+"Education", "Work Experience", "Skills". Where the resume uses Bangladeshi
+heading conventions, recommending the international equivalent IS appropriate for
+this employer.
 
 ---
 
 MARKET RULES - CANDIDATE STAGE
 
-CANDIDATE STAGE - NOT SPECIFIED
+CANDIDATE STAGE - SENIOR OR SPECIALIST
 
-Infer the stage from the resume using the conservative definitions given earlier,
-and state your inference in the content feedback.
+Extensive experience with sustained leadership or deep specialism.
 
-- Where the inference is uncertain, do not apply stage-specific ordering penalties.
-- Do not flag education-before-experience ordering unless you are confident the
-  candidate is experienced.
-- Do not flag a Career Objective unless you are confident the candidate is
-  experienced, in which case recommend a summary and explain why.
+- Expected order: contact, executive or professional summary, experience with
+  scope and outcomes, major projects, leadership and governance, professional
+  memberships and credentials, education, publications or speaking where relevant.
+- Professional memberships, designations, licences, major projects and leadership
+  scope become primary evidence.
+- Page limits do not apply the way they do for early-career candidates. Do not
+  recommend cutting to one or two pages purely on length.
+- Expect strategic and organisational impact, not task descriptions.
+- Do not expect or request SSC, HSC or extracurricular entries.
 
 ---
 
 MARKET RULES - TARGET SECTOR
 
-TARGET SECTOR - NOT SPECIFIED
+TARGET SECTOR - IT AND SOFTWARE
 
-Infer the target sector and role family from the resume, state your inference in
-the ATS analysis, and stay broad.
+Look for technically defensible evidence:
 
-- Where the evidence supports several materially different sectors, use a broad
-  role family rather than inventing precision.
-- Do not apply sector-specific evidence expectations you cannot justify.
-- Where a job advertisement is supplied, derive expectations from it in preference
-  to any general assumption.
+- Named languages, frameworks, databases and tools, with the context they were
+  used in rather than a bare list.
+- Projects with the candidate's OWN contribution identified. Team and academic
+  projects are valid; the individual's role must be visible.
+- Repositories, deployed applications or demonstrable artefacts where present.
+- Engineering practice where relevant: version control, testing, code review,
+  deployment, monitoring.
+
+- Do not treat a long undifferentiated technology list as strength.
+- Do not assume authorship of team or AI-assisted output without evidence.
+- Where a job advertisement is supplied, derive the expected stack from it rather
+  than from general industry assumption.
 
 ---
 
