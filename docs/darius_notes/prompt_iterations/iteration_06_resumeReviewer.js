@@ -1,18 +1,8 @@
 import { getGroqClient, getModel } from '../utils/aiClient.js';
 import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
-import {
-  SCORE_WEIGHTS,
-  ATS_LIST_CAP,
-  AI_COMPLETION_PARAMS,
-  ATS_STANDARD_LABEL,
-  BANGLADESH_PROTECTED_HEADINGS,
-  asPercent,
-} from '../config/reviewConstants.js';
 
-const BANGLADESH_MODE_BLOCK = `MARKET RULES — BANGLADESH JOB MARKET
-
-You are an expert career consultant and resume reviewer specialising in the Bangladesh job market.
-Your role is to critically evaluate resumes for job seekers in Bangladesh — including sectors such as IT/software, RMG, banking, NGOs, civil engineering, and business.
+const BANGLADESH_MODE_BLOCK = `You are an expert career consultant and resume reviewer specialising in the Bangladesh job market.
+Your role is to critically evaluate resumes for job seekers in Bangladesh â€” including sectors such as IT/software, RMG, banking, NGOs, civil engineering, and business.
 
 Context you must understand:
 - Bangladeshi employers typically expect a clear objective/summary section.
@@ -45,52 +35,68 @@ proposition is a content weakness. Flag it as such and provide a rewritten versi
 that references the candidate's specific background, target role, and one concrete
 strength. Do not flag the heading itself — only the content quality.
 
-CONTENT-QUALITY CHECKS — for each check below: if the section or entry it
-describes is absent, flag it as a content weakness using the message stated for
-that check. Apply each check only within the experience scope stated for it, and
-never flag a candidate who falls outside that scope.
+Bangladesh employers, particularly in banking, government, and large corporates,
+expect 2 to 3 named references with full contact details: full name, designation,
+organisation, phone number, and email address. "References available upon request"
+is not standard practice in the Bangladesh market.
 
-1. References. Expect 2 to 3 named references with full contact details: full
-   name, designation, organisation, phone number, and email address. "References
-   available upon request" or equivalent counts as absent; partial details (name
-   and organisation but no phone) do not. Scope: all candidates.
-   Message: "A References section with at least two named referees including
-   their designation, organisation, and contact details is expected by most
-   Bangladesh employers."
+Check the resume for a References section:
+- If no References section exists at all, flag this as a content weakness:
+  "A References section with at least two named referees including their
+  designation, organisation, and contact details is expected by most Bangladesh
+  employers."
+- If a References section exists but only contains "available upon request" or
+  equivalent, flag this as a content weakness with the same suggestion.
+- If at least one full reference with name and contact details is present, do not
+  flag this as a weakness. Do not penalise a resume that has partial reference
+  details (name and organisation but no phone) — only flag complete absence.
 
-2. Extracurricular or co-curricular activities, voluntary work, club
-   memberships, competitions, or equivalent. Scope: fresh graduates and recent
-   postgraduates — graduation within the last 3 years or fewer than 2 years of
-   work experience; never flag candidates with 3 or more years of work
-   experience.
-   Message: "Bangladeshi employers value extracurricular involvement for fresh
-   graduates. Consider adding a section covering club memberships, volunteer
-   work, academic competitions, or community activities."
-   Also flag if the section exists but lists only one-word entries with no
-   context (e.g. "Cricket" or "Reading"), and suggest expanding each entry with
-   role and duration.
+For candidates inferred to be fresh graduates or recent postgraduates (graduation
+within the last 3 years or fewer than 2 years of work experience), check whether
+the resume includes a section for extracurricular activities, co-curricular
+activities, voluntary work, club memberships, competitions, or equivalent.
+Bangladesh employers in banking, FMCG, and the public sector use this section to
+assess leadership potential and initiative where work experience is limited.
 
-3. SSC and HSC results in the Education section. Each entry should include: full
-   exam name (Secondary School Certificate or Higher Secondary Certificate), GPA
-   out of 5.00, passing year, institution name, and Education Board name (e.g.
-   Dhaka Board, Chittagong Board, Rajshahi Board). An entry that is present but
-   missing the GPA denominator (/5.00) is a formatting issue, handled identically
-   to university CGPA denominator errors. Scope: graduation within the last 5
-   years or no substantial work history; never apply to candidates with 5 or more
-   years of continuous work experience.
-   Message: name whichever of SSC or HSC is absent and give a specific suggestion
-   to add it to the Education section.
+If no such section exists, flag this as a content weakness: "Bangladeshi employers
+value extracurricular involvement for fresh graduates. Consider adding a section
+covering club memberships, volunteer work, academic competitions, or community
+activities."
 
-4. Thesis, dissertation, or final year project entry, carrying at minimum the
-   title and a one-line description of the topic or outcome; supervisor name is
-   standard but not mandatory. Scope: highest qualification of Bachelor's degree
-   or above, graduated within the last 5 years, and a research or technical
-   background — never flag a clearly non-technical background (e.g. arts,
-   business, or management degrees with no technical indicators) or candidates
-   with 5 or more years of work experience.
-   Message: "Including your final year project or thesis title with a brief
-   description demonstrates research exposure and is expected by Bangladesh
-   employers for recent graduates."
+Do not flag this for candidates with 3 or more years of work experience. Quality
+check: if the section exists but lists only one-word entries with no context (e.g.
+"Cricket" or "Reading"), flag it as a content weakness and suggest expanding each
+entry with role and duration.
+
+For candidates who appear to be fresh graduates or recent postgraduates (inferred
+from graduation year within the last 5 years or absence of substantial work
+history), check whether the Education section includes both SSC and HSC results.
+Each entry should include: full exam name (Secondary School Certificate or Higher
+Secondary Certificate), GPA out of 5.00, passing year, institution name, and
+Education Board name (e.g. Dhaka Board, Chittagong Board, Rajshahi Board).
+
+If SSC or HSC results are absent entirely from the Education section, flag this as
+a content weakness with a specific suggestion to add them. If either entry is
+present but missing the GPA denominator (/5.00), flag it as a formatting issue
+identical to how university CGPA denominator errors are handled.
+Do not apply this check to candidates with 5 or more years of continuous work
+experience.
+
+For candidates whose highest qualification appears to be a Bachelor's degree or
+above and who graduated within the last 5 years, check whether the resume includes
+a thesis, dissertation, or final year project entry. This is expected in Bangladesh
+for engineering, IT, science, and research-adjacent roles. The entry should include
+at minimum: project or thesis title and a one-line description of the topic or
+outcome. Supervisor name is standard but not mandatory.
+
+If no such entry exists and the candidate's background suggests a research or
+technical degree, flag this as a content weakness: "Including your final year
+project or thesis title with a brief description demonstrates research exposure and
+is expected by Bangladesh employers for recent graduates."
+
+Do not flag this for candidates whose background is clearly non-technical (e.g.
+arts, business, or management degrees with no technical indicators), or for
+candidates with 5 or more years of work experience.
 
 Apply a formatting score ceiling of 75 if the resume contains three or more of
 these conventions. Frame this as an educational note about modern digital
@@ -99,7 +105,7 @@ sections that conflicts with this block is overridden by this block.
 `.trim();
 
 const INTERNATIONAL_MODE_BLOCK = `
-MARKET RULES — INTERNATIONAL / MULTINATIONAL COMPANIES
+ANALYSIS MODE — INTERNATIONAL / MULTINATIONAL COMPANIES
 
 The user is applying to international companies, or to multinationals operating
 in Bangladesh that use Western hiring standards. Apply Western professional CV
@@ -109,18 +115,47 @@ The following elements are inappropriate for international applications and MUST
 be treated as formatting issues. Flag EACH of them as a separate entry in the
 formatting issues array if they appear in the resume:
 
-- Father's name or mother's name, anywhere in the resume
-- NID number or national identification number
-- Blood group
-- Religion
-- Marital status
-- Date of birth or age
-- Declaration section
-- Photograph
+- Father's name or mother's name anywhere in the resume:
+  issue: "Including a parent's name is not expected in international applications
+  and can introduce unconscious bias in shortlisting."
+  suggestion: "Remove father's name and mother's name from the Personal Information
+  section entirely."
 
-For each one present, write the issue in terms of the concrete bias, privacy, or
-discrimination risk it creates in international hiring, and write the suggestion
-as a direct instruction to remove it from the resume.
+- NID number or national identification number:
+  issue: "National ID numbers should never appear on a resume — they create a
+  privacy and identity theft risk."
+  suggestion: "Remove the NID number from the resume."
+
+- Blood group:
+  issue: "Blood group is medically irrelevant to professional employment and is
+  not expected in international resumes."
+  suggestion: "Remove blood group from the Personal Information section."
+
+- Religion:
+  issue: "Disclosing religion on a resume can lead to discrimination in
+  international hiring contexts and is considered inappropriate in most countries."
+  suggestion: "Remove religion from the Personal Information section."
+
+- Marital status:
+  issue: "Marital status is personal information that can introduce bias and is
+  not expected or appropriate in international applications."
+  suggestion: "Remove marital status from the Personal Information section."
+
+- Date of birth or age:
+  issue: "Date of birth disclosure can lead to age discrimination and is
+  discouraged or prohibited in many international hiring contexts."
+  suggestion: "Remove date of birth from the resume. Focus on experience and
+  qualifications instead."
+
+- Declaration section:
+  issue: "Declaration sections are a Bangladeshi CV convention not used in
+  international resumes and waste valuable page space."
+  suggestion: "Remove the declaration section entirely."
+
+- Photograph:
+  issue: "Including a photograph is strongly discouraged for international
+  applications as it can introduce unconscious appearance-based bias."
+  suggestion: "Remove the photograph from the resume."
 
 Do NOT apply any score ceiling or educational framing for these items.
 Score each as a genuine formatting penalty — their presence should reduce the
@@ -171,7 +206,9 @@ Identify specific formatting issues: inconsistent spacing, misaligned sections, 
 bullet points, unprofessional fonts, or overly dense text blocks.
 
 Note: CGPA formatted as X.XX/4.00 or X.XX/5.00 is correct — only flag if the denominator
-is missing or clearly wrong.
+is missing or clearly wrong. Apply a formatting score ceiling of 75 if the resume contains
+three or more Bangladeshi CV conventions (see CRITICAL block above); frame this as an
+educational note about modern digital applications, not a penalty.
 
 Return:
 {
@@ -240,29 +277,21 @@ the primary signal for role inference and use the resume to confirm or supplemen
 Step 2 — keyword_hits: list terms already present in the resume that are commonly
 required by ATS systems for the inferred role. List actual keywords, not categories.
 
-Step 3 — keyword_gaps: list up to ${ATS_LIST_CAP} of the most impactful keywords commonly
+Step 3 — keyword_gaps: list up to 3 of the most impactful keywords commonly
 expected by ATS systems for the inferred role that are absent from the resume.
 If the resume already covers most keywords, return fewer — only list genuine gaps.
 
 Step 4 — heading_risks: identify section headings that some ATS systems may fail to
 parse. For each, provide the original heading, the issue, and the recommended alternative.
 
-Flag non-standard headings that an ATS in the selected market would struggle with. Examples
-worth flagging: "Computer Knowledge" or "Computer Skills" where "Technical Skills" is the
-standard, "Curriculum Vitae" or "Resume Of" used as the document title, and any invented or
-misspelled section heading.
+Flag non-standard headings that a Western multinational ATS would struggle with. See the
+CRITICAL block above for headings that must never be flagged.
 
-One exclusion applies. If the MARKET RULES block above protects a heading, omit that heading
-from heading_risks entirely — not with a recommended alternative, not as a low-risk note, not
-in any form — even when it looks non-standard by Western convention. The exclusion covers only
-the headings that block names. Keep flagging every other non-standard heading as normal; do
-not return an empty heading_risks list just because one heading was excluded.
-
-Step 5 — ats_tips: provide up to ${ATS_LIST_CAP} tips to improve ATS performance. Each tip must be
+Step 5 — ats_tips: provide up to 3 tips to improve ATS performance. Each tip must be
 an improvement action — never a positive observation about what the resume already does
 well. If the resume scores well on a dimension, use that tip slot for the next most
 impactful gap instead. Each tip must reference something specific found or missing in
-this resume. Return fewer than ${ATS_LIST_CAP} only if fewer genuine improvement actions exist.
+this resume. Return fewer than 3 only if fewer genuine improvement actions exist.
 
 Return:
 {
@@ -271,7 +300,8 @@ Return:
   "keyword_hits": string[],
   "keyword_gaps": string[],
   "heading_risks": Array<{ "original": string, "issue": string, "recommended": string }>,
-  "ats_tips": string[]
+  "ats_tips": string[],
+  "standard": "international/multinational ATS"
 }
 
 ---
@@ -312,7 +342,7 @@ Provide exactly 3–5 recommendations. Each must be specific to a gap found — 
 
 SECTION 7 — overall_score
 Return a single integer (0–100). This will be recalculated server-side using the formula:
-content_quality ${asPercent(SCORE_WEIGHTS.content)}% + language_grammar ${asPercent(SCORE_WEIGHTS.language)}% + formatting ${asPercent(SCORE_WEIGHTS.formatting)}%.
+content_quality 45% + language_grammar 35% + formatting 20%.
 Provide your best estimate consistent with the section scores above.
 `.trim();
 }
@@ -343,11 +373,7 @@ function recalculateScores(parsed) {
   const lScore = parsed.language_grammar?.score ?? 0;
   const fScore = parsed.formatting?.score       ?? 0;
 
-  const overall_score = Math.round(
-    cScore * SCORE_WEIGHTS.content +
-    lScore * SCORE_WEIGHTS.language +
-    fScore * SCORE_WEIGHTS.formatting,
-  );
+  const overall_score = Math.round(cScore * 0.45 + lScore * 0.35 + fScore * 0.20);
 
   const ats_score = parsed.ats_analysis
     ? calculateATSScore(parsed.ats_analysis)
@@ -369,36 +395,7 @@ function recalculateScores(parsed) {
   };
 }
 
-/**
- * Drops market-protected headings from heading_risks.
- *
- * Bangladesh mode only. The prompt forbids these already, but live testing
- * showed the model re-flags "Educational Qualification" on most Bangladeshi
- * resumes regardless, at both Iteration 6 and 7, so this is the deterministic
- * backstop. It runs before recalculateScores, so ats_score is derived from the
- * filtered list rather than the raw one.
- *
- * International mode is meant to flag these headings and is never filtered.
- */
-function filterProtectedHeadings(headingRisks, marketMode) {
-  if (!Array.isArray(headingRisks)) return headingRisks;
-  if (marketMode !== 'bangladesh') return headingRisks;
-
-  const kept = headingRisks.filter(
-    (h) => !BANGLADESH_PROTECTED_HEADINGS.some((re) => re.test(String(h?.original ?? '')))
-  );
-
-  const dropped = headingRisks.length - kept.length;
-  if (dropped > 0) {
-    console.warn(
-      `[AI] Removed ${dropped} market-protected heading(s) from heading_risks. ` +
-      'The prompt forbids these in Bangladesh mode; the model returned them anyway.'
-    );
-  }
-  return kept;
-}
-
-function normalizeResponse(raw, marketMode = 'bangladesh') {
+function normalizeResponse(raw) {
   if (!raw || typeof raw !== 'object') return raw;
 
   // Remap old key names the AI sometimes uses
@@ -410,20 +407,16 @@ function normalizeResponse(raw, marketMode = 'bangladesh') {
     action_items:     raw.action_items     ?? [],
   };
 
-  // Cap ATS arrays — AI may over-generate; trim to keep only the most impactful entries.
-  // `standard` is injected here rather than asked for: it is a constant, so spending
-  // output tokens on it only made truncation more likely.
+  // Cap ATS arrays — AI may over-generate; trim to keep only the most impactful entries
   if (withAliases.ats_analysis) {
     const gaps = withAliases.ats_analysis.keyword_gaps ?? [];
     const tips = withAliases.ats_analysis.ats_tips ?? [];
-    if (gaps.length > ATS_LIST_CAP) console.warn(`[AI] keyword_gaps exceeded ${ATS_LIST_CAP} — trimmed. Prompt may need tightening.`);
-    if (tips.length > ATS_LIST_CAP) console.warn(`[AI] ats_tips exceeded ${ATS_LIST_CAP} — trimmed. Prompt may need tightening.`);
+    if (gaps.length > 3) console.warn('[AI] keyword_gaps exceeded 3 — trimmed. Prompt may need tightening.');
+    if (tips.length > 3) console.warn('[AI] ats_tips exceeded 3 — trimmed. Prompt may need tightening.');
     withAliases.ats_analysis = {
       ...withAliases.ats_analysis,
-      heading_risks: filterProtectedHeadings(withAliases.ats_analysis.heading_risks, marketMode),
-      keyword_gaps: gaps.slice(0, ATS_LIST_CAP),
-      ats_tips:     tips.slice(0, ATS_LIST_CAP),
-      standard:     withAliases.ats_analysis.standard ?? ATS_STANDARD_LABEL,
+      keyword_gaps: gaps.slice(0, 3),
+      ats_tips:     tips.slice(0, 3),
     };
   }
 
@@ -597,7 +590,10 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
   try {
     const stream = await client.chat.completions.create({
       model,
-      ...AI_COMPLETION_PARAMS,
+      temperature: 0.1,
+      frequency_penalty: 0.1,
+      presence_penalty: 0.1,
+      max_tokens: 4096,
       stream: true,
       messages: [
         { role: 'system', content: buildSystemPrompt(marketMode) },
@@ -635,7 +631,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
     throw new Error('AI returned an unreadable response. Please try again.');
   }
 
-  const normalized = normalizeResponse(parsed, marketMode);
+  const normalized = normalizeResponse(parsed);
   const result = ReviewResponseSchema.safeParse(normalized);
   if (!result.success) {
     console.error('[AI] Schema validation failed:', JSON.stringify(result.error.issues, null, 2));
@@ -659,7 +655,10 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
   try {
     const response = await client.chat.completions.create({
       model,
-      ...AI_COMPLETION_PARAMS,
+      temperature: 0.1,
+      frequency_penalty: 0.1,
+      presence_penalty: 0.1,
+      max_tokens: 4096,
       messages: [
         { role: 'system', content: buildSystemPrompt(marketMode) },
         { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd }) },
@@ -695,7 +694,7 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
     throw new Error('AI returned an unreadable response. Please try again.');
   }
 
-  const normalized = normalizeResponse(parsed, marketMode);
+  const normalized = normalizeResponse(parsed);
   const result = ReviewResponseSchema.safeParse(normalized);
   if (!result.success) {
     console.error('[AI] Schema validation failed:', JSON.stringify(result.error.issues, null, 2));

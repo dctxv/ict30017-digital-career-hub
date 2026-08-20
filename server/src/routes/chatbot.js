@@ -6,7 +6,8 @@
 import crypto from 'crypto';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { streamChatbotResponse } from '../../../ai-service/index.js';
+import { streamChatbotResponse } from 'ai-service';
+import { getAllowedOrigins } from '../config/origins.js';
 
 const router = express.Router();
 
@@ -214,7 +215,7 @@ async function incrementPostgresChatCount(userId) {
           ELSE COALESCE(chat_message_count, 0) + 1
         END,
         chat_count_reset_date = CURRENT_DATE
-      WHERE id = $1
+      WHERE user_id = $1
         AND (
           chat_count_reset_date IS NULL
           OR chat_count_reset_date < CURRENT_DATE
@@ -229,7 +230,7 @@ async function incrementPostgresChatCount(userId) {
     return { allowed: true, count: result.rows[0].chat_message_count };
   }
 
-  const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+  const userCheck = await pool.query('SELECT user_id FROM users WHERE user_id = $1', [userId]);
   if (userCheck.rows.length === 0) {
     return { allowed: false, missingUser: true };
   }
@@ -238,6 +239,13 @@ async function incrementPostgresChatCount(userId) {
 }
 
 async function enforceDailyTurnLimit(req, res, next) {
+  // Guests are not in the users table, so there is no row to count against.
+  // They are held back by the IP limiter that runs earlier in the chain.
+  if (req.user.role === 'guest' || req.user.id === 'guest') {
+    next();
+    return;
+  }
+
   if (req.user.role === 'premium' || req.user.role === 'admin') {
     next();
     return;
@@ -271,9 +279,7 @@ function validateCsrfOrigin(req, res, next) {
   const origin = req.headers.origin;
   if (!origin) { next(); return; }
 
-  const allowed = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-    : ['http://localhost:5173', 'http://localhost:5174'];
+  const allowed = getAllowedOrigins();
 
   if (!allowed.includes(origin)) {
     return res.status(403).json({ error: 'Forbidden.' });
@@ -305,8 +311,14 @@ function writeSse(res, payload) {
   res.write(`${frame}\n\n`);
 }
 
-// Guest access is enabled for now, so daily tier limits are not applied to this route.
-router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, validateChatBody, async (req, res) => {
+/*
+ * enforceDailyTurnLimit runs after attachOptionalUser so the user is known, and
+ * before validateChatBody so a malformed body from someone already over quota
+ * still reports the quota. It was fully written but never added to this chain,
+ * which left FREE_DAILY_CHAT_LIMIT and both chat_message_count columns unused.
+ * Guests fall through it and are bounded by chatIpRateLimit instead.
+ */
+router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforceDailyTurnLimit, validateChatBody, async (req, res) => {
   const { message, conversationHistory } = req.body;
   const language = req.body.language === 'bn' ? 'bn' : 'en';
 

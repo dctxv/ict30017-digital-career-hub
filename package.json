@@ -1,5 +1,11 @@
 {
   "dependencies": {
     "pdfjs-dist": "^5.4.296"
-  }
+  },
+  "name": "ict30017-digital-career-hub",
+  "private": true,
+  "workspaces": [
+    "ai-service",
+    "server"
+  ]
 }

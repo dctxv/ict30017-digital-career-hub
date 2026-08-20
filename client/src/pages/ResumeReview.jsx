@@ -9,8 +9,12 @@
  *    sample mode has no real file. Passed to ResultsView so PDFPanel can derive
  *    a blob URL from it directly without requiring a backend file URL.
  */
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Navbar from '../components/Navbar'
+import ResumeAnalysisError from './ResumeAnalysisError'
+import { validateResumeFile, ACCEPTED_EXTENSIONS } from '../utils/resumeFile'
+import { apiFetch } from '../utils/apiClient'
+import { useAuth } from '../context/AuthContext'
 import { streamResumeReview } from '../api/reviewResume'
 import ResultsView from './ResultsView'
 import './ResumeReview.css'
@@ -88,12 +92,66 @@ function FileIcon({ size = 36 }) {
 }
 
 /* ── UploadView ──────────────────────────────────────────────────── */
+/*
+ * Reads the caller's real remaining allowance.
+ *
+ * Three different numbers previously described one limit: static "3 reviews
+ * remaining this month" text here, "3 resume reviews per day" on the register
+ * page, and 5 per hour per IP in the server. The server is now the only
+ * authority, and this hook renders whatever it reports. Enforcement stays in
+ * backend middleware; nothing here decides anything.
+ */
+function useReviewQuota() {
+  const [quota, setQuota] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    apiFetch('/api/resume/quota')
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => { if (!cancelled) setQuota(data) })
+      .catch(() => { /* the label falls back to the generic plan text */ })
+    return () => { cancelled = true }
+  }, [])
+
+  return quota
+}
+
+function describeQuota(quota, isAuthenticated) {
+  if (!quota) return 'Free plan'
+  if (quota.unlimited) return 'Premium plan — unlimited resume reviews'
+  if (!quota.authenticated || !isAuthenticated) {
+    return `Free plan — ${quota.limit} resume reviews per day. Log in to track how many you have left.`
+  }
+  if (quota.remaining === 0) {
+    return 'Free plan — no resume reviews left today. Your allowance resets tomorrow.'
+  }
+  const plural = quota.remaining === 1 ? 'review' : 'reviews'
+  return `Free plan — ${quota.remaining} of ${quota.limit} resume ${plural} remaining today`
+}
+
 function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marketMode, setMarketMode, onAnalyse, onSample }) {
   const [drag, setDrag] = useState(false)
   const [enhanceOpen, setEnhanceOpen] = useState(false)
   const inputRef = useRef()
 
-  const pick = f => { if (f) setFile(f) }
+  const [fileError, setFileError] = useState('')
+  const { isAuthenticated } = useAuth()
+  const quota = useReviewQuota()
+  const quotaLabel = describeQuota(quota, isAuthenticated)
+
+  // Runs for both the picker and the drop zone. accept=".pdf,.docx" only
+  // filters the dialog, so a dropped .txt reached the server before this.
+  const pick = f => {
+    if (!f) return
+    const check = validateResumeFile(f)
+    if (!check.ok) {
+      setFileError(check.message)
+      setFile(null)
+      return
+    }
+    setFileError('')
+    setFile(f)
+  }
   const handleDrop = e => { e.preventDefault(); setDrag(false); pick(e.dataTransfer.files[0]) }
 
   return (
@@ -120,7 +178,16 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
           >
             Browse files
           </button>
-          <input ref={inputRef} type="file" accept=".pdf,.docx" style={{ display: 'none' }} onChange={e => pick(e.target.files[0])} />
+          <input
+            ref={inputRef}
+            type="file"
+            accept={ACCEPTED_EXTENSIONS.join(',')}
+            style={{ display: 'none' }}
+            onChange={e => pick(e.target.files[0])}
+          />
+          {fileError && (
+            <p className="drop-zone__error" role="alert">{fileError}</p>
+          )}
         </div>
       ) : (
         <div className="file-card">
@@ -200,8 +267,7 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
         <div className="upload-actions">
           <div className="free-notice">
             <span>⚠</span>
-            <span>Free plan — <strong>3 reviews remaining</strong> this month</span>
-            <a href="/register" className="free-notice__upgrade">Upgrade for unlimited →</a>
+            <span>{quotaLabel}</span>
           </div>
           <button className="btn btn-primary btn-full" onClick={onAnalyse}>
             Analyse my resume
@@ -283,6 +349,9 @@ export default function ResumeReview() {
   const [marketMode, setMarketMode] = useState('bangladesh')
   const [feedback, setFeedback] = useState(null)
   const [streamError, setStreamError] = useState(null)
+  // Terminal failure. Distinct from streamError, which annotates feedback that
+  // did arrive but looks incomplete.
+  const [analysisError, setAnalysisError] = useState(null)
   const [filename, setFilename] = useState('')
   const [isSample, setIsSample] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -293,6 +362,7 @@ export default function ResumeReview() {
     setIsLoading(true)
     setFeedback(null)
     setStreamError(null)
+    setAnalysisError(null)
     setIsSample(false)
     setFilename(f.name)
     setUploadedFile(f)
@@ -311,10 +381,21 @@ export default function ResumeReview() {
         setView('results')
         setIsLoading(false)
       },
-      onError: (_code, msg) => {
-        setStreamError(msg || 'Something went wrong during analysis.')
-        setView('results')
+      onError: (code, msg) => {
         setIsLoading(false)
+        // Feedback already on screen means the stream died partway: keep the
+        // results and annotate them. Nothing on screen is a total failure and
+        // must never route to the results shell with null feedback.
+        setFeedback(current => {
+          if (current) {
+            setStreamError(msg || 'The analysis stopped early.')
+            setView('results')
+          } else {
+            setAnalysisError({ code, message: msg })
+            setView('error')
+          }
+          return current
+        })
       },
     })
   }
@@ -331,8 +412,18 @@ export default function ResumeReview() {
   }
 
   function handleReanalyse() {
+    setAnalysisError(null)
     if (isSample) { setView('upload'); return }
     if (file) analyse(); else setView('upload')
+  }
+
+  function handleUploadNew() {
+    setAnalysisError(null)
+    setStreamError(null)
+    setFeedback(null)
+    setFile(null)
+    setUploadedFile(null)
+    setView('upload')
   }
 
   function handleNewFile(f) {
@@ -342,7 +433,7 @@ export default function ResumeReview() {
 
   return (
     <div className="rr-page">
-      <Navbar user={{ name: 'Isar Ujoodah' }} />
+      <Navbar />
       {view === 'upload' && (
         <UploadView
           file={file}
@@ -358,6 +449,15 @@ export default function ResumeReview() {
         />
       )}
       {view === 'analysing' && <AnalysingView filename={filename} />}
+      {view === 'error' && (
+        <ResumeAnalysisError
+          code={analysisError?.code}
+          message={analysisError?.message}
+          filename={filename}
+          onRetry={handleReanalyse}
+          onUploadNew={handleUploadNew}
+        />
+      )}
       {view === 'results' && (
         <ResultsView
           filename={filename}

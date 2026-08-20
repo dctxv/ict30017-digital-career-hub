@@ -3,25 +3,80 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
+import { z } from 'zod';
 import pool from '../db.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+/*
+ * One bucket per action rather than one bucket for the whole router.
+ *
+ * Previously a single 10-per-15-minutes limit was shared by register, login,
+ * forgot-password and reset-password combined, so a burst of failed logins
+ * locked a legitimate user out of registering or recovering their password.
+ * On the target network profile (shared university and NAT broadband in
+ * Bangladesh) that whole bucket is consumed by one lab. No limit is removed
+ * here; each action keeps at least the allowance it had before.
+ *
+ * GET /me is deliberately unlimited: the frontend calls it on every page load
+ * to confirm the session, and rate limiting it would break normal browsing.
+ */
+function makeAuthLimiter({ windowMs, limit, message }) {
+  return rateLimit({
+    windowMs,
+    limit,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: message },
+  });
+}
+
+/*
+ * Ceilings are set for a shared address, not a single person. A university lab
+ * or a NAT broadband connection presents as one IP, so a per-IP allowance sized
+ * for one user locks out everyone behind it. That is the same failure M12
+ * describes for resume analyses.
+ *
+ * These remain coarse abuse guards. The real brute-force control for login is
+ * the per-account lockout below (MAX_FAILED_ATTEMPTS then LOCKOUT_DURATION_MS),
+ * which is keyed on the account and is unaffected by how many people share an
+ * address. Password reset stays the tightest of the three because it sends
+ * email to an address the caller does not have to own.
+ */
+const registerLimiter = makeAuthLimiter({
+  windowMs: 60 * 60 * 1000,
+  limit: 30,
+  message: 'Too many registration attempts. Please try again in an hour.',
 });
 
-router.use(authRateLimit);
+const loginLimiter = makeAuthLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 50,
+  message: 'Too many login attempts. Please try again in 15 minutes.',
+});
+
+const passwordResetLimiter = makeAuthLimiter({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  message: 'Too many password reset requests. Please try again in an hour.',
+});
+
+/*
+ * The registration form posts a `plan` chosen from the Free and Premium tier
+ * cards. It is the only extra field the client is trusted for, and only after
+ * Zod has confirmed it is one of the two supported values. `role` is ignored
+ * outright: it is set server side so a crafted request cannot self-promote.
+ */
+const ALLOWED_TIERS = ['free', 'premium'];
+const PlanSchema = z.enum(ALLOWED_TIERS);
+const DEFAULT_TIER = 'free';
 
 const PASSWORD_MIN_LENGTH = 12;
 const PASSWORD_MAX_LENGTH = 128;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-router.post('/register', async (req, res) => {
+router.post('/register', registerLimiter, async (req, res) => {
   try {
     const { full_name, email, password } = req.body;
 
@@ -45,14 +100,25 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Full name must be between 2 and 100 characters.' });
     }
 
+    // An omitted plan means free. Anything present but outside the allowed set
+    // is rejected rather than silently coerced, so a typo in the client is
+    // visible instead of quietly downgrading the account.
+    const planResult = PlanSchema.safeParse(req.body.plan ?? DEFAULT_TIER);
+    if (!planResult.success) {
+      return res.status(400).json({
+        error: `Plan must be one of: ${ALLOWED_TIERS.join(', ')}.`,
+      });
+    }
+    const tier = planResult.data;
+
     const password_hash = await bcrypt.hash(password, 12);
     const normalisedEmail = email.trim().toLowerCase();
 
     const result = await pool.query(
-      `INSERT INTO users (full_name, email, password_hash, role)
-       VALUES ($1, $2, $3, $4)
-       RETURNING user_id, full_name, email, role, preferred_language, created_at`,
-      [full_name.trim(), normalisedEmail, password_hash, 'student']
+      `INSERT INTO users (full_name, email, password_hash, role, tier)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING user_id, full_name, email, role, tier, preferred_language, created_at`,
+      [full_name.trim(), normalisedEmail, password_hash, 'student', tier]
     );
 
     res.status(201).json({
@@ -73,7 +139,7 @@ router.post('/register', async (req, res) => {
 const MAX_FAILED_ATTEMPTS = 10;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -83,7 +149,7 @@ router.post('/login', async (req, res) => {
 
     const normalisedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
     const result = await pool.query(
-      `SELECT user_id, full_name, email, password_hash, role,
+      `SELECT user_id, full_name, email, password_hash, role, tier,
               failed_login_attempts, lockout_until
        FROM users WHERE email = $1`,
       [normalisedEmail]
@@ -145,6 +211,7 @@ router.post('/login', async (req, res) => {
         full_name: user.full_name,
         email: user.email,
         role: user.role,
+        tier: user.tier,
       },
     });
   } catch (error) {
@@ -153,7 +220,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
   const GENERIC_RESPONSE = { message: 'If that email is registered you will receive a reset link shortly.' };
   try {
     const { email } = req.body;
@@ -184,7 +251,7 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', passwordResetLimiter, async (req, res) => {
   try {
     const { email, token, newPassword } = req.body;
 
@@ -226,6 +293,46 @@ router.post('/reset-password', async (req, res) => {
   } catch (error) {
     console.error('Reset-password error:', error);
     return res.status(500).json({ error: 'Password reset failed.' });
+  }
+});
+
+/*
+ * GET /me — the authoritative answer to "am I signed in, and as whom".
+ *
+ * Reads role and tier from the database rather than from the token payload, so
+ * a role change or a deleted account takes effect on the next request instead
+ * of surviving until the one hour token expires. RequireAuth on the frontend
+ * gates on this, which is what stops a hand-edited localStorage entry from
+ * rendering the admin shell.
+ *
+ * Not rate limited: it runs on every page load.
+ */
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT user_id, full_name, email, role, tier, preferred_language FROM users WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      // Valid signature, but the account is gone. Treat as unauthenticated.
+      return res.status(401).json({ error: 'Session is no longer valid.' });
+    }
+
+    const user = result.rows[0];
+    return res.json({
+      user: {
+        id: user.user_id,
+        full_name: user.full_name,
+        email: user.email,
+        role: user.role,
+        tier: user.tier,
+        preferred_language: user.preferred_language,
+      },
+    });
+  } catch (error) {
+    console.error('Session lookup error:', error);
+    return res.status(500).json({ error: 'Could not confirm session.' });
   }
 });
 

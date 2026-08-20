@@ -110,6 +110,10 @@
   background: var(--text-primary);
   border-radius: 2px;
 }
+/* The mobile menu duplicate is hidden above the breakpoint; the desktop
+   copy in .navbar-right is the visible one there. */
+.navbar-mobile-auth { display: none; }
+
 @media (max-width: 768px) {
   .navbar-links {
     display: none;
@@ -125,5 +129,33 @@
   }
   .navbar-links.open { display: flex; }
   .hamburger { display: flex; }
-  .btn-outline-sm, .btn-filled-sm { display: none; }
+  /* Hide only the navbar copy of the auth actions, not every small button on
+     the site. The previous rule targeted .btn-outline-sm and .btn-filled-sm
+     globally, so it also hid those buttons on any page that used them. */
+  .navbar-right .navbar-auth-action,
+  .navbar-right .navbar-user { display: none; }
+
+  /* The auth actions live inside the collapsible menu at this width. */
+  .navbar-mobile-auth {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+    padding-top: 12px;
+    margin-top: 4px;
+    border-top: 1px solid var(--border);
+  }
+  .navbar-mobile-auth .navbar-auth-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+  }
+  .navbar-mobile-auth .navbar-user {
+    display: block;
+    font-weight: 600;
+    padding-bottom: 4px;
+  }
 }

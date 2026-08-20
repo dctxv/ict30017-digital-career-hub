@@ -7,7 +7,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
-import { assertModelConfig } from '../../ai-service/index.js';
+import { getAllowedOrigins } from './config/origins.js';
+import { assertModelConfig } from 'ai-service';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,9 +24,7 @@ try {
   process.exit(1);
 }
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:5174'];
+const allowedOrigins = getAllowedOrigins();
 
 const app = express();
 app.use(helmet());

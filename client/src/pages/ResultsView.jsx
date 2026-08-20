@@ -704,9 +704,14 @@ export default function ResultsView({
 
         {/* RIGHT — Feedback cards */}
         <div style={{ flex: 1, minWidth: 0, padding: isMobile ? '20px 16px' : '24px 20px' }}>
+          {/* Partial failure only. A total failure never reaches this view:
+              ResumeReview routes it to ResumeAnalysisError, which states the
+              cause and always offers a way out. This banner therefore always
+              sits above feedback that did arrive. */}
           {streamError && (
-            <div className="stream-warning">
-              <span>⚠</span> Feedback may be incomplete: {streamError}
+            <div className="stream-warning" role="status">
+              <span>⚠</span> This analysis stopped early, so some sections may be missing.
+              {" "}What is shown below is accurate as far as it goes. Re-run the analysis for a complete review.
             </div>
           )}
 
