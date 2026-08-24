@@ -1,24 +1,38 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
+import { getAllowedOrigins } from './config/origins.js';
+import { assertModelConfig } from 'ai-service';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:5174'];
+// Fail on boot rather than on the first user request if the AI model config is
+// missing or names a banned model. getModel() re-validates on every call, so
+// this is the early warning, not the only guard.
+try {
+  assertModelConfig();
+} catch (err) {
+  console.error(`[startup] ${err.message}`);
+  process.exit(1);
+}
+
+const allowedOrigins = getAllowedOrigins();
 
 const app = express();
 app.use(helmet());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
+// routes/auth.js issues the JWT as an httpOnly cookie; without this the auth
+// middleware cannot read it and every guarded endpoint would reject.
+app.use(cookieParser());
 
 // Ensure uploads/ exists at startup
 const uploadsDir = path.join(__dirname, '../uploads');

@@ -1,4 +1,5 @@
 import { parse as parsePartial } from 'partial-json';
+import { appendReviewContext } from '../utils/reviewContext';
 
 const ENDPOINT = '/api/resume/analyze-stream';
 
@@ -10,12 +11,15 @@ const ENDPOINT = '/api/resume/analyze-stream';
  *   onDone(feedback)       — fired once with the final validated feedback
  *   onError(code, message) — fired on server-side error; stream ends after
  */
-export async function streamResumeReview(file, { jobRole, jobAd, marketMode, onPartial, onDone, onError }) {
+export async function streamResumeReview(file, { jobRole, jobAd, marketMode, reviewContext, onPartial, onDone, onError }) {
   const form = new FormData();
   form.append('resume', file);
   if (jobRole) form.append('jobRole', jobRole);
   if (jobAd) form.append('jobAd', jobAd);
   if (marketMode) form.append('marketMode', marketMode);
+  // Application channel, employer type, candidate stage and target sector. The
+  // reviewer routes its rules off these; omitted fields are inferred server side.
+  appendReviewContext(form, reviewContext);
 
   let response;
   try {

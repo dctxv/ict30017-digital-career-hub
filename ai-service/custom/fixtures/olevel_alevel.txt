@@ -1,0 +1,46 @@
+SAMIRA RAHMAN CHOWDHURY
+Apartment 7C, Road 11, Banani, Dhaka-1213
+Mobile: 01911-887766
+Email: samira.r.chowdhury@outlook.com
+
+PROFILE
+
+Recent computer science graduate seeking a software engineering role in a
+product-focused technology company.
+
+EDUCATION
+
+BSc (Hons) Computer Science
+BRAC University, Dhaka
+CGPA 3.72 out of 4.00, 2025
+
+A Levels
+Scholastica School, Dhaka
+Cambridge International: Mathematics A, Physics A, Computer Science A*, 2021
+
+O Levels
+Scholastica School, Dhaka
+Cambridge International: 8 subjects, 6 A* and 2 A, 2019
+
+FINAL YEAR PROJECT
+
+Bangla Handwriting Recognition using Convolutional Neural Networks.
+Built and trained a CNN on the BanglaLekha-Isolated dataset, achieving
+competitive accuracy on isolated character recognition. Implemented the
+preprocessing pipeline and the evaluation harness independently.
+
+TECHNICAL SKILLS
+
+Python, JavaScript, React, Node.js, PostgreSQL, Git, Docker, TensorFlow
+
+EXPERIENCE
+
+Software Engineering Intern, Therap BD Ltd, Dhaka
+June 2024 to August 2024
+Assisted with the reporting module. Helped in fixing defects raised by QA.
+Supported the senior developers during release testing.
+
+EXTRACURRICULAR ACTIVITIES
+
+BRAC University Computer Club, Executive Member, 2023 to 2025
+ICPC Dhaka Regional, participant, 2024

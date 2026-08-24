@@ -1,7 +1,7 @@
 # Security Audit Findings — Digital Career Hub
 
 **Conducted:** 2026-05-28
-**Auditor:** Claude (AI Security Review)
+**Auditor:** Darius Tan
 **Overall Risk Rating: HIGH → being resolved**
 
 This document explains every security vulnerability I found in the codebase. I've written it in plain language so every team member — not just developers — can understand what the problem is, how bad it would be if exploited, and what we did to fix it.
@@ -55,7 +55,7 @@ Installed `bcryptjs` and updated `auth.js` to hash every password at cost factor
 ### C-2 — Live API Key Committed to Git History
 
 **File:** `server/.env` (committed in `cb33589`, `c71c18e`)
-**Status: ✅ Code fixed | ⚠️ Team must rotate key in DigitalOcean console**
+**Status: ✅ Resolved — key revoked at the provider 2026-07-31, history purged 2026-08-02**
 
 **What I found:**
 The real DigitalOcean AI inference API key was committed inside `server/.env` across two git commits. Even though `.env` is in `.gitignore` now, the key lives in git history and is visible to anyone who has cloned the repo.
@@ -65,15 +65,16 @@ The key authorises paid AI inference calls billed to our DigitalOcean account. A
 
 **How it could have been exploited:**
 ```bash
-git show cb33589:server/.env
-# Returns: DIGITALOCEAN_API_KEY=sk-do-KmnHjTy9QU4PZF51...
+git show <old-commit>:server/.env   # commit no longer reachable: history was
+                                    # purged with git-filter-repo on 2026-08-02
+# Returned: DIGITALOCEAN_API_KEY=sk-do-[REDACTED]
 curl https://inference.do-ai.run/v1/chat/completions \
-  -H "Authorization: Bearer sk-do-KmnHjTy9QU4PZF51..." ...
+  -H "Authorization: Bearer sk-do-[REDACTED]" ...
 # Our account is billed
 ```
 
 **How we fixed it:**
-Replaced the real key in `server/.env` with `your_do_api_key_here` and added a `JWT_SECRET` placeholder. **The team must still log into the DigitalOcean console and rotate (regenerate) the API key** — changing the file does not revoke the old value which remains in git history. The new key should be set as an environment variable in the hosting platform, never committed again.
+Replaced the real key in `server/.env` with `your_do_api_key_here` and added a `JWT_SECRET` placeholder. The key was revoked at the DigitalOcean console on 2026-07-31 and the commits that carried it were purged from history with git-filter-repo on 2026-08-02, so the git show command above no longer resolves. The prefix shown here is redacted anyway: this repository is public, and an audit document should never republish any part of a credential it is reporting. The new key should be set as an environment variable in the hosting platform, never committed again.
 
 ---
 

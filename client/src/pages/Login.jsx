@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import { useAuth } from '../context/AuthContext'
 import './Auth.css'
 
 export default function Login() {
@@ -9,6 +10,11 @@ export default function Login() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const { login } = useAuth()
+
+  // SessionWatcher redirects here with an explanation when a session expires.
+  const notice = location.state?.message ?? ''
 
   const handleLogin = async () => {
     setMessage('')
@@ -29,8 +35,10 @@ export default function Login() {
         setMessage(data.error || 'Login failed.')
         return
       }
-      localStorage.setItem('user', JSON.stringify(data.user))
-      navigate('/')
+      // Records the session in context so the navbar updates immediately,
+      // rather than writing localStorage and hoping something reads it back.
+      login(data.user)
+      navigate(location.state?.from ?? '/')
     } catch {
       setMessage('Could not connect to server.')
     } finally {
@@ -46,6 +54,12 @@ export default function Login() {
           <div className="auth-brand">Digital Career Hub</div>
           <h1 className="auth-title">Welcome back</h1>
           <p className="auth-sub">Log in to your account to continue</p>
+
+          {/* Set by SessionWatcher when an expired session redirected here, so
+              the user is told why they landed on the login page. */}
+          {notice && (
+            <p className="auth-sub" role="status" style={{ color: '#b9770e' }}>{notice}</p>
+          )}
 
           <div className="form-group">
             <label className="form-label">Email address</label>

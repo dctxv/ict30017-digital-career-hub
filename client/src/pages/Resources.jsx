@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
+import { useLanguage } from '../context/LanguageContext'
 import './Resources.css'
 
 const categories = ['All', 'Resume Writing', 'Interview Prep', 'Job Search', 'Soft Skills', 'Skill Development']
@@ -18,8 +19,13 @@ const typeDots = {
 }
 
 export default function Resources() {
+  const { lang } = useLanguage()
   const [cat, setCat] = useState('All')
-  const [disc, setDisc] = useState('All disciplines')
+  // Seeded from the Career Paths hand-off. Reading it in the initialiser
+  // instead of an effect avoids a second render just to apply the filter.
+  const [disc, setDisc] = useState(
+    () => localStorage.getItem('selectedDiscipline') || 'All disciplines'
+  )
   const [query, setQuery] = useState('')
   const [disciplines, setDisciplines] = useState(['All disciplines'])
   const [resources, setResources] = useState([])
@@ -42,11 +48,13 @@ export default function Resources() {
     fetchDisciplines()
   }, [])
 
-  // Fetch resources from API
+  // Fetch resources from API. Refetches when the navbar language changes —
+  // the API resolves title/desc for the requested language and falls back to
+  // English for anything not yet translated.
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const response = await fetch('/api/resources')
+        const response = await fetch(`/api/resources?lang=${lang}`)
         const data = await response.json()
         setResources(data)
       } catch (error) {
@@ -55,18 +63,15 @@ export default function Resources() {
         setLoading(false)
       }
     }
-    
-    fetchResources()
-  }, [])
 
-  // Check if coming from Career Paths page and auto-apply discipline filter
+    fetchResources()
+  }, [lang])
+
+  // The hand-off keys are one-shot: consumed by the initialiser above, then
+  // cleared so a later direct visit does not resurrect a stale filter.
   useEffect(() => {
-    const savedDiscipline = localStorage.getItem('selectedDiscipline')
-    if (savedDiscipline) {
-      setDisc(savedDiscipline)
-      localStorage.removeItem('selectedDiscipline')
-      localStorage.removeItem('selectedCareer')
-    }
+    localStorage.removeItem('selectedDiscipline')
+    localStorage.removeItem('selectedCareer')
   }, [])
 
   const filtered = resources.filter(r => {

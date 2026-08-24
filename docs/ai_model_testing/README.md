@@ -3,6 +3,18 @@
 10 resumes × 1 mode (bangladesh) = **10 runs per model**
 (International mode testing deferred to later phase)
 
+> **Stale as of Iteration 7.** Every analysis file under this folder was
+> generated against the Iteration 6 prompt. Iteration 7 changed the prompt text:
+> the shared sections lost the Bangladesh formatting ceiling, both mode blocks
+> gained a `MARKET RULES` heading, the `standard` key is no longer requested from
+> the model, and both mode blocks were compressed. These outputs therefore no
+> longer match what the service produces, and are kept as the Iteration 6 record
+> rather than as a current comparison.
+>
+> Do not re-run all nine models to refresh them. Regenerate only the comparison
+> subset the A/B harness uses. See `docs/darius_notes/ai_prompting_engineering.md`,
+> Iteration 7, "Outstanding".
+
 ## Models Tested
 
 | Model | Summary |

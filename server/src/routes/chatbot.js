@@ -6,7 +6,9 @@
 import crypto from 'crypto';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { streamChatbotResponse } from '../../../ai-service/index.js';
+import { streamChatbotResponse } from 'ai-service';
+import { getAllowedOrigins } from '../config/origins.js';
+import sharedPool from '../db.js';
 
 const router = express.Router();
 
@@ -147,32 +149,22 @@ function attachOptionalUser(req, res, next) {
 async function getPgPool() {
   if (pgPool || pgUnavailable) return pgPool;
 
+  // This used to construct its own Pool from DATABASE_URL / PGPASSWORD, env
+  // vars this project has never set — the rest of the server connects through
+  // db.js using the DB_* names. The check always failed, so the daily chat
+  // counter silently ran on the in-memory fallback: it appeared to work because
+  // the fallback also blocks at the free limit, but counts reset on every
+  // restart and the chat_message_count columns were never written. Probe the
+  // shared pool once instead; the in-memory fallback remains for a genuinely
+  // unreachable database in development.
   try {
-    const { Pool } = await import('pg');
-
-    if (!process.env.DATABASE_URL && !process.env.PGPASSWORD) {
-      console.warn('[chat] Neither DATABASE_URL nor PGPASSWORD is set — falling back to in-memory counters.');
-      pgUnavailable = true;
-      return null;
-    }
-
-    const config = process.env.DATABASE_URL
-      ? { connectionString: process.env.DATABASE_URL }
-      : {
-          user: process.env.PGUSER || 'postgres',
-          host: process.env.PGHOST || 'localhost',
-          database: process.env.PGDATABASE || 'digitalcareerhub',
-          password: process.env.PGPASSWORD,
-          port: Number(process.env.PGPORT || 5432),
-        };
-
-    pgPool = new Pool(config);
-    return pgPool;
+    await sharedPool.query('SELECT 1');
+    pgPool = sharedPool;
   } catch (err) {
     pgUnavailable = true;
-    console.warn('[chat] PostgreSQL client unavailable; using in-memory free-tier counters for this process.');
-    return null;
+    console.warn('[chat] Database unreachable; using in-memory free-tier counters for this process:', err.message);
   }
+  return pgPool;
 }
 
 function todayKey() {
@@ -214,7 +206,7 @@ async function incrementPostgresChatCount(userId) {
           ELSE COALESCE(chat_message_count, 0) + 1
         END,
         chat_count_reset_date = CURRENT_DATE
-      WHERE id = $1
+      WHERE user_id = $1
         AND (
           chat_count_reset_date IS NULL
           OR chat_count_reset_date < CURRENT_DATE
@@ -229,7 +221,7 @@ async function incrementPostgresChatCount(userId) {
     return { allowed: true, count: result.rows[0].chat_message_count };
   }
 
-  const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+  const userCheck = await pool.query('SELECT user_id FROM users WHERE user_id = $1', [userId]);
   if (userCheck.rows.length === 0) {
     return { allowed: false, missingUser: true };
   }
@@ -238,9 +230,38 @@ async function incrementPostgresChatCount(userId) {
 }
 
 async function enforceDailyTurnLimit(req, res, next) {
-  if (req.user.role === 'premium' || req.user.role === 'admin') {
+  // Guests are not in the users table, so there is no row to count against.
+  // They are held back by the IP limiter that runs earlier in the chain.
+  if (req.user.role === 'guest' || req.user.id === 'guest') {
     next();
     return;
+  }
+
+  // Premium is a TIER, not a role. This bypass previously tested
+  // req.user.role === 'premium', which no row can ever satisfy (the only roles
+  // in the users table are admin and student), so premium subscribers were
+  // silently held to the free daily limit. The tier lives in the database, not
+  // the JWT, so it is read here; the resolved value is kept on req.user for the
+  // handler to route the model with.
+  try {
+    const pool = await getPgPool();
+    if (pool) {
+      const who = await pool.query('SELECT tier, role FROM users WHERE user_id = $1', [req.user.id]);
+      if (who.rows.length === 0) {
+        return res.status(401).json({ error: 'Authentication required.' });
+      }
+      req.user.tier = who.rows[0].tier === 'premium' ? 'premium' : 'free';
+      if (req.user.tier === 'premium' || who.rows[0].role === 'admin') {
+        next();
+        return;
+      }
+    } else {
+      // No database available: the tier cannot be known, so count as free.
+      req.user.tier = 'free';
+    }
+  } catch (err) {
+    console.error('[chat] Tier lookup failed, treating as free tier:', err.message);
+    req.user.tier = 'free';
   }
 
   try {
@@ -271,9 +292,7 @@ function validateCsrfOrigin(req, res, next) {
   const origin = req.headers.origin;
   if (!origin) { next(); return; }
 
-  const allowed = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-    : ['http://localhost:5173', 'http://localhost:5174'];
+  const allowed = getAllowedOrigins();
 
   if (!allowed.includes(origin)) {
     return res.status(403).json({ error: 'Forbidden.' });
@@ -305,8 +324,14 @@ function writeSse(res, payload) {
   res.write(`${frame}\n\n`);
 }
 
-// Guest access is enabled for now, so daily tier limits are not applied to this route.
-router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, validateChatBody, async (req, res) => {
+/*
+ * enforceDailyTurnLimit runs after attachOptionalUser so the user is known, and
+ * before validateChatBody so a malformed body from someone already over quota
+ * still reports the quota. It was fully written but never added to this chain,
+ * which left FREE_DAILY_CHAT_LIMIT and both chat_message_count columns unused.
+ * Guests fall through it and are bounded by chatIpRateLimit instead.
+ */
+router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforceDailyTurnLimit, validateChatBody, async (req, res) => {
   const { message, conversationHistory } = req.body;
   const language = req.body.language === 'bn' ? 'bn' : 'en';
 
@@ -320,6 +345,9 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, valida
     console.log(`[chat] Streaming response for user ${req.user.id}; language=${language}`);
     const tokenStream = streamChatbotResponse(conversationHistory, message, {
       userId: req.user.id,
+      // Resolved from the database by enforceDailyTurnLimit. Premium accounts
+      // route to AI_MODEL_PREMIUM; guests and free accounts use the free model.
+      tier: req.user.tier ?? 'free',
       language,
     });
 

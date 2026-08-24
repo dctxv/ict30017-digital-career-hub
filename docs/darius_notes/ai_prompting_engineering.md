@@ -1,12 +1,23 @@
 # Resume Reviewer System Prompt Iteration Log
 
 
-| Field   | Value                            |
-| ------- | -------------------------------- |
-| Project | P83 Digital Career Hub           |
-| Author  | Darius Clay Tan Yi (AI Lead)     |
-| Feature | AI Resume Reviewer (GPT-4o-mini) |
-| Sprint  | 1                                |
+| Field   | Value                                            |
+| ------- | ------------------------------------------------ |
+| Project | P83 Digital Career Hub                           |
+| Author  | Darius Clay Tan Yi (AI Lead)                     |
+| Feature | AI Resume Reviewer                               |
+| Sprints | 1 to 3                                           |
+| Model   | Resolved per tier from `server/.env` — see below |
+
+Iterations 0 to 4 were developed against GPT-4o-mini. That family is now banned
+as a production model by client decision (May 2026 feasibility report) and is
+rejected at startup and on every model resolution, so the scores recorded
+against those iterations are not reproducible on the current configuration.
+From Iteration 5 onward the model is resolved per tier via `AI_MODEL_FREE` and
+`AI_MODEL_PREMIUM` in `ai-service/src/utils/aiClient.js`.
+
+Prompt snapshots for individual iterations are archived in
+`prompt_iterations/`.
 
 
 ## Iteration 0 - Baseline Prompt
@@ -153,9 +164,12 @@ Sample Resume 2: `Nusrat Jahan` (`Marketing/MBA`)
 - "Good command" was only flagged for grammar, not as a weak descriptor.
 - Experience durations such as "3 months" were not flagged for missing date ranges.
 
-## Iteration 4 - Scoring Calibration and Per-Entry Checks (Current)
+## Iteration 4 - Scoring Calibration and Per-Entry Checks
 
 This version targeted recurring test failures.
+
+Archived prompt: `prompt_iterations/iteration_04_resumeReviewer.js`
+(commit `1f110fd`, 2026-04-14).
 
 ### Key Additions
 
@@ -196,6 +210,324 @@ Sample Resume 2: re-run
 - Temperature is set to `0.3`, which is an appropriate balance between consistency and natural variation.
 - This is not a prompt-fix issue. It is inherent to LLM non-determinism.
 
+## Iteration 5 - Resume Review V2
+
+Commit `f7968c4` (2026-05-04), with a follow-up schema correction in `0e88ed5`.
+
+Iterations 0 to 4 shared one output contract: five keys, scored 1 to 10, with
+every section shaped as `strengths` plus `improvements`. That contract could
+not carry ATS or job-advertisement feedback, both of which the client had asked
+for, so the prompt and the schema were rewritten together.
+
+### Key Changes
+
+- Scoring scale moved from 1 to 10 to 0 to 100. The 1-to-10 band definitions
+  were dropped; the weighting stayed at content 45%, language 35%,
+  formatting 20%.
+- Sections became individually typed rather than a shared strengths and
+  improvements pair:
+  - `formatting`: `issues[{ section, issue, suggestion }]`
+  - `content_quality`: `strengths[]` and `weaknesses[]`
+  - `language_grammar`: `issues[{ original, corrected, type }]`
+- Two new sections were added:
+  - `ats_analysis` — inferred role and industry, keyword hits, keyword gaps,
+    heading risks, and improvement tips.
+  - `job_match` — only populated when a job advertisement is supplied,
+    otherwise null. Classifies each requirement as matched, partial, or
+    missing, and assigns a priority to each missing keyword.
+- Two keys were renamed: `formatting_feedback` to `formatting`, and
+  `language_and_grammar` to `language_grammar`. The old names are still
+  accepted as aliases in `normalizeResponse`, because the model occasionally
+  reverts to them.
+- Scores are now recalculated server-side. The prompt still asks for a score
+  per section, but `recalculateScores` overwrites `overall_score`, `ats_score`,
+  and `match_score` from the section values. The model's own arithmetic is
+  advisory only, which removed a recurring source of run-to-run variance.
+- `ats_score` is derived as 70% keyword hit ratio plus 30% heading score, with
+  a 10-point penalty per heading risk capped at 30.
+- `match_score` counts a partial keyword as half a match.
+
+### Problem Identified
+
+- The prompt now assumed Western ATS conventions throughout, while the
+  Bangladesh-specific rules from Iterations 2 to 4 were still present. A resume
+  following standard Bangladeshi conventions was told both to keep and to
+  remove the same sections.
+
+Full write-up of the integration work: `resume_review_v2_reflection.md`.
+
+## Iteration 6 - Market Mode Split
+
+Commit `41d30b0` (2026-05-09), hardened over Sprint 3.
+
+This resolved the contradiction left by Iteration 5 by splitting the
+market-specific rules into two mutually exclusive blocks, selected by the user
+before analysis rather than inferred by the model.
+
+### Key Changes
+
+- The single `SYSTEM_PROMPT` constant became `buildSystemPrompt(marketMode)`,
+  which injects one of two blocks ahead of the shared section definitions.
+- `BANGLADESH_MODE_BLOCK` — protects local conventions. Personal details,
+  Declaration sections, photographs, the Career Objective heading, Academic
+  Qualification headings, and Technical Skills headings must never be flagged
+  in any section of the response. Formatting is capped at 75 where three or
+  more such conventions appear, framed as an educational note rather than a
+  penalty.
+- `INTERNATIONAL_MODE_BLOCK` — inverts that stance. The same eight elements
+  become mandatory formatting issues, each with its own required issue and
+  suggestion wording, and four or more of them caps formatting at 55 as a
+  genuine penalty. Career Objective, Educational Qualification, Academic
+  Qualification, and Personal Information are flagged as heading risks with
+  recommended Western equivalents.
+- Both blocks close with an explicit override clause, so the generic section
+  definitions that follow cannot contradict the selected market.
+- Content-quality checks were added to the Bangladesh block over Sprint 3:
+  named referees rather than "references available on request", extracurricular
+  sections for candidates with under two years of experience, SSC and HSC
+  entries carrying GPA denominator and Education Board, and a thesis or final
+  year project entry for recent technical graduates. Each is scoped by
+  inferred experience level so it does not fire on senior candidates.
+- The Career Objective heading is protected in Bangladesh mode, but its
+  *content* is still assessed. Generic phrasing such as "seeking a challenging
+  position" is flagged as a content weakness with a rewrite.
+- `keyword_gaps` and `ats_tips` are capped at three entries. The cap is stated
+  in the prompt, enforced in the Zod schema, and trimmed in `normalizeResponse`
+  as a backstop; a warning is logged when the model exceeds it.
+- `ats_tips` must be improvement actions. Positive observations about what the
+  resume already does well are explicitly disallowed, since they consumed tip
+  slots without giving the candidate anything to act on.
+- A streaming entry point (`analyzeResumeStream`) was added, using the same
+  prompt. JSON repair was added around both paths — fence stripping, balanced
+  object extraction, control character escaping, inner quote repair, and
+  truncation repair — because longer responses are cut off at the token limit.
+- Temperature was lowered from 0.3 to 0.1. The Iteration 4 note recommending
+  0.3 no longer reflects the code.
+
+### Remaining Observations
+
+- The prompt is close to its token ceiling. `max_tokens` is 4096 for both the
+  streaming and one-shot paths, and Bangladesh mode alone costs roughly 3,200
+  tokens of that budget before the resume is appended. The JSON truncation
+  repair exists because responses are already being cut off; adding prompt
+  text makes that more frequent, not less.
+- The tier parameter is threaded through `getModel(tier)` but nothing selects
+  a tier. Registration ignores the chosen plan, so every request resolves to
+  the free model.
+- The scoring weights are stated in three places — the prompt text in
+  Section 7, `recalculateScores`, and the summary table in this document.
+  They can drift independently, and the server value silently wins.
+
+## Iteration 7 - Prompt Debt Paydown
+
+A consolidation release. No behaviour change to review output was intended: no
+new detection rules, no output shape change, no reweighting. The goal was to
+clear the structural debt that made every prompt change since Iteration 5 risky
+- duplicated constants, a near-exhausted output budget, mode text leaking into
+the shared sections, and no way to prove a refactor left the prompt untouched.
+
+Baseline archived as `prompt_iterations/iteration_06_resumeReviewer.js`
+(commit `9417938`, 2026-08-04): the Iteration 6 prompt as it stood before this
+work, so the changes below can be diffed against the thing they describe.
+
+### Key Changes
+
+- **Golden prompt snapshots.** `ai-service/tests/promptSnapshot.test.js` asserts
+  that `buildSystemPrompt('bangladesh')` and `buildSystemPrompt('international')`
+  match checked-in golden files under `ai-service/tests/golden/`. An intentional
+  prompt change is now a reviewable golden diff and an unintentional one fails the
+  suite. Regenerate with `UPDATE_GOLDEN=1 npm test --prefix ai-service`.
+- **Both market paths are exercised by the manual harness.**
+  `testResumeReviewer.js` called `analyzeResume` with no market mode, so the
+  international path had zero coverage. It now runs every resume through both
+  modes, with `--mode bangladesh|international|both` to narrow. Its result
+  printer was still on the Iteration 0-4 output contract
+  (`formatting_feedback`, `strengths`/`improvements`, scores out of 10) and threw
+  on every resume, so it was brought onto the current contract; it now also
+  prints the ATS section, which is where the two market modes visibly differ.
+- **One source for the weights, the caps, and the completion parameters.** New
+  `ai-service/src/config/reviewConstants.js` exports `SCORE_WEIGHTS`,
+  `ATS_LIST_CAP`, `AI_COMPLETION_PARAMS`, and `ATS_STANDARD_LABEL`. The SECTION 5
+  and SECTION 7 prompt text interpolates them, `recalculateScores` and
+  `normalizeResponse` read them, `resumeSchema.js` validates against
+  `ATS_LIST_CAP`, and both call paths spread `AI_COMPLETION_PARAMS`. The weights
+  previously lived in three places and the 3-item cap in three more; because the
+  server-side value silently wins over the prompt, a drift between them produced
+  no visible symptom.
+- **`max_tokens` 4096 to 6144** on both call paths. This is the one deliberate
+  value change in the iteration. `max_tokens` caps *completion* tokens only - the
+  system prompt does not consume it - so the truncation the JSON repair layer
+  exists to absorb was always an output-side problem, and trimming the prompt
+  would never have fixed it. Unused budget is not billed. The repair layer stays
+  as a backstop.
+- **Both mode blocks carry a `MARKET RULES` heading.** SECTION 1 and SECTION 5
+  each pointed at "the CRITICAL block above", which existed under that name in
+  neither block - the Bangladesh block had no heading at all. SECTION 5 now reads
+  "Respect the MARKET RULES block above when selecting heading risks", which is
+  also mode-neutral; its previous wording ("headings that must never be flagged")
+  only made sense in Bangladesh mode. SECTION 1's reference went away with the
+  sentence that carried it, below.
+- **The shared sections are market-neutral.** SECTION 1 hardcoded the Bangladesh
+  75-point formatting ceiling into *both* modes. In Bangladesh mode that
+  duplicated the mode block; in international mode it directly contradicted the
+  55-point rule, with only the override clause papering over it, so the model was
+  being asked to resolve a contradiction on every international request. The
+  sentence is deleted. The ceiling still lives in the Bangladesh block, which is
+  the only place it applies.
+- **The `standard` key is injected, not requested.** The prompt asked the model to
+  emit the constant string `"international/multinational ATS"` on every response.
+  `normalizeResponse` now sets it from `ATS_STANDARD_LABEL`. The schema already
+  marked it optional, so the output shape is unchanged and the frontend is
+  untouched.
+- **Encoding fix.** Line 5 of the Bangladesh block carried a double-encoded em
+  dash (`â€”`) that was sent to the model verbatim on every
+  Bangladesh-mode request.
+- **Compression.** The international block spelled out full `issue`/`suggestion`
+  wording for all eight demographic elements. None of that wording is
+  schema-bound - the frontend renders whatever strings arrive - so it is now the
+  element list plus one shared instruction to phrase each flag in terms of the
+  bias, privacy, or discrimination risk and to instruct removal. The four
+  Bangladesh content-quality checks each repeated the same scaffolding; they now
+  share one rubric (if the section or entry is absent, flag it as a content
+  weakness using the stated message, and apply the check only within its stated
+  experience scope). The per-check specifics - GPA /5.00 denominators, Education
+  Board names, the 3-year and 5-year scoping, the named-referee requirements -
+  are the behaviour, not the verbosity, and are untouched.
+
+### Measured Token Costs
+
+Estimated with the same characters-divided-by-four method the service logs.
+
+| Segment                    | Iteration 6 | Iteration 7 | Plan target |
+| -------------------------- | ----------- | ----------- | ----------- |
+| `BANGLADESH_MODE_BLOCK`    | ~1,561      | ~1,340      | ~1,250      |
+| `INTERNATIONAL_MODE_BLOCK` | ~833        | ~462        | ~500        |
+| Bangladesh prompt total    | ~3,206      | ~2,918      | ~2,650      |
+| International prompt total | ~2,478      | ~2,040      | ~1,900      |
+
+The international block came in under target. The Bangladesh block did not: most
+of its bulk is per-check specifics, which the plan ruled out as compression
+targets, so only the shared scaffolding and the justification prose around the
+checks were available to cut.
+
+### Test Result
+
+**The A/B gate has not been run.** Commits 3 and 4 of the plan are gated on a
+harness diff - `batch-review.js` across the 10-resume set in both modes against
+an Iteration 6 baseline - and that requires live paid model calls. Until it runs,
+the prompt changes above are unverified against real model output. What has been
+verified:
+
+- The golden snapshot test passes for both modes, and was confirmed to fail on a
+  single injected character, so the safety net detects drift rather than merely
+  existing.
+- The weight extraction is arithmetically identical to the Iteration 6 formula
+  across 153,015 score combinations.
+- Every behaviour-bearing string the plan lists as protected is still present in
+  the built prompt: the eight international elements, the mandatory-flag
+  requirement, the no-educational-framing rule, the 55-point and 75-point
+  ceilings, GPA /5.00 handling, the Education Board names, the 3-year and 5-year
+  scoping, the named-referee requirements, and both override clauses.
+- The server suite still passes (61 tests) and the ATS list cap still accepts 3
+  entries and rejects 4.
+
+### Outstanding
+
+- Run the A/B harness in both modes over the 10-resume set and record the diff
+  here as the real Test Result. Acceptance, per the plan: every convention caught
+  at baseline is still caught (compare `issues`, `weaknesses`, and
+  `heading_risks` by topic, not exact wording), and section scores land within
+  plus or minus 5 of the baseline medians. If the Bangladesh compression fails the
+  gate, the international compression can ship alone - they are independent.
+- Record the truncation-repair rate before and after the `max_tokens` change.
+  There is no baseline figure yet. The repair layer warns on each fallback, so
+  the rate is countable from a harness run.
+- The generated files under `ai_testing/` and `docs/ai_model_testing/` were
+  produced against the Iteration 6 prompt and are stale; both READMEs now say so.
+  Regenerate only the comparison subset the harness uses rather than re-running
+  all nine models.
+- Candidates unlocked by this work: structured outputs (`response_format`) to
+  retire the repair layer, calibration and variance work, or a new capability
+  from the handover doc's unbuilt-features list.
+
+## Iteration 8 - Context-Composed Prompt (Current)
+
+**Date:** 20 August 2026
+**Prompt file:** `ai-service/src/prompt/` (composed) - Iteration 7 monolith archived as `prompt_iterations/iteration_07_resumeReviewer.js`
+**Model:** unchanged per tier (`AI_MODEL_FREE` / `AI_MODEL_PREMIUM`)
+
+### Why
+
+The client's standing complaint was that the reviewer "doesn't have context of
+Bangladesh culture." Investigating it showed the complaint was measurably right,
+and that most of it was not missing knowledge but missing *situation*: the
+two-mode prompt reviewed a Bdjobs structured profile, a BPSC prescribed form and
+a multinational ATS submission with the same rules. A research pass against
+Bdjobs guidance, the BCS form instructions, the education board grading system
+and donor CV formats confirmed 14 of 17 required knowledge areas were absent
+from the Iteration 7 prompt.
+
+### Key Changes
+
+- The single mode block is replaced by a composed prompt: a core block
+  (instruction security, anti-fabrication, privacy, rule priority, scoring
+  bands), a Bangladesh market block, and exactly one module each for
+  application channel (7), employer type (7), candidate stage (5) and target
+  sector (7), selected per request. Unknown context loads conservative fallback
+  modules.
+- Review context travels the full stack: four optional selectors on the upload
+  page, Zod-validated enums at the route, `<APPLICATION_CONTEXT>` /
+  `<RESUME>` / `<JOB_ADVERTISEMENT>` delimited blocks in the user message.
+  Legacy `marketMode` callers still work; `international` resolves to the
+  multinational employer module.
+- New Bangladesh knowledge: Dakhil/Alim as SSC/HSC equivalents, O/A Levels with
+  awarding bodies instead of Education Boards, diploma and polytechnic routes,
+  Division and Class results from the pre-GPA era, National University 4.00 vs
+  SSC/HSC 5.00 denominators, ongoing/appeared status, training with provider and
+  duration, reference consent rules, and language proficiency by mode.
+- Both score ceilings (75 BD / 55 INTL) removed in favour of explicit scoring
+  bands. `keyword_gaps` cap raised to 5; `ats_tips` stays at 3.
+- Three deterministic backstops in `normalizeResponse`, because live testing
+  showed prompt wording alone cannot guarantee any of them:
+  context-aware protected headings (`resolveProtectedHeadings`), a filter for
+  advice to remove fields a government form mandates, and coercion of list
+  entries the model returns as objects where the schema demands strings.
+
+### Measured Token Costs
+
+Legacy two-mode calls compose to ~3,612 tokens; fully routed contexts run
+~3,900-3,940 against Iteration 7's ~2,918. The increase buys the channel,
+employer, stage and sector rules; the compression target of ~2,550 was not met
+and further cuts would remove rules rather than prose.
+
+### Test Result
+
+- Run-to-run variance measured at zero across three identical calls
+  (temperature 0.1), so single-run comparisons are signal. This retroactively
+  confirms the Iteration 7 heading regression was real: protected headings
+  leaked 4 times under the Iteration 6 prompt, 6 under Iteration 7, and 0 with
+  the code backstop.
+- 12/12 live checks pass, including three new fixtures a two-mode prompt could
+  not describe: a madrasah candidate (Dakhil/Alim not mistaken for missing
+  SSC/HSC), a Cambridge O/A Level candidate (no Education Board or /5.00
+  demanded), and a pre-GPA veteran (First Class/First Division not flagged as a
+  missing GPA).
+- Context routing demonstrably changes the review: the same resume submitted as
+  a government form versus a multinational ATS application produces opposite
+  advice on personal details, and the government path never advises removing
+  mandated fields (enforced by the backstop after the model advised it anyway).
+- 73 unit tests pass, including golden snapshots for seven representative
+  context combinations.
+
+### Outstanding
+
+- The Iteration 7 ten-resume A/B gate is superseded: the prompt it would have
+  compared against no longer ships. The Iteration 8 baseline for future work is
+  `ai_testing/baseline/` (twelve dual-mode runs) plus `ai_testing/phase4/`.
+- The truncation-repair rate still has no recorded baseline.
+- The client-side selectors default to inference; uptake depends on users
+  actually setting them, which is worth watching once real users touch it.
+
 ## Summary
 
 
@@ -206,3 +538,25 @@ Sample Resume 2: re-run
 | 2         | ~650       | Client-grounded rewrite                | More specific feedback, but still missed legacy conventions  |
 | 3         | ~780       | Legacy convention block                | Caught Declaration, headings, LinkedIn, and missing sections |
 | 4         | ~850       | Per-entry checks and score calibration | All known issues caught, formatting scores became accurate   |
+| 5         | ~2,600     | 0-100 scale, typed sections, ATS and job match | New feedback types available, but market rules contradicted each other |
+| 6         | ~3,200 BD / ~2,500 INTL | Market mode split           | Contradiction resolved, market rules now mutually exclusive  |
+| 7         | ~2,918 BD / ~2,040 INTL | Prompt debt paydown         | No behaviour change intended; A/B gate superseded by 8       |
+| 8         | ~3,612-3,940 composed | Context-composed prompt, BD pathways, code backstops | 12/12 live checks; routing changes the review; variance measured 0 |
+
+From Iteration 7 the scoring weights and the ATS list cap are defined once, in
+`ai-service/src/config/reviewConstants.js`, and interpolated into the prompt from
+there. This document restates them for readability but is no longer a source of
+truth for either; if the two disagree, the constants file is right and this
+document is out of date.
+
+Token costs for Iterations 0 to 4 are the original working estimates recorded
+at the time. Iterations 5 and 6 are measured from the built prompt using the
+same characters-divided-by-four estimate the service itself logs, so the two
+sets are not directly comparable. Measured for reference: Iteration 4 is
+~2,114 tokens on the same basis.
+
+Iteration 8 is the version currently live. Its prompt is no longer a single
+file: the modules live under `ai-service/src/prompt/` and are composed per
+request, so the rendered goldens under `ai-service/tests/golden/` are the
+authoritative record of what the model actually receives. The next revision is
+therefore Iteration 9.
