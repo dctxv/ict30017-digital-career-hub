@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import upload from '../middleware/upload.js';
 import { extractText } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
+import { resolveLanguage, translateMessage } from '../i18n/index.js';
 import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
 import { analyzeResume, analyzeResumeStream } from 'ai-service';
 import { optionalAuth } from '../middleware/auth.js';
@@ -158,6 +159,7 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
     const marketMode = req.body?.marketMode === 'international' ? 'international' : 'bangladesh';
     const feedback = await analyzeResume(cleanText, {
       jobRole, jobAd, marketMode,
+      language: req.body?.language === 'bn' ? 'bn' : resolveLanguage(req),
       tier: resolveTier(res),
       context: resolveReviewContext(res),
     });
@@ -240,6 +242,10 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
     const jobRole = typeof req.body?.jobRole === 'string' ? req.body.jobRole.slice(0, 200) : undefined;
     const jobAd = typeof req.body?.jobAd === 'string' ? req.body.jobAd.slice(0, 4000) : undefined;
     const marketMode = req.body?.marketMode === 'international' ? 'international' : 'bangladesh';
+    // The language the narrative feedback is written in. The form field wins so
+    // an explicit choice on the upload panel is honoured; otherwise it falls
+    // back to the same cookie the rest of the API reads.
+    const language = req.body?.language === 'bn' ? 'bn' : resolveLanguage(req);
     // Tokens arrive a few characters at a time, so a phone number or email can
     // straddle a chunk boundary. The stream redactor buffers a trailing window
     // and only releases text once it is far enough from the write head to be
@@ -254,12 +260,15 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
       jobRole,
       jobAd,
       marketMode,
+      language,
       tier: resolveTier(res),
       context: resolveReviewContext(res),
     });
 
     if (feedback?.code === 'RATE_LIMIT') {
-      writeFrame({ error: 'RATE_LIMIT', message: feedback.error });
+      // SSE frames bypass res.json, so the localising middleware never sees
+      // them. These two sites translate explicitly for that reason.
+      writeFrame({ error: 'RATE_LIMIT', message: translateMessage(feedback.error, language) });
       res.end();
       return;
     }
@@ -279,7 +288,7 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
   } catch (err) {
     console.error('[resume-stream] Error during analysis:', err);
     if (res.headersSent) {
-      writeFrame({ error: 'INTERNAL', message: 'Analysis failed.' });
+      writeFrame({ error: 'INTERNAL', message: translateMessage('Analysis failed.', resolveLanguage(req)) });
       res.end();
     } else {
       res.status(500).json({ error: 'Analysis failed.' });

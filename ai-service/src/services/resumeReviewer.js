@@ -2,6 +2,7 @@ import { getGroqClient, getModel } from '../utils/aiClient.js';
 import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
 import { buildSystemPrompt } from '../prompt/index.js';
 import { normaliseContext, renderContextBlock } from '../prompt/context.js';
+import { withOutputLanguage } from '../prompt/language.js';
 import {
   SCORE_WEIGHTS,
   ATS_GAP_CAP,
@@ -438,7 +439,7 @@ function buildUserMessage(resumeText, { jobAd, jobRole, context } = {}) {
 
 /* ── Streaming export ── */
 
-export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd, marketMode = 'bangladesh', tier = 'free', context: reviewContext } = {}) {
+export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd, marketMode = 'bangladesh', tier = 'free', language = 'en', context: reviewContext } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -456,7 +457,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
       ...AI_COMPLETION_PARAMS,
       stream: true,
       messages: [
-        { role: 'system', content: buildSystemPrompt(context) },
+        { role: 'system', content: withOutputLanguage(buildSystemPrompt(context), language) },
         { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd, context }) },
       ],
     });
@@ -503,7 +504,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
 
 /* ── One-shot export ── */
 
-export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = 'bangladesh', tier = 'free', context: reviewContext } = {}) {
+export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = 'bangladesh', tier = 'free', language = 'en', context: reviewContext } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -520,7 +521,7 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
       model,
       ...AI_COMPLETION_PARAMS,
       messages: [
-        { role: 'system', content: buildSystemPrompt(context) },
+        { role: 'system', content: withOutputLanguage(buildSystemPrompt(context), language) },
         { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd, context }) },
       ],
     });
