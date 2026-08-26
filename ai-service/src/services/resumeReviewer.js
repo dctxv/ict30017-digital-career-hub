@@ -472,8 +472,13 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
 
     if (!rawContent) throw new Error('AI returned an empty response.');
   } catch (err) {
+    // A 429 here is the model provider throttling us, not the caller spending
+    // their allowance. The code used to be RATE_LIMIT, which the error screen
+    // reasonably read as a quota rejection and titled "You have reached your
+    // review limit" — so an upstream hiccup told a premium account, which has
+    // no limit at all, that it had hit one. AI_BUSY keeps the two apart.
     if (err?.status === 429 || err?.message?.includes('429')) {
-      return { error: 'AI is currently busy, please try again in a minute.', code: 'RATE_LIMIT' };
+      return { error: 'The AI service is busy right now. Please try again in a minute.', code: 'AI_BUSY' };
     }
     throw err;
   }
@@ -532,10 +537,11 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
       throw new Error('AI returned an empty response.');
     }
   } catch (err) {
+    // As above: the provider is throttling, the caller is not out of reviews.
     if (err?.status === 429 || err?.message?.includes('429')) {
       return {
-        error: 'AI is currently busy, please try again in a minute.',
-        code: 'RATE_LIMIT',
+        error: 'The AI service is busy right now. Please try again in a minute.',
+        code: 'AI_BUSY',
       };
     }
     throw err;

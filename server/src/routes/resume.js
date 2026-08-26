@@ -164,8 +164,11 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
       context: resolveReviewContext(res),
     });
 
-    if (feedback.code === 'RATE_LIMIT') {
-      return res.status(429).json({ error: feedback.error });
+    // 503, not 429: the upstream model provider is throttling us, and 429 here
+    // is indistinguishable at the client from the caller's own allowance being
+    // spent — which is what made this surface as a review-limit message.
+    if (feedback.code === 'AI_BUSY') {
+      return res.status(503).json({ error: feedback.error });
     }
 
     // Step 4 — Strip any candidate PII the model echoed back, before the
@@ -209,7 +212,7 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
  * Frames:
  *   data: {"t":"<token piece>"}\n\n
  *   data: {"done":true,"feedback":{...validated object...}}\n\n
- *   data: {"error":"RATE_LIMIT"|"INTERNAL","message":"..."}\n\n
+ *   data: {"error":"AI_BUSY"|"INTERNAL","message":"..."}\n\n
  */
 // Same ordering as /analyze: the file must be accepted before quota is claimed.
 router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('resume'), attachReviewContext, enforceDailyReviewLimit, async (req, res) => {
@@ -265,10 +268,10 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
       context: resolveReviewContext(res),
     });
 
-    if (feedback?.code === 'RATE_LIMIT') {
+    if (feedback?.code === 'AI_BUSY') {
       // SSE frames bypass res.json, so the localising middleware never sees
       // them. These two sites translate explicitly for that reason.
-      writeFrame({ error: 'RATE_LIMIT', message: translateMessage(feedback.error, language) });
+      writeFrame({ error: 'AI_BUSY', message: translateMessage(feedback.error, language) });
       res.end();
       return;
     }

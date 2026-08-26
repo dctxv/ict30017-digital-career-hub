@@ -74,6 +74,8 @@ export const BANGLA_MESSAGES = {
     'কোনো ফাইল আপলোড হয়নি। একটি PDF বা DOCX রিজিউমে যুক্ত করুন।',
   'An error occurred during resume analysis.': 'রিজিউমে বিশ্লেষণের সময় একটি সমস্যা হয়েছে।',
   'Analysis failed.': 'বিশ্লেষণ সম্পন্ন করা যায়নি।',
+  'The AI service is busy right now. Please try again in a minute.':
+    'AI সেবাটি এই মুহূর্তে ব্যস্ত। এক মিনিট পরে আবার চেষ্টা করুন।',
   'Could not read your review allowance.': 'আপনার রিভিউ কোটা পড়া যায়নি।',
   'Could not verify your review allowance.': 'আপনার রিভিউ কোটা যাচাই করা যায়নি।',
 

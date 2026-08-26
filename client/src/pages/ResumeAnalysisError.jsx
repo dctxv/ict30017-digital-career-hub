@@ -25,10 +25,21 @@ function describeFailure(code) {
       return { titleKey: 'reviewError.tooLargeTitle', bodyKey: 'reviewError.tooLargeBody' }
     case 'INVALID_TYPE':
       return { titleKey: 'reviewError.invalidTypeTitle', bodyKey: 'reviewError.invalidTypeBody' }
+    case 'AI_BUSY':
+      // The model provider is throttling us. Nothing to do with the caller's
+      // allowance, and saying otherwise told a premium account — which has no
+      // limit — that it had reached one.
+      return { titleKey: 'reviewError.aiBusyTitle', bodyKey: 'reviewError.aiBusyBody', preferServerMessage: true }
+    // The caller's own allowance really is spent. This arrives as HTTP_429
+    // from the quota middleware or the per-IP limiter; RATE_LIMIT is kept as
+    // an alias so a server yet to pick up the rename still lands here.
+    case 'HTTP_429':
     case 'RATE_LIMIT':
-      // The server's own rate-limit wording is already localised from the lang
-      // cookie, so when it sends one it is preferred over the generic copy.
+      // The server's own wording is already localised from the lang cookie and
+      // names the exact allowance, so it is preferred over the generic copy.
       return { titleKey: 'reviewError.rateLimitTitle', bodyKey: 'reviewError.rateLimitBody', preferServerMessage: true }
+    case 'HTTP_503':
+      return { titleKey: 'reviewError.aiBusyTitle', bodyKey: 'reviewError.aiBusyBody', preferServerMessage: true }
     case 'UNREADABLE':
       return { titleKey: 'reviewError.unreadableTitle', bodyKey: 'reviewError.unreadableBody' }
     default:

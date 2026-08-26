@@ -293,6 +293,8 @@ export default {
   'reviewError.tooLargeBody': 'Your resume must be 3 MB or smaller. Save it again at a lower quality, or export a fresh PDF from your word processor, then upload it again.',
   'reviewError.invalidTypeTitle': 'That file type is not supported',
   'reviewError.invalidTypeBody': 'Upload your resume as a PDF or DOCX file. Other formats, including images and plain text files, cannot be read.',
+  'reviewError.aiBusyTitle': 'The AI service is busy right now',
+  'reviewError.aiBusyBody': 'The service that writes your feedback is under heavy load and turned this request away. This is not a limit on your account. Wait a minute and try again.',
   'reviewError.rateLimitTitle': 'You have reached your review limit',
   'reviewError.rateLimitBody': 'You have used all of your resume reviews for now. Your allowance resets shortly, so try again later.',
   'reviewError.unreadableTitle': 'Your resume could not be read',
