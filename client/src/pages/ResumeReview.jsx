@@ -342,7 +342,7 @@ export default function ResumeReview() {
 
   return (
     <div className="rr-page">
-      <Navbar user={{ name: 'Isar Ujoodah' }} />
+      <Navbar />
       {view === 'upload' && (
         <UploadView
           file={file}

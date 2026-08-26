@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import { useAuth } from '../context/AuthContext'
 import './Auth.css'
 
 export default function Login() {
@@ -9,6 +10,7 @@ export default function Login() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const handleLogin = async () => {
     setMessage('')
@@ -29,8 +31,8 @@ export default function Login() {
         setMessage(data.error || 'Login failed.')
         return
       }
-      localStorage.setItem('user', JSON.stringify(data.user))
-      navigate('/')
+      login(data.user)
+      navigate(data.user.role === 'admin' ? '/admin' : '/')
     } catch {
       setMessage('Could not connect to server.')
     } finally {

@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext'
+import { useAuth } from '../context/AuthContext'
 import './Navbar.css'
 
-export default function Navbar({ user = null }) {
+export default function Navbar() {
   const { lang, setLang } = useLanguage()
+  const { user, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
 
   const links = [
     { label: 'Resources', to: '/resources' },
@@ -14,6 +17,11 @@ export default function Navbar({ user = null }) {
     { label: 'Alumni', to: '/alumni' },
     { label: 'Resume review', to: '/resume-review' },
   ]
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/')
+  }
 
   return (
     <nav className="navbar">
@@ -49,7 +57,10 @@ export default function Navbar({ user = null }) {
           </div>
 
           {user ? (
-            <span className="navbar-user">{user.name}</span>
+            <>
+              <span className="navbar-user">{user.full_name}</span>
+              <button className="btn-outline-sm" onClick={handleLogout}>Log out</button>
+            </>
           ) : (
             <>
               <Link to="/login" className="btn-outline-sm">Log in</Link>

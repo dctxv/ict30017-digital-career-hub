@@ -6,8 +6,59 @@ import { extractText } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
 import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
 import { analyzeResume, analyzeResumeStream } from '../../../ai-service/index.js';
+import pool from '../db.js';
+import { optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
+
+/**
+ * Saves a completed review to the database for logged-in users.
+ *
+ * Guests (req.user.id === 'guest') are skipped entirely — nothing to attach
+ * the review to. A DB failure here is logged but never breaks the response:
+ * the user should still get their feedback even if saving history fails.
+ *
+ * Simple version: writes to resumes + ai_reviews only. Per-issue rows in
+ * review_feedback are a follow-up (see docs/darius_notes for the schema).
+ */
+async function saveReviewToDb({ userId, filename, jobAd, feedback }) {
+  if (!userId || userId === 'guest') return null;
+
+  try {
+    const resumeResult = await pool.query(
+      `INSERT INTO resumes (user_id, career_path_id, file_name, file_path, job_ad_text, uploaded_at)
+       VALUES ($1, NULL, $2, NULL, $3, NOW())
+       RETURNING resume_id`,
+      [userId, filename, jobAd ?? null]
+    );
+    const resumeId = resumeResult.rows[0].resume_id;
+
+    const summary = Array.isArray(feedback.action_items)
+      ? feedback.action_items.join(' ')
+      : null;
+
+    const reviewResult = await pool.query(
+      `INSERT INTO ai_reviews
+         (resume_id, user_id, overall_score, ats_score, grammar_score, format_score, review_summary, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+       RETURNING review_id`,
+      [
+        resumeId,
+        userId,
+        feedback.overall_score ?? null,
+        feedback.ats_analysis?.ats_score ?? null,
+        feedback.language_grammar?.score ?? null,
+        feedback.formatting?.score ?? null,
+        summary,
+      ]
+    );
+
+    return reviewResult.rows[0].review_id;
+  } catch (err) {
+    console.error('[resume] Failed to save review to database:', err.message);
+    return null;
+  }
+}
 
 /**
  * Logs which redaction rules fired, never what they matched.
@@ -45,7 +96,7 @@ const resumeRateLimit = rateLimit({
  *   curl -X POST http://localhost:3000/api/resume/analyze \
  *     -F "resume=@/path/to/your/resume.pdf"
  */
-router.post('/analyze', resumeRateLimit, upload.single('resume'), async (req, res) => {
+router.post('/analyze', resumeRateLimit, optionalAuth, upload.single('resume'), async (req, res) => {
   const uploadedFilePath = req.file?.path ?? null;
 
   try {
@@ -82,11 +133,20 @@ router.post('/analyze', resumeRateLimit, upload.single('resume'), async (req, re
     const { value: safeFeedback, findings } = redactPiiDeepWithFindings(feedback);
     logPiiFindings('analysis response', findings);
 
-    // Step 5 — Return structured feedback
+    // Step 5 — Save to history for logged-in users (skipped for guests)
+    const reviewId = await saveReviewToDb({
+      userId: req.user?.id,
+      filename: req.file.originalname,
+      jobAd,
+      feedback: safeFeedback,
+    });
+
+    // Step 6 — Return structured feedback
     return res.status(200).json({
       success: true,
       filename: req.file.originalname,
       feedback: safeFeedback,
+      reviewId,
     });
 
   } catch (err) {
@@ -117,7 +177,7 @@ router.post('/analyze', resumeRateLimit, upload.single('resume'), async (req, re
  *   data: {"done":true,"feedback":{...validated object...}}\n\n
  *   data: {"error":"RATE_LIMIT"|"INTERNAL","message":"..."}\n\n
  */
-router.post('/analyze-stream', resumeRateLimit, upload.single('resume'), async (req, res) => {
+router.post('/analyze-stream', resumeRateLimit, optionalAuth, upload.single('resume'), async (req, res) => {
   const uploadedFilePath = req.file?.path ?? null;
 
   const writeFrame = (obj) => {
@@ -178,7 +238,14 @@ router.post('/analyze-stream', resumeRateLimit, upload.single('resume'), async (
     const { value: safeFeedback, findings } = redactPiiDeepWithFindings(feedback);
     logPiiFindings('stream response', findings);
 
-    writeFrame({ done: true, filename: req.file.originalname, feedback: safeFeedback });
+    const reviewId = await saveReviewToDb({
+      userId: req.user?.id,
+      filename: req.file.originalname,
+      jobAd,
+      feedback: safeFeedback,
+    });
+
+    writeFrame({ done: true, filename: req.file.originalname, feedback: safeFeedback, reviewId });
     res.end();
 
   } catch (err) {
