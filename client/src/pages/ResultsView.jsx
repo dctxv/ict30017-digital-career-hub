@@ -15,13 +15,12 @@
  *    Layout uses inline styles because the project has no Tailwind configured.
  *
  * 3. PDF VIEWER (PDFPanel component) — Renders the uploaded resume PDF.
- *    PDF source is derived in priority order: (1) blob URL created from
- *    uploadedFile (the raw File object passed from ResumeReview), (2)
- *    feedback?.fileUrl (Cloudinary URL from backend), (3) renders nothing.
- *    The blob URL is memoised from the File and revoked on change/unmount
- *    per file reference; URL.revokeObjectURL is called on unmount and before
- *    each new URL is created to prevent memory leaks. DOCX detection uses the
- *    MIME type (uploadedFile?.type) instead of filename string matching.
+ *    PDF source is derived in priority order: (1) uploadedFile, the raw File
+ *    passed from ResumeReview, handed to <Document> as-is because react-pdf
+ *    loads a Blob itself, (2) feedback?.fileUrl (Cloudinary URL from backend),
+ *    (3) renders nothing. This component creates no object URL — see the note
+ *    on PDFPanel for why it used to and what that broke. DOCX detection uses
+ *    the MIME type (uploadedFile?.type) instead of filename string matching.
  *
  * 4. DYNAMIC SIZING — pdfWidth is measured via ResizeObserver on the PDF
  *    panel container so react-pdf Page components scale correctly at any
@@ -44,7 +43,7 @@
  * - onViewInResume prop from all body/item components and all call sites
  */
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import html2pdf from 'html2pdf.js'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
@@ -416,33 +415,41 @@ function JobMatchCard({ match }) {
 
 /* ── PDFPanel ────────────────────────────────────────────────────── */
 // Renders the uploaded resume as a scrollable PDF using react-pdf.
-// PDF source priority: uploadedFile blob URL → feedback?.fileUrl → render nothing.
+// PDF source priority: the uploaded File → feedback?.fileUrl → render nothing.
 // DOCX detection uses the MIME type so it works regardless of filename casing.
-// The blob URL is memoised from the File and revoked when it changes.
-// URL.revokeObjectURL is called on unmount and before each new URL is created.
 function PDFPanel({ uploadedFile, feedback, pdfWidth, numPages, setNumPages }) {
   const { t } = useLanguage()
   const [pdfError, setPdfError] = useState(null)
-  // Derived, not state: an object URL is a pure function of the File, so it is
-  // memoised rather than mirrored into state from an effect. The cleanup effect
-  // below revokes each URL when the file changes or the view unmounts.
-  const blobUrl = useMemo(
-    () => (uploadedFile ? URL.createObjectURL(uploadedFile) : null),
-    [uploadedFile]
-  )
 
   const isDocx =
     uploadedFile?.type ===
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
-  useEffect(() => {
-    return () => {
-      if (blobUrl) URL.revokeObjectURL(blobUrl)
-    }
-  }, [blobUrl])
+  /*
+   * The File is handed to <Document> as-is. react-pdf detects a Blob (a File is
+   * one) and loads it itself, so nothing here has to create or revoke an object
+   * URL — which is what previously broke the preview.
+   *
+   * The old shape built the URL in a useMemo and revoked it in a separate
+   * cleanup effect, on the reasoning that an object URL is a pure function of
+   * the File. It is not: createObjectURL allocates a resource that must be
+   * released, so it is a side effect wearing a value's clothes, and React
+   * treats a memo as a discardable performance hint with no guarantee it will
+   * survive.
+   *
+   * In development that failed every time. StrictMode mounts twice: the memo
+   * created URL A, the simulated unmount revoked A, the remount re-ran the
+   * effect but the memo handed back the cached, already-dead A. pdf.js fetched
+   * a revoked blob and reported "Unexpected server response (0)". A production
+   * build was fine, which is exactly the split that gets misread as a bad PDF
+   * rather than a bug.
+   *
+   * Owning no resource is the fix that cannot regress: there is nothing left to
+   * revoke at the wrong moment.
+   */
 
-  // Priority: blob URL from uploadedFile → backend fileUrl → nothing
-  const pdfSrc = blobUrl || feedback?.fileUrl || null
+  // Priority: the uploaded File itself → a backend URL → nothing to show.
+  const pdfSrc = uploadedFile || feedback?.fileUrl || null
 
   if (isDocx) {
     return (
