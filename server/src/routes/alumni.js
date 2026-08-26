@@ -76,6 +76,7 @@ function validateAlumni(body) {
   const {
     full_name, institution, discipline, graduation_year,
     current_role, industry, bio, image_initials,
+    bio_bn, industry_bn,
     consent_given, is_published,
   } = body;
 
@@ -89,10 +90,13 @@ function validateAlumni(body) {
     return 'Discipline is required.';
   }
 
+  // Optional everywhere: an untranslated profile is a valid profile, and the
+  // public read falls back to English for it.
   for (const [label, value] of [
     ['Institution', institution],
     ['Current role', current_role],
     ['Industry', industry],
+    ['Bangla industry', industry_bn],
   ]) {
     if (value !== undefined && value !== null) {
       if (typeof value !== 'string') return `${label} must be text.`;
@@ -102,9 +106,11 @@ function validateAlumni(body) {
     }
   }
 
-  if (bio !== undefined && bio !== null) {
-    if (typeof bio !== 'string') return 'Bio must be text.';
-    if (bio.length > BIO_MAX) return `Bio must be ${BIO_MAX} characters or fewer.`;
+  for (const [label, value] of [['Bio', bio], ['Bangla bio', bio_bn]]) {
+    if (value !== undefined && value !== null) {
+      if (typeof value !== 'string') return `${label} must be text.`;
+      if (value.length > BIO_MAX) return `${label} must be ${BIO_MAX} characters or fewer.`;
+    }
   }
 
   if (image_initials !== undefined && image_initials !== null && image_initials !== '') {
@@ -136,6 +142,19 @@ function validateAlumni(body) {
   return null;
 }
 
+/**
+ * An untranslated field is NULL, not ''.
+ *
+ * COALESCE(bio_bn, bio) treats an empty string as a present value and would
+ * render an empty bio in Bangla rather than falling back to English. Clearing
+ * the box in the dashboard therefore has to store NULL, which is what an admin
+ * means by clearing it.
+ */
+function nullIfBlank(value) {
+  const trimmed = (value ?? '').trim();
+  return trimmed === '' ? null : trimmed;
+}
+
 function toParams(body) {
   const year =
     body.graduation_year === undefined || body.graduation_year === null || body.graduation_year === ''
@@ -153,6 +172,8 @@ function toParams(body) {
     (body.industry ?? '').trim(),
     (body.bio ?? '').trim(),
     initials === '' ? null : initials,
+    nullIfBlank(body.bio_bn),
+    nullIfBlank(body.industry_bn),
     body.consent_given === true,
     body.is_published === true,
   ];
@@ -237,8 +258,9 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     const result = await pool.query(
       `INSERT INTO alumni
          (full_name, institution, discipline, graduation_year, "current_role",
-          industry, bio, image_initials, consent_given, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          industry, bio, image_initials, bio_bn, industry_bn,
+          consent_given, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING ${ADMIN_FIELDS}`,
       toParams(req.body)
     );
@@ -266,8 +288,9 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       `UPDATE alumni
           SET full_name = $1, institution = $2, discipline = $3, graduation_year = $4,
               "current_role" = $5, industry = $6, bio = $7, image_initials = $8,
-              consent_given = $9, is_published = $10
-        WHERE id = $11
+              bio_bn = $9, industry_bn = $10,
+              consent_given = $11, is_published = $12
+        WHERE id = $13
       RETURNING ${ADMIN_FIELDS}`,
       [...toParams(req.body), id]
     );

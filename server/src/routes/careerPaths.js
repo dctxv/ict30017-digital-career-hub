@@ -21,7 +21,10 @@
  *   English. See server/migrations/add_bilingual_content.sql.
  *
  *   Admin writes always read back English, since the dashboard edits the
- *   canonical row rather than a rendering of it.
+ *   canonical row rather than a rendering of it. They accept desc_bn and
+ *   industry_bn so the dashboard can maintain the translation; an empty string
+ *   is stored as NULL, which is what the COALESCE fallback reads as
+ *   "not translated yet".
  */
 
 import express from 'express';
@@ -71,7 +74,10 @@ function parseId(raw) {
 }
 
 function validateCareerPath(body) {
-  const { title, industry, discipline, desc, skills, progression, salaryEntry, salarySenior } = body;
+  const {
+    title, industry, discipline, desc, skills, progression, salaryEntry, salarySenior,
+    desc_bn, industry_bn,
+  } = body;
 
   if (typeof title !== 'string' || title.trim().length < 2) {
     return 'Title must be at least 2 characters.';
@@ -83,11 +89,15 @@ function validateCareerPath(body) {
     return 'Discipline is required.';
   }
 
+  // The Bangla fields are optional everywhere: a row with no translation is a
+  // valid row, and the API falls back to English for it.
   for (const [label, value] of [
     ['Industry', industry],
     ['Description', desc],
     ['Entry salary', salaryEntry],
     ['Senior salary', salarySenior],
+    ['Bangla description', desc_bn],
+    ['Bangla industry', industry_bn],
   ]) {
     if (value !== undefined && value !== null) {
       if (typeof value !== 'string') return `${label} must be text.`;
@@ -113,6 +123,19 @@ function validateCareerPath(body) {
   return null;
 }
 
+/**
+ * An untranslated field is NULL, not ''.
+ *
+ * COALESCE(description_bn, description) treats an empty string as a present
+ * value and would render a blank card in Bangla instead of falling back. So
+ * clearing the box in the dashboard has to store NULL for the fallback to
+ * resume, which is what an admin means by clearing it.
+ */
+function nullIfBlank(value) {
+  const trimmed = (value ?? '').trim();
+  return trimmed === '' ? null : trimmed;
+}
+
 // Normalises a validated body into the positional values the queries expect.
 function toParams(body) {
   return [
@@ -124,6 +147,8 @@ function toParams(body) {
     JSON.stringify(body.progression ?? []),
     (body.salaryEntry ?? '').trim(),
     (body.salarySenior ?? '').trim(),
+    nullIfBlank(body.desc_bn),
+    nullIfBlank(body.industry_bn),
   ];
 }
 
@@ -181,8 +206,9 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const result = await pool.query(
       `INSERT INTO career_paths
-         (title, industry, discipline, description, skills, progression, salary_entry, salary_senior)
-       VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8)
+         (title, industry, discipline, description, skills, progression, salary_entry, salary_senior,
+          description_bn, industry_bn)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9, $10)
        RETURNING ${SELECT_FIELDS}`,
       toParams(req.body)
     );
@@ -210,8 +236,9 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       `UPDATE career_paths
           SET title = $1, industry = $2, discipline = $3, description = $4,
               skills = $5::jsonb, progression = $6::jsonb,
-              salary_entry = $7, salary_senior = $8
-        WHERE id = $9
+              salary_entry = $7, salary_senior = $8,
+              description_bn = $9, industry_bn = $10
+        WHERE id = $11
       RETURNING ${SELECT_FIELDS}`,
       [...toParams(req.body), id]
     );

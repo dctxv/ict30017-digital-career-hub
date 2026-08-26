@@ -380,6 +380,13 @@ export default {
   'admin.label.resource': 'রিসোর্স',
   'admin.label.alumniProfile': 'অ্যালামনাই প্রোফাইল',
 
+  'admin.bilingualHint': 'বাংলা ঘরগুলো ঐচ্ছিক। কোনো ঘর খালি রাখলে অনুবাদ যোগ না করা পর্যন্ত সাইটে সেটির ইংরেজি লেখাটিই দেখানো হবে।',
+  'admin.disc.nameBn': 'নাম (বাংলা)',
+  'admin.disc.descriptionBn': 'বিবরণ (বাংলা)',
+  'admin.path.descriptionBn': 'বিবরণ (বাংলা)',
+  'admin.path.industryBn': 'ইন্ডাস্ট্রি (বাংলা)',
+  'admin.alum.bioBn': 'পরিচিতি (বাংলা)',
+  'admin.alum.industryBn': 'ইন্ডাস্ট্রি (বাংলা)',
   'admin.disc.editHeading': 'বিষয় সম্পাদনা',
   'admin.disc.addHeading': 'নতুন বিষয় যোগ করুন',
   'admin.disc.name': 'নাম',

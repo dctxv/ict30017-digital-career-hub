@@ -372,6 +372,13 @@ export default {
   'admin.label.resource': 'Resource',
   'admin.label.alumniProfile': 'Alumni profile',
 
+  'admin.bilingualHint': 'Bangla fields are optional. Leave one blank and the site shows the English text for it until a translation is added.',
+  'admin.disc.nameBn': 'Name (Bangla)',
+  'admin.disc.descriptionBn': 'Description (Bangla)',
+  'admin.path.descriptionBn': 'Description (Bangla)',
+  'admin.path.industryBn': 'Industry (Bangla)',
+  'admin.alum.bioBn': 'Bio (Bangla)',
+  'admin.alum.industryBn': 'Industry (Bangla)',
   'admin.disc.editHeading': 'Edit Discipline',
   'admin.disc.addHeading': 'Add New Discipline',
   'admin.disc.name': 'Name',

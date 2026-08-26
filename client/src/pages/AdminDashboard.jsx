@@ -12,10 +12,11 @@ const RESOURCE_CATEGORIES = [
   'Skill Development',
 ]
 
-const emptyDisc = { name: '', description: '' }
+const emptyDisc = { name: '', description: '', name_bn: '', description_bn: '' }
 const emptyPath = {
   title: '', industry: '', discipline: '', desc: '',
   skills: '', progression: '', salaryEntry: '', salarySenior: '',
+  desc_bn: '', industry_bn: '',
 }
 const emptyResource = {
   title_en: '', title_bn: '', description_en: '', description_bn: '',
@@ -24,6 +25,7 @@ const emptyResource = {
 const emptyAlumni = {
   full_name: '', institution: '', discipline: '', graduation_year: '',
   current_role: '', industry: '', bio: '', image_initials: '',
+  bio_bn: '', industry_bn: '',
   consent_given: false, is_published: false,
 }
 
@@ -68,6 +70,21 @@ export default function AdminDashboard() {
     }
     return new Set([...seen].filter(([, count]) => count > 1).map(([url]) => url))
   }, [resources])
+
+  /*
+   * Whether a row carries a Bangla translation.
+   *
+   * The same marker the resources table already used, lifted out so every
+   * content type reports it identically. Without it there was no way to see
+   * which of 129 rows had been translated short of reading the database — and
+   * "the site is half in English" is exactly the failure that is hard to spot
+   * one row at a time.
+   */
+  const translatedCell = (...fields) => (
+    fields.some(f => f)
+      ? t('common.yes')
+      : <span className="admin-untranslated">{t('admin.res.untranslated')}</span>
+  )
 
   const notify = (text) => {
     setError('')
@@ -210,6 +227,8 @@ export default function AdminDashboard() {
       progression,
       salaryEntry: pathForm.salaryEntry,
       salarySenior: pathForm.salarySenior,
+      desc_bn: pathForm.desc_bn,
+      industry_bn: pathForm.industry_bn,
     }
 
     const ok = await submit(
@@ -302,6 +321,19 @@ export default function AdminDashboard() {
                     <label className="form-label">{t('admin.disc.description')}</label>
                     <textarea className="form-textarea" value={discForm.description} onChange={(e) => setDiscForm({ ...discForm, description: e.target.value })} rows="2" />
                   </div>
+                  {/* Bangla is optional throughout: leaving a field blank stores
+                      NULL, and the site falls back to the English text for it. */}
+                  <p className="admin-hint">{t('admin.bilingualHint')}</p>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">{t('admin.disc.nameBn')}</label>
+                      <input className="form-input" lang="bn" value={discForm.name_bn} onChange={(e) => setDiscForm({ ...discForm, name_bn: e.target.value })} placeholder={t('admin.res.optionalPlaceholder')} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t('admin.disc.descriptionBn')}</label>
+                      <input className="form-input" lang="bn" value={discForm.description_bn} onChange={(e) => setDiscForm({ ...discForm, description_bn: e.target.value })} placeholder={t('admin.res.optionalPlaceholder')} />
+                    </div>
+                  </div>
                   <div className="form-buttons">
                     <button type="submit" className="btn-primary">{t(editingDiscId ? 'admin.disc.updateButton' : 'admin.disc.addButton')}</button>
                     {editingDiscId && <button type="button" className="btn-secondary" onClick={() => { setEditingDiscId(null); setDiscForm(emptyDisc) }}>{t('common.cancel')}</button>}
@@ -312,7 +344,7 @@ export default function AdminDashboard() {
                 <h2>{t('admin.disc.existing', { count: n(disciplines.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.table.description')}</th><th>{t('admin.table.actions')}</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.table.description')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {disciplines.map(d => (
@@ -320,8 +352,9 @@ export default function AdminDashboard() {
                         <td>{d.id}</td>
                         <td><strong>{d.name}</strong></td>
                         <td>{d.description || '-'}</td>
+                        <td>{translatedCell(d.name_bn, d.description_bn)}</td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingDiscId(d.id); setDiscForm({ name: d.name, description: d.description || '' }) }}>{t('common.edit')}</button>
+                          <button className="btn-edit" onClick={() => { setEditingDiscId(d.id); setDiscForm({ name: d.name, description: d.description_en ?? d.description ?? '', name_bn: d.name_bn ?? '', description_bn: d.description_bn ?? '' }) }}>{t('common.edit')}</button>
                           <button className="btn-delete" onClick={() => remove(`/api/disciplines/${d.id}`, 'admin.disc.confirmDelete', fetchDisciplines, 'admin.label.discipline')}>{t('common.delete')}</button>
                         </td>
                       </tr>
@@ -375,6 +408,19 @@ export default function AdminDashboard() {
                     <label className="form-label">{t('admin.path.description')}</label>
                     <textarea className="form-textarea" value={pathForm.desc} onChange={(e) => setPathForm({ ...pathForm, desc: e.target.value })} rows="3" required />
                   </div>
+                  <p className="admin-hint">{t('admin.bilingualHint')}</p>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">{t('admin.path.descriptionBn')}</label>
+                      <textarea className="form-textarea" lang="bn" value={pathForm.desc_bn} onChange={(e) => setPathForm({ ...pathForm, desc_bn: e.target.value })} rows="3" placeholder={t('admin.res.optionalPlaceholder')} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t('admin.path.industryBn')}</label>
+                      <input className="form-input" lang="bn" value={pathForm.industry_bn} onChange={(e) => setPathForm({ ...pathForm, industry_bn: e.target.value })} placeholder={t('admin.res.optionalPlaceholder')} />
+                    </div>
+                  </div>
+                  {/* Title, skills and progression have no Bangla field on
+                      purpose — see add_bilingual_content.sql. */}
                   <div className="form-group">
                     <label className="form-label">{t('admin.path.progression')}</label>
                     <textarea className="form-textarea" value={pathForm.progression} onChange={(e) => setPathForm({ ...pathForm, progression: e.target.value })} rows="4" placeholder='[{"label":"Junior","time":"0-1 yr"},{"label":"Senior","time":"1-3 yrs","current":true}]' />
@@ -389,7 +435,7 @@ export default function AdminDashboard() {
                 <h2>{t('admin.path.existing', { count: n(careerPaths.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.title')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.industry')}</th><th>{t('admin.table.actions')}</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.title')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.industry')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {careerPaths.map(p => (
@@ -398,8 +444,9 @@ export default function AdminDashboard() {
                         <td><strong>{p.title}</strong></td>
                         <td>{p.discipline}</td>
                         <td>{p.industry}</td>
+                        <td>{translatedCell(p.description_bn, p.industry_bn)}</td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingPathId(p.id); setPathForm({ title: p.title, industry: p.industry, discipline: p.discipline, desc: p.desc, skills: (p.skills ?? []).join(', '), progression: JSON.stringify(p.progression ?? [], null, 2), salaryEntry: p.salaryEntry, salarySenior: p.salarySenior }) }}>{t('common.edit')}</button>
+                          <button className="btn-edit" onClick={() => { setEditingPathId(p.id); setPathForm({ title: p.title, industry: p.industry, discipline: p.discipline, desc: p.desc, skills: (p.skills ?? []).join(', '), progression: JSON.stringify(p.progression ?? [], null, 2), salaryEntry: p.salaryEntry, salarySenior: p.salarySenior, desc_bn: p.description_bn ?? '', industry_bn: p.industry_bn ?? '' }) }}>{t('common.edit')}</button>
                           <button className="btn-delete" onClick={() => remove(`/api/career-paths/${p.id}`, 'admin.path.confirmDelete', fetchCareerPaths, 'admin.label.careerPath')}>{t('common.delete')}</button>
                         </td>
                       </tr>
@@ -483,7 +530,7 @@ export default function AdminDashboard() {
                       <tr key={r.id}>
                         <td>{r.id}</td>
                         <td><strong>{r.title_en}</strong></td>
-                        <td>{r.title_bn ? t('common.yes') : <span className="admin-untranslated">{t('admin.res.untranslated')}</span>}</td>
+                        <td>{translatedCell(r.title_bn, r.description_bn)}</td>
                         <td>{tc(`resources.type.${r.type}`, r.type)}</td>
                         <td>{r.discipline === 'All disciplines' ? t('common.allDisciplines') : r.discipline}</td>
                         <td>{tc(`resources.category.${r.category}`, r.category)}</td>
@@ -554,6 +601,20 @@ export default function AdminDashboard() {
                     <textarea className="form-textarea" value={alumniForm.bio} onChange={(e) => setAlumniForm({ ...alumniForm, bio: e.target.value })} rows="3" required />
                   </div>
 
+                  <p className="admin-hint">{t('admin.bilingualHint')}</p>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">{t('admin.alum.bioBn')}</label>
+                      <textarea className="form-textarea" lang="bn" value={alumniForm.bio_bn} onChange={(e) => setAlumniForm({ ...alumniForm, bio_bn: e.target.value })} rows="3" placeholder={t('admin.res.optionalPlaceholder')} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t('admin.alum.industryBn')}</label>
+                      <input className="form-input" lang="bn" value={alumniForm.industry_bn} onChange={(e) => setAlumniForm({ ...alumniForm, industry_bn: e.target.value })} placeholder={t('admin.res.optionalPlaceholder')} />
+                    </div>
+                  </div>
+                  {/* Names, institutions and job titles have no Bangla field on
+                      purpose: a person's name is not translated. */}
+
                   {/* Consent is recorded explicitly. It is not implied by adding the
                       profile: these are real graduates, and the server rejects any
                       attempt to publish a profile without it. */}
@@ -581,7 +642,7 @@ export default function AdminDashboard() {
                 <h2>{t('admin.alum.existing', { count: n(alumni.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.table.institution')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.role')}</th><th>{t('admin.table.status')}</th><th>{t('admin.table.actions')}</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.table.institution')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.role')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.status')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {alumni.map(a => (
@@ -591,9 +652,10 @@ export default function AdminDashboard() {
                         <td>{a.institution}</td>
                         <td>{a.discipline}</td>
                         <td>{a.current_role}</td>
+                        <td>{translatedCell(a.bio_bn, a.industry_bn)}</td>
                         <td>{a.is_published ? t('admin.alum.published') : <span className="admin-untranslated">{t('admin.alum.draft')}</span>}</td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingAlumniId(a.id); setAlumniForm({ full_name: a.full_name, institution: a.institution, discipline: a.discipline, graduation_year: a.graduation_year ?? '', current_role: a.current_role, industry: a.industry, bio: a.bio, image_initials: a.image_initials || '', consent_given: a.consent_given === true, is_published: a.is_published === true }) }}>{t('common.edit')}</button>
+                          <button className="btn-edit" onClick={() => { setEditingAlumniId(a.id); setAlumniForm({ full_name: a.full_name, institution: a.institution, discipline: a.discipline, graduation_year: a.graduation_year ?? '', current_role: a.current_role, industry: a.industry, bio: a.bio, image_initials: a.image_initials || '', bio_bn: a.bio_bn ?? '', industry_bn: a.industry_bn ?? '', consent_given: a.consent_given === true, is_published: a.is_published === true }) }}>{t('common.edit')}</button>
                           <button className="btn-delete" onClick={() => remove(`/api/alumni/${a.id}`, 'admin.alum.confirmDelete', fetchAlumni, 'admin.label.alumniProfile')}>{t('common.delete')}</button>
                         </td>
                       </tr>
