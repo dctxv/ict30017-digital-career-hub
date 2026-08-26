@@ -443,6 +443,34 @@ function buildUserMessage(resumeText, { jobAd, jobRole, context, language } = {}
   return `Please review the resume in the blocks below.\n\n${parts.join('\n\n')}`;
 }
 
+
+/**
+ * One line per review saying what was actually asked for.
+ *
+ * Two rounds of this were spent reasoning about the prompt from the source and
+ * being wrong about the running system, which is the same mistake the [quota]
+ * logging was added to stop. The prompt can be verified statically; what cannot
+ * is which language actually arrived, whether the process is even running this
+ * build, and what the model did with it. So the server says.
+ *
+ * `head` is the first fragment of the raw response. Whether it starts in Bangla
+ * is visible at a glance and settles in one line whether the problem is the
+ * request or the model.
+ */
+function logLanguageDecision(label, { language, systemPrompt, userMessage, model, head }) {
+  const bengali = /[\u0980-\u09FF]/;
+  console.log(
+    `[${label}] language=${language}`
+    + ` directive=${systemPrompt.includes('OUTPUT LANGUAGE') ? 'applied' : 'ABSENT'}`
+    + ` reminder=${bengali.test(userMessage) ? 'applied' : 'ABSENT'}`
+    + ` model=${model}`
+    + (head === undefined ? '' : ` responseStartedIn=${bengali.test(head) ? 'bangla' : 'english'}`)
+  );
+  if (head !== undefined && language === 'bn' && !bengali.test(head)) {
+    console.log(`[${label}] Model was asked for Bangla and began in English: ${JSON.stringify(head.slice(0, 120))}`);
+  }
+}
+
 /* ── Streaming export ── */
 
 export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd, marketMode = 'bangladesh', tier = 'free', language = 'en', context: reviewContext } = {}) {
@@ -458,13 +486,17 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
 
   let rawContent = '';
   try {
+    const systemPrompt = withOutputLanguage(buildSystemPrompt(context), language);
+    const userMessage = buildUserMessage(resumeText, { jobRole, jobAd, context, language });
+    logLanguageDecision('AI-stream', { language, systemPrompt, userMessage, model });
+
     const stream = await client.chat.completions.create({
       model,
       ...AI_COMPLETION_PARAMS,
       stream: true,
       messages: [
-        { role: 'system', content: withOutputLanguage(buildSystemPrompt(context), language) },
-        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd, context, language }) },
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
       ],
     });
 
@@ -477,6 +509,13 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
     }
 
     if (!rawContent) throw new Error('AI returned an empty response.');
+
+    // The narrative starts well past the opening brace, so a fixed prefix would
+    // only ever show JSON punctuation. Sampling further in catches the first
+    // real prose the model wrote.
+    logLanguageDecision('AI-stream', {
+      language, systemPrompt, userMessage, model, head: rawContent.slice(0, 600),
+    });
   } catch (err) {
     // A 429 here is the model provider throttling us, not the caller spending
     // their allowance. The code used to be RATE_LIMIT, which the error screen
@@ -528,12 +567,16 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
 
   let rawContent;
   try {
+    const systemPrompt = withOutputLanguage(buildSystemPrompt(context), language);
+    const userMessage = buildUserMessage(resumeText, { jobRole, jobAd, context, language });
+    logLanguageDecision('AI', { language, systemPrompt, userMessage, model });
+
     const response = await client.chat.completions.create({
       model,
       ...AI_COMPLETION_PARAMS,
       messages: [
-        { role: 'system', content: withOutputLanguage(buildSystemPrompt(context), language) },
-        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd, context, language }) },
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
       ],
     });
 
