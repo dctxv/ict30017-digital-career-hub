@@ -32,7 +32,16 @@ cp server/.env.example server/.env
 ### 2. Create the database
 
 Create the database named in `DB_NAME` (the default is `career_hub_db`), then
-apply the migrations in `server/migrations` in this order:
+apply the migrations in `server/migrations` in this order.
+
+**Against the shared hosted database these run ONCE, by one person** — not once
+per developer. They are idempotent, so a second run will not corrupt anything,
+but `seed_bangla_content.sql` deliberately overwrites the `_bn` columns, so
+re-running it after someone has edited a translation in the admin dashboard
+will discard that edit. Once translations are being maintained through the
+dashboard, treat that file as spent.
+
+For a local Postgres, run them on your own machine as normal.
 
 ```
 psql -U postgres -c "CREATE DATABASE career_hub_db"
