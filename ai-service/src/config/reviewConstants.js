@@ -52,11 +52,31 @@ export const ATS_TIP_CAP = ATS_LIST_CAP;
  * costs nothing; it is only billed when it is actually generated.
  */
 export const AI_COMPLETION_PARAMS = Object.freeze({
-  temperature:       0.1,
-  frequency_penalty: 0.1,
-  presence_penalty:  0.1,
-  max_tokens:        6144,
+  temperature: 0.1,
+  max_tokens:  6144,
 });
+
+/* frequency_penalty and presence_penalty (both 0.1) were removed when the
+ * provider moved to Google AI Studio. Its OpenAI-compatible endpoint rejects
+ * them outright rather than ignoring them, and the rejection is a bare 400
+ * with no body through the SDK, which surfaced in the UI as the generic
+ * "Analysis failed" with reference code INTERNAL:
+ *
+ *   frequency_penalty -> 400 Invalid JSON payload received.
+ *                            Unknown name "frequency_penalty": Cannot find field.
+ *   presence_penalty  -> 400 Penalty is not enabled for this model
+ *
+ * Because the request is rejected before any token is generated, this broke
+ * both call paths for every resume regardless of its content. temperature and
+ * max_tokens are accepted and unchanged.
+ *
+ * Losing them costs little here: at temperature 0.1 against a strict JSON
+ * schema there is almost no sampling freedom for a repetition penalty to act
+ * on. If a future provider supports them again, reinstate them behind a
+ * provider check rather than in this shared object — it is spread into both
+ * analyzeResume and analyzeResumeStream, so anything unsupported here fails
+ * every review at once.
+ */
 
 /**
  * Injected into ats_analysis.standard by normalizeResponse. The model used to

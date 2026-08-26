@@ -22,8 +22,12 @@ A web platform designed to help students and job seekers improve their career re
 ### 1. Configure the environment
 
 Copy `server/.env.example` to `server/.env` and fill in the real values. The
-server will not start if `OPENROUTER_API_KEY`, `AI_MODEL_FREE`, `AI_MODEL_PREMIUM`
+server will not start if `GOOGLE_AI_API_KEY`, `AI_MODEL_FREE`, `AI_MODEL_PREMIUM`
 or `JWT_SECRET` are missing, and there is no fallback by design.
+
+`GOOGLE_AI_API_KEY` is a Google AI Studio key (https://aistudio.google.com/apikey).
+The AI calls go to Google's OpenAI-compatible endpoint, so model ids carry no
+vendor prefix: `gemini-3.6-flash`, not `google/gemini-3.6-flash`.
 
 ```
 cp server/.env.example server/.env
