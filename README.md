@@ -32,29 +32,35 @@ cp server/.env.example server/.env
 ### 2. Create the database
 
 Create the database named in `DB_NAME` (the default is `career_hub_db`), then
-apply the migrations in `server/migrations` in this order.
-
-**Against the shared hosted database these run ONCE, by one person** — not once
-per developer. They are idempotent, so a second run will not corrupt anything,
-but `seed_bangla_content.sql` deliberately overwrites the `_bn` columns, so
-re-running it after someone has edited a translation in the admin dashboard
-will discard that edit. Once translations are being maintained through the
-dashboard, treat that file as spent.
-
-For a local Postgres, run them on your own machine as normal.
+apply the migrations.
 
 ```
-psql -U postgres -c "CREATE DATABASE career_hub_db"
-psql -U postgres -d career_hub_db -f server/migrations/create_users_table.sql
-psql -U postgres -d career_hub_db -f server/migrations/add_login_attempt_tracking.sql
-psql -U postgres -d career_hub_db -f server/migrations/add_password_reset_tokens.sql
-psql -U postgres -d career_hub_db -f server/migrations/add_chat_turn_tracking.sql
-psql -U postgres -d career_hub_db -f server/migrations/add_user_tier.sql
-psql -U postgres -d career_hub_db -f server/migrations/create_content_tables.sql
-psql -U postgres -d career_hub_db -f server/migrations/seed_content_data.sql
-psql -U postgres -d career_hub_db -f server/migrations/add_bilingual_content.sql
-psql -U postgres -d career_hub_db -f server/migrations/seed_bangla_content.sql
+cd server
+npm install
+npm run migrate
 ```
+
+`npm run migrate` applies everything outstanding, in order, and records what it
+applied in a `schema_migrations` table so a second run is a no-op. Use
+`npm run migrate -- --status` to see what is applied without changing anything.
+
+It connects using `server/.env`, the same settings the app itself uses, so it
+always targets the database the app targets. That matters now that a shared
+hosted instance exists: the old `psql -U postgres -d career_hub_db` commands
+hardcoded the LOCAL database and would silently migrate the wrong one.
+
+**Against the shared database, migrations run ONCE, by one person.** The ledger
+makes a repeat run harmless, but only for whoever runs it — coordinate first.
+This is also what protects `seed_bangla_content.sql`, which overwrites the `_bn`
+columns by design: once recorded it never runs again, so it cannot discard a
+translation someone has edited through the admin dashboard.
+
+If you would rather run the SQL by hand, the files are in `server/migrations`
+and the order is the `ORDER` array at the top of `server/scripts/migrate.js`.
+On Windows, `psql` is not on PATH after a default PostgreSQL install — it lives
+at `C:\Program Files\PostgreSQL\<version>\bin\psql.exe` — which is the main
+reason this runner exists.
+
 
 ### 3. Start the backend
 
