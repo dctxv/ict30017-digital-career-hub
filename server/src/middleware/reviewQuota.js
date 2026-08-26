@@ -130,23 +130,52 @@ async function claimReview(userId) {
 }
 
 /**
+ * One log line per decision, in a fixed shape.
+ *
+ * A resume review can be refused by three different things — this middleware,
+ * the per-IP limiter ahead of it, or the model provider downstream — and from
+ * the server console they used to look alike. Every outcome here now names
+ * itself, so grepping `[quota]` tells you which gate fired, for whom, and
+ * against what allowance, without reading the code to work it out.
+ */
+function logQuota(decision, req, detail = {}) {
+  const parts = Object.entries({
+    decision,
+    user: req.user?.id ?? 'guest',
+    ...detail,
+  }).map(([k, v]) => `${k}=${v}`);
+  console.log(`[quota] ${parts.join(' ')}`);
+}
+
+/**
  * Express middleware. Must run after optionalAuth so req.user is populated.
  *
  * Guests pass through untouched: there is no row to count against, and the IP
  * rate limiter earlier in the chain is what bounds them.
  */
 export async function enforceDailyReviewLimit(req, res, next) {
-  if (isGuest(req)) return next();
+  if (isGuest(req)) {
+    logQuota('pass', req, { reason: 'guest', bounded_by: 'ip_rate_limit' });
+    return next();
+  }
 
   try {
     const quota = await readReviewQuota(req.user.id);
 
     if (quota === null) {
+      logQuota('reject', req, { reason: 'user_row_missing', status: 401 });
       discardUpload(req);
       return res.status(401).json({ error: 'Authentication required.' });
     }
 
     if (quota.unlimited) {
+      // The line that would have answered the premium-account question at a
+      // glance: this account is uncapped and no counter was touched.
+      logQuota('pass', req, {
+        reason: 'unlimited_tier',
+        tier: quota.tier,
+        role: quota.role,
+      });
       res.locals.reviewQuota = quota;
       return next();
     }
@@ -154,11 +183,19 @@ export async function enforceDailyReviewLimit(req, res, next) {
     const claim = await claimReview(req.user.id);
 
     if (claim.missingUser) {
+      logQuota('reject', req, { reason: 'user_row_missing_on_claim', status: 401 });
       discardUpload(req);
       return res.status(401).json({ error: 'Authentication required.' });
     }
 
     if (!claim.allowed) {
+      logQuota('reject', req, {
+        reason: 'daily_limit_reached',
+        tier: quota.tier,
+        used: claim.used,
+        limit: FREE_DAILY_REVIEW_LIMIT,
+        status: 429,
+      });
       discardUpload(req);
       return res.status(429).json({
         error: `You have used all ${FREE_DAILY_REVIEW_LIMIT} of your free resume reviews for today. Your allowance resets tomorrow.`,
@@ -168,6 +205,13 @@ export async function enforceDailyReviewLimit(req, res, next) {
       });
     }
 
+    logQuota('pass', req, {
+      reason: 'within_daily_limit',
+      tier: quota.tier,
+      used: claim.used,
+      limit: FREE_DAILY_REVIEW_LIMIT,
+    });
+
     res.locals.reviewQuota = {
       ...quota,
       used: claim.used,
@@ -176,6 +220,7 @@ export async function enforceDailyReviewLimit(req, res, next) {
 
     return next();
   } catch (err) {
+    logQuota('error', req, { reason: 'quota_check_failed', status: 500 });
     console.error('[resume] Review quota check failed:', err.message);
     discardUpload(req);
     return res.status(500).json({ error: 'Could not verify your review allowance.' });

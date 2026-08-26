@@ -299,6 +299,7 @@ export default {
   'reviewError.rateLimitBody': 'You have used all of your resume reviews for now. Your allowance resets shortly, so try again later.',
   'reviewError.unreadableTitle': 'Your resume could not be read',
   'reviewError.unreadableBody': 'The file opened but no text could be extracted from it. Scanned images and photographs of a printed resume will not work. Upload a version saved directly from a word processor.',
+  'reviewError.diagnosticLabel': 'Reference code:',
   'reviewError.tryAgain': 'Try again',
   'reviewError.uploadNew': 'Upload new resume',
 
@@ -427,6 +428,8 @@ export default {
   'admin.res.added': 'Resource added',
   'admin.res.confirmDelete': 'Delete this resource?',
   'admin.res.untranslated': 'Not translated',
+  'admin.res.linkColumn': 'Link',
+  'admin.res.sharedUrl': 'Shared URL',
   'admin.res.banglaColumn': 'Bangla',
 
   'admin.alum.editHeading': 'Edit Alumni',

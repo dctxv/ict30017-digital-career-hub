@@ -307,6 +307,7 @@ export default {
   'reviewError.rateLimitBody': 'এই মুহূর্তের জন্য আপনার সব রিজিউমে রিভিউ ব্যবহার হয়ে গেছে। কিছুক্ষণের মধ্যে কোটা আবার চালু হবে, তখন চেষ্টা করুন।',
   'reviewError.unreadableTitle': 'আপনার রিজিউমে পড়া যায়নি',
   'reviewError.unreadableBody': 'ফাইলটি খুলেছে, কিন্তু এর ভেতর থেকে কোনো লেখা বের করা যায়নি। স্ক্যান করা ছবি বা ছাপানো রিজিউমের ফটো কাজ করবে না। ওয়ার্ড প্রসেসর থেকে সরাসরি সেভ করা একটি কপি আপলোড করুন।',
+  'reviewError.diagnosticLabel': 'রেফারেন্স কোড:',
   'reviewError.tryAgain': 'আবার চেষ্টা করুন',
   'reviewError.uploadNew': 'নতুন রিজিউমে আপলোড করুন',
 
@@ -435,6 +436,8 @@ export default {
   'admin.res.added': 'রিসোর্স যোগ হয়েছে',
   'admin.res.confirmDelete': 'এই রিসোর্সটি মুছে ফেলবেন?',
   'admin.res.untranslated': 'অনুবাদ করা হয়নি',
+  'admin.res.linkColumn': 'লিংক',
+  'admin.res.sharedUrl': 'একই URL',
   'admin.res.banglaColumn': 'বাংলা',
 
   'admin.alum.editHeading': 'অ্যালামনাই সম্পাদনা',

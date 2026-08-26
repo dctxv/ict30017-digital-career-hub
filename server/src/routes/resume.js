@@ -79,6 +79,13 @@ const resumeRateLimit = rateLimit({
   keyGenerator: (req) => (isIdentified(req) ? `user:${req.user.id}` : `ip:${req.ip}`),
   standardHeaders: true,
   legacyHeaders: false,
+  // The third gate. Without this line an hourly-burst rejection and a spent
+  // daily allowance were both just a 429 in the log with nothing to tell them
+  // apart — and the two need completely different responses.
+  handler: (req, res, _next, options) => {
+    console.log(`[quota] decision=reject user=${req.user?.id ?? 'guest'} reason=ip_hourly_burst key=${isIdentified(req) ? `user:${req.user.id}` : `ip:${req.ip}`} status=429`);
+    res.status(options.statusCode).json(options.message);
+  },
   message: { error: 'Too many resume analysis requests. Please try again in an hour.' },
 });
 
@@ -168,6 +175,7 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
     // is indistinguishable at the client from the caller's own allowance being
     // spent — which is what made this surface as a review-limit message.
     if (feedback.code === 'AI_BUSY') {
+      console.log(`[quota] decision=reject user=${req.user?.id ?? 'guest'} reason=provider_throttled tier=${resolveTier(res)} status=503`);
       return res.status(503).json({ error: feedback.error });
     }
 
@@ -269,6 +277,9 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
     });
 
     if (feedback?.code === 'AI_BUSY') {
+      // Same shape as the [quota] lines so one grep covers the whole chain.
+      // This is the provider refusing us, not the caller running out.
+      console.log(`[quota] decision=reject user=${req.user?.id ?? 'guest'} reason=provider_throttled tier=${resolveTier(res)} status=503`);
       // SSE frames bypass res.json, so the localising middleware never sees
       // them. These two sites translate explicitly for that reason.
       writeFrame({ error: 'AI_BUSY', message: translateMessage(feedback.error, language) });

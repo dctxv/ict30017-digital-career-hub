@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import './AdminDashboard.css'
@@ -49,6 +49,25 @@ export default function AdminDashboard() {
 
   const [alumniForm, setAlumniForm] = useState(emptyAlumni)
   const [editingAlumniId, setEditingAlumniId] = useState(null)
+
+  /*
+   * URLs used by more than one resource row.
+   *
+   * 42 seeded rows point at 23 distinct URLs, and six unrelated titles share a
+   * single YouTube link — which is why clicking an article opened something
+   * that did not match its title. Sharing a URL is sometimes correct (one CV
+   * template legitimately serves the finance, engineering and business guides),
+   * so this marks rather than blocks. It exists so the duplication is visible
+   * while editing instead of only when a user clicks through and notices.
+   */
+  const duplicateUrls = useMemo(() => {
+    const seen = new Map()
+    for (const r of resources) {
+      if (!r.url) continue
+      seen.set(r.url, (seen.get(r.url) ?? 0) + 1)
+    }
+    return new Set([...seen].filter(([, count]) => count > 1).map(([url]) => url))
+  }, [resources])
 
   const notify = (text) => {
     setError('')
@@ -457,7 +476,7 @@ export default function AdminDashboard() {
                 <h2>{t('admin.res.existing', { count: n(resources.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.title')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.type')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.category')}</th><th>{t('admin.table.actions')}</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.title')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.type')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.category')}</th><th>{t('admin.res.linkColumn')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {resources.map(r => (
@@ -468,6 +487,11 @@ export default function AdminDashboard() {
                         <td>{tc(`resources.type.${r.type}`, r.type)}</td>
                         <td>{r.discipline === 'All disciplines' ? t('common.allDisciplines') : r.discipline}</td>
                         <td>{tc(`resources.category.${r.category}`, r.category)}</td>
+                        <td>
+                          {duplicateUrls.has(r.url)
+                            ? <span className="admin-untranslated" title={r.url}>{t('admin.res.sharedUrl')}</span>
+                            : ''}
+                        </td>
                         <td>
                           <button className="btn-edit" onClick={() => { setEditingResourceId(r.id); setResourceForm({ title_en: r.title_en, title_bn: r.title_bn ?? '', description_en: r.description_en, description_bn: r.description_bn ?? '', type: r.type, discipline: r.discipline, category: r.category, url: r.url }) }}>{t('common.edit')}</button>
                           <button className="btn-delete" onClick={() => remove(`/api/resources/${r.id}`, 'admin.res.confirmDelete', fetchResources, 'admin.label.resource')}>{t('common.delete')}</button>

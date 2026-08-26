@@ -1103,3 +1103,22 @@
   .context-card { padding: 16px 14px; }
   .context-card__grid { grid-template-columns: 1fr; }
 }
+
+/* Reference code under the resume-error actions. Deliberately quiet: it is a
+   label for support, not part of the explanation the user reads. */
+.rr-error__diagnostic {
+  margin-top: 18px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--text-hint);
+}
+
+.rr-error__diagnostic code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+}

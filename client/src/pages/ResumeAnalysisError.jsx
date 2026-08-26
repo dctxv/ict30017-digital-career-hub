@@ -51,6 +51,18 @@ export default function ResumeAnalysisError({ code, message, filename, onRetry, 
   const { t } = useLanguage()
   const { titleKey, bodyKey, preferServerMessage, appendDetail } = describeFailure(code)
 
+  /*
+   * The raw failure code, shown small and muted under the actions.
+   *
+   * This exists because of a real confusion: an upstream provider outage was
+   * rendered with a review-limit title, and from the screen alone there was no
+   * way to tell which of three different failures had occurred — the account's
+   * daily allowance, the per-IP limiter, or the model provider being down. The
+   * copy above is for the user; this line is for whoever they send the
+   * screenshot to. It never replaces an explanation, it only labels one.
+   */
+  const diagnostic = code ?? 'UNKNOWN'
+
   const title = t(titleKey)
   let body = t(bodyKey)
   if (preferServerMessage && message) {
@@ -76,6 +88,10 @@ export default function ResumeAnalysisError({ code, message, filename, onRetry, 
               {t('reviewError.uploadNew')}
             </button>
           </div>
+
+          <p className="rr-error__diagnostic">
+            {t('reviewError.diagnosticLabel')} <code>{diagnostic}</code>
+          </p>
       </div>
     </div>
   )
