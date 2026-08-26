@@ -100,7 +100,19 @@ function capUserMessage(message) {
   return `${capped.text}\n\n${USER_TRUNCATION_NOTE}`;
 }
 
-export function buildChatMessages(conversationHistory, newUserMessage) {
+/**
+ * The frontend's language toggle sends 'bn' or 'en' with every chat request,
+ * and until this existed the value was silently dropped here: the route passed
+ * it, the signature never accepted it, and the Bangla toggle did nothing to the
+ * chatbot. Technical vocabulary stays in English because that is how Bangladeshi
+ * job seekers actually write it (CV, Bdjobs, walk-in interview).
+ */
+const BANGLA_DIRECTIVE =
+  'Respond in Bangla (বাংলা). Keep technical terms, platform names, company names ' +
+  'and qualification names in English where a Bangladeshi job seeker would ' +
+  'normally write them that way.';
+
+export function buildChatMessages(conversationHistory, newUserMessage, language = 'en') {
   const history = normaliseHistory(conversationHistory);
   const userMessage = {
     role: 'user',
@@ -111,20 +123,24 @@ export function buildChatMessages(conversationHistory, newUserMessage) {
     preserveLast: 1,
   });
 
+  const systemContent = language === 'bn'
+    ? `${SYSTEM_PROMPT}\n\n${BANGLA_DIRECTIVE}`
+    : SYSTEM_PROMPT;
+
   return [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: systemContent },
     ...windowedHistory,
   ];
 }
 
-export async function* streamChatbotResponse(conversationHistory, newUserMessage, { userId, tier = 'free' } = {}) {
+export async function* streamChatbotResponse(conversationHistory, newUserMessage, { userId, tier = 'free', language = 'en' } = {}) {
   if (!newUserMessage || !String(newUserMessage).trim()) {
     throw new Error('Chat message cannot be empty.');
   }
 
   const client = getGroqClient();
   const model = getModel(tier);
-  const messages = buildChatMessages(conversationHistory, newUserMessage);
+  const messages = buildChatMessages(conversationHistory, newUserMessage, language);
 
   const historyTokens = estimateTokens(messages.slice(1).map((message) => message.content).join('\n'));
   if (userId) {

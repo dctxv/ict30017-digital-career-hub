@@ -4,7 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>digital-career-hub-new</title>
+    <title>Digital Career Hub</title>
+    <script>
+      // Applies the stored language before React mounts. Without this the first
+      // painted frame is always laid out with Latin metrics, so a Bangla user
+      // sees the page reflow the moment the provider runs. LanguageProvider
+      // owns the attribute from then on.
+      try {
+        if (localStorage.getItem('preferredLanguage') === 'bn') {
+          document.documentElement.lang = 'bn';
+        }
+      } catch (e) { /* storage unavailable in private browsing */ }
+    </script>
   </head>
   <body>
     <div id="root"></div>

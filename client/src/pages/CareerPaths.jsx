@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
+import { useLanguage } from '../context/LanguageContext'
 import './CareerPaths.css'
 
 export default function CareerPaths() {
+  const { lang, t, n } = useLanguage()
   const [disc, setDisc] = useState('All')
   const [selectedId, setSelectedId] = useState(null)
-  const [disciplines, setDisciplines] = useState(['All'])
+  // { name, label }: `name` is the English key rows are filtered by, `label` is
+  // what the pill shows. See the disciplines route for why they stay separate.
+  const [disciplines, setDisciplines] = useState([{ name: 'All', label: 'All' }])
   const [paths, setPaths] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -13,24 +17,30 @@ export default function CareerPaths() {
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch('/api/disciplines')
+        const response = await fetch(`/api/disciplines?lang=${lang}`)
         const data = await response.json()
-        const disciplineNames = ['All', ...data.map(d => d.name)]
-        setDisciplines(disciplineNames)
+        setDisciplines([
+          { name: 'All', label: t('common.all') },
+          ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
+        ])
       } catch (error) {
         console.error('Error fetching disciplines:', error)
-        setDisciplines(['All', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education'])
+        setDisciplines([
+          { name: 'All', label: t('common.all') },
+          ...['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
+            .map(name => ({ name, label: name })),
+        ])
       }
     }
-    
+
     fetchDisciplines()
-  }, [])
+  }, [lang, t])
 
   // Fetch career paths from API
   useEffect(() => {
     const fetchPaths = async () => {
       try {
-        const response = await fetch('/api/career-paths')
+        const response = await fetch(`/api/career-paths?lang=${lang}`)
         const data = await response.json()
         setPaths(data)
         if (data.length > 0 && !selectedId) {
@@ -44,13 +54,19 @@ export default function CareerPaths() {
     }
     
     fetchPaths()
-  }, [])
+    // Refetches on a language change so descriptions arrive translated; the
+    // selected path is preserved because selection is keyed on id, not index.
+  }, [lang])
 
   // Function to navigate to resources with discipline filter
   const goToResources = (discipline, careerTitle) => {
     localStorage.setItem('selectedDiscipline', discipline)
     localStorage.setItem('selectedCareer', careerTitle)
-    window.location.href = '/resources'
+    // assign() rather than an href assignment: identical navigation, but the
+    // React Compiler's immutability rule rejects writing to a value defined
+    // outside the component, and it now analyses this component far enough to
+    // see it.
+    window.location.assign('/resources')
   }
 
   const filtered = paths.filter(p => disc === 'All' || p.discipline === disc)
@@ -60,7 +76,7 @@ export default function CareerPaths() {
     return (
       <div className="page-enter">
         <Navbar />
-        <div style={{ textAlign: 'center', padding: '50px' }}>Loading career paths...</div>
+        <div style={{ textAlign: 'center', padding: '50px' }}>{t('careers.loading')}</div>
       </div>
     )
   }
@@ -71,26 +87,24 @@ export default function CareerPaths() {
 
       <div className="cp-header">
         <div className="cp-header-inner">
-          <h1 className="cp-title">Career path explorer</h1>
-          <p className="cp-sub">
-            Explore career paths across all industries relevant to Bangladeshi graduates — from entry level to senior roles, with local salary context and required skills.
-          </p>
+          <h1 className="cp-title">{t('careers.title')}</h1>
+          <p className="cp-sub">{t('careers.sub')}</p>
           <div className="filter-row">
             {disciplines.map(d => (
               <button
-                key={d}
-                className={`filter-pill ${disc === d ? 'active' : ''}`}
-                onClick={() => { 
-                  setDisc(d)
-                  if (d !== 'All') {
-                    const first = paths.find(p => p.discipline === d)
+                key={d.name}
+                className={`filter-pill ${disc === d.name ? 'active' : ''}`}
+                onClick={() => {
+                  setDisc(d.name)
+                  if (d.name !== 'All') {
+                    const first = paths.find(p => p.discipline === d.name)
                     if (first) setSelectedId(first.id)
                   } else if (filtered.length > 0) {
                     setSelectedId(filtered[0].id)
                   }
                 }}
               >
-                {d}
+                {d.label}
               </button>
             ))}
           </div>
@@ -100,7 +114,7 @@ export default function CareerPaths() {
       <div className="cp-body">
         <div className="cp-list-col">
           {filtered.length === 0 && (
-            <div className="cp-empty">No paths found for this discipline.</div>
+            <div className="cp-empty">{t('careers.empty')}</div>
           )}
           {filtered.map(p => (
             <button
@@ -120,8 +134,13 @@ export default function CareerPaths() {
             </button>
           ))}
           <div className="cp-list-count">
-            Showing {filtered.length} of {paths.length} paths
-            {disc !== 'All' ? ` in ${disc}` : ''}
+            {disc === 'All'
+              ? t('careers.showingCount', { shown: n(filtered.length), total: n(paths.length) })
+              : t('careers.showingCountFiltered', {
+                  shown: n(filtered.length),
+                  total: n(paths.length),
+                  discipline: disciplines.find(d => d.name === disc)?.label ?? disc,
+                })}
           </div>
         </div>
 
@@ -130,18 +149,20 @@ export default function CareerPaths() {
             <h2 className="cp-detail-title">{selected.title}</h2>
             <div className="cp-detail-tags">
               <span className="cp-detail-tag">{selected.industry}</span>
-              <span className="cp-detail-tag">{selected.discipline}</span>
+              <span className="cp-detail-tag">
+                {disciplines.find(d => d.name === selected.discipline)?.label ?? selected.discipline}
+              </span>
             </div>
             <p className="cp-detail-desc">{selected.desc}</p>
 
-            <div className="cp-section-label">Required skills</div>
+            <div className="cp-section-label">{t('careers.requiredSkills')}</div>
             <div className="cp-skills">
               {selected.skills.map(s => (
                 <span key={s} className="cp-skill-pill">{s}</span>
               ))}
             </div>
 
-            <div className="cp-section-label">Typical progression</div>
+            <div className="cp-section-label">{t('careers.progression')}</div>
             <div className="cp-progression">
               {selected.progression.map((step, i) => (
                 <div key={i} className="cp-prog-step">
@@ -153,17 +174,17 @@ export default function CareerPaths() {
               ))}
             </div>
 
-            <div className="cp-section-label">Salary context (Bangladesh)</div>
+            <div className="cp-section-label">{t('careers.salaryContext')}</div>
             <div className="cp-salary-cards">
               <div className="cp-salary-card">
-                <div className="cp-salary-level">Entry level</div>
+                <div className="cp-salary-level">{t('careers.entryLevel')}</div>
                 <div className="cp-salary-amount">{selected.salaryEntry}</div>
-                <div className="cp-salary-period">per month</div>
+                <div className="cp-salary-period">{t('common.perMonth')}</div>
               </div>
               <div className="cp-salary-card">
-                <div className="cp-salary-level">Senior level</div>
+                <div className="cp-salary-level">{t('careers.seniorLevel')}</div>
                 <div className="cp-salary-amount">{selected.salarySenior}</div>
-                <div className="cp-salary-period">per month</div>
+                <div className="cp-salary-period">{t('common.perMonth')}</div>
               </div>
             </div>
 
@@ -171,7 +192,7 @@ export default function CareerPaths() {
               className="cp-resources-btn"
               onClick={() => goToResources(selected.discipline, selected.title)}
             >
-              Find related resources for {selected.title} →
+              {t('careers.findResources', { title: selected.title })}
             </button>
           </div>
         )}

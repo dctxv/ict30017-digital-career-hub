@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
 import './Auth.css'
 
 export default function Login() {
@@ -10,12 +11,19 @@ export default function Login() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
+  const { t } = useLanguage()
+
+  // SessionWatcher redirects here with an explanation when a session expires.
+  // It passes a translation key rather than a sentence, so the notice follows
+  // the language toggle instead of being pinned to English.
+  const notice = location.state?.messageKey ? t(location.state.messageKey) : ''
 
   const handleLogin = async () => {
     setMessage('')
     if (!form.email || !form.password) {
-      setMessage('Email and password are required.')
+      setMessage(t('auth.credentialsRequired'))
       return
     }
     try {
@@ -28,13 +36,15 @@ export default function Login() {
       })
       const data = await response.json()
       if (!response.ok) {
-        setMessage(data.error || 'Login failed.')
+        setMessage(data.error || t('auth.loginFailed'))
         return
       }
+      // Records the session in context so the navbar updates immediately,
+      // rather than writing localStorage and hoping something reads it back.
       login(data.user)
-      navigate(data.user.role === 'admin' ? '/admin' : '/')
+      navigate(location.state?.from ?? '/')
     } catch {
-      setMessage('Could not connect to server.')
+      setMessage(t('common.serverUnreachable'))
     } finally {
       setLoading(false)
     }
@@ -45,37 +55,43 @@ export default function Login() {
       <Navbar />
       <div className="auth-bg">
         <div className="auth-card">
-          <div className="auth-brand">Digital Career Hub</div>
-          <h1 className="auth-title">Welcome back</h1>
-          <p className="auth-sub">Log in to your account to continue</p>
+          <div className="auth-brand">{t('common.brand')}</div>
+          <h1 className="auth-title">{t('auth.welcomeBack')}</h1>
+          <p className="auth-sub">{t('auth.loginSub')}</p>
+
+          {/* Set by SessionWatcher when an expired session redirected here, so
+              the user is told why they landed on the login page. */}
+          {notice && (
+            <p className="auth-sub" role="status" style={{ color: '#b9770e' }}>{notice}</p>
+          )}
 
           <div className="form-group">
-            <label className="form-label">Email address</label>
-            <input className="form-input" type="email" placeholder="you@example.com"
+            <label className="form-label">{t('auth.emailLabel')}</label>
+            <input className="form-input" type="email" placeholder={t('auth.emailPlaceholder')}
               value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
               onKeyDown={e => e.key === 'Enter' && handleLogin()} />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label">{t('auth.passwordLabel')}</label>
             <div className="input-row">
-              <input className="form-input" type={show ? 'text' : 'password'} placeholder="••••••••"
+              <input className="form-input" type={show ? 'text' : 'password'} placeholder={t('auth.passwordPlaceholder')}
                 value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                 onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-              <button className="show-btn" onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>
+              <button className="show-btn" onClick={() => setShow(s => !s)}>{show ? t('common.hide') : t('common.show')}</button>
             </div>
             <div className="forgot-row">
-              <Link to="/forgot-password" className="link-green">Forgot password?</Link>
+              <Link to="/forgot-password" className="link-green">{t('auth.forgotPassword')}</Link>
             </div>
           </div>
 
           {message && <p className="auth-sub" style={{ color: '#c0392b' }}>{message}</p>}
 
           <button className="btn-auth" onClick={handleLogin} disabled={loading}>
-            {loading ? 'Logging in…' : 'Log in'}
+            {loading ? t('auth.loggingIn') : t('auth.logIn')}
           </button>
 
-          <div className="auth-divider"><span>or</span></div>
+          <div className="auth-divider"><span>{t('common.or')}</span></div>
 
           <button className="btn-google">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -84,16 +100,16 @@ export default function Login() {
               <path d="M3.51 9.52A4.8 4.8 0 013.26 8c0-.53.09-1.04.25-1.52V4.41H.85A8 8 0 000 8c0 1.29.31 2.51.85 3.59l2.66-2.07z" fill="#FBBC05"/>
               <path d="M8 3.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 00.85 4.41l2.66 2.07C4.14 4.59 5.91 3.18 8 3.18z" fill="#EA4335"/>
             </svg>
-            Continue with Google
+            {t('auth.continueWithGoogle')}
           </button>
 
-          <p className="auth-switch">Don't have an account? <Link to="/register" className="link-green">Sign up</Link></p>
+          <p className="auth-switch">{t('auth.noAccount')} <Link to="/register" className="link-green">{t('auth.signUp')}</Link></p>
 
           <div className="auth-secure">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M6 1L2 3v3c0 2.21 1.71 4.28 4 4.77C8.29 10.28 10 8.21 10 6V3L6 1z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
             </svg>
-            Your data is protected with end-to-end encryption
+            {t('auth.encryptionNote')}
           </div>
         </div>
       </div>

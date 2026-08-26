@@ -24,14 +24,44 @@ const BIO_MAX = 2000;
 const INITIALS_MAX = 4;
 const EARLIEST_GRADUATION_YEAR = 1950;
 
-const PUBLIC_FIELDS = `
+const SUPPORTED_LANGUAGES = ['en', 'bn'];
+
+/**
+ * Public read fields for one language.
+ *
+ * bio_bn and industry_bn hold the Bangla prose; ?lang=bn resolves them into the
+ * flat `bio` and `industry` the alumni page renders, falling back to English
+ * per field via COALESCE so an untranslated profile still shows its story.
+ *
+ * full_name, institution and current_role have no Bangla column on purpose. A
+ * person's name is not translated, and neither is the employer on their badge
+ * or the job title they hold.
+ *
+ * `lang` is validated before it reaches here, so this picks between two fixed
+ * literals rather than interpolating anything a caller supplied.
+ */
+function publicFields(lang) {
+  const bio = lang === 'bn' ? 'COALESCE(bio_bn, bio)' : 'bio';
+  const industry = lang === 'bn' ? 'COALESCE(industry_bn, industry)' : 'industry';
+  return `
   id, full_name, institution, discipline, graduation_year,
-  "current_role", industry, bio, image_initials
+  "current_role", ${industry} AS industry, ${bio} AS bio, image_initials
 `;
+}
+
+/** English unless a supported language is explicitly requested. */
+function resolveLang(raw) {
+  return SUPPORTED_LANGUAGES.includes(raw) ? raw : 'en';
+}
+
+// Admin writes read the row back in English: the dashboard edits the canonical
+// profile, not a per-language rendering of it.
+const PUBLIC_FIELDS = publicFields('en');
 
 const ADMIN_FIELDS = `
   id, full_name, institution, discipline, graduation_year,
   "current_role", industry, bio, image_initials,
+  bio_bn, industry_bn,
   consent_given, is_published
 `;
 
@@ -46,6 +76,7 @@ function validateAlumni(body) {
   const {
     full_name, institution, discipline, graduation_year,
     current_role, industry, bio, image_initials,
+    bio_bn, industry_bn,
     consent_given, is_published,
   } = body;
 
@@ -59,10 +90,13 @@ function validateAlumni(body) {
     return 'Discipline is required.';
   }
 
+  // Optional everywhere: an untranslated profile is a valid profile, and the
+  // public read falls back to English for it.
   for (const [label, value] of [
     ['Institution', institution],
     ['Current role', current_role],
     ['Industry', industry],
+    ['Bangla industry', industry_bn],
   ]) {
     if (value !== undefined && value !== null) {
       if (typeof value !== 'string') return `${label} must be text.`;
@@ -72,9 +106,11 @@ function validateAlumni(body) {
     }
   }
 
-  if (bio !== undefined && bio !== null) {
-    if (typeof bio !== 'string') return 'Bio must be text.';
-    if (bio.length > BIO_MAX) return `Bio must be ${BIO_MAX} characters or fewer.`;
+  for (const [label, value] of [['Bio', bio], ['Bangla bio', bio_bn]]) {
+    if (value !== undefined && value !== null) {
+      if (typeof value !== 'string') return `${label} must be text.`;
+      if (value.length > BIO_MAX) return `${label} must be ${BIO_MAX} characters or fewer.`;
+    }
   }
 
   if (image_initials !== undefined && image_initials !== null && image_initials !== '') {
@@ -106,6 +142,19 @@ function validateAlumni(body) {
   return null;
 }
 
+/**
+ * An untranslated field is NULL, not ''.
+ *
+ * COALESCE(bio_bn, bio) treats an empty string as a present value and would
+ * render an empty bio in Bangla rather than falling back to English. Clearing
+ * the box in the dashboard therefore has to store NULL, which is what an admin
+ * means by clearing it.
+ */
+function nullIfBlank(value) {
+  const trimmed = (value ?? '').trim();
+  return trimmed === '' ? null : trimmed;
+}
+
 function toParams(body) {
   const year =
     body.graduation_year === undefined || body.graduation_year === null || body.graduation_year === ''
@@ -123,6 +172,8 @@ function toParams(body) {
     (body.industry ?? '').trim(),
     (body.bio ?? '').trim(),
     initials === '' ? null : initials,
+    nullIfBlank(body.bio_bn),
+    nullIfBlank(body.industry_bn),
     body.consent_given === true,
     body.is_published === true,
   ];
@@ -132,7 +183,7 @@ function toParams(body) {
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT ${PUBLIC_FIELDS} FROM alumni WHERE ${PUBLIC_FILTER} ORDER BY id`
+      `SELECT ${publicFields(resolveLang(req.query.lang))} FROM alumni WHERE ${PUBLIC_FILTER} ORDER BY id`
     );
     return res.json(result.rows);
   } catch (err) {
@@ -162,7 +213,7 @@ router.get('/discipline/:discipline', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT ${PUBLIC_FIELDS} FROM alumni
+      `SELECT ${publicFields(resolveLang(req.query.lang))} FROM alumni
         WHERE ${PUBLIC_FILTER} AND discipline = $1
         ORDER BY id`,
       [discipline]
@@ -183,7 +234,7 @@ router.get('/:id', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT ${PUBLIC_FIELDS} FROM alumni WHERE id = $1 AND ${PUBLIC_FILTER}`,
+      `SELECT ${publicFields(resolveLang(req.query.lang))} FROM alumni WHERE id = $1 AND ${PUBLIC_FILTER}`,
       [id]
     );
     if (result.rows.length === 0) {
@@ -207,8 +258,9 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     const result = await pool.query(
       `INSERT INTO alumni
          (full_name, institution, discipline, graduation_year, "current_role",
-          industry, bio, image_initials, consent_given, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          industry, bio, image_initials, bio_bn, industry_bn,
+          consent_given, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING ${ADMIN_FIELDS}`,
       toParams(req.body)
     );
@@ -236,8 +288,9 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       `UPDATE alumni
           SET full_name = $1, institution = $2, discipline = $3, graduation_year = $4,
               "current_role" = $5, industry = $6, bio = $7, image_initials = $8,
-              consent_given = $9, is_published = $10
-        WHERE id = $11
+              bio_bn = $9, industry_bn = $10,
+              consent_given = $11, is_published = $12
+        WHERE id = $13
       RETURNING ${ADMIN_FIELDS}`,
       [...toParams(req.body), id]
     );

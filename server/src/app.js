@@ -7,7 +7,9 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
-import { assertModelConfig } from '../../ai-service/index.js';
+import { getAllowedOrigins } from './config/origins.js';
+import { assertModelConfig } from 'ai-service';
+import { localiseResponses } from './i18n/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,9 +25,7 @@ try {
   process.exit(1);
 }
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:5174'];
+const allowedOrigins = getAllowedOrigins();
 
 const app = express();
 app.use(helmet());
@@ -34,6 +34,11 @@ app.use(express.json());
 // routes/auth.js issues the JWT as an httpOnly cookie; without this the auth
 // middleware cannot read it and every guarded endpoint would reject.
 app.use(cookieParser());
+// Translates the `error` and `message` fields of every JSON response into the
+// caller's language. Registered after cookieParser, because that is where the
+// language preference arrives, and before the routers and the error handler so
+// that both are covered without either knowing about it.
+app.use(localiseResponses);
 
 // Ensure uploads/ exists at startup
 const uploadsDir = path.join(__dirname, '../uploads');

@@ -26,4 +26,14 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Context modules deliberately co-locate the provider component with its
+    // consumer hook, trading fast-refresh precision in these two files for a
+    // single import site per context. LanguageContext established the pattern
+    // and AuthContext follows it.
+    files: ['src/context/*.jsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

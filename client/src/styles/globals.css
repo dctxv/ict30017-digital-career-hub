@@ -1,4 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap');
+/* DM Sans and DM Serif Display carry no Bengali glyphs. Without a Bengali face
+   in the stack, Bangla falls through to whatever the operating system happens
+   to have: usually fine on Windows, unreliable on Android and Linux, and it
+   renders as empty boxes where nothing is installed. Noto Sans Bengali and Noto
+   Serif Bengali are loaded alongside the Latin faces and listed after them, so
+   Latin text keeps the existing design and only Bengali codepoints fall to Noto. */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Noto+Serif+Bengali:wght@400;600&display=swap');
 
 :root {
   --green-900: #1B4332;
@@ -25,8 +31,8 @@
   --radius-pill: 999px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --font-display: 'DM Serif Display', Georgia, serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-display: 'DM Serif Display', 'Noto Serif Bengali', 'Nirmala UI', Georgia, serif;
+  --font-body: 'DM Sans', 'Noto Sans Bengali', 'Hind Siliguri', 'Nirmala UI', system-ui, sans-serif;
   --transition: 0.18s ease;
 }
 
@@ -40,6 +46,20 @@ body {
   background: var(--white);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Bengali sits taller than Latin and its conjuncts and vowel signs extend above
+   and below the baseline, so the Latin leading crowds them. These two rules are
+   the whole Bangla type adjustment: the layout is otherwise unchanged. */
+:root[lang='bn'] body,
+[lang='bn'] {
+  line-height: 1.85;
+}
+
+:root[lang='bn'] h1,
+:root[lang='bn'] h2,
+:root[lang='bn'] h3 {
+  line-height: 1.45;
 }
 
 a { color: inherit; text-decoration: none; }

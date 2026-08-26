@@ -18,7 +18,7 @@
  *    PDF source is derived in priority order: (1) blob URL created from
  *    uploadedFile (the raw File object passed from ResumeReview), (2)
  *    feedback?.fileUrl (Cloudinary URL from backend), (3) renders nothing.
- *    The blob URL is stored in objUrlRef (useRef) so it is created only once
+ *    The blob URL is memoised from the File and revoked on change/unmount
  *    per file reference; URL.revokeObjectURL is called on unmount and before
  *    each new URL is created to prevent memory leaks. DOCX detection uses the
  *    MIME type (uploadedFile?.type) instead of filename string matching.
@@ -44,11 +44,12 @@
  * - onViewInResume prop from all body/item components and all call sites
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import html2pdf from 'html2pdf.js'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
+import { useLanguage } from '../context/LanguageContext'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -58,11 +59,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 /* ── Helpers ─────────────────────────────────────────────────────── */
 const displayFilename = name => name.replace(/_/g, ' ')
 
-const bandLabel = score =>
-  score <= 30 ? 'Needs significant work'
-  : score <= 60 ? 'Functional but unoptimised'
-  : score <= 80 ? 'Competitive'
-  : 'Exemplary'
+const bandLabelKey = score =>
+  score <= 30 ? 'results.band.low'
+  : score <= 60 ? 'results.band.mid'
+  : score <= 80 ? 'results.band.high'
+  : 'results.band.top'
 
 const scoreColorClass = score => score <= 40 ? 'sc-red' : score <= 65 ? 'sc-amber' : 'sc-green'
 const scoreIcon       = score => score <= 40 ? '⚠' : score <= 65 ? '!' : '✓'
@@ -71,17 +72,19 @@ const priorityClass = p => p === 'high' ? 'priority--high' : p === 'medium' ? 'p
 
 /* ── ScoreBadge ──────────────────────────────────────────────────── */
 function ScoreBadge({ score, small }) {
+  const { n } = useLanguage()
   if (typeof score !== 'number') return null
   return (
     <span className={`score-badge ${scoreColorClass(score)}${small ? ' score-badge--sm' : ''}`}>
       <span className="score-badge__icon">{scoreIcon(score)}</span>
-      {score}
+      {n(score)}
     </span>
   )
 }
 
 /* ── ScoreRing ───────────────────────────────────────────────────── */
 function ScoreRing({ score, size = 96 }) {
+  const { n } = useLanguage()
   const [drawn, setDrawn] = useState(false)
   useEffect(() => {
     const t = setTimeout(() => setDrawn(true), 80)
@@ -108,8 +111,8 @@ function ScoreRing({ score, size = 96 }) {
         />
       </svg>
       <div className="score-ring__label">
-        <span className="score-ring__num">{score}</span>
-        <span className="score-ring__denom">/100</span>
+        <span className="score-ring__num">{n(score)}</span>
+        <span className="score-ring__denom">/{n(100)}</span>
       </div>
     </div>
   )
@@ -159,6 +162,7 @@ function WeaknessItem({ text }) {
 
 /* ── Content quality body ────────────────────────────────────────── */
 function ContentBody({ sec }) {
+  const { t, n } = useLanguage()
   if (!sec) return null
   const strengths  = Array.isArray(sec.strengths)  ? sec.strengths.filter(Boolean)  : []
   const weaknesses = Array.isArray(sec.weaknesses) ? sec.weaknesses.filter(Boolean) : []
@@ -167,14 +171,14 @@ function ContentBody({ sec }) {
       <FeedbackIntro text={sec.feedback} />
       {strengths.length > 0 && (
         <div className="section-group">
-          <div className="group-label group-label--green">Strengths <span className="group-label__count">({strengths.length})</span></div>
+          <div className="group-label group-label--green">{t('results.strengths')} <span className="group-label__count">({n(strengths.length)})</span></div>
           {strengths.map((s, i) => <StrengthItem key={i} text={s} />)}
         </div>
       )}
       {weaknesses.length > 0 && strengths.length > 0 && <div className="section-divider" />}
       {weaknesses.length > 0 && (
         <div className="section-group">
-          <div className="group-label group-label--amber">Weaknesses <span className="group-label__count">({weaknesses.length})</span></div>
+          <div className="group-label group-label--amber">{t('results.weaknesses')} <span className="group-label__count">({n(weaknesses.length)})</span></div>
           {weaknesses.map((w, i) => <WeaknessItem key={i} text={w} />)}
         </div>
       )}
@@ -184,6 +188,7 @@ function ContentBody({ sec }) {
 
 /* ── Formatting body ─────────────────────────────────────────────── */
 function FormattingIssueItem({ item }) {
+  const { t } = useLanguage()
   const [open, setOpen] = useState(true)
   if (!item?.issue) return null
   return (
@@ -201,7 +206,7 @@ function FormattingIssueItem({ item }) {
       </div>
       {open && item.suggestion && (
         <div className="fmt-issue__suggestion">
-          <span className="fmt-issue__suggestion-label">Suggestion</span>
+          <span className="fmt-issue__suggestion-label">{t('results.suggestion')}</span>
           {item.suggestion}
         </div>
       )}
@@ -210,6 +215,7 @@ function FormattingIssueItem({ item }) {
 }
 
 function FormattingBody({ sec }) {
+  const { t, n } = useLanguage()
   if (!sec) return null
   const issues = Array.isArray(sec.issues) ? sec.issues.filter(x => x?.issue) : []
   return (
@@ -217,7 +223,7 @@ function FormattingBody({ sec }) {
       <FeedbackIntro text={sec.feedback} />
       {issues.length > 0 && (
         <div className="section-group">
-          <div className="group-label group-label--amber">Issues <span className="group-label__count">({issues.length})</span></div>
+          <div className="group-label group-label--amber">{t('results.issues')} <span className="group-label__count">({n(issues.length)})</span></div>
           {issues.map((item, i) => <FormattingIssueItem key={i} item={item} />)}
         </div>
       )}
@@ -239,6 +245,7 @@ function LanguageIssueItem({ item }) {
 }
 
 function LanguageBody({ sec }) {
+  const { t, n } = useLanguage()
   if (!sec) return null
   const issues = Array.isArray(sec.issues) ? sec.issues.filter(x => x?.original) : []
   return (
@@ -246,7 +253,7 @@ function LanguageBody({ sec }) {
       <FeedbackIntro text={sec.feedback} />
       {issues.length > 0 && (
         <div className="section-group">
-          <div className="group-label group-label--amber">Issues <span className="group-label__count">({issues.length})</span></div>
+          <div className="group-label group-label--amber">{t('results.issues')} <span className="group-label__count">({n(issues.length)})</span></div>
           {issues.map((item, i) => <LanguageIssueItem key={i} item={item} />)}
         </div>
       )}
@@ -256,13 +263,14 @@ function LanguageBody({ sec }) {
 
 /* ── Action items card ───────────────────────────────────────────── */
 function ActionItemsCard({ items }) {
+  const { t, n } = useLanguage()
   if (!Array.isArray(items) || items.length === 0) return null
   return (
-    <SectionCard id="sec-actions" title="Priority action items">
+    <SectionCard id="sec-actions" title={t('results.card.actions')}>
       <div className="action-list">
         {items.map((item, i) => (
           <div key={i} className="action-item" style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-            <span className="action-item__num" style={{ flexShrink: 0 }}>{i + 1}</span>
+            <span className="action-item__num" style={{ flexShrink: 0 }}>{n(i + 1)}</span>
             <span className="action-item__text" style={{ flex: 1 }}>{item}</span>
           </div>
         ))}
@@ -273,6 +281,7 @@ function ActionItemsCard({ items }) {
 
 /* ── ATS analysis card ───────────────────────────────────────────── */
 function ATSAnalysisCard({ ats }) {
+  const { t, n } = useLanguage()
   if (!ats) return null
   const hits  = Array.isArray(ats.keyword_hits)  ? ats.keyword_hits  : []
   const gaps  = Array.isArray(ats.keyword_gaps)  ? ats.keyword_gaps  : []
@@ -282,13 +291,13 @@ function ATSAnalysisCard({ ats }) {
   return (
     <SectionCard
       id="sec-ats"
-      title="ATS analysis"
+      title={t('results.card.ats')}
       score={typeof ats.ats_score === 'number' ? ats.ats_score : undefined}
     >
       {(ats.inferred_role || ats.inferred_industry) && (
         <div className="ats-meta">
-          {ats.inferred_role && <span className="ats-meta__item"><strong>Inferred role:</strong> {ats.inferred_role}</span>}
-          {ats.inferred_industry && <span className="ats-meta__item"><strong>Industry:</strong> {ats.inferred_industry}</span>}
+          {ats.inferred_role && <span className="ats-meta__item"><strong>{t('results.inferredRole')}</strong> {ats.inferred_role}</span>}
+          {ats.inferred_industry && <span className="ats-meta__item"><strong>{t('results.inferredIndustry')}</strong> {ats.inferred_industry}</span>}
         </div>
       )}
 
@@ -296,7 +305,7 @@ function ATSAnalysisCard({ ats }) {
         <div className="keyword-row">
           {hits.length > 0 && (
             <div className="keyword-col">
-              <div className="group-label group-label--green">Keywords found <span className="group-label__count">({hits.length})</span></div>
+              <div className="group-label group-label--green">{t('results.keywordsFound')} <span className="group-label__count">({n(hits.length)})</span></div>
               <div className="keyword-chips">
                 {hits.map((k, i) => <span key={i} className="keyword-chip keyword-chip--hit">{k}</span>)}
               </div>
@@ -304,7 +313,7 @@ function ATSAnalysisCard({ ats }) {
           )}
           {gaps.length > 0 && (
             <div className="keyword-col">
-              <div className="group-label group-label--red">Keyword gaps <span className="group-label__count">({gaps.length})</span></div>
+              <div className="group-label group-label--red">{t('results.keywordGaps')} <span className="group-label__count">({n(gaps.length)})</span></div>
               <div className="keyword-chips">
                 {gaps.map((k, i) => <span key={i} className="keyword-chip keyword-chip--gap">{k}</span>)}
               </div>
@@ -315,7 +324,7 @@ function ATSAnalysisCard({ ats }) {
 
       {risks.length > 0 && (
         <div className="section-group" style={{ marginTop: 14 }}>
-          <div className="group-label group-label--amber">Heading risks <span className="group-label__count">({risks.length})</span></div>
+          <div className="group-label group-label--amber">{t('results.headingRisks')} <span className="group-label__count">({n(risks.length)})</span></div>
           {risks.map((r, i) => (
             <div key={i} className="heading-risk">
               <span className="heading-risk__original">"{r.original}"</span>
@@ -329,10 +338,10 @@ function ATSAnalysisCard({ ats }) {
 
       {tips.length > 0 && (
         <div className="section-group" style={{ marginTop: 14 }}>
-          <div className="group-label group-label--green">ATS tips</div>
+          <div className="group-label group-label--green">{t('results.atsTips')}</div>
           {tips.map((tip, i) => (
             <div key={i} className="ats-tip" style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-              <span className="ats-tip__num" style={{ flexShrink: 0 }}>{i + 1}</span>
+              <span className="ats-tip__num" style={{ flexShrink: 0 }}>{n(i + 1)}</span>
               <span className="ats-tip__text" style={{ flex: 1 }}>{tip}</span>
             </div>
           ))}
@@ -344,6 +353,7 @@ function ATSAnalysisCard({ ats }) {
 
 /* ── Job match card ──────────────────────────────────────────────── */
 function JobMatchCard({ match }) {
+  const { t, n, tc } = useLanguage()
   if (!match) return null
   const matched = Array.isArray(match.matched_keywords) ? match.matched_keywords : []
   const partial = Array.isArray(match.partial_keywords) ? match.partial_keywords : []
@@ -351,11 +361,11 @@ function JobMatchCard({ match }) {
   const recs    = Array.isArray(match.recommendations)  ? match.recommendations  : []
 
   return (
-    <SectionCard id="sec-jobmatch" title="Job match" score={match.match_score}>
+    <SectionCard id="sec-jobmatch" title={t('results.card.jobmatch')} score={match.match_score}>
       <div className="job-match-grid">
         {matched.length > 0 && (
           <div className="keyword-col">
-            <div className="group-label group-label--green">Matched <span className="group-label__count">({matched.length})</span></div>
+            <div className="group-label group-label--green">{t('results.matched')} <span className="group-label__count">({n(matched.length)})</span></div>
             <div className="keyword-chips">
               {matched.map((k, i) => <span key={i} className="keyword-chip keyword-chip--hit">{k}</span>)}
             </div>
@@ -363,7 +373,7 @@ function JobMatchCard({ match }) {
         )}
         {partial.length > 0 && (
           <div className="keyword-col">
-            <div className="group-label group-label--amber">Partial <span className="group-label__count">({partial.length})</span></div>
+            <div className="group-label group-label--amber">{t('results.partial')} <span className="group-label__count">({n(partial.length)})</span></div>
             {partial.map((p, i) => (
               <div key={i} className="partial-keyword">
                 <span>{p.resume_term}</span>
@@ -375,10 +385,12 @@ function JobMatchCard({ match }) {
         )}
         {missing.length > 0 && (
           <div className="keyword-col">
-            <div className="group-label group-label--red">Missing <span className="group-label__count">({missing.length})</span></div>
+            <div className="group-label group-label--red">{t('results.missing')} <span className="group-label__count">({n(missing.length)})</span></div>
             {missing.map((m, i) => (
               <div key={i} className="missing-keyword">
-                <span className={`priority-badge ${priorityClass(m.priority)}`}>{m.priority}</span>
+                {/* The priority enum stays English in the model's JSON by
+                    contract; only its rendered label is translated. */}
+                <span className={`priority-badge ${priorityClass(m.priority)}`}>{tc(`results.priority.${m.priority}`, m.priority)}</span>
                 <span>{m.keyword}</span>
               </div>
             ))}
@@ -389,10 +401,10 @@ function JobMatchCard({ match }) {
       {recs.length > 0 && (
         <div className="section-group" style={{ marginTop: 14 }}>
           <div className="section-divider" style={{ marginBottom: 14 }} />
-          <div className="group-label group-label--green">Recommendations</div>
+          <div className="group-label group-label--green">{t('results.recommendations')}</div>
           {recs.map((r, i) => (
             <div key={i} className="action-item" style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-              <span className="action-item__num" style={{ flexShrink: 0 }}>{i + 1}</span>
+              <span className="action-item__num" style={{ flexShrink: 0 }}>{n(i + 1)}</span>
               <span className="action-item__text" style={{ flex: 1 }}>{r}</span>
             </div>
           ))}
@@ -406,37 +418,28 @@ function JobMatchCard({ match }) {
 // Renders the uploaded resume as a scrollable PDF using react-pdf.
 // PDF source priority: uploadedFile blob URL → feedback?.fileUrl → render nothing.
 // DOCX detection uses the MIME type so it works regardless of filename casing.
-// The blob URL is stored in objUrlRef and only created once per File reference.
+// The blob URL is memoised from the File and revoked when it changes.
 // URL.revokeObjectURL is called on unmount and before each new URL is created.
 function PDFPanel({ uploadedFile, feedback, pdfWidth, numPages, setNumPages }) {
+  const { t } = useLanguage()
   const [pdfError, setPdfError] = useState(null)
-  const [blobUrl, setBlobUrl] = useState(null)
-  const objUrlRef = useRef(null)
+  // Derived, not state: an object URL is a pure function of the File, so it is
+  // memoised rather than mirrored into state from an effect. The cleanup effect
+  // below revokes each URL when the file changes or the view unmounts.
+  const blobUrl = useMemo(
+    () => (uploadedFile ? URL.createObjectURL(uploadedFile) : null),
+    [uploadedFile]
+  )
 
   const isDocx =
     uploadedFile?.type ===
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
   useEffect(() => {
-    // Revoke the previous object URL before creating a new one
-    if (objUrlRef.current) {
-      URL.revokeObjectURL(objUrlRef.current)
-      objUrlRef.current = null
-    }
-    if (uploadedFile) {
-      const url = URL.createObjectURL(uploadedFile)
-      objUrlRef.current = url
-      setBlobUrl(url)
-    } else {
-      setBlobUrl(null)
-    }
     return () => {
-      if (objUrlRef.current) {
-        URL.revokeObjectURL(objUrlRef.current)
-        objUrlRef.current = null
-      }
+      if (blobUrl) URL.revokeObjectURL(blobUrl)
     }
-  }, [uploadedFile])
+  }, [blobUrl])
 
   // Priority: blob URL from uploadedFile → backend fileUrl → nothing
   const pdfSrc = blobUrl || feedback?.fileUrl || null
@@ -445,10 +448,8 @@ function PDFPanel({ uploadedFile, feedback, pdfWidth, numPages, setNumPages }) {
     return (
       <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)' }}>
         <div style={{ fontSize: 36, marginBottom: 12 }}>📄</div>
-        <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>Word document</div>
-        <div style={{ fontSize: 13, lineHeight: 1.6 }}>
-          PDF preview is not available for .docx files. Review the AI feedback in the right panel.
-        </div>
+        <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>{t('results.docxTitle')}</div>
+        <div style={{ fontSize: 13, lineHeight: 1.6 }}>{t('results.docxBody')}</div>
       </div>
     )
   }
@@ -459,16 +460,16 @@ function PDFPanel({ uploadedFile, feedback, pdfWidth, numPages, setNumPages }) {
     <>
       {pdfError && (
         <div style={{ padding: '10px 14px', marginBottom: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, color: '#be3535', fontSize: 12 }}>
-          Failed to load PDF: {pdfError}
+          {t('results.pdfFailed', { message: pdfError })}
         </div>
       )}
       <Document
         file={pdfSrc}
         onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfError(null) }}
-        onLoadError={e => setPdfError(e.message || 'Unknown error')}
+        onLoadError={e => setPdfError(e.message || t('results.pdfUnknownError'))}
         loading={
           <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-            Loading PDF…
+            {t('results.pdfLoading')}
           </div>
         }
       >
@@ -497,6 +498,7 @@ export default function ResultsView({
   onReanalyse, onUploadNew, onNewFile,
   uploadedFile,
 }) {
+  const { t } = useLanguage()
   const [enhanceOpen, setEnhanceOpen] = useState(false)
   const [activeNav,   setActiveNav]   = useState('overall')
   const [numPages,    setNumPages]     = useState(0)
@@ -572,20 +574,20 @@ export default function ResultsView({
   const hasJobMatch  = feedback?.job_match != null
 
   const navItems = [
-    { id: 'overall',  label: 'Overall',   score: null },
-    { id: 'content',  label: 'Content',   score: feedback?.content_quality?.score },
-    { id: 'language', label: 'Language',  score: feedback?.language_grammar?.score },
-    { id: 'format',   label: 'Format',    score: feedback?.formatting?.score },
-    { id: 'actions',  label: 'Actions',   score: null },
-    { id: 'ats',      label: 'ATS',       score: feedback?.ats_analysis?.ats_score },
-    ...(hasJobMatch ? [{ id: 'jobmatch', label: 'Job match', score: feedback?.job_match?.match_score }] : []),
+    { id: 'overall',  score: null },
+    { id: 'content',  score: feedback?.content_quality?.score },
+    { id: 'language', score: feedback?.language_grammar?.score },
+    { id: 'format',   score: feedback?.formatting?.score },
+    { id: 'actions',  score: null },
+    { id: 'ats',      score: feedback?.ats_analysis?.ats_score },
+    ...(hasJobMatch ? [{ id: 'jobmatch', score: feedback?.job_match?.match_score }] : []),
   ]
 
   return (
     <div className="rr-results">
       {isSample && (
         <div className="sample-notice">
-          👁 This is a sample review — <strong>upload your own resume</strong> to get personalised feedback
+          {t('results.sampleNoticePrefix')} <strong>{t('results.sampleNoticeStrong')}</strong> {t('results.sampleNoticeSuffix')}
         </div>
       )}
 
@@ -595,7 +597,7 @@ export default function ResultsView({
           <div className="result-banner__inner">
             <button
               className="file-pill file-pill--swap"
-              title="Click to upload a different resume"
+              title={t('results.swapTitle')}
               onClick={() => fileInputRef.current.click()}
             >
               <svg width="11" height="14" viewBox="0 0 11 14">
@@ -613,10 +615,10 @@ export default function ResultsView({
               onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) onNewFile(f) }}
             />
             <button className="btn btn-sm btn-banner" onClick={() => setEnhanceOpen(o => !o)}>
-              ✦ Add job context {enhanceOpen ? '▴' : '▾'}
+              {t('results.addJobContext')} {enhanceOpen ? '▴' : '▾'}
             </button>
             <button className="btn btn-sm btn-reanalyse" onClick={onReanalyse} disabled={isLoading}>
-              ↺ Re-analyse
+              {t('results.reanalyse')}
             </button>
           </div>
         </div>
@@ -625,47 +627,47 @@ export default function ResultsView({
           <div className="enhance-strip">
             <div className="enhance-strip__fields">
               <div className="form-group">
-                <label className="form-label">Target job role</label>
+                <label className="form-label">{t('review.jobRoleLabel')}</label>
                 <input
                   className="form-input"
-                  placeholder="e.g. Electrical Engineer"
+                  placeholder={t('results.jobRolePlaceholder')}
                   value={jobRole}
                   onChange={e => setJobRole(e.target.value)}
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Job advertisement</label>
+                <label className="form-label">{t('review.jobAdLabel')}</label>
                 <textarea
                   className="form-textarea"
                   rows={3}
-                  placeholder="Paste job description for job match analysis…"
+                  placeholder={t('results.jobAdPlaceholder')}
                   value={jobAd}
                   onChange={e => setJobAd(e.target.value)}
                 />
               </div>
             </div>
             <button className="btn btn-sm btn-reanalyse-strip" onClick={onReanalyse} disabled={isLoading}>
-              Re-analyse ↺
+              {t('results.reanalyseStrip')}
             </button>
           </div>
         )}
 
         <div className="sec-nav">
           <div className="sec-nav__pills">
-            {navItems.map(({ id, label, score }) => (
+            {navItems.map(({ id, score }) => (
               <button
                 key={id}
                 className={`nav-pill${activeNav === id ? ' nav-pill--active' : ''}`}
                 onClick={() => scrollToSection(id)}
               >
-                {label}
+                {t(`results.nav.${id}`)}
                 {typeof score === 'number' && <ScoreBadge score={score} small />}
               </button>
             ))}
           </div>
           <div className="sec-nav__actions">
-            <button className="btn btn-ghost btn-sm" onClick={handleDownloadPDF}>⬇ PDF</button>
-            <button className="btn btn-ghost btn-sm">✉ Email</button>
+            <button className="btn btn-ghost btn-sm" onClick={handleDownloadPDF}>{t('results.downloadPdfShort')}</button>
+            <button className="btn btn-ghost btn-sm">{t('results.emailShort')}</button>
           </div>
         </div>
       </div>
@@ -704,9 +706,13 @@ export default function ResultsView({
 
         {/* RIGHT — Feedback cards */}
         <div style={{ flex: 1, minWidth: 0, padding: isMobile ? '20px 16px' : '24px 20px' }}>
+          {/* Partial failure only. A total failure never reaches this view:
+              ResumeReview routes it to ResumeAnalysisError, which states the
+              cause and always offers a way out. This banner therefore always
+              sits above feedback that did arrive. */}
           {streamError && (
-            <div className="stream-warning">
-              <span>⚠</span> Feedback may be incomplete: {streamError}
+            <div className="stream-warning" role="status">
+              <span>⚠</span> {t('results.streamWarning')}
             </div>
           )}
 
@@ -717,19 +723,19 @@ export default function ResultsView({
                 <ScoreRing score={overallScore} size={96} />
                 <div className="overall-card__text">
                   <div className="overall-card__row">
-                    <h2 className="overall-card__heading">Overall score</h2>
+                    <h2 className="overall-card__heading">{t('results.overallHeading')}</h2>
                     <span className={`band-badge ${overallScore <= 40 ? 'band-badge--red' : overallScore <= 65 ? 'band-badge--amber' : 'band-badge--green'}`}>
-                      {bandLabel(overallScore)}
+                      {t(bandLabelKey(overallScore))}
                     </span>
                   </div>
                   <div className="overall-card__miniscores">
                     {[
-                      { label: 'Content',  score: feedback?.content_quality?.score },
-                      { label: 'Language', score: feedback?.language_grammar?.score },
-                      { label: 'Format',   score: feedback?.formatting?.score },
-                    ].filter(x => typeof x.score === 'number').map(({ label, score }) => (
-                      <div key={label} className="miniscore">
-                        <span className="miniscore__label">{label}</span>
+                      { id: 'content',  score: feedback?.content_quality?.score },
+                      { id: 'language', score: feedback?.language_grammar?.score },
+                      { id: 'format',   score: feedback?.formatting?.score },
+                    ].filter(x => typeof x.score === 'number').map(({ id, score }) => (
+                      <div key={id} className="miniscore">
+                        <span className="miniscore__label">{t(`results.nav.${id}`)}</span>
                         <ScoreBadge score={score} small />
                       </div>
                     ))}
@@ -747,7 +753,7 @@ export default function ResultsView({
             {feedback?.content_quality && (
               <SectionCard
                 id="sec-content"
-                title="Content quality"
+                title={t('results.card.content')}
                 score={feedback.content_quality.score}
               >
                 <ContentBody sec={feedback.content_quality} />
@@ -757,7 +763,7 @@ export default function ResultsView({
             {feedback?.language_grammar && (
               <SectionCard
                 id="sec-language"
-                title="Language & grammar"
+                title={t('results.card.language')}
                 score={feedback.language_grammar.score}
               >
                 <LanguageBody sec={feedback.language_grammar} />
@@ -767,7 +773,7 @@ export default function ResultsView({
             {feedback?.formatting && (
               <SectionCard
                 id="sec-format"
-                title="Format & structure"
+                title={t('results.card.format')}
                 score={feedback.formatting.score}
               >
                 <FormattingBody sec={feedback.formatting} />
@@ -789,14 +795,14 @@ export default function ResultsView({
 
           {!isLoading && overallScore !== null && (
             <div className="cta-strip">
-              <div className="cta-strip__title">What next?</div>
+              <div className="cta-strip__title">{t('results.whatNext')}</div>
               <div className="cta-strip__btns">
-                <button className="btn btn-primary" onClick={onUploadNew}>↑ Upload new resume</button>
-                <button className="btn btn-outline" onClick={handleDownloadPDF}>⬇ Download PDF</button>
-                <button className="btn btn-outline">✉ Email to myself</button>
+                <button className="btn btn-primary" onClick={onUploadNew}>{t('results.uploadNew')}</button>
+                <button className="btn btn-outline" onClick={handleDownloadPDF}>{t('results.downloadPdf')}</button>
+                <button className="btn btn-outline">{t('results.emailToSelf')}</button>
               </div>
               <div className="cta-strip__tip">
-                <strong>Tip:</strong> Work through the priority action items first — each one is tied to a specific section and will have the biggest impact on recruiter shortlisting.
+                <strong>{t('results.tipLabel')}</strong> {t('results.tipBody')}
               </div>
             </div>
           )}

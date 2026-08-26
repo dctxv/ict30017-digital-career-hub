@@ -1,0 +1,467 @@
+{
+ "madrasah (Dakhil/Alim)": {
+  "formatting": {
+   "score": 85,
+   "feedback": "The resume follows a logical structure appropriate for a fresher in the Bangladesh market. The hierarchy is clear and the inclusion of personal details is consistent with local conventions for traditional employers.",
+   "issues": [
+    {
+     "section": "Contact Information",
+     "issue": "Contains sensitive personal data (phone, email, address).",
+     "suggestion": "While acceptable for local applications, ensure you use a secure, professional email address and be aware of privacy risks when sharing this document widely."
+    }
+   ]
+  },
+  "content_quality": {
+   "score": 75,
+   "feedback": "The resume is well-targeted toward Islamic banking. As a fresher, the focus on academic background and relevant training is appropriate. I have inferred your stage as 'fresher' based on the 2024 graduation date.",
+   "strengths": [
+    "Clear alignment between academic background and career objective.",
+    "Relevant training at BIBM is a strong differentiator for the banking sector.",
+    "Inclusion of specific core banking software (Temenos T24)."
+   ],
+   "weaknesses": [
+    "Lack of evidence regarding academic projects or thesis work, which could demonstrate practical application of finance knowledge.",
+    "Language proficiency is stated but not contextualized; consider adding a brief note on professional usage if applicable.",
+    "The 'Technical Skills' section is brief; consider expanding on how you utilized SPSS or T24 during your studies."
+   ]
+  },
+  "language_grammar": {
+   "score": 88,
+   "feedback": "The language is clear and professional. Minor improvements in phrasing would enhance the impact.",
+   "issues": [
+    {
+     "original": "Speaking good, Reading excellent, Writing good",
+     "corrected": "Speaking: Proficient, Reading: Excellent, Writing: Proficient",
+     "type": "Clarity"
+    }
+   ]
+  },
+  "action_items": [
+   "Add a 'Projects' or 'Thesis' section detailing your final-year research, specifically focusing on any finance or Islamic banking topics covered.",
+   "Quantify your exposure to Temenos T24 by describing the specific modules or tasks you performed during your training.",
+   "Refine the Language Proficiency section to use consistent professional terminology (e.g., Proficient/Fluent instead of 'good').",
+   "Ensure you have obtained formal permission from the listed referees before sharing their names."
+  ],
+  "ats_analysis": {
+   "inferred_role": "Islamic Banking Operations Trainee",
+   "inferred_industry": "Banking and Finance",
+   "keyword_hits": [
+    "Islamic banking",
+    "Finance",
+    "Shariah-compliant",
+    "Temenos T24",
+    "SPSS",
+    "BIBM"
+   ],
+   "keyword_gaps": [
+    "Risk management",
+    "KYC/AML",
+    "Financial analysis",
+    "Customer service",
+    "Regulatory compliance"
+   ],
+   "heading_risks": [],
+   "ats_tips": [
+    "Use standard headings like 'Education' and 'Professional Training' to ensure easy parsing.",
+    "Ensure the document is saved as a PDF with a filename like Abdullah_Al_Mamun_CV.pdf.",
+    "If you have completed any internships, create a dedicated 'Internship' section even if the duration was short."
+   ],
+   "standard": "international/multinational ATS",
+   "ats_score": 69
+  },
+  "job_match": null,
+  "overall_score": 82
+ },
+ "O/A Level candidate": {
+  "formatting": {
+   "score": 90,
+   "feedback": "The resume follows a clean, single-column structure suitable for ATS parsing. The chronological order is logical for a fresher. Headings are standard and clear.",
+   "issues": [
+    {
+     "section": "Contact Information",
+     "issue": "Contains full residential address and phone number.",
+     "suggestion": "Remove the full street address for privacy; city and district are sufficient. Ensure the phone number is formatted for international access if applying to multinational firms."
+    }
+   ]
+  },
+  "content_quality": {
+   "score": 75,
+   "feedback": "The content is well-structured for a fresher, but the experience section lacks depth. I have inferred the candidate is a 'fresher' based on the 2025 graduation date. The project section is strong, but the internship section relies on passive language.",
+   "strengths": [
+    "Clear academic progression with relevant results.",
+    "Technical skills are grouped logically.",
+    "Final year project includes specific tools and datasets."
+   ],
+   "weaknesses": [
+    "Internship bullets use weak verbs like 'Assisted with' and 'Helped in'.",
+    "The project section lacks the specific outcome or performance metric (e.g., accuracy percentage).",
+    "Extracurricular activities are listed but lack detail on specific contributions or leadership impact."
+   ]
+  },
+  "language_grammar": {
+   "score": 95,
+   "feedback": "The language is professional and concise. No significant grammatical errors found.",
+   "issues": []
+  },
+  "action_items": [
+   "Rewrite internship bullets to focus on specific tasks: replace 'Assisted with' with 'Developed', 'Refactored', or 'Optimized'.",
+   "Quantify the Final Year Project: include the specific accuracy percentage achieved on the test set.",
+   "Expand on the BRAC University Computer Club role: describe one specific event or initiative you led or contributed to.",
+   "Remove the full residential address to protect personal privacy."
+  ],
+  "ats_analysis": {
+   "inferred_role": "Software Engineer",
+   "inferred_industry": "IT and Software",
+   "keyword_hits": [
+    "Python",
+    "JavaScript",
+    "React",
+    "Node.js",
+    "PostgreSQL",
+    "Git",
+    "Docker",
+    "TensorFlow",
+    "CNN"
+   ],
+   "keyword_gaps": [
+    "REST API",
+    "Unit Testing",
+    "CI/CD",
+    "Cloud Platforms",
+    "Agile"
+   ],
+   "heading_risks": [],
+   "ats_tips": [
+    "Ensure your technical skills are mapped to the projects or internship experience to show application rather than just listing tools.",
+    "Use standard headings like 'Experience' and 'Education' as you have done; avoid creative titles.",
+    "If you have a GitHub repository for your CNN project, include a link to the code."
+   ],
+   "standard": "international/multinational ATS",
+   "ats_score": 75
+  },
+  "job_match": null,
+  "overall_score": 85
+ },
+ "Division/Class veteran": {
+  "formatting": {
+   "score": 85,
+   "feedback": "The document follows a clear, professional, and chronological structure suitable for a senior engineering profile. The use of standard headings is appropriate for the Bangladesh market.",
+   "issues": [
+    {
+     "section": "Personal Details",
+     "issue": "Contains sensitive personal information (address, phone, email).",
+     "suggestion": "Remove specific street address and phone number for digital distribution; retain only professional email and LinkedIn profile if available."
+    }
+   ]
+  },
+  "content_quality": {
+   "score": 75,
+   "feedback": "The resume provides a solid foundation but lacks the depth expected for a 22-year veteran in civil engineering. As a senior candidate, the focus should shift from task descriptions to strategic impact, project scale, and governance.",
+   "strengths": [
+    "Clear career progression in relevant sectors.",
+    "Appropriate inclusion of professional memberships (IEB).",
+    "Relevant technical software stack listed."
+   ],
+   "weaknesses": [
+    "Employment history lacks project-specific details (e.g., project value, specific bridge/highway types, or team size).",
+    "The 'Assistant Engineer' role at the Roads and Highways Department lacks any description of responsibilities or achievements.",
+    "Language proficiency is presented as a subjective list rather than a professional assessment."
+   ]
+  },
+  "language_grammar": {
+   "score": 88,
+   "feedback": "The language is professional and concise. No significant grammatical errors found.",
+   "issues": [
+    {
+     "original": "Speaking good, Reading excellent, Writing good",
+     "corrected": "Speaking: Proficient; Reading: Advanced; Writing: Proficient",
+     "type": "Clarity"
+    }
+   ]
+  },
+  "action_items": [
+   "Expand the 'Employment History' by adding a 'Key Projects' section for each role, detailing project value, specific engineering challenges, and team size.",
+   "Quantify the scope of the current rural connectivity programme (e.g., total road length, number of culverts, or budget oversight).",
+   "Add specific responsibilities for the Assistant Engineer role to demonstrate early-career technical foundations.",
+   "Refine the Language Proficiency section to use standard professional terminology (e.g., Professional Working Proficiency, Native/Bilingual)."
+  ],
+  "ats_analysis": {
+   "inferred_role": "Senior Civil Engineer / Project Manager",
+   "inferred_industry": "Civil and Construction Engineering",
+   "keyword_hits": [
+    "Civil engineer",
+    "Bridge",
+    "Highway",
+    "Project Manager",
+    "AutoCAD",
+    "Civil 3D",
+    "Primavera P6",
+    "MS Project",
+    "ETABS",
+    "IEB"
+   ],
+   "keyword_gaps": [
+    "BOQ",
+    "Tendering",
+    "Quality Control",
+    "Safety Standards",
+    "Estimation"
+   ],
+   "heading_risks": [],
+   "ats_tips": [
+    "Include specific engineering standards or codes (e.g., BNBC, AASHTO) you have applied in your projects.",
+    "Ensure project names are explicitly stated to allow for keyword matching against specific donor-funded project requirements.",
+    "Use action-oriented verbs like 'Directed', 'Engineered', 'Optimised', or 'Oversaw' instead of 'Manage' or 'Responsible for'."
+   ],
+   "standard": "international/multinational ATS",
+   "ats_score": 77
+  },
+  "job_match": null,
+  "overall_score": 82
+ },
+ "tanvir as government form": {
+  "formatting": {
+   "score": 75,
+   "feedback": "The document follows a standard chronological structure suitable for an early-career candidate. However, it includes excessive personal information that is not required for most private sector banking roles in Bangladesh. The use of 'References available upon request' is unnecessary; it is better to omit this or provide professional contacts if requested.",
+   "issues": [
+    {
+     "section": "References",
+     "issue": "The statement 'References available upon request' is filler.",
+     "suggestion": "Remove this line entirely to save space."
+    }
+   ]
+  },
+  "content_quality": {
+   "score": 65,
+   "feedback": "The resume is currently at the 'fresher' stage. The Career Objective is generic and lacks specific value propositions. The experience section relies on passive language ('Assisted', 'Helped', 'Did'), which fails to demonstrate the impact of your work. I have inferred your target role as a Banking/Finance professional.",
+   "strengths": [
+    "Clear educational progression.",
+    "Relevant internship experience in the banking sector."
+   ],
+   "weaknesses": [
+    "The Career Objective is a 'template' style statement that does not highlight your specific skills or interest in finance.",
+    "Experience bullets lack quantification (e.g., volume of transactions handled, number of KYC files processed).",
+    "Computer skills are listed as a basic list rather than demonstrating application (e.g., 'Excel for financial reporting')."
+   ]
+  },
+  "language_grammar": {
+   "score": 75,
+   "feedback": "The language is generally clear, but the verb choices in the experience section are weak and repetitive.",
+   "issues": [
+    {
+     "original": "Did data entry work for new account registration",
+     "corrected": "Processed data entry for [number] new account registrations daily.",
+     "type": "Verb Strength"
+    },
+    {
+     "original": "Assisted in daily customer transaction processing",
+     "corrected": "Facilitated daily customer transactions, ensuring accuracy and compliance with branch protocols.",
+     "type": "Clarity"
+    }
+   ]
+  },
+  "action_items": [
+   "Replace the generic Career Objective with a targeted summary highlighting your BBA Finance background and internship experience.",
+   "Rewrite experience bullets to focus on outcomes and scope (e.g., 'Processed [number] transactions daily' instead of 'Assisted in').",
+   "Expand on 'Computer Skills' by specifying how you used Excel (e.g., VLOOKUP, pivot tables, or financial data management)."
+  ],
+  "ats_analysis": {
+   "inferred_role": "Banking/Finance Professional",
+   "inferred_industry": "Banking and Financial Services",
+   "keyword_hits": [
+    "BBA",
+    "Finance",
+    "Customer Service",
+    "KYC",
+    "Data Entry",
+    "Transaction Processing"
+   ],
+   "keyword_gaps": [
+    "Financial Analysis",
+    "Regulatory Compliance",
+    "Banking Software",
+    "Risk Management",
+    "Portfolio Management"
+   ],
+   "heading_risks": [],
+   "ats_tips": [
+    "Include specific banking software or tools you used during your internship at the branch.",
+    "Quantify your daily tasks to help ATS algorithms rank your experience level higher.",
+    "Ensure your BBA degree is highlighted as a primary qualification for finance-related roles."
+   ],
+   "standard": "international/multinational ATS",
+   "ats_score": 69
+  },
+  "job_match": null,
+  "overall_score": 71
+ },
+ "tanvir as multinational ATS": {
+  "formatting": {
+   "score": 65,
+   "feedback": "The resume uses a clear, single-column structure suitable for ATS parsing. However, it includes significant amounts of personal data that are inappropriate for multinational employers and create bias risks.",
+   "issues": [
+    {
+     "section": "Personal Information",
+     "issue": "Inclusion of Father's Name, Mother's Name, Date of Birth, Gender, Religion, Marital Status, and Blood Group.",
+     "suggestion": "Remove all these fields. Multinational employers avoid these to prevent unconscious bias and comply with international privacy standards."
+    },
+    {
+     "section": "Declaration",
+     "issue": "Inclusion of a formal declaration and signature block.",
+     "suggestion": "Remove this section. It is not required in modern professional resumes and consumes valuable space."
+    },
+    {
+     "section": "Contact Information",
+     "issue": "Inclusion of full residential address.",
+     "suggestion": "Remove specific flat and house numbers for privacy; city and district are sufficient."
+    }
+   ]
+  },
+  "content_quality": {
+   "score": 60,
+   "feedback": "The content is currently too generic and relies on passive language. As an early-career professional, you need to shift focus from 'assisting' to 'contributing'. I have inferred your target role as a Banking/Finance professional.",
+   "strengths": [
+    "Clear educational progression.",
+    "Relevant internship experience in the banking sector."
+   ],
+   "weaknesses": [
+    "The Career Objective is generic and uses prohibited phrases like 'reputed organization' and 'utilize my skills'.",
+    "Professional experience bullets use weak verbs like 'assisted', 'helped', and 'did', which fail to demonstrate impact.",
+    "Lack of quantification (e.g., volume of transactions handled, number of KYC files processed)."
+   ]
+  },
+  "language_grammar": {
+   "score": 75,
+   "feedback": "The language is generally clear, but the verb choices are weak and repetitive.",
+   "issues": [
+    {
+     "original": "Did data entry work for new account registration",
+     "corrected": "Processed [number] new account registrations daily using [software name].",
+     "type": "Verb Strength"
+    },
+    {
+     "original": "Assisted manager in preparation of daily and monthly reports",
+     "corrected": "Collaborated with management to prepare daily and monthly financial reports, ensuring 100% data accuracy.",
+     "type": "Verb Strength"
+    }
+   ]
+  },
+  "action_items": [
+   "Remove all personal demographic details (Father's name, religion, etc.) to align with multinational standards.",
+   "Replace the 'Career Objective' with a 'Professional Summary' that highlights your BBA Finance degree and internship experience.",
+   "Rewrite experience bullets to focus on specific tasks and outcomes rather than 'assisting' or 'helping'.",
+   "Quantify your internship achievements by estimating the volume of transactions or records handled."
+  ],
+  "ats_analysis": {
+   "inferred_role": "Banking/Finance Professional",
+   "inferred_industry": "Banking and Financial Services",
+   "keyword_hits": [
+    "BBA",
+    "Finance",
+    "Customer Service",
+    "KYC",
+    "Data Entry",
+    "MS Excel"
+   ],
+   "keyword_gaps": [
+    "Financial Analysis",
+    "Risk Assessment",
+    "Banking Software",
+    "Regulatory Compliance",
+    "Customer Relationship Management"
+   ],
+   "heading_risks": [
+    {
+     "original": "CAREER OBJECTIVE",
+     "issue": "Outdated heading for early-career professionals.",
+     "recommended": "Professional Summary"
+    }
+   ],
+   "ats_tips": [
+    "Use standard headings like 'Professional Summary', 'Work Experience', and 'Education' to ensure the ATS correctly categorizes your data.",
+    "Ensure your skills section includes specific banking tools or software you used during your internship.",
+    "Remove the 'References' and 'Declaration' sections to save space for more impactful professional content."
+   ],
+   "standard": "international/multinational ATS",
+   "ats_score": 66
+  },
+  "job_match": null,
+  "overall_score": 66
+ },
+ "tanvir as Bdjobs profile": {
+  "formatting": {
+   "score": 85,
+   "feedback": "The document follows standard Bangladeshi professional conventions for an early-career applicant. The chronological order is correct, and the use of clear headings makes it easy to navigate. The inclusion of personal details is appropriate for a traditional local employer.",
+   "issues": [
+    {
+     "section": "General",
+     "issue": "The document title 'Curriculum Vitae' or similar is missing, though not strictly required.",
+     "suggestion": "Consider adding a simple header with your name and contact details at the top of the page."
+    }
+   ]
+  },
+  "content_quality": {
+   "score": 65,
+   "feedback": "The content is thin and relies on generic language. As an early-career professional, you need to shift from listing duties to highlighting contributions. I have inferred your target role as a Banking/Finance professional based on your degree and internship.",
+   "strengths": [
+    "Clear educational progression.",
+    "Relevant internship experience in the target sector."
+   ],
+   "weaknesses": [
+    "The Career Objective is generic and uses 'reputed organisation' and 'utilize my skills' language, which adds no value.",
+    "Professional experience bullets use weak verbs like 'Assisted', 'Helped', and 'Did', which fail to demonstrate impact or scope.",
+    "Lack of quantification (e.g., volume of transactions handled, number of KYC files processed)."
+   ]
+  },
+  "language_grammar": {
+   "score": 75,
+   "feedback": "The language is generally clear, but the verb choices are passive and repetitive. The use of 'Fairly good' in language proficiency is subjective and should be replaced with standard descriptors.",
+   "issues": [
+    {
+     "original": "Did data entry work",
+     "corrected": "Executed data entry",
+     "type": "Verb Strength"
+    },
+    {
+     "original": "Fairly good in reading and writing",
+     "corrected": "Proficient in reading and writing",
+     "type": "Clarity"
+    }
+   ]
+  },
+  "action_items": [
+   "Rewrite the Career Objective to specifically mention your interest in retail banking or financial operations and your commitment to service excellence.",
+   "Replace passive verbs in the experience section with action-oriented ones like 'Processed', 'Verified', 'Managed', and 'Compiled'.",
+   "Quantify your internship achievements: estimate the number of daily transactions handled or the volume of KYC files verified during your tenure.",
+   "Expand the 'Computer Skills' section to include specific software or banking systems you encountered during your internship."
+  ],
+  "ats_analysis": {
+   "inferred_role": "Banking Junior Executive",
+   "inferred_industry": "Banking and Financial Services",
+   "keyword_hits": [
+    "Finance",
+    "Customer Service",
+    "KYC",
+    "Data Entry",
+    "Transaction Processing"
+   ],
+   "keyword_gaps": [
+    "Anti-Money Laundering (AML)",
+    "Banking Software",
+    "Financial Reporting",
+    "Customer Relationship Management",
+    "Regulatory Compliance"
+   ],
+   "heading_risks": [],
+   "ats_tips": [
+    "Ensure your internship bullet points explicitly mention the banking software or tools used, as these are high-value keywords for bank recruiters.",
+    "Move the 'Computer Skills' section higher up, perhaps immediately after the Professional Experience, to highlight technical readiness.",
+    "Replace the 'References available upon request' line with actual professional references if you have them, as this is preferred by traditional local employers."
+   ],
+   "standard": "international/multinational ATS",
+   "ats_score": 65
+  },
+  "job_match": null,
+  "overall_score": 73
+ }
+}

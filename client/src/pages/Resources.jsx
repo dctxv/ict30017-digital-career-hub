@@ -19,11 +19,16 @@ const typeDots = {
 }
 
 export default function Resources() {
-  const { lang } = useLanguage()
+  const { lang, t, tc } = useLanguage()
   const [cat, setCat] = useState('All')
-  const [disc, setDisc] = useState('All disciplines')
+  // Seeded from the Career Paths hand-off. Reading it in the initialiser
+  // instead of an effect avoids a second render just to apply the filter.
+  const [disc, setDisc] = useState(
+    () => localStorage.getItem('selectedDiscipline') || 'All disciplines'
+  )
   const [query, setQuery] = useState('')
-  const [disciplines, setDisciplines] = useState(['All disciplines'])
+  // { name, label }: `name` is the English key resources are filtered by.
+  const [disciplines, setDisciplines] = useState([{ name: 'All disciplines', label: 'All disciplines' }])
   const [resources, setResources] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -31,18 +36,24 @@ export default function Resources() {
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch('/api/disciplines')
+        const response = await fetch(`/api/disciplines?lang=${lang}`)
         const data = await response.json()
-        const disciplineNames = ['All disciplines', ...data.map(d => d.name)]
-        setDisciplines(disciplineNames)
+        setDisciplines([
+          { name: 'All disciplines', label: t('common.allDisciplines') },
+          ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
+        ])
       } catch (error) {
         console.error('Error fetching disciplines:', error)
-        setDisciplines(['All disciplines', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education'])
+        setDisciplines([
+          { name: 'All disciplines', label: t('common.allDisciplines') },
+          ...['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
+            .map(name => ({ name, label: name })),
+        ])
       }
     }
-    
+
     fetchDisciplines()
-  }, [])
+  }, [lang, t])
 
   // Fetch resources from API. Refetches when the navbar language changes —
   // the API resolves title/desc for the requested language and falls back to
@@ -63,14 +74,11 @@ export default function Resources() {
     fetchResources()
   }, [lang])
 
-  // Check if coming from Career Paths page and auto-apply discipline filter
+  // The hand-off keys are one-shot: consumed by the initialiser above, then
+  // cleared so a later direct visit does not resurrect a stale filter.
   useEffect(() => {
-    const savedDiscipline = localStorage.getItem('selectedDiscipline')
-    if (savedDiscipline) {
-      setDisc(savedDiscipline)
-      localStorage.removeItem('selectedDiscipline')
-      localStorage.removeItem('selectedCareer')
-    }
+    localStorage.removeItem('selectedDiscipline')
+    localStorage.removeItem('selectedCareer')
   }, [])
 
   const filtered = resources.filter(r => {
@@ -84,7 +92,7 @@ export default function Resources() {
     return (
       <div className="page-enter">
         <Navbar />
-        <div style={{ textAlign: 'center', padding: '50px' }}>Loading resources...</div>
+        <div style={{ textAlign: 'center', padding: '50px' }}>{t('resources.loading')}</div>
       </div>
     )
   }
@@ -94,23 +102,23 @@ export default function Resources() {
       <Navbar />
       <div className="res-header">
         <div className="res-header-inner">
-          <h1 className="res-title">Career resources</h1>
-          <p className="res-sub">Guides, videos, and articles covering resume writing, interview preparation, job searching, and skill development — tailored for Bangladeshi graduates across all disciplines.</p>
+          <h1 className="res-title">{t('resources.title')}</h1>
+          <p className="res-sub">{t('resources.sub')}</p>
           <div className="res-search-wrap">
             <svg className="res-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
               <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.4"/>
               <path d="M11 11L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
             </svg>
-            <input className="res-search" placeholder="Search resources..." value={query} onChange={e => setQuery(e.target.value)} />
+            <input className="res-search" placeholder={t('resources.searchPlaceholder')} value={query} onChange={e => setQuery(e.target.value)} />
           </div>
           <div className="filter-row">
             {categories.map(c => (
-              <button key={c} className={`filter-pill ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>{c}</button>
+              <button key={c} className={`filter-pill ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>{tc(`resources.category.${c}`, c)}</button>
             ))}
           </div>
           <div className="filter-row filter-row--sm">
             {disciplines.map(d => (
-              <button key={d} className={`filter-pill filter-pill--sm ${disc === d ? 'active' : ''}`} onClick={() => setDisc(d)}>{d}</button>
+              <button key={d.name} className={`filter-pill filter-pill--sm ${disc === d.name ? 'active' : ''}`} onClick={() => setDisc(d.name)}>{d.label}</button>
             ))}
           </div>
         </div>
@@ -121,27 +129,27 @@ export default function Resources() {
           {filtered.map((r, i) => (
             <div key={i} className="res-card">
               <div className="res-card-banner" style={{ background: typeColors[r.type] }}>
-                <span className="res-type-badge" style={{ color: typeDots[r.type] }}>{r.type}</span>
+                <span className="res-type-badge" style={{ color: typeDots[r.type] }}>{tc(`resources.type.${r.type}`, r.type)}</span>
               </div>
               <div className="res-card-body">
                 <h3 className="res-card-title">{r.title}</h3>
                 <p className="res-card-desc">{r.desc}</p>
                 <div className="res-card-tags">
-                  <span className="res-tag">{r.discipline}</span>
-                  <span className="res-tag">{r.category}</span>
+                  <span className="res-tag">{disciplines.find(d => d.name === r.discipline)?.label ?? r.discipline}</span>
+                  <span className="res-tag">{tc(`resources.category.${r.category}`, r.category)}</span>
                 </div>
                 <div className="res-card-footer">
                   <a href={r.url || "#"} className="res-read-more" target="_blank" rel="noopener noreferrer">
-                    {r.type === 'Video' ? 'Watch →' : 'Read more →'}
+                    {r.type === 'Video' ? t('resources.watch') : t('resources.readMore')}
                   </a>
                 </div>
               </div>
             </div>
           ))}
         </div>
-        {filtered.length === 0 && <div className="res-empty">No resources found. Try a different filter.</div>}
+        {filtered.length === 0 && <div className="res-empty">{t('resources.empty')}</div>}
         <div style={{ textAlign: 'center', marginTop: '40px' }}>
-          <button className="btn-load-more">Load more resources</button>
+          <button className="btn-load-more">{t('resources.loadMore')}</button>
         </div>
       </div>
     </div>
