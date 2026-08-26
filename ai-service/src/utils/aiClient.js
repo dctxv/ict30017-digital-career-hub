@@ -42,9 +42,13 @@ export function getGroqClient() {
  * wired up. The per-tier variables stay separate so reinstating a split — or
  * any other model — is a pure env-var change with no code edit.
  *
- * The tier parameter exists so free/premium routing is structurally present.
- * Nothing selects a tier yet: registration ignores the chosen plan, so every
- * caller defaults to 'free'. This is the seam for that work, not the work.
+ * The tier parameter is live, not a placeholder. Registration persists the
+ * chosen plan to users.tier, the quota middleware reads it, and resolveTier in
+ * routes/resume.js passes it here — so a premium account genuinely resolves
+ * AI_MODEL_PREMIUM. With both variables currently naming the same model that
+ * makes no observable difference, which is exactly why this comment is worth
+ * keeping accurate: it previously said the opposite, and it is the first thing
+ * anyone reads when asking why a premium account behaves like a free one.
  */
 
 export const TIERS = Object.freeze(['free', 'premium']);
