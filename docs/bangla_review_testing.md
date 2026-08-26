@@ -70,6 +70,33 @@ more here than it would with a model whose Bengali is well established.
 
 ## Results
 
-_Nothing recorded yet. The ten-model study in `docs/ai_model_testing/` was run
-entirely in English — the "bangladesh" label there is the market mode, not the
-output language, so it says nothing about Bangla capability._
+### 2026-08-26 — first live Bangla run, GLM-5.2 — FAILED (0% coverage)
+
+Every field written by the model came back in English, while the interface
+around it was fully Bangla. The screen therefore showed Bangla headings, Bangla
+score labels and Bengali numerals wrapped around entirely English prose.
+
+The directive was present and correct in the prompt; the problem was where it
+sat. It landed about 94% of the way through a ~3,860 token system prompt — past
+the point this project had already measured adherence dropping off — and then
+the whole user message followed it in English: English framing, English context
+block, an English resume. The last several thousand tokens before generation all
+pointed at English.
+
+Fixed by restating the rule at the end of the USER message, which is the
+highest-recency position available, opening in Bangla so the instruction is
+itself an example of what it asks for. The detailed protected-field list stays
+in the system prompt, since repeating it twice would spend instruction budget
+the review itself needs.
+
+**Not yet re-measured.** The next run should confirm coverage before anyone
+concludes the model can or cannot do this — the earlier failure was a prompt
+placement problem, not evidence about GLM-5.2, and it would be wrong to blame
+the model for it.
+
+A second defect surfaced in the same output: reviews opened with
+`Context inferred: Target Stage = ...` inside `content_quality.feedback`. The
+context block told the model to "state your inference" without saying where, so
+it narrated routing metadata into user-facing prose — in English, regardless of
+the output language, and on the default path, since the context selectors are
+optional. Also fixed.

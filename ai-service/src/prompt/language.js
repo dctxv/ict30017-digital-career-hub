@@ -43,6 +43,45 @@ Leave these in English exactly as you would for an English review:
 - the "priority" and "type" enum values`;
 
 /**
+ * The same instruction, condensed, for the end of the USER message.
+ *
+ * The system-prompt block below is necessary but was not sufficient, and the
+ * reason is positional rather than a matter of wording. It lands about 94% of
+ * the way through a ~3,860 token system prompt — past the point this project
+ * has already measured adherence falling off (see prompt/index.js: a bluntly
+ * stated heading rule was ignored on five of six resumes at roughly 3,000
+ * tokens) — and then the entire user message follows it: English framing,
+ * English context block, an English resume. The last few thousand tokens before
+ * generation all point at English, and one paragraph upstream loses that
+ * argument. Observed in practice: a Bangla run came back with every model-
+ * written field in English while the interface around it was fully translated.
+ *
+ * This restates the rule in the highest-recency position there is. It is
+ * deliberately short — the detailed list of protected fields stays in the
+ * system prompt, because repeating all of it here would spend instruction
+ * budget the model needs for the review itself.
+ *
+ * It opens in Bangla on purpose. An instruction to write Bangla, written in
+ * Bangla, is a stronger signal than the same sentence in English.
+ */
+const BANGLA_USER_REMINDER =
+  'গুরুত্বপূর্ণ: নিচের রিভিউয়ের সব ব্যাখ্যা, পরামর্শ ও করণীয় বাংলায় লিখুন।\n' +
+  'Write every feedback, issue, suggestion, strength, weakness, action_item and ' +
+  'ats_tip value in Bangla. Keep JSON keys, all scores, the ' +
+  'language_grammar.issues original/corrected quotes, ATS keyword lists and ' +
+  'heading names in English exactly as specified above.';
+
+/**
+ * Line appended to the user message for a non-English review.
+ *
+ * @param {string} [language]
+ * @returns {string|null} null when nothing should be appended
+ */
+export function languageReminder(language) {
+  return language === 'bn' ? BANGLA_USER_REMINDER : null;
+}
+
+/**
  * Appends the output-language directive when a non-English review is requested.
  *
  * Composed onto the finished system prompt rather than built into

@@ -107,3 +107,45 @@ test('summariseBanglaOutput leads with the violation, not the percentage', () =>
   assert.match(summariseBanglaOutput(checkBanglaOutput(review)), /^FAIL/);
   assert.match(summariseBanglaOutput(checkBanglaOutput(goodReview())), /^pass/);
 });
+
+/*
+ * Prompt-level checks. These are what would have caught the live failure where
+ * every model-written field came back English while the interface around it was
+ * fully translated: the directive was present, but only in a position the model
+ * had stopped attending to.
+ */
+import { withOutputLanguage, languageReminder } from '../src/prompt/language.js';
+import { buildSystemPrompt } from '../src/prompt/index.js';
+
+test('Bangla instruction placement', async (t) => {
+  await t.test('English is left completely untouched', () => {
+    const base = buildSystemPrompt({ marketMode: 'bangladesh' });
+    assert.equal(withOutputLanguage(base, 'en'), base);
+    assert.equal(languageReminder('en'), null);
+    assert.equal(languageReminder(undefined), null);
+  });
+
+  await t.test('the system prompt carries the protected-field list', () => {
+    const bn = withOutputLanguage(buildSystemPrompt({ marketMode: 'bangladesh' }), 'bn');
+    assert.ok(bn.includes('OUTPUT LANGUAGE'));
+    assert.ok(bn.includes('language_grammar.issues[].original'));
+    assert.ok(bn.includes('keyword_hits'));
+  });
+
+  await t.test('a reminder also exists for the user message', () => {
+    // The system block alone was demonstrably not enough: it sits past the
+    // point where adherence falls off, with the whole English user message
+    // after it.
+    const reminder = languageReminder('bn');
+    assert.ok(reminder);
+    assert.match(reminder, /[ঀ-৿]/, 'opens in Bangla, which is itself the signal');
+    assert.ok(reminder.includes('action_item'));
+  });
+
+  await t.test('the reminder stays short enough not to crowd out the review', () => {
+    // Instruction budget is finite and this prompt is already near the measured
+    // adherence limit; the detailed list belongs in the system prompt only.
+    assert.ok(languageReminder('bn').length < 400,
+      `reminder is ${languageReminder('bn').length} chars`);
+  });
+});

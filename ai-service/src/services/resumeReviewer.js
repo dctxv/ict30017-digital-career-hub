@@ -2,7 +2,7 @@ import { getGroqClient, getModel } from '../utils/aiClient.js';
 import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
 import { buildSystemPrompt } from '../prompt/index.js';
 import { normaliseContext, renderContextBlock } from '../prompt/context.js';
-import { withOutputLanguage } from '../prompt/language.js';
+import { withOutputLanguage, languageReminder } from '../prompt/language.js';
 import {
   SCORE_WEIGHTS,
   ATS_GAP_CAP,
@@ -424,7 +424,7 @@ function parseAIJSON(rawText) {
  * rules gate on: without it the model cannot know it is reading extracted text
  * and must not comment on fonts or margins.
  */
-function buildUserMessage(resumeText, { jobAd, jobRole, context } = {}) {
+function buildUserMessage(resumeText, { jobAd, jobRole, context, language } = {}) {
   const parts = [];
 
   if (context) parts.push(renderContextBlock(context));
@@ -433,6 +433,12 @@ function buildUserMessage(resumeText, { jobAd, jobRole, context } = {}) {
   parts.push(`<RESUME>\n${resumeText}\n</RESUME>`);
 
   if (jobAd) parts.push(`<JOB_ADVERTISEMENT>\n${jobAd}\n</JOB_ADVERTISEMENT>`);
+
+  // Last, deliberately. Everything above it — the framing, the context block,
+  // the resume itself — is English, and whatever sits closest to generation
+  // carries the most weight.
+  const reminder = languageReminder(language);
+  if (reminder) parts.push(reminder);
 
   return `Please review the resume in the blocks below.\n\n${parts.join('\n\n')}`;
 }
@@ -458,7 +464,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
       stream: true,
       messages: [
         { role: 'system', content: withOutputLanguage(buildSystemPrompt(context), language) },
-        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd, context }) },
+        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd, context, language }) },
       ],
     });
 
@@ -527,7 +533,7 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
       ...AI_COMPLETION_PARAMS,
       messages: [
         { role: 'system', content: withOutputLanguage(buildSystemPrompt(context), language) },
-        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd, context }) },
+        { role: 'user', content: buildUserMessage(resumeText, { jobRole, jobAd, context, language }) },
       ],
     });
 
