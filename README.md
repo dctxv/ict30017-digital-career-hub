@@ -55,6 +55,29 @@ This is also what protects `seed_bangla_content.sql`, which overwrites the `_bn`
 columns by design: once recorded it never runs again, so it cannot discard a
 translation someone has edited through the admin dashboard.
 
+### What the migrations create
+
+| Table | Holds |
+|---|---|
+| `users` | Accounts, tier, quota counters, profile and lifecycle |
+| `disciplines`, `career_paths`, `resources`, `alumni` | Content, bilingual (`_bn` columns) |
+| `resumes`, `ai_reviews` | Resume review history, including the full redacted feedback |
+| `chat_conversations`, `chat_messages` | Chatbot transcripts for signed-in users |
+| `subscriptions` | Why an account holds its tier, and until when |
+| `audit_log` | Administrative writes to content, with before/after snapshots |
+| `schema_migrations` | Which migrations have been applied |
+
+Two things about that list are worth knowing before you touch it.
+
+**Chat transcripts are the most sensitive data here.** They are free text about
+people's own job situations. Guests are never stored, deleting a user destroys
+their conversations, and there is deliberately no retention policy yet — agree
+one and add it, rather than letting history accumulate indefinitely by default.
+
+**Review history stores the redacted feedback, never the resume text.** Uploads
+are deleted from disk after analysis, and storing the extracted text would undo
+that.
+
 If you would rather run the SQL by hand, the files are in `server/migrations`
 and the order is the `ORDER` array at the top of `server/scripts/migrate.js`.
 On Windows, `psql` is not on PATH after a default PostgreSQL install — it lives

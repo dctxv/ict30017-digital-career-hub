@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { streamChatbotResponse } from 'ai-service';
 import { getAllowedOrigins } from '../config/origins.js';
 import sharedPool from '../db.js';
+import { resolveConversation, appendMessage } from '../services/chatHistory.js';
 
 const router = express.Router();
 
@@ -341,6 +342,17 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforc
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders?.();
 
+  // Resolved before streaming starts so the user's message is recorded even if
+  // the reply fails partway. Returns null for guests, whose conversations are
+  // deliberately never stored.
+  const conversationId = await resolveConversation(req.user.id, language);
+  await appendMessage(conversationId, 'user', message);
+
+  // Accumulated as it streams. The assistant turn is written once at the end
+  // rather than per token: a partial row would be a transcript of half a
+  // sentence, and awaiting a write between tokens would stall the stream.
+  let reply = '';
+
   try {
     console.log(`[chat] Streaming response for user ${req.user.id}; language=${language}`);
     const tokenStream = streamChatbotResponse(conversationHistory, message, {
@@ -352,6 +364,7 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforc
     });
 
     for await (const token of tokenStream) {
+      reply += token;
       writeSse(res, token);
     }
 
@@ -361,6 +374,12 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforc
     writeSse(res, '[ERROR]');
   } finally {
     res.end();
+    // After res.end(): the transcript must never be the reason a reply is slow.
+    // Whatever arrived is worth keeping, including a reply cut short by an
+    // error — that is exactly the case someone will want to look at later.
+    if (reply.trim()) {
+      appendMessage(conversationId, 'assistant', reply).catch(() => {});
+    }
   }
 });
 

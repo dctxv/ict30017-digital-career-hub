@@ -114,12 +114,78 @@ router.post('/register', registerLimiter, async (req, res) => {
     const password_hash = await bcrypt.hash(password, 12);
     const normalisedEmail = email.trim().toLowerCase();
 
+    /*
+     * Optional profile fields.
+     *
+     * discipline is the one that earns its place immediately: every content
+     * table filters by it, so without it a Computer Science student and an
+     * Accounting student see the same unfiltered 42 resources and 70 career
+     * paths. The rest let an account be recognised as a person rather than a
+     * login.
+     *
+     * All optional, all trimmed to NULL when blank — an empty string would
+     * read as "answered, with nothing", which is not what a skipped field
+     * means.
+     */
+    const optionalText = (value, max) => {
+      if (typeof value !== 'string') return null;
+      const trimmed = value.trim();
+      if (trimmed === '') return null;
+      return trimmed.slice(0, max);
+    };
+
+    const graduationYear = Number.parseInt(req.body.graduation_year, 10);
+    const currentYear = new Date().getFullYear();
+    const validYear =
+      Number.isInteger(graduationYear) &&
+      graduationYear >= 1950 &&
+      graduationYear <= currentYear + 10
+        ? graduationYear
+        : null;
+
+    // preferred_language has existed since the users table was created and has
+    // never been written by anything, so a signed-in user on a new device always
+    // got English regardless of what they had chosen. The client sends its
+    // current selection; anything unrecognised falls back rather than storing a
+    // language the site cannot render.
+    const preferredLanguage = ['en', 'bn'].includes(req.body.preferred_language)
+      ? req.body.preferred_language
+      : 'en';
+
     const result = await pool.query(
-      `INSERT INTO users (full_name, email, password_hash, role, tier)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING user_id, full_name, email, role, tier, preferred_language, created_at`,
-      [full_name.trim(), normalisedEmail, password_hash, 'student', tier]
+      `INSERT INTO users
+         (full_name, email, password_hash, role, tier, preferred_language,
+          discipline, institution, graduation_year, phone)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING user_id, full_name, email, role, tier, preferred_language,
+                 discipline, institution, graduation_year, created_at`,
+      [
+        full_name.trim(), normalisedEmail, password_hash, 'student', tier,
+        preferredLanguage,
+        optionalText(req.body.discipline, 100),
+        optionalText(req.body.institution, 150),
+        validYear,
+        optionalText(req.body.phone, 30),
+      ]
     );
+
+    // Records why this account holds its tier. users.tier stays the value the
+    // application reads; this is the provenance behind it, so a premium account
+    // is a fact with a date rather than a column somebody set.
+    await pool.query(
+      `INSERT INTO subscriptions (user_id, tier, status, source, note)
+       VALUES ($1, $2, 'active', 'signup', $3)`,
+      [
+        result.rows[0].user_id,
+        tier,
+        tier === 'premium'
+          ? 'Chosen at registration. No payment was taken and no expiry is set.'
+          : 'Default tier at registration.',
+      ]
+    ).catch((err) => {
+      // Never fail a registration over its audit trail.
+      console.error('[auth] Could not record signup subscription:', err.message);
+    });
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -184,15 +250,21 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     // Successful login — clear the failure counter
     await pool.query(
-      'UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE user_id = $1',
+      `UPDATE users
+          SET failed_login_attempts = 0, lockout_until = NULL, last_login_at = NOW()
+        WHERE user_id = $1`,
       [user.user_id]
     ).catch(() => {});
 
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error('JWT_SECRET is not configured.');
 
+    // email travels in the token so the audit log can record who made an
+    // administrative change without a lookup, and so the record survives the
+    // account being deleted. It is the holder's own address and nothing is
+    // authorised by it — the role claim is what gates access.
     const token = jwt.sign(
-      { id: user.user_id, role: user.role },
+      { id: user.user_id, role: user.role, email: user.email },
       secret,
       { expiresIn: '1h', algorithm: 'HS256' }
     );

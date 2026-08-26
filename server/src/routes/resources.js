@@ -19,6 +19,7 @@
 import express from 'express';
 import pool from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { recordAudit } from '../services/auditLog.js';
 
 const router = express.Router();
 
@@ -209,6 +210,10 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
        RETURNING ${selectFields('en')}`,
       toParams(req.body)
     );
+    await recordAudit({
+      req, action: 'create', entity: 'resource',
+      entityId: result.rows[0].id, after: result.rows[0],
+    });
     return res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('[resources] create failed:', err.message);
@@ -229,6 +234,11 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   }
 
   try {
+    // Read before writing so the audit row can carry both sides. One extra
+    // query on an action that happens rarely, in exchange for being able to see
+    // what an edit actually changed rather than only what it produced.
+    const existing = await pool.query('SELECT * FROM resources WHERE id = $1', [id]);
+
     const result = await pool.query(
       `UPDATE resources
           SET title_en = $1, title_bn = $2,
@@ -241,6 +251,10 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Resource not found.' });
     }
+    await recordAudit({
+      req, action: 'update', entity: 'resource',
+      entityId: id, before: existing.rows[0] ?? null, after: result.rows[0],
+    });
     return res.json(result.rows[0]);
   } catch (err) {
     console.error('[resources] update failed:', err.message);
@@ -256,10 +270,16 @@ router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   }
 
   try {
-    const result = await pool.query('DELETE FROM resources WHERE id = $1 RETURNING id', [id]);
+    // RETURNING * rather than id: the audit row is the only surviving copy
+    // once this commits, and a snapshot is what makes a delete recoverable.
+    const result = await pool.query('DELETE FROM resources WHERE id = $1 RETURNING *', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Resource not found.' });
     }
+    await recordAudit({
+      req, action: 'delete', entity: 'resource',
+      entityId: id, before: result.rows[0],
+    });
     return res.json({ message: 'Resource deleted.' });
   } catch (err) {
     console.error('[resources] delete failed:', err.message);

@@ -6,7 +6,7 @@ import { extractText } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
 import { resolveLanguage, translateMessage } from '../i18n/index.js';
 import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
-import { analyzeResume, analyzeResumeStream } from 'ai-service';
+import { analyzeResume, analyzeResumeStream, getModel } from 'ai-service';
 import pool from  '../db.js'; 
 import { optionalAuth } from '../middleware/auth.js';
 import { attachReviewContext } from '../middleware/reviewContext.js';
@@ -25,10 +25,17 @@ const router = express.Router();
  * the review to. A DB failure here is logged but never breaks the response:
  * the user should still get their feedback even if saving history fails.
  *
- * Simple version: writes to resumes + ai_reviews only. Per-issue rows in
- * review_feedback are a follow-up (see docs/darius_notes for the schema).
+ * Writes to resumes + ai_reviews. The full redacted feedback object goes in
+ * with the scores: without it the row is a set of numbers with no way back to
+ * what the user read, which defeats the point of keeping history at all.
+ *
+ * Provenance (model, tier, language, market mode) is recorded alongside so a
+ * score stays interpretable months later, and so the effect of changing any of
+ * them is measurable rather than anecdotal.
+ *
+ * Schema: server/migrations/create_review_history_tables.sql.
  */
-async function saveReviewToDb({ userId, filename, jobAd, feedback }) {
+async function saveReviewToDb({ userId, filename, jobAd, feedback, model, tier, language, marketMode }) {
   if (!userId || userId === 'guest') return null;
 
   try {
@@ -46,8 +53,9 @@ async function saveReviewToDb({ userId, filename, jobAd, feedback }) {
 
     const reviewResult = await pool.query(
       `INSERT INTO ai_reviews
-         (resume_id, user_id, overall_score, ats_score, grammar_score, format_score, review_summary, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+         (resume_id, user_id, overall_score, ats_score, grammar_score, format_score,
+          content_score, review_summary, feedback, model, tier, language, market_mode, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
        RETURNING review_id`,
       [
         resumeId,
@@ -56,7 +64,17 @@ async function saveReviewToDb({ userId, filename, jobAd, feedback }) {
         feedback.ats_analysis?.ats_score ?? null,
         feedback.language_grammar?.score ?? null,
         feedback.formatting?.score ?? null,
+        feedback.content_quality?.score ?? null,
         summary,
+        // The whole redacted object. Scores alone cannot rebuild the review the
+        // user actually read, which is the thing history is for. Safe to store
+        // because redactPiiDeepWithFindings has already run — never write the
+        // raw model response here.
+        JSON.stringify(feedback),
+        model ?? null,
+        tier ?? null,
+        language ?? null,
+        marketMode ?? null,
       ]
     );
 
@@ -214,9 +232,12 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
     const jobRole = typeof req.body?.jobRole === 'string' ? req.body.jobRole.slice(0, 200) : undefined;
     const jobAd = typeof req.body?.jobAd === 'string' ? req.body.jobAd.slice(0, 4000) : undefined;
     const marketMode = req.body?.marketMode === 'international' ? 'international' : 'bangladesh';
+    // Bound rather than inlined: the same value is recorded against the saved
+    // review, so it has to be readable further down this handler.
+    const language = req.body?.language === 'bn' ? 'bn' : resolveLanguage(req);
     const feedback = await analyzeResume(cleanText, {
       jobRole, jobAd, marketMode,
-      language: req.body?.language === 'bn' ? 'bn' : resolveLanguage(req),
+      language,
       tier: resolveTier(res),
       context: resolveReviewContext(res),
     });
@@ -243,6 +264,10 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
       filename: req.file.originalname,
       jobAd,
       feedback: safeFeedback,
+      model: getModel(resolveTier(res)),
+      tier: resolveTier(res),
+      language,
+      marketMode,
     });
 
     // Step 6 — Return structured feedback
@@ -360,6 +385,10 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
       filename: req.file.originalname,
       jobAd,
       feedback: safeFeedback,
+      model: getModel(resolveTier(res)),
+      tier: resolveTier(res),
+      language,
+      marketMode,
     });
 
     writeFrame({ done: true, filename: req.file.originalname, feedback: safeFeedback, reviewId });

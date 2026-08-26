@@ -19,21 +19,29 @@
  */
 
 /**
- * Tables the code writes to that no migration in this repo creates.
+ * Tables every feature that writes to the database depends on.
  *
- * saveReviewToDb in routes/resume.js inserts into `resumes` and `ai_reviews`.
- * Neither appears in server/migrations, so they exist only wherever someone
- * created them by hand. The insert is wrapped in a try/catch that logs and
- * returns null, so review history fails silently — the user still gets their
- * feedback and nothing looks wrong, it just never saves.
+ * These all have migrations now, so a missing one means the migrations have not
+ * been run rather than that something was created by hand. The distinction
+ * matters for the message: the fix is `npm run migrate`, not a conversation
+ * with whoever built the table.
  *
- * A fresh clone, or any database that was not hand-edited, therefore has this
- * feature quietly not working. Naming it at boot is the difference between
- * noticing that and not.
+ * They are checked separately from the columns below because the failures look
+ * different. A missing column breaks a content endpoint loudly, per request. A
+ * missing table here fails silently: review history, chat transcripts and the
+ * audit trail are all written inside try/catch blocks that log and continue, so
+ * the user sees nothing wrong and the data simply never arrives.
  */
-const UNMIGRATED_TABLES = ['resumes', 'ai_reviews'];
+const REQUIRED_TABLES = [
+  'resumes',
+  'ai_reviews',
+  'chat_conversations',
+  'chat_messages',
+  'subscriptions',
+  'audit_log',
+];
 
-/** Columns added by add_bilingual_content.sql, and nothing else. */
+/** Columns added by add_bilingual_content.sql and add_user_profile_fields.sql. */
 const REQUIRED_COLUMNS = [
   ['disciplines', 'name_bn'],
   ['disciplines', 'description_bn'],
@@ -41,30 +49,32 @@ const REQUIRED_COLUMNS = [
   ['career_paths', 'industry_bn'],
   ['alumni', 'bio_bn'],
   ['alumni', 'industry_bn'],
+  ['users', 'discipline'],
+  ['users', 'last_login_at'],
+  ['users', 'updated_at'],
 ];
 
-const MIGRATIONS = [
-  'server/migrations/add_bilingual_content.sql',
-  'server/migrations/seed_bangla_content.sql',
-];
+// Named rather than listed one by one: the runner knows the full order, and a
+// second list here would be another thing to keep in step.
+const MIGRATE_COMMAND = 'cd server && npm run migrate';
 
-async function warnUnmigratedTables(pool) {
+async function warnMissingTables(pool) {
   try {
     const { rows } = await pool.query(
       `SELECT table_name FROM information_schema.tables
         WHERE table_schema = 'public' AND table_name = ANY($1)`,
-      [UNMIGRATED_TABLES]
+      [REQUIRED_TABLES]
     );
     const present = new Set(rows.map((r) => r.table_name));
-    const absent = UNMIGRATED_TABLES.filter((t) => !present.has(t));
+    const absent = REQUIRED_TABLES.filter((t) => !present.has(t));
     if (absent.length === 0) return;
 
     console.warn('');
-    console.warn(`[schema] Review history will not save: missing ${absent.join(', ')}.`);
-    console.warn('[schema] No migration in server/migrations creates these tables, so a');
-    console.warn('[schema] fresh database cannot have them. The insert fails quietly, so');
-    console.warn('[schema] the reviews simply never persist. Whoever created them by hand');
-    console.warn('[schema] should commit the CREATE TABLE as a migration.');
+    console.warn(`[schema] Missing tables: ${absent.join(', ')}.`);
+    console.warn('[schema] Everything that writes to these fails quietly by design, so');
+    console.warn('[schema] nothing will look broken — review history, chat transcripts and');
+    console.warn('[schema] the admin audit trail will simply not be recorded.');
+    console.warn(`[schema] Fix: ${MIGRATE_COMMAND}`);
     console.warn('');
   } catch {
     // Reported by the caller's own error path.
@@ -97,7 +107,7 @@ export async function checkContentSchema(pool) {
     .map(([table, column]) => `${table}.${column}`)
     .filter((qualified) => !present.has(qualified));
 
-  await warnUnmigratedTables(pool);
+  await warnMissingTables(pool);
 
   if (missing.length === 0) return { ok: true, missing: [] };
 
@@ -105,10 +115,8 @@ export async function checkContentSchema(pool) {
   console.error('[schema] The database is behind the code. Missing columns:');
   for (const column of missing) console.error(`[schema]   - ${column}`);
   console.error('[schema]');
-  console.error('[schema] Every content endpoint will fail until these exist. Apply:');
-  for (const file of MIGRATIONS) {
-    console.error(`[schema]   psql -U postgres -d career_hub_db -f ${file}`);
-  }
+  console.error('[schema] Every content endpoint will fail until these exist.');
+  console.error(`[schema] Fix: ${MIGRATE_COMMAND}`);
   console.error('[schema]');
   console.error('[schema] Against the shared database these run ONCE, by one person.');
   console.error('');

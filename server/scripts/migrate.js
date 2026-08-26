@@ -53,6 +53,11 @@ const ORDER = [
   'seed_content_data.sql',
   'add_bilingual_content.sql',
   'seed_bangla_content.sql',
+  'add_user_profile_fields.sql',
+  'create_review_history_tables.sql',
+  'create_chat_history_tables.sql',
+  'create_subscriptions_table.sql',
+  'create_audit_log_table.sql',
 ];
 
 async function ensureLedger() {

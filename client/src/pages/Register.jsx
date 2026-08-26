@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import './Auth.css'
 
 export default function Register() {
-  const { t } = useLanguage()
+  const { lang, t } = useLanguage()
   const [show, setShow] = useState(false)
   const [tier, setTier] = useState('free')
   const [agreed, setAgreed] = useState(false)
@@ -16,6 +16,33 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+
+  /*
+   * Optional profile fields.
+   *
+   * discipline is the one that matters: every content table filters by it, so
+   * without it a Computer Science student and an Accounting student get the
+   * same unfiltered 42 resources and 70 career paths. Asking once at signup is
+   * the cheapest moment to find out.
+   *
+   * All three are optional. A required field here costs completed registrations,
+   * and the columns are nullable for exactly that reason.
+   */
+  const [discipline, setDiscipline] = useState('')
+  const [institution, setInstitution] = useState('')
+  const [graduationYear, setGraduationYear] = useState('')
+  const [disciplines, setDisciplines] = useState([])
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/disciplines?lang=${lang}`)
+      .then(r => (r.ok ? r.json() : []))
+      .then(data => { if (!cancelled) setDisciplines(Array.isArray(data) ? data : []) })
+      // The field is optional, so a failed load degrades to not offering it
+      // rather than blocking the form.
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [lang])
 
   const handleRegister = async () => {
     setMessage('')
@@ -49,6 +76,13 @@ export default function Register() {
           password,
           role: 'student',
           plan: tier,
+          discipline,
+          institution,
+          graduation_year: graduationYear,
+          // The language they are reading the form in. This is what finally
+          // makes users.preferred_language a stored value rather than a column
+          // nothing ever wrote.
+          preferred_language: lang,
         }),
       })
 
@@ -66,6 +100,9 @@ export default function Register() {
       setConfirmPassword('')
       setAgreed(false)
       setTier('free')
+      setDiscipline('')
+      setInstitution('')
+      setGraduationYear('')
     } catch (error) {
       console.error(error)
       setMessage(t('common.serverUnreachable'))
@@ -133,6 +170,54 @@ export default function Register() {
               placeholder={t('auth.confirmPasswordPlaceholder')}
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">
+                {t('auth.disciplineLabel')} <span className="optional">{t('common.optional')}</span>
+              </label>
+              <select
+                className="form-input"
+                value={discipline}
+                onChange={e => setDiscipline(e.target.value)}
+              >
+                <option value="">{t('auth.disciplinePlaceholder')}</option>
+                {/* value is the English name, which is the key every content
+                    table stores; the label follows the language toggle. */}
+                {disciplines.map(d => (
+                  <option key={d.id} value={d.name}>
+                    {(lang === 'bn' && d.name_bn) || d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">
+                {t('auth.graduationYearLabel')} <span className="optional">{t('common.optional')}</span>
+              </label>
+              <input
+                className="form-input"
+                type="number"
+                inputMode="numeric"
+                placeholder={t('auth.graduationYearPlaceholder')}
+                value={graduationYear}
+                onChange={e => setGraduationYear(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              {t('auth.institutionLabel')} <span className="optional">{t('common.optional')}</span>
+            </label>
+            <input
+              className="form-input"
+              type="text"
+              placeholder={t('auth.institutionPlaceholder')}
+              value={institution}
+              onChange={e => setInstitution(e.target.value)}
             />
           </div>
 

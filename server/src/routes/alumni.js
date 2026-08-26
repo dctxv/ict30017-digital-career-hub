@@ -15,6 +15,7 @@
 import express from 'express';
 import pool from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { recordAudit } from '../services/auditLog.js';
 
 const router = express.Router();
 
@@ -264,6 +265,10 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
        RETURNING ${ADMIN_FIELDS}`,
       toParams(req.body)
     );
+    await recordAudit({
+      req, action: 'create', entity: 'alumni',
+      entityId: result.rows[0].id, after: result.rows[0],
+    });
     return res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('[alumni] create failed:', err.message);
@@ -284,6 +289,11 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   }
 
   try {
+    // Read before writing so the audit row can carry both sides. One extra
+    // query on an action that happens rarely, in exchange for being able to see
+    // what an edit actually changed rather than only what it produced.
+    const existing = await pool.query('SELECT * FROM alumni WHERE id = $1', [id]);
+
     const result = await pool.query(
       `UPDATE alumni
           SET full_name = $1, institution = $2, discipline = $3, graduation_year = $4,
@@ -297,6 +307,10 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Alumni profile not found.' });
     }
+    await recordAudit({
+      req, action: 'update', entity: 'alumni',
+      entityId: id, before: existing.rows[0] ?? null, after: result.rows[0],
+    });
     return res.json(result.rows[0]);
   } catch (err) {
     console.error('[alumni] update failed:', err.message);
@@ -312,10 +326,16 @@ router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   }
 
   try {
-    const result = await pool.query('DELETE FROM alumni WHERE id = $1 RETURNING id', [id]);
+    // RETURNING * rather than id: the audit row is the only surviving copy
+    // once this commits, and a snapshot is what makes a delete recoverable.
+    const result = await pool.query('DELETE FROM alumni WHERE id = $1 RETURNING *', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Alumni profile not found.' });
     }
+    await recordAudit({
+      req, action: 'delete', entity: 'alumni',
+      entityId: id, before: result.rows[0],
+    });
     return res.json({ message: 'Alumni profile deleted.' });
   } catch (err) {
     console.error('[alumni] delete failed:', err.message);
