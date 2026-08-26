@@ -4,6 +4,19 @@
  *
  * Reads are public — every content page loads the discipline list to build its
  * filter bar. Writes require an authenticated admin.
+ *
+ * Bilingual contract, and it differs from the other content routes for one
+ * reason worth stating plainly:
+ *
+ *   `name` is NOT translated in place. It is the join key — career_paths,
+ *   resources and alumni all store the English discipline name, and the
+ *   frontend filters by string equality against it. Resolving it to Bangla for
+ *   a bn request would hand the client a filter value that matches no row, and
+ *   every discipline filter on the site would silently return nothing.
+ *
+ *   So `name` always comes back in English and `name_bn` travels beside it.
+ *   The client renders name_bn and keeps filtering on name. Only `description`,
+ *   which nothing joins on, resolves per language with a COALESCE fallback.
  */
 
 import express from 'express';
@@ -11,6 +24,18 @@ import pool from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
+
+const SUPPORTED_LANGUAGES = ['en', 'bn'];
+
+/** English unless a supported language is explicitly requested. */
+function resolveLang(raw) {
+  return SUPPORTED_LANGUAGES.includes(raw) ? raw : 'en';
+}
+
+// Validated above, so this selects between two fixed literals.
+function descField(lang) {
+  return lang === 'bn' ? 'COALESCE(description_bn, description)' : 'description';
+}
 
 const NAME_MAX = 100;
 const DESCRIPTION_MAX = 500;
@@ -42,7 +67,8 @@ function parseId(raw) {
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, description FROM disciplines ORDER BY id'
+      `SELECT id, name, name_bn, ${descField(resolveLang(req.query.lang))} AS description
+         FROM disciplines ORDER BY id`
     );
     return res.json(result.rows);
   } catch (err) {
@@ -60,7 +86,8 @@ router.get('/:id', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id, name, description FROM disciplines WHERE id = $1',
+      `SELECT id, name, name_bn, ${descField(resolveLang(req.query.lang))} AS description
+         FROM disciplines WHERE id = $1`,
       [id]
     );
     if (result.rows.length === 0) {

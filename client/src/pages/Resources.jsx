@@ -27,7 +27,8 @@ export default function Resources() {
     () => localStorage.getItem('selectedDiscipline') || 'All disciplines'
   )
   const [query, setQuery] = useState('')
-  const [disciplines, setDisciplines] = useState(['All disciplines'])
+  // { name, label }: `name` is the English key resources are filtered by.
+  const [disciplines, setDisciplines] = useState([{ name: 'All disciplines', label: 'All disciplines' }])
   const [resources, setResources] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -35,18 +36,24 @@ export default function Resources() {
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch('/api/disciplines')
+        const response = await fetch(`/api/disciplines?lang=${lang}`)
         const data = await response.json()
-        const disciplineNames = ['All disciplines', ...data.map(d => d.name)]
-        setDisciplines(disciplineNames)
+        setDisciplines([
+          { name: 'All disciplines', label: t('common.allDisciplines') },
+          ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
+        ])
       } catch (error) {
         console.error('Error fetching disciplines:', error)
-        setDisciplines(['All disciplines', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education'])
+        setDisciplines([
+          { name: 'All disciplines', label: t('common.allDisciplines') },
+          ...['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
+            .map(name => ({ name, label: name })),
+        ])
       }
     }
-    
+
     fetchDisciplines()
-  }, [])
+  }, [lang, t])
 
   // Fetch resources from API. Refetches when the navbar language changes —
   // the API resolves title/desc for the requested language and falls back to
@@ -111,7 +118,7 @@ export default function Resources() {
           </div>
           <div className="filter-row filter-row--sm">
             {disciplines.map(d => (
-              <button key={d} className={`filter-pill filter-pill--sm ${disc === d ? 'active' : ''}`} onClick={() => setDisc(d)}>{d === 'All disciplines' ? t('common.allDisciplines') : d}</button>
+              <button key={d.name} className={`filter-pill filter-pill--sm ${disc === d.name ? 'active' : ''}`} onClick={() => setDisc(d.name)}>{d.label}</button>
             ))}
           </div>
         </div>
@@ -128,7 +135,7 @@ export default function Resources() {
                 <h3 className="res-card-title">{r.title}</h3>
                 <p className="res-card-desc">{r.desc}</p>
                 <div className="res-card-tags">
-                  <span className="res-tag">{r.discipline === 'All disciplines' ? t('common.allDisciplines') : r.discipline}</span>
+                  <span className="res-tag">{disciplines.find(d => d.name === r.discipline)?.label ?? r.discipline}</span>
                   <span className="res-tag">{tc(`resources.category.${r.category}`, r.category)}</span>
                 </div>
                 <div className="res-card-footer">

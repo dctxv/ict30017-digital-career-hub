@@ -4,9 +4,12 @@ import { useLanguage } from '../context/LanguageContext'
 import './Alumni.css'
 
 export default function Alumni() {
-  const { t, n } = useLanguage()
+  const { lang, t, n } = useLanguage()
   const [disc, setDisc] = useState('All')
-  const [disciplines, setDisciplines] = useState(['All'])
+  // Each entry is { name, label }: `name` is the English join key the filter
+  // compares against, `label` is what the pill shows. Collapsing the two would
+  // make a Bangla label match no alumni row.
+  const [disciplines, setDisciplines] = useState([{ name: 'All', label: 'All' }])
   const [alumni, setAlumni] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -14,18 +17,24 @@ export default function Alumni() {
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch('/api/disciplines')
+        const response = await fetch(`/api/disciplines?lang=${lang}`)
         const data = await response.json()
-        const disciplineNames = ['All', ...data.map(d => d.name)]
-        setDisciplines(disciplineNames)
+        setDisciplines([
+          { name: 'All', label: t('common.all') },
+          ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
+        ])
       } catch (error) {
         console.error('Error fetching disciplines:', error)
-        setDisciplines(['All', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education'])
+        setDisciplines([
+          { name: 'All', label: t('common.all') },
+          ...['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
+            .map(name => ({ name, label: name })),
+        ])
       }
     }
-    
+
     fetchDisciplines()
-  }, [])
+  }, [lang, t])
 
   // Fetch alumni from API
   useEffect(() => {
@@ -35,7 +44,7 @@ export default function Alumni() {
         if (disc !== 'All') {
           url = `/api/alumni/discipline/${disc}`
         }
-        const response = await fetch(url)
+        const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}lang=${lang}`)
         const data = await response.json()
         setAlumni(data)
       } catch (error) {
@@ -46,7 +55,7 @@ export default function Alumni() {
     }
     
     fetchAlumni()
-  }, [disc])
+  }, [disc, lang])
 
   // Function to get initials for avatar
   const getInitials = (name) => {
@@ -73,11 +82,11 @@ export default function Alumni() {
           <div className="filter-row">
             {disciplines.map(d => (
               <button
-                key={d}
-                className={`filter-pill ${disc === d ? 'active' : ''}`}
-                onClick={() => setDisc(d)}
+                key={d.name}
+                className={`filter-pill ${disc === d.name ? 'active' : ''}`}
+                onClick={() => setDisc(d.name)}
               >
-                {d === 'All' ? t('common.all') : d}
+                {d.label}
               </button>
             ))}
           </div>

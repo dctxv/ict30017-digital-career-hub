@@ -8,6 +8,20 @@
  * `salaryEntry` and `salarySenior` because that is the shape
  * client/src/pages/CareerPaths.jsx already consumes. The mapping is done here
  * rather than renaming columns so the SQL stays idiomatic.
+ *
+ * Bilingual contract (same shape as resourcesRouter):
+ *   description_bn and industry_bn hold the Bangla prose. A read resolves ONE
+ *   language into the flat `desc` and `industry` fields the frontend renders,
+ *   chosen by ?lang=en|bn (default en), falling back to English per field via
+ *   COALESCE so an untranslated row shows English rather than an empty card.
+ *
+ *   title, skills and progression have no Bangla column by design. They are the
+ *   terms a user carries to a job advert — "Financial Analyst", "Excel",
+ *   "AutoCAD" — and a Bangladeshi job seeker writes and searches for them in
+ *   English. See server/migrations/add_bilingual_content.sql.
+ *
+ *   Admin writes always read back English, since the dashboard edits the
+ *   canonical row rather than a rendering of it.
  */
 
 import express from 'express';
@@ -20,17 +34,36 @@ const TITLE_MAX = 150;
 const TEXT_MAX = 4000;
 const LIST_MAX = 50;
 
-const SELECT_FIELDS = `
+const SUPPORTED_LANGUAGES = ['en', 'bn'];
+
+// `lang` is validated against SUPPORTED_LANGUAGES before it reaches here, so
+// this is a choice between two fixed literals, never interpolated user input.
+function selectFields(lang) {
+  const desc = lang === 'bn' ? 'COALESCE(description_bn, description)' : 'description';
+  const industry = lang === 'bn' ? 'COALESCE(industry_bn, industry)' : 'industry';
+  return `
   id,
   title,
-  industry,
+  ${industry} AS industry,
   discipline,
-  description   AS "desc",
+  ${desc}   AS "desc",
   skills,
   progression,
   salary_entry  AS "salaryEntry",
-  salary_senior AS "salarySenior"
+  salary_senior AS "salarySenior",
+  description_bn,
+  industry_bn
 `;
+}
+
+/** English unless a supported language is explicitly requested. */
+function resolveLang(raw) {
+  return SUPPORTED_LANGUAGES.includes(raw) ? raw : 'en';
+}
+
+// Admin writes read the row back in English: the dashboard edits the canonical
+// content, not a per-language rendering of it.
+const SELECT_FIELDS = selectFields('en');
 
 function parseId(raw) {
   const id = Number.parseInt(raw, 10);
@@ -97,16 +130,17 @@ function toParams(body) {
 // GET /api/career-paths — public. Optional ?discipline= filter.
 router.get('/', async (req, res) => {
   const { discipline } = req.query;
+  const fields = selectFields(resolveLang(req.query.lang));
 
   try {
     const hasFilter = typeof discipline === 'string' && discipline.length > 0 && discipline !== 'All';
 
     const result = hasFilter
       ? await pool.query(
-          `SELECT ${SELECT_FIELDS} FROM career_paths WHERE discipline = $1 ORDER BY id`,
+          `SELECT ${fields} FROM career_paths WHERE discipline = $1 ORDER BY id`,
           [discipline]
         )
-      : await pool.query(`SELECT ${SELECT_FIELDS} FROM career_paths ORDER BY id`);
+      : await pool.query(`SELECT ${fields} FROM career_paths ORDER BY id`);
 
     return res.json(result.rows);
   } catch (err) {
@@ -124,7 +158,7 @@ router.get('/:id', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT ${SELECT_FIELDS} FROM career_paths WHERE id = $1`,
+      `SELECT ${selectFields(resolveLang(req.query.lang))} FROM career_paths WHERE id = $1`,
       [id]
     );
     if (result.rows.length === 0) {

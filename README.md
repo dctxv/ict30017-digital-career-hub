@@ -43,6 +43,8 @@ psql -U postgres -d career_hub_db -f server/migrations/add_chat_turn_tracking.sq
 psql -U postgres -d career_hub_db -f server/migrations/add_user_tier.sql
 psql -U postgres -d career_hub_db -f server/migrations/create_content_tables.sql
 psql -U postgres -d career_hub_db -f server/migrations/seed_content_data.sql
+psql -U postgres -d career_hub_db -f server/migrations/add_bilingual_content.sql
+psql -U postgres -d career_hub_db -f server/migrations/seed_bangla_content.sql
 ```
 
 ### 3. Start the backend

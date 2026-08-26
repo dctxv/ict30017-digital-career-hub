@@ -24,14 +24,44 @@ const BIO_MAX = 2000;
 const INITIALS_MAX = 4;
 const EARLIEST_GRADUATION_YEAR = 1950;
 
-const PUBLIC_FIELDS = `
+const SUPPORTED_LANGUAGES = ['en', 'bn'];
+
+/**
+ * Public read fields for one language.
+ *
+ * bio_bn and industry_bn hold the Bangla prose; ?lang=bn resolves them into the
+ * flat `bio` and `industry` the alumni page renders, falling back to English
+ * per field via COALESCE so an untranslated profile still shows its story.
+ *
+ * full_name, institution and current_role have no Bangla column on purpose. A
+ * person's name is not translated, and neither is the employer on their badge
+ * or the job title they hold.
+ *
+ * `lang` is validated before it reaches here, so this picks between two fixed
+ * literals rather than interpolating anything a caller supplied.
+ */
+function publicFields(lang) {
+  const bio = lang === 'bn' ? 'COALESCE(bio_bn, bio)' : 'bio';
+  const industry = lang === 'bn' ? 'COALESCE(industry_bn, industry)' : 'industry';
+  return `
   id, full_name, institution, discipline, graduation_year,
-  "current_role", industry, bio, image_initials
+  "current_role", ${industry} AS industry, ${bio} AS bio, image_initials
 `;
+}
+
+/** English unless a supported language is explicitly requested. */
+function resolveLang(raw) {
+  return SUPPORTED_LANGUAGES.includes(raw) ? raw : 'en';
+}
+
+// Admin writes read the row back in English: the dashboard edits the canonical
+// profile, not a per-language rendering of it.
+const PUBLIC_FIELDS = publicFields('en');
 
 const ADMIN_FIELDS = `
   id, full_name, institution, discipline, graduation_year,
   "current_role", industry, bio, image_initials,
+  bio_bn, industry_bn,
   consent_given, is_published
 `;
 
@@ -132,7 +162,7 @@ function toParams(body) {
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT ${PUBLIC_FIELDS} FROM alumni WHERE ${PUBLIC_FILTER} ORDER BY id`
+      `SELECT ${publicFields(resolveLang(req.query.lang))} FROM alumni WHERE ${PUBLIC_FILTER} ORDER BY id`
     );
     return res.json(result.rows);
   } catch (err) {
@@ -162,7 +192,7 @@ router.get('/discipline/:discipline', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT ${PUBLIC_FIELDS} FROM alumni
+      `SELECT ${publicFields(resolveLang(req.query.lang))} FROM alumni
         WHERE ${PUBLIC_FILTER} AND discipline = $1
         ORDER BY id`,
       [discipline]
@@ -183,7 +213,7 @@ router.get('/:id', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT ${PUBLIC_FIELDS} FROM alumni WHERE id = $1 AND ${PUBLIC_FILTER}`,
+      `SELECT ${publicFields(resolveLang(req.query.lang))} FROM alumni WHERE id = $1 AND ${PUBLIC_FILTER}`,
       [id]
     );
     if (result.rows.length === 0) {
