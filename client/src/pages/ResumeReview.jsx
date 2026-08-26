@@ -22,68 +22,11 @@ import {
   TARGET_SECTOR_OPTIONS,
 } from '../utils/reviewContext'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
+import { sampleReview } from '../data/sampleReview'
 import { streamResumeReview } from '../api/reviewResume'
 import ResultsView from './ResultsView'
 import './ResumeReview.css'
-
-/* ── Hardcoded sample data ───────────────────────────────────────── */
-const SAMPLE = {
-  overall_score: 52,
-  formatting: {
-    score: 61,
-    feedback: 'The resume has a clear section structure and readable layout. However, several legacy Bangladeshi conventions are present that would limit performance in modern ATS systems used by multinationals.',
-    issues: [
-      { section: 'Contact header', issue: 'Missing LinkedIn URL', suggestion: 'Add your LinkedIn profile URL (e.g. linkedin.com/in/yourname) — Bangladeshi MNC recruiters increasingly verify digital footprints before shortlisting.' },
-      { section: 'Skills', issue: '"Computer Knowledge" heading is outdated', suggestion: 'Rename to "Technical Skills" — modern recruiters and ATS systems expect this standard heading.' },
-      { section: 'Footer', issue: 'Declaration section adds no value', suggestion: 'Remove the declaration section entirely to reclaim space for skills or achievements.' },
-    ],
-  },
-  content_quality: {
-    score: 48,
-    feedback: 'The educational background is solid but the experience section critically lacks quantified achievements. Recruiters will not shortlist without specific outcomes using the CAR method.',
-    strengths: [
-      'Educational background shows relevant qualification (Diploma in Power Technology)',
-      'Training section includes practical hands-on skills aligned to the electrical sector',
-    ],
-    weaknesses: [
-      'Experience section lists topic areas only — no actual job roles, employers, dates, or outcomes',
-      'Career objective is generic ("seeking a challenging position in a dynamic environment") — replace with a targeted professional summary naming the power sector and your key qualifications',
-      'Training entries missing date ranges — show "Jan 2023 – Mar 2023", not just "3 months"',
-    ],
-  },
-  language_grammar: {
-    score: 61,
-    feedback: 'Generally readable, but weak verb choices and vague descriptors reduce professional impact. British English should be standardised throughout.',
-    issues: [
-      { original: 'Responsible for handling electrical maintenance', corrected: 'Spearheaded electrical maintenance operations for a 12-unit residential complex', type: 'Weak action verb' },
-      { original: 'Good command in English', corrected: 'Professional working proficiency in English (IELTS 6.5)', type: 'Vague language descriptor' },
-      { original: 'organization (used alongside "organisation")', corrected: 'organisation — standardise to British English throughout', type: 'British/American English mix' },
-    ],
-  },
-  action_items: [
-    'Experience section: Add at least 2 real job roles with employer, date range, and 2–3 CAR-method bullet points each — this is the single biggest gap recruiters will flag.',
-    'Training section: Add start–end dates to all entries (e.g. "Jan 2023 – Mar 2023") — dates show WHEN you trained, not just how long.',
-    'Career objective: Replace with a 2-sentence professional summary targeting a specific sector (power, electrical, or renewable energy) and naming your strongest qualification.',
-    'Skills section: Research 5 current job ads in your target sector and mirror their exact keyword language — ATS systems score heavily on keyword match.',
-  ],
-  ats_analysis: {
-    inferred_role: 'Electrical Engineer',
-    inferred_industry: 'Power & Energy',
-    keyword_hits: ['Electrical Wiring', 'Power Systems', 'Industrial Attachment', 'AutoCAD', 'Circuit Design'],
-    keyword_gaps: ['PLC Programming', 'SCADA', 'Load Flow Analysis', 'IEEE Standards', 'Energy Audit'],
-    heading_risks: [
-      { original: 'Computer Knowledge', issue: 'Non-standard heading — many ATS systems will fail to map this to a recognised section', recommended: 'Technical Skills' },
-    ],
-    ats_tips: [
-      'Add "PLC Programming" and "SCADA" explicitly to the Technical Skills section — these are high-frequency keywords in Bangladeshi power sector job ads.',
-      'Replace the "Computer Knowledge" heading with "Technical Skills" — ATS parsers at multinationals use this as the standard identifier.',
-      'Include the CGPA denominator for all academic entries (e.g. "3.72/4.00") — missing denominators cause ATS misreads on the dual 4.00/5.00 Bangladesh scale.',
-    ],
-    standard: 'international/multinational ATS',
-    ats_score: 44,
-  },
-  job_match: null,
-}
 
 /* ── FileIcon ────────────────────────────────────────────────────── */
 function FileIcon({ size = 36 }) {
@@ -123,17 +66,23 @@ function useReviewQuota() {
   return quota
 }
 
-function describeQuota(quota, isAuthenticated) {
-  if (!quota) return 'Free plan'
-  if (quota.unlimited) return 'Premium plan — unlimited resume reviews'
+/*
+ * Takes the language helpers rather than reaching for the context itself, so it
+ * stays a pure function of its arguments and can be reasoned about in isolation.
+ * English distinguishes one review from several; Bangla does not, and the two
+ * keys resolve to the same sentence there.
+ */
+function describeQuota(quota, isAuthenticated, t, n) {
+  if (!quota) return t('review.quotaFallback')
+  if (quota.unlimited) return t('review.quotaUnlimited')
   if (!quota.authenticated || !isAuthenticated) {
-    return `Free plan — ${quota.limit} resume reviews per day. Log in to track how many you have left.`
+    return t('review.quotaAnonymous', { limit: n(quota.limit) })
   }
   if (quota.remaining === 0) {
-    return 'Free plan — no resume reviews left today. Your allowance resets tomorrow.'
+    return t('review.quotaExhausted')
   }
-  const plural = quota.remaining === 1 ? 'review' : 'reviews'
-  return `Free plan — ${quota.remaining} of ${quota.limit} resume ${plural} remaining today`
+  const key = quota.remaining === 1 ? 'review.quotaRemainingOne' : 'review.quotaRemainingMany'
+  return t(key, { remaining: n(quota.remaining), limit: n(quota.limit) })
 }
 
 function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marketMode, setMarketMode, reviewContext, setReviewContext, onAnalyse, onSample }) {
@@ -141,8 +90,9 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
   const [enhanceOpen, setEnhanceOpen] = useState(false)
   const inputRef = useRef()
 
-  const [fileError, setFileError] = useState('')
+  const [fileError, setFileError] = useState(null)
   const { isAuthenticated } = useAuth()
+  const { t, n } = useLanguage()
   const quota = useReviewQuota()
 
   // The coarse market toggle and the precise employer selector answer the same
@@ -165,7 +115,7 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
       else if (value !== 'unknown') setMarketMode('bangladesh')
     }
   }
-  const quotaLabel = describeQuota(quota, isAuthenticated)
+  const quotaLabel = describeQuota(quota, isAuthenticated, t, n)
 
   // Runs for both the picker and the drop zone. accept=".pdf,.docx" only
   // filters the dialog, so a dropped .txt reached the server before this.
@@ -173,11 +123,14 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
     if (!f) return
     const check = validateResumeFile(f)
     if (!check.ok) {
-      setFileError(check.message)
+      // Held as a key plus its substitutions, not as a rendered sentence, so an
+      // error already on screen re-renders in the new language if the user
+      // toggles rather than freezing in the language it was raised in.
+      setFileError({ key: check.messageKey, vars: check.messageVars })
       setFile(null)
       return
     }
-    setFileError('')
+    setFileError(null)
     setFile(f)
   }
   const handleDrop = e => { e.preventDefault(); setDrag(false); pick(e.dataTransfer.files[0]) }
@@ -185,8 +138,8 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
   return (
     <div className="rr-content">
       <div className="rr-upload-header">
-        <h1 className="rr-title">Resume review</h1>
-        <p className="rr-sub">AI-powered feedback tailored to the Bangladeshi job market. Upload your resume to get started.</p>
+        <h1 className="rr-title">{t('review.title')}</h1>
+        <p className="rr-sub">{t('review.sub')}</p>
       </div>
 
       {!file ? (
@@ -198,13 +151,13 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
           onClick={() => inputRef.current.click()}
         >
           <div className="drop-zone__icon"><FileIcon size={40} /></div>
-          <div className="drop-zone__title">Drop your resume here</div>
-          <div className="drop-zone__hint">PDF or DOCX · up to 3 MB</div>
+          <div className="drop-zone__title">{t('review.dropTitle')}</div>
+          <div className="drop-zone__hint">{t('review.dropHint')}</div>
           <button
             className="btn btn-outline"
             onClick={e => { e.stopPropagation(); inputRef.current.click() }}
           >
-            Browse files
+            {t('review.browse')}
           </button>
           <input
             ref={inputRef}
@@ -214,7 +167,7 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
             onChange={e => pick(e.target.files[0])}
           />
           {fileError && (
-            <p className="drop-zone__error" role="alert">{fileError}</p>
+            <p className="drop-zone__error" role="alert">{t(fileError.key, fileError.vars)}</p>
           )}
         </div>
       ) : (
@@ -227,32 +180,28 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
               </svg>
               {file.name}
             </span>
-            <button className="btn btn-ghost btn-sm" onClick={() => setFile(null)}>✕ Remove</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setFile(null)}>{t('review.remove')}</button>
           </div>
 
           <div className="market-mode-card">
             <div className="market-mode-label">
               <span className="market-mode-icon">🎯</span>
-              <span className="market-mode-title">Who are you applying to?</span>
+              <span className="market-mode-title">{t('review.marketTitle')}</span>
             </div>
             <div className="market-mode-options">
               <button
                 className={`market-mode-btn ${marketMode === 'bangladesh' ? 'market-mode-btn--active' : ''}`}
                 onClick={() => chooseMarket('bangladesh')}
               >
-                <span className="market-mode-btn-label">Bangladesh employers</span>
-                <span className="market-mode-btn-desc">
-                  Personal details, declarations and local conventions are treated as standard practice
-                </span>
+                <span className="market-mode-btn-label">{t('review.marketLocal')}</span>
+                <span className="market-mode-btn-desc">{t('review.marketLocalDesc')}</span>
               </button>
               <button
                 className={`market-mode-btn ${marketMode === 'international' ? 'market-mode-btn--active' : ''}`}
                 onClick={() => chooseMarket('international')}
               >
-                <span className="market-mode-btn-label">International / multinational</span>
-                <span className="market-mode-btn-desc">
-                  Personal details, declarations and photos flagged for removal per Western standards
-                </span>
+                <span className="market-mode-btn-label">{t('review.marketInternational')}</span>
+                <span className="market-mode-btn-desc">{t('review.marketInternationalDesc')}</span>
               </button>
             </div>
           </div>
@@ -262,21 +211,18 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
           <div className="context-card">
             <div className="context-card__label">
               <span className="context-card__icon">🧭</span>
-              <span className="context-card__title">Tell us about this application</span>
+              <span className="context-card__title">{t('review.contextTitle')}</span>
             </div>
-            <p className="context-card__hint">
-              Optional, and it makes the review far more accurate. A Bdjobs profile,
-              a government form and a multinational application are judged differently.
-            </p>
+            <p className="context-card__hint">{t('review.contextHint')}</p>
             <div className="context-card__grid">
               {[
-                ['applicationChannel', 'How are you applying?', APPLICATION_CHANNEL_OPTIONS],
-                ['employerType', 'What kind of employer?', EMPLOYER_TYPE_OPTIONS],
-                ['candidateStage', 'Where are you in your career?', CANDIDATE_STAGE_OPTIONS],
-                ['targetSector', 'Which sector?', TARGET_SECTOR_OPTIONS],
-              ].map(([key, label, options]) => (
+                ['applicationChannel', 'review.contextChannel', APPLICATION_CHANNEL_OPTIONS],
+                ['employerType', 'review.contextEmployer', EMPLOYER_TYPE_OPTIONS],
+                ['candidateStage', 'review.contextStage', CANDIDATE_STAGE_OPTIONS],
+                ['targetSector', 'review.contextSector', TARGET_SECTOR_OPTIONS],
+              ].map(([key, labelKey, options]) => (
                 <div className="form-group" key={key}>
-                  <label className="form-label" htmlFor={`ctx-${key}`}>{label}</label>
+                  <label className="form-label" htmlFor={`ctx-${key}`}>{t(labelKey)}</label>
                   <select
                     id={`ctx-${key}`}
                     className="form-input"
@@ -284,7 +230,7 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
                     onChange={e => chooseContext(key, e.target.value)}
                   >
                     {options.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                      <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                     ))}
                   </select>
                 </div>
@@ -295,27 +241,27 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
           <div className="enhance-card">
             <div className="enhance-card__trigger" onClick={() => setEnhanceOpen(o => !o)}>
               <span className="enhance-card__star">✦</span>
-              <span className="enhance-card__label">Improve my analysis</span>
-              <span className="enhance-card__hint">Add job role or ad for targeted feedback</span>
+              <span className="enhance-card__label">{t('review.enhanceLabel')}</span>
+              <span className="enhance-card__hint">{t('review.enhanceHint')}</span>
               <span className="enhance-card__chevron">{enhanceOpen ? '▴' : '▾'}</span>
             </div>
             {enhanceOpen && (
               <div className="enhance-card__fields">
                 <div className="form-group">
-                  <label className="form-label">Target job role <span className="optional">(optional)</span></label>
+                  <label className="form-label">{t('review.jobRoleLabel')} <span className="optional">{t('common.optional')}</span></label>
                   <input
                     className="form-input"
-                    placeholder="e.g. Electrical Engineer, Power Sector"
+                    placeholder={t('review.jobRolePlaceholder')}
                     value={jobRole}
                     onChange={e => setJobRole(e.target.value)}
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Job advertisement <span className="optional">(optional — paste for job match analysis)</span></label>
+                  <label className="form-label">{t('review.jobAdLabel')} <span className="optional">{t('review.jobAdOptional')}</span></label>
                   <textarea
                     className="form-textarea"
                     rows={4}
-                    placeholder="Paste the job description here…"
+                    placeholder={t('review.jobAdPlaceholder')}
                     value={jobAd}
                     onChange={e => setJobAd(e.target.value)}
                   />
@@ -333,34 +279,34 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
             <span>{quotaLabel}</span>
           </div>
           <button className="btn btn-primary btn-full" onClick={onAnalyse}>
-            Analyse my resume
+            {t('review.analyse')}
           </button>
         </div>
       )}
 
       <div className="val-section">
-        <div className="val-section__label">What the analysis covers</div>
+        <div className="val-section__label">{t('review.coversLabel')}</div>
         <div className="val-grid">
           {[
-            ['📋', 'Content quality', 'Specific experience, CAR-method achievements, and quantified outcomes.'],
-            ['✏️', 'Language & grammar', 'Tense consistency, strong action verbs, and professional tone.'],
-            ['📐', 'Format & structure', 'ATS-friendly headings, section order, and contact completeness.'],
-            ['🔍', 'ATS analysis', 'Keyword coverage, heading risks, and role-specific gap analysis.'],
-          ].map(([icon, title, desc]) => (
-            <div key={title} className="val-card">
+            ['📋', 'Content'],
+            ['✏️', 'Language'],
+            ['📐', 'Format'],
+            ['🔍', 'Ats'],
+          ].map(([icon, name]) => (
+            <div key={name} className="val-card">
               <div className="val-card__icon">{icon}</div>
-              <div className="val-card__title">{title}</div>
-              <div className="val-card__desc">{desc}</div>
+              <div className="val-card__title">{t(`review.covers${name}`)}</div>
+              <div className="val-card__desc">{t(`review.covers${name}Desc`)}</div>
             </div>
           ))}
         </div>
         <div className="sample-card">
           <span className="sample-card__icon">👁</span>
           <div className="sample-card__text">
-            <div className="sample-card__title">See a sample review</div>
-            <div className="sample-card__sub">Understand what feedback looks like before uploading</div>
+            <div className="sample-card__title">{t('review.sampleTitle')}</div>
+            <div className="sample-card__sub">{t('review.sampleSub')}</div>
           </div>
-          <button className="btn btn-outline btn-sm" onClick={onSample}>View sample →</button>
+          <button className="btn btn-outline btn-sm" onClick={onSample}>{t('review.sampleButton')}</button>
         </div>
       </div>
     </div>
@@ -369,11 +315,12 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
 
 /* ── AnalysingView ───────────────────────────────────────────────── */
 function AnalysingView({ filename }) {
+  const { t } = useLanguage()
   const msgs = [
-    'Checking content completeness…',
-    'Reviewing language quality…',
-    'Evaluating format & structure…',
-    'Analysing ATS compatibility…',
+    t('review.analysingStep1'),
+    t('review.analysingStep2'),
+    t('review.analysingStep3'),
+    t('review.analysingStep4'),
   ]
   return (
     <div className="rr-analysing">
@@ -385,7 +332,7 @@ function AnalysingView({ filename }) {
         <span className="analysing-spinner__emoji">🔍</span>
       </div>
       <div className="analysing-text">
-        <div className="analysing-text__title">Analysing your resume…</div>
+        <div className="analysing-text__title">{t('review.analysingTitle')}</div>
         <div className="analysing-text__file">{filename}</div>
       </div>
       <div className="analysing-dots">
@@ -404,6 +351,7 @@ function AnalysingView({ filename }) {
 
 /* ── Main page ───────────────────────────────────────────────────── */
 export default function ResumeReview() {
+  const { lang } = useLanguage()
   const [view, setView] = useState('upload')
   const [file, setFile] = useState(null)
   const [uploadedFile, setUploadedFile] = useState(null)
@@ -437,6 +385,10 @@ export default function ResumeReview() {
       jobAd: jobAd || undefined,
       marketMode,
       reviewContext,
+      // The narrative feedback is generated in the selected language. Toggling
+      // mid-review does not rewrite what is already on screen; the next run
+      // comes back in the new language.
+      language: lang,
       onPartial: (partial) => {
         setFeedback(partial)
         setView('results')
@@ -453,7 +405,9 @@ export default function ResumeReview() {
         // must never route to the results shell with null feedback.
         setFeedback(current => {
           if (current) {
-            setStreamError(msg || 'The analysis stopped early.')
+            // Truthiness is all this carries: ResultsView renders its own
+            // translated banner rather than the server's wording.
+            setStreamError(true)
             setView('results')
           } else {
             setAnalysisError({ code, message: msg })
@@ -466,7 +420,7 @@ export default function ResumeReview() {
   }
 
   function showSample() {
-    setFeedback(SAMPLE)
+    setFeedback(sampleReview(lang))
     setFilename('Sample_Resume.pdf')
     setUploadedFile(null)
     setIsSample(true)

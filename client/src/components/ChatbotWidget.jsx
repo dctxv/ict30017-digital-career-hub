@@ -4,26 +4,8 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { useLanguage } from '../context/LanguageContext'
 import styles from './ChatbotWidget.module.css'
-
-const INITIAL_MESSAGE = {
-  role: 'assistant',
-  content: 'Hi! I can help with career guidance, resume tips, interview prep, and job searching in Bangladesh.',
-}
-
-const LIMIT_MESSAGE = "You've reached your daily chat limit. Upgrade to Premium for unlimited access."
-const GENERIC_ERROR = 'Something went wrong. Please try again.'
-
-function readCurrentLanguage() {
-  const activeToggle = document.querySelector('.lang-btn.active')
-  const activeText = activeToggle?.textContent?.trim().toLowerCase()
-
-  if (activeText === 'bn') return 'bn'
-  if (document.documentElement.lang?.toLowerCase().startsWith('bn')) return 'bn'
-  if (navigator.language?.toLowerCase().startsWith('bn')) return 'bn'
-
-  return 'en'
-}
 
 function parseSseFrame(frame) {
   const dataLines = frame
@@ -44,24 +26,86 @@ function updateAssistantAt(history, index, content) {
   })
 }
 
+/**
+ * Drains the SSE body, accumulating the assistant's reply and reporting it as
+ * it grows.
+ *
+ * This lives at module scope rather than inside the component on purpose. It
+ * accumulates into a local that it reassigns on every frame, and React's
+ * compiler treats values captured from a component body as immutable — so the
+ * same loop written inline is rejected. Outside a component there is nothing to
+ * memoise and the reassignment is ordinary JavaScript.
+ *
+ * @param {ReadableStream} body
+ * @param {{ onText: (content: string) => void, onError: () => void }} handlers
+ */
+async function streamAssistantReply(body, { onText, onError }) {
+  const reader = body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let assistantContent = ''
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+
+      let frameEnd = buffer.indexOf('\n\n')
+      while (frameEnd !== -1) {
+        const frame = buffer.slice(0, frameEnd)
+        buffer = buffer.slice(frameEnd + 2)
+        const payload = parseSseFrame(frame)
+
+        if (payload === '[DONE]') return
+
+        if (payload === '[ERROR]') {
+          onError()
+          return
+        }
+
+        if (payload) {
+          // The very first chunk arrives with the model's leading whitespace
+          // still attached; later ones must keep theirs or words run together.
+          const nextChunk = assistantContent ? payload : payload.replace(/^\s+/, '')
+          if (nextChunk) {
+            assistantContent += nextChunk
+            onText(assistantContent)
+          }
+        }
+
+        frameEnd = buffer.indexOf('\n\n')
+      }
+    }
+  } catch {
+    onError()
+  }
+}
+
 export default function ChatbotWidget() {
+  /*
+   * The language used to be read by querying the navbar for '.lang-btn.active'
+   * and re-read on every document click. It worked, but it coupled the chatbot
+   * to a CSS class in an unrelated component: renaming that class would have
+   * silently reverted every conversation to English. The selection has a
+   * provider, so it is read from there.
+   */
+  const { lang: language, t } = useLanguage()
   const [open, setOpen] = useState(false)
-  const [conversationHistory, setConversationHistory] = useState([INITIAL_MESSAGE])
+  const [conversationHistory, setConversationHistory] = useState([])
   const [input, setInput] = useState('')
   const [isResponding, setIsResponding] = useState(false)
-  const [error, setError] = useState('')
-  const [language, setLanguage] = useState(() => readCurrentLanguage())
+  const [errorKey, setErrorKey] = useState('')
   const bottomRef = useRef(null)
 
-  useEffect(() => {
-    const syncLanguage = () => setLanguage(readCurrentLanguage())
-    const onDocumentClick = () => window.setTimeout(syncLanguage, 0)
-
-    syncLanguage()
-    document.addEventListener('click', onDocumentClick)
-
-    return () => document.removeEventListener('click', onDocumentClick)
-  }, [])
+  /*
+   * The greeting is rendered rather than stored, so toggling the language
+   * before the first reply re-renders it instead of leaving an English
+   * sentence at the top of a Bangla conversation. Once the user has sent
+   * anything, the transcript is left exactly as it was said.
+   */
+  const greeting = { role: 'assistant', content: t('chatbot.greeting') }
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -71,13 +115,15 @@ export default function ChatbotWidget() {
     const message = input.trim()
     if (!message || isResponding) return
 
-    const historyBeforeSend = conversationHistory.filter(item => item.content.trim())
+    // State holds the transcript only; the greeting is prepended for display
+    // and for the model, never stored, so it never lands in state twice.
+    const priorHistory = conversationHistory.filter(item => item.content.trim())
     const userMessage = { role: 'user', content: message }
-    const assistantIndex = historyBeforeSend.length + 1
+    const assistantIndex = priorHistory.length + 1
 
-    setConversationHistory([...historyBeforeSend, userMessage, { role: 'assistant', content: '' }])
+    setConversationHistory([...priorHistory, userMessage, { role: 'assistant', content: '' }])
     setInput('')
-    setError('')
+    setErrorKey('')
     setIsResponding(true)
 
     let response
@@ -88,97 +134,53 @@ export default function ChatbotWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message,
-          conversationHistory: historyBeforeSend,
+          conversationHistory: [greeting, ...priorHistory],
           language,
         }),
       })
     } catch {
-      setConversationHistory([...historyBeforeSend, userMessage])
-      setError(GENERIC_ERROR)
+      setConversationHistory([...priorHistory, userMessage])
+      setErrorKey('chatbot.genericError')
       setIsResponding(false)
       return
     }
 
     if (response.status === 401) {
-      setConversationHistory([...historyBeforeSend, userMessage])
-      setError(GENERIC_ERROR)
+      setConversationHistory([...priorHistory, userMessage])
+      setErrorKey('chatbot.genericError')
       setIsResponding(false)
       return
     }
 
     if (response.status === 429) {
-      setConversationHistory([...historyBeforeSend, userMessage])
-      setError(LIMIT_MESSAGE)
+      setConversationHistory([...priorHistory, userMessage])
+      setErrorKey('chatbot.limit')
       setIsResponding(false)
       return
     }
 
     if (!response.ok || !response.body) {
-      setConversationHistory([...historyBeforeSend, userMessage])
-      setError(GENERIC_ERROR)
+      setConversationHistory([...priorHistory, userMessage])
+      setErrorKey('chatbot.genericError')
       setIsResponding(false)
       return
     }
 
-    const reader = response.body.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
-    let assistantContent = ''
-
-    try {
-      while (true) {
-        const { value, done } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-
-        let frameEnd = buffer.indexOf('\n\n')
-        while (frameEnd !== -1) {
-          const frame = buffer.slice(0, frameEnd)
-          buffer = buffer.slice(frameEnd + 2)
-          const payload = parseSseFrame(frame)
-
-          if (payload === '[DONE]') {
-            setIsResponding(false)
-            return
-          }
-
-          if (payload === '[ERROR]') {
-            setError(GENERIC_ERROR)
-            setIsResponding(false)
-            return
-          }
-
-          if (payload) {
-            const nextChunk = assistantContent ? payload : payload.replace(/^\s+/, '')
-            if (!nextChunk) {
-              frameEnd = buffer.indexOf('\n\n')
-              continue
-            }
-
-            assistantContent += nextChunk
-            setConversationHistory(history => updateAssistantAt(history, assistantIndex, assistantContent))
-          }
-
-          frameEnd = buffer.indexOf('\n\n')
-        }
-      }
-
-      setIsResponding(false)
-    } catch {
-      setError(GENERIC_ERROR)
-      setIsResponding(false)
-    }
+    await streamAssistantReply(response.body, {
+      onText: content => setConversationHistory(history => updateAssistantAt(history, assistantIndex, content)),
+      onError: () => setErrorKey('chatbot.genericError'),
+    })
+    setIsResponding(false)
   }
 
   const canSend = input.trim().length > 0 && !isResponding
-  const visibleMessages = conversationHistory.filter(message => message.content.trim().length > 0)
+  const visibleMessages = [greeting, ...conversationHistory].filter(message => message.content.trim().length > 0)
   const isThinking = isResponding && conversationHistory.at(-1)?.role === 'assistant' && !conversationHistory.at(-1)?.content
 
   return (
     <>
       {open && (
-        <section className={styles.widget} aria-label="Career chatbot">
+        <section className={styles.widget} aria-label={t('chatbot.label')}>
           <header className={styles.header}>
             <div className={styles.headerIdentity}>
               <div className={styles.avatar} aria-hidden="true">
@@ -188,11 +190,11 @@ export default function ChatbotWidget() {
                 </svg>
               </div>
               <div>
-                <div className={styles.title}>Career Assistant</div>
-                <div className={styles.subtitle}>{language === 'bn' ? 'Bangla' : 'English'}</div>
+                <div className={styles.title}>{t('chatbot.title')}</div>
+                <div className={styles.subtitle}>{language === 'bn' ? t('chatbot.langBangla') : t('chatbot.langEnglish')}</div>
               </div>
             </div>
-            <button className={styles.iconButton} type="button" onClick={() => setOpen(false)} aria-label="Close chat">
+            <button className={styles.iconButton} type="button" onClick={() => setOpen(false)} aria-label={t('chatbot.close')}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
@@ -217,13 +219,13 @@ export default function ChatbotWidget() {
             <div ref={bottomRef} />
           </div>
 
-          {error && <div className={styles.inlineError}>{error}</div>}
+          {errorKey && <div className={styles.inlineError}>{t(errorKey)}</div>}
 
           <form className={styles.inputArea} onSubmit={(event) => { event.preventDefault(); sendMessage() }}>
             <textarea
               className={styles.input}
               rows={1}
-              placeholder="Ask a career question..."
+              placeholder={t('chatbot.placeholder')}
               value={input}
               onChange={event => setInput(event.target.value)}
               onKeyDown={event => {
@@ -234,7 +236,7 @@ export default function ChatbotWidget() {
               }}
               disabled={isResponding}
             />
-            <button className={styles.sendButton} type="submit" disabled={!canSend} aria-label="Send message">
+            <button className={styles.sendButton} type="submit" disabled={!canSend} aria-label={t('chatbot.send')}>
               <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
                 <path d="M15.75 2.25L8.25 9.75M15.75 2.25l-4.5 13.5-3-6-6-3 13.5-4.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -243,7 +245,7 @@ export default function ChatbotWidget() {
         </section>
       )}
 
-      <button className={styles.trigger} type="button" onClick={() => setOpen(value => !value)} aria-label={open ? 'Close career chatbot' : 'Open career chatbot'}>
+      <button className={styles.trigger} type="button" onClick={() => setOpen(value => !value)} aria-label={open ? t('chatbot.closeTrigger') : t('chatbot.openTrigger')}>
         {open ? (
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

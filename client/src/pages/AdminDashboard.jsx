@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
+import { useLanguage } from '../context/LanguageContext'
 import './AdminDashboard.css'
 
 const RESOURCE_TYPES = ['Guide', 'Article', 'Video', 'Course', 'PDF']
@@ -27,6 +28,7 @@ const emptyAlumni = {
 }
 
 export default function AdminDashboard() {
+  const { t, n, tc } = useLanguage()
   const [activeTab, setActiveTab] = useState('disciplines')
   const [disciplines, setDisciplines] = useState([])
   const [careerPaths, setCareerPaths] = useState([])
@@ -57,14 +59,17 @@ export default function AdminDashboard() {
   // Surfaces why a write failed instead of failing silently. The guarded
   // endpoints answer 401 when the session has lapsed and 403 when the account
   // is not an admin; both are worth telling the user apart.
-  const reportFailure = async (res, fallback) => {
+  // The server localises the `error` field it returns from the lang cookie, so
+  // a detail that arrives here is already in the reader's language and is shown
+  // as sent. The fallback covers a response that carried no detail at all.
+  const reportFailure = async (res, fallbackKey) => {
     setMessage('')
     if (res.status === 401) {
-      setError('Your session has expired. Please log in again.')
+      setError(t('admin.sessionExpired'))
       return
     }
     if (res.status === 403) {
-      setError('Your account does not have permission to make this change.')
+      setError(t('admin.forbidden'))
       return
     }
     let detail = ''
@@ -73,27 +78,29 @@ export default function AdminDashboard() {
     } catch {
       detail = ''
     }
-    setError(detail || fallback)
+    setError(detail || t(fallbackKey))
   }
 
-  const getJson = async (path, setter, label) => {
+  const getJson = async (path, setter, labelKey) => {
+    const label = t(labelKey)
     try {
       const res = await fetch(path)
       if (!res.ok) {
-        await reportFailure(res, `Could not load ${label}.`)
+        setMessage('')
+        setError(t('admin.loadFailed', { label }))
         return
       }
       setter(await res.json())
     } catch {
-      setError(`Could not reach the server while loading ${label}.`)
+      setError(t('admin.loadUnreachable', { label }))
     }
   }
 
-  const fetchDisciplines = () => getJson('/api/disciplines', setDisciplines, 'disciplines')
-  const fetchCareerPaths = () => getJson('/api/career-paths', setCareerPaths, 'career paths')
-  const fetchResources = () => getJson('/api/resources', setResources, 'resources')
+  const fetchDisciplines = () => getJson('/api/disciplines', setDisciplines, 'admin.label.disciplines')
+  const fetchCareerPaths = () => getJson('/api/career-paths', setCareerPaths, 'admin.label.careerPaths')
+  const fetchResources = () => getJson('/api/resources', setResources, 'admin.label.resources')
   // Admin view includes unpublished drafts, which /api/alumni deliberately hides.
-  const fetchAlumni = () => getJson('/api/alumni/all', setAlumni, 'alumni')
+  const fetchAlumni = () => getJson('/api/alumni/all', setAlumni, 'admin.label.alumni')
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -105,7 +112,7 @@ export default function AdminDashboard() {
   }, [])
 
   // Shared write helper. Returns true when the write succeeded.
-  const submit = async (method, path, payload, fallback) => {
+  const submit = async (method, path, payload, fallbackKey) => {
     try {
       const res = await fetch(path, {
         method,
@@ -113,28 +120,30 @@ export default function AdminDashboard() {
         body: JSON.stringify(payload),
       })
       if (!res.ok) {
-        await reportFailure(res, fallback)
+        await reportFailure(res, fallbackKey)
         return false
       }
       return true
     } catch {
-      setError('Could not reach the server.')
+      setError(t('admin.serverUnreachable'))
       return false
     }
   }
 
-  const remove = async (path, confirmText, refresh, label) => {
-    if (!confirm(confirmText)) return
+  const remove = async (path, confirmKey, refresh, labelKey) => {
+    if (!confirm(t(confirmKey))) return
+    const label = t(labelKey)
     try {
       const res = await fetch(path, { method: 'DELETE' })
       if (!res.ok) {
-        await reportFailure(res, `Could not delete this ${label}.`)
+        setMessage('')
+        setError(t('admin.deleteFailed', { label }))
         return
       }
       await refresh()
-      notify(`${label} deleted`)
+      notify(t('admin.deleted', { label }))
     } catch {
-      setError('Could not reach the server.')
+      setError(t('admin.serverUnreachable'))
     }
   }
 
@@ -145,13 +154,13 @@ export default function AdminDashboard() {
       editingDiscId ? 'PUT' : 'POST',
       editingDiscId ? `/api/disciplines/${editingDiscId}` : '/api/disciplines',
       discForm,
-      'Could not save this discipline.'
+      'admin.disc.saveFailed'
     )
     if (!ok) return
     await fetchDisciplines()
     setDiscForm(emptyDisc)
     setEditingDiscId(null)
-    notify(editingDiscId ? 'Discipline updated' : 'Discipline added')
+    notify(t(editingDiscId ? 'admin.disc.updated' : 'admin.disc.added'))
   }
 
   // ---- Career paths ----
@@ -168,7 +177,7 @@ export default function AdminDashboard() {
         progression = JSON.parse(raw)
       } catch {
         setMessage('')
-        setError('Progression must be valid JSON, for example [{"label":"Junior","time":"0-1 yr"}].')
+        setError(t('admin.path.progressionInvalid'))
         return
       }
     }
@@ -188,13 +197,13 @@ export default function AdminDashboard() {
       editingPathId ? 'PUT' : 'POST',
       editingPathId ? `/api/career-paths/${editingPathId}` : '/api/career-paths',
       payload,
-      'Could not save this career path.'
+      'admin.path.saveFailed'
     )
     if (!ok) return
     await fetchCareerPaths()
     setPathForm(emptyPath)
     setEditingPathId(null)
-    notify(editingPathId ? 'Career path updated' : 'Career path added')
+    notify(t(editingPathId ? 'admin.path.updated' : 'admin.path.added'))
   }
 
   // ---- Resources ----
@@ -204,13 +213,13 @@ export default function AdminDashboard() {
       editingResourceId ? 'PUT' : 'POST',
       editingResourceId ? `/api/resources/${editingResourceId}` : '/api/resources',
       resourceForm,
-      'Could not save this resource.'
+      'admin.res.saveFailed'
     )
     if (!ok) return
     await fetchResources()
     setResourceForm(emptyResource)
     setEditingResourceId(null)
-    notify(editingResourceId ? 'Resource updated' : 'Resource added')
+    notify(t(editingResourceId ? 'admin.res.updated' : 'admin.res.added'))
   }
 
   // ---- Alumni ----
@@ -220,20 +229,20 @@ export default function AdminDashboard() {
       editingAlumniId ? 'PUT' : 'POST',
       editingAlumniId ? `/api/alumni/${editingAlumniId}` : '/api/alumni',
       alumniForm,
-      'Could not save this alumni profile.'
+      'admin.alum.saveFailed'
     )
     if (!ok) return
     await fetchAlumni()
     setAlumniForm(emptyAlumni)
     setEditingAlumniId(null)
-    notify(editingAlumniId ? 'Alumni updated' : 'Alumni added')
+    notify(t(editingAlumniId ? 'admin.alum.updated' : 'admin.alum.added'))
   }
 
   if (loading) {
     return (
       <div className="page-enter">
         <Navbar />
-        <div style={{ textAlign: 'center', padding: '50px' }}>Loading admin panel...</div>
+        <div style={{ textAlign: 'center', padding: '50px' }}>{t('admin.loading')}</div>
       </div>
     )
   }
@@ -243,17 +252,17 @@ export default function AdminDashboard() {
       <Navbar />
       <div className="admin-header">
         <div className="admin-header-inner">
-          <h1 className="admin-title">Admin Dashboard</h1>
-          <p className="admin-sub">Manage disciplines, career paths, resources, and alumni</p>
+          <h1 className="admin-title">{t('admin.title')}</h1>
+          <p className="admin-sub">{t('admin.sub')}</p>
         </div>
       </div>
 
       <div className="admin-content">
         <div className="admin-tabs">
-          <button className={`admin-tab ${activeTab === 'disciplines' ? 'active' : ''}`} onClick={() => setActiveTab('disciplines')}>Disciplines</button>
-          <button className={`admin-tab ${activeTab === 'career-paths' ? 'active' : ''}`} onClick={() => setActiveTab('career-paths')}>Career Paths</button>
-          <button className={`admin-tab ${activeTab === 'resources' ? 'active' : ''}`} onClick={() => setActiveTab('resources')}>Resources</button>
-          <button className={`admin-tab ${activeTab === 'alumni' ? 'active' : ''}`} onClick={() => setActiveTab('alumni')}>Alumni</button>
+          <button className={`admin-tab ${activeTab === 'disciplines' ? 'active' : ''}`} onClick={() => setActiveTab('disciplines')}>{t('admin.tabDisciplines')}</button>
+          <button className={`admin-tab ${activeTab === 'career-paths' ? 'active' : ''}`} onClick={() => setActiveTab('career-paths')}>{t('admin.tabCareerPaths')}</button>
+          <button className={`admin-tab ${activeTab === 'resources' ? 'active' : ''}`} onClick={() => setActiveTab('resources')}>{t('admin.tabResources')}</button>
+          <button className={`admin-tab ${activeTab === 'alumni' ? 'active' : ''}`} onClick={() => setActiveTab('alumni')}>{t('admin.tabAlumni')}</button>
         </div>
 
         <div className="admin-panel">
@@ -264,27 +273,27 @@ export default function AdminDashboard() {
           {activeTab === 'disciplines' && (
             <div>
               <div className="admin-form-card">
-                <h2>{editingDiscId ? 'Edit Discipline' : 'Add New Discipline'}</h2>
+                <h2>{t(editingDiscId ? 'admin.disc.editHeading' : 'admin.disc.addHeading')}</h2>
                 <form onSubmit={handleDiscSubmit}>
                   <div className="form-group">
-                    <label className="form-label">Name</label>
+                    <label className="form-label">{t('admin.disc.name')}</label>
                     <input className="form-input" value={discForm.name} onChange={(e) => setDiscForm({ ...discForm, name: e.target.value })} required />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Description</label>
+                    <label className="form-label">{t('admin.disc.description')}</label>
                     <textarea className="form-textarea" value={discForm.description} onChange={(e) => setDiscForm({ ...discForm, description: e.target.value })} rows="2" />
                   </div>
                   <div className="form-buttons">
-                    <button type="submit" className="btn-primary">{editingDiscId ? 'Update' : 'Add'} Discipline</button>
-                    {editingDiscId && <button type="button" className="btn-secondary" onClick={() => { setEditingDiscId(null); setDiscForm(emptyDisc) }}>Cancel</button>}
+                    <button type="submit" className="btn-primary">{t(editingDiscId ? 'admin.disc.updateButton' : 'admin.disc.addButton')}</button>
+                    {editingDiscId && <button type="button" className="btn-secondary" onClick={() => { setEditingDiscId(null); setDiscForm(emptyDisc) }}>{t('common.cancel')}</button>}
                   </div>
                 </form>
               </div>
               <div className="admin-list-card">
-                <h2>Existing Disciplines ({disciplines.length})</h2>
+                <h2>{t('admin.disc.existing', { count: n(disciplines.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>ID</th><th>Name</th><th>Description</th><th>Actions</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.table.description')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {disciplines.map(d => (
@@ -293,8 +302,8 @@ export default function AdminDashboard() {
                         <td><strong>{d.name}</strong></td>
                         <td>{d.description || '-'}</td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingDiscId(d.id); setDiscForm({ name: d.name, description: d.description || '' }) }}>Edit</button>
-                          <button className="btn-delete" onClick={() => remove(`/api/disciplines/${d.id}`, 'Delete this discipline?', fetchDisciplines, 'Discipline')}>Delete</button>
+                          <button className="btn-edit" onClick={() => { setEditingDiscId(d.id); setDiscForm({ name: d.name, description: d.description || '' }) }}>{t('common.edit')}</button>
+                          <button className="btn-delete" onClick={() => remove(`/api/disciplines/${d.id}`, 'admin.disc.confirmDelete', fetchDisciplines, 'admin.label.discipline')}>{t('common.delete')}</button>
                         </td>
                       </tr>
                     ))}
@@ -308,60 +317,60 @@ export default function AdminDashboard() {
           {activeTab === 'career-paths' && (
             <div>
               <div className="admin-form-card">
-                <h2>{editingPathId ? 'Edit Career Path' : 'Add New Career Path'}</h2>
+                <h2>{t(editingPathId ? 'admin.path.editHeading' : 'admin.path.addHeading')}</h2>
                 <form onSubmit={handlePathSubmit}>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Title</label>
+                      <label className="form-label">{t('admin.path.titleField')}</label>
                       <input className="form-input" value={pathForm.title} onChange={(e) => setPathForm({ ...pathForm, title: e.target.value })} required />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Industry</label>
+                      <label className="form-label">{t('admin.path.industry')}</label>
                       <input className="form-input" value={pathForm.industry} onChange={(e) => setPathForm({ ...pathForm, industry: e.target.value })} required />
                     </div>
                   </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Discipline</label>
+                      <label className="form-label">{t('admin.path.discipline')}</label>
                       <select className="form-input" value={pathForm.discipline} onChange={(e) => setPathForm({ ...pathForm, discipline: e.target.value })} required>
-                        <option value="">Select discipline</option>
+                        <option value="">{t('admin.path.selectDiscipline')}</option>
                         {disciplines.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                       </select>
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Salary (Entry)</label>
+                      <label className="form-label">{t('admin.path.salaryEntry')}</label>
                       <input className="form-input" value={pathForm.salaryEntry} onChange={(e) => setPathForm({ ...pathForm, salaryEntry: e.target.value })} placeholder="BDT 25,000–40,000" />
                     </div>
                   </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Salary (Senior)</label>
+                      <label className="form-label">{t('admin.path.salarySenior')}</label>
                       <input className="form-input" value={pathForm.salarySenior} onChange={(e) => setPathForm({ ...pathForm, salarySenior: e.target.value })} placeholder="BDT 80,000–150,000" />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Skills (comma separated)</label>
-                      <input className="form-input" value={pathForm.skills} onChange={(e) => setPathForm({ ...pathForm, skills: e.target.value })} placeholder="Excel, Python, Communication" />
+                      <label className="form-label">{t('admin.path.skills')}</label>
+                      <input className="form-input" value={pathForm.skills} onChange={(e) => setPathForm({ ...pathForm, skills: e.target.value })} placeholder={t('admin.path.skillsPlaceholder')} />
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Description</label>
+                    <label className="form-label">{t('admin.path.description')}</label>
                     <textarea className="form-textarea" value={pathForm.desc} onChange={(e) => setPathForm({ ...pathForm, desc: e.target.value })} rows="3" required />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Progression (JSON format)</label>
+                    <label className="form-label">{t('admin.path.progression')}</label>
                     <textarea className="form-textarea" value={pathForm.progression} onChange={(e) => setPathForm({ ...pathForm, progression: e.target.value })} rows="4" placeholder='[{"label":"Junior","time":"0-1 yr"},{"label":"Senior","time":"1-3 yrs","current":true}]' />
                   </div>
                   <div className="form-buttons">
-                    <button type="submit" className="btn-primary">{editingPathId ? 'Update' : 'Add'} Career Path</button>
-                    {editingPathId && <button type="button" className="btn-secondary" onClick={() => { setEditingPathId(null); setPathForm(emptyPath) }}>Cancel</button>}
+                    <button type="submit" className="btn-primary">{t(editingPathId ? 'admin.path.updateButton' : 'admin.path.addButton')}</button>
+                    {editingPathId && <button type="button" className="btn-secondary" onClick={() => { setEditingPathId(null); setPathForm(emptyPath) }}>{t('common.cancel')}</button>}
                   </div>
                 </form>
               </div>
               <div className="admin-list-card">
-                <h2>Existing Career Paths ({careerPaths.length})</h2>
+                <h2>{t('admin.path.existing', { count: n(careerPaths.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>ID</th><th>Title</th><th>Discipline</th><th>Industry</th><th>Actions</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.title')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.industry')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {careerPaths.map(p => (
@@ -371,8 +380,8 @@ export default function AdminDashboard() {
                         <td>{p.discipline}</td>
                         <td>{p.industry}</td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingPathId(p.id); setPathForm({ title: p.title, industry: p.industry, discipline: p.discipline, desc: p.desc, skills: (p.skills ?? []).join(', '), progression: JSON.stringify(p.progression ?? [], null, 2), salaryEntry: p.salaryEntry, salarySenior: p.salarySenior }) }}>Edit</button>
-                          <button className="btn-delete" onClick={() => remove(`/api/career-paths/${p.id}`, 'Delete this career path?', fetchCareerPaths, 'Career path')}>Delete</button>
+                          <button className="btn-edit" onClick={() => { setEditingPathId(p.id); setPathForm({ title: p.title, industry: p.industry, discipline: p.discipline, desc: p.desc, skills: (p.skills ?? []).join(', '), progression: JSON.stringify(p.progression ?? [], null, 2), salaryEntry: p.salaryEntry, salarySenior: p.salarySenior }) }}>{t('common.edit')}</button>
+                          <button className="btn-delete" onClick={() => remove(`/api/career-paths/${p.id}`, 'admin.path.confirmDelete', fetchCareerPaths, 'admin.label.careerPath')}>{t('common.delete')}</button>
                         </td>
                       </tr>
                     ))}
@@ -386,84 +395,82 @@ export default function AdminDashboard() {
           {activeTab === 'resources' && (
             <div>
               <div className="admin-form-card">
-                <h2>{editingResourceId ? 'Edit Resource' : 'Add New Resource'}</h2>
-                <p className="admin-hint">
-                  Resources are stored in both languages. Bangla fields may be left blank —
-                  the site falls back to the English text until a translation is added.
-                </p>
+                <h2>{t(editingResourceId ? 'admin.res.editHeading' : 'admin.res.addHeading')}</h2>
+                <p className="admin-hint">{t('admin.res.bilingualHint')}</p>
                 <form onSubmit={handleResourceSubmit}>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Title (English)</label>
+                      <label className="form-label">{t('admin.res.titleEn')}</label>
                       <input className="form-input" value={resourceForm.title_en} onChange={(e) => setResourceForm({ ...resourceForm, title_en: e.target.value })} required />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Title (Bangla)</label>
-                      <input className="form-input" lang="bn" value={resourceForm.title_bn} onChange={(e) => setResourceForm({ ...resourceForm, title_bn: e.target.value })} placeholder="ঐচ্ছিক" />
+                      <label className="form-label">{t('admin.res.titleBn')}</label>
+                      <input className="form-input" lang="bn" value={resourceForm.title_bn} onChange={(e) => setResourceForm({ ...resourceForm, title_bn: e.target.value })} placeholder={t('admin.res.optionalPlaceholder')} />
                     </div>
                   </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Type</label>
+                      <label className="form-label">{t('admin.res.type')}</label>
                       <select className="form-input" value={resourceForm.type} onChange={(e) => setResourceForm({ ...resourceForm, type: e.target.value })} required>
-                        <option value="">Select type</option>
-                        {RESOURCE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                        <option value="">{t('admin.res.selectType')}</option>
+                        {/* The stored value stays English; only the label is translated. */}
+                        {RESOURCE_TYPES.map(type => <option key={type} value={type}>{tc(`resources.type.${type}`, type)}</option>)}
                       </select>
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Discipline</label>
+                      <label className="form-label">{t('admin.res.discipline')}</label>
                       <select className="form-input" value={resourceForm.discipline} onChange={(e) => setResourceForm({ ...resourceForm, discipline: e.target.value })} required>
-                        <option value="">Select discipline</option>
-                        <option value="All disciplines">All disciplines</option>
+                        <option value="">{t('admin.res.selectDiscipline')}</option>
+                        <option value="All disciplines">{t('common.allDisciplines')}</option>
                         {disciplines.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Category</label>
+                      <label className="form-label">{t('admin.res.category')}</label>
                       <select className="form-input" value={resourceForm.category} onChange={(e) => setResourceForm({ ...resourceForm, category: e.target.value })} required>
-                        <option value="">Select category</option>
-                        {RESOURCE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        <option value="">{t('admin.res.selectCategory')}</option>
+                        {RESOURCE_CATEGORIES.map(c => <option key={c} value={c}>{tc(`resources.category.${c}`, c)}</option>)}
                       </select>
                     </div>
                     <div className="form-group">
-                      <label className="form-label">URL</label>
+                      <label className="form-label">{t('admin.res.url')}</label>
                       <input className="form-input" type="url" value={resourceForm.url} onChange={(e) => setResourceForm({ ...resourceForm, url: e.target.value })} placeholder="https://..." required />
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Description (English)</label>
+                    <label className="form-label">{t('admin.res.descEn')}</label>
                     <textarea className="form-textarea" value={resourceForm.description_en} onChange={(e) => setResourceForm({ ...resourceForm, description_en: e.target.value })} rows="3" required />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Description (Bangla)</label>
-                    <textarea className="form-textarea" lang="bn" value={resourceForm.description_bn} onChange={(e) => setResourceForm({ ...resourceForm, description_bn: e.target.value })} rows="3" placeholder="ঐচ্ছিক" />
+                    <label className="form-label">{t('admin.res.descBn')}</label>
+                    <textarea className="form-textarea" lang="bn" value={resourceForm.description_bn} onChange={(e) => setResourceForm({ ...resourceForm, description_bn: e.target.value })} rows="3" placeholder={t('admin.res.optionalPlaceholder')} />
                   </div>
                   <div className="form-buttons">
-                    <button type="submit" className="btn-primary">{editingResourceId ? 'Update' : 'Add'} Resource</button>
-                    {editingResourceId && <button type="button" className="btn-secondary" onClick={() => { setEditingResourceId(null); setResourceForm(emptyResource) }}>Cancel</button>}
+                    <button type="submit" className="btn-primary">{t(editingResourceId ? 'admin.res.updateButton' : 'admin.res.addButton')}</button>
+                    {editingResourceId && <button type="button" className="btn-secondary" onClick={() => { setEditingResourceId(null); setResourceForm(emptyResource) }}>{t('common.cancel')}</button>}
                   </div>
                 </form>
               </div>
               <div className="admin-list-card">
-                <h2>Existing Resources ({resources.length})</h2>
+                <h2>{t('admin.res.existing', { count: n(resources.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>ID</th><th>Title</th><th>Bangla</th><th>Type</th><th>Discipline</th><th>Category</th><th>Actions</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.title')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.type')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.category')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {resources.map(r => (
                       <tr key={r.id}>
                         <td>{r.id}</td>
                         <td><strong>{r.title_en}</strong></td>
-                        <td>{r.title_bn ? 'Yes' : <span className="admin-untranslated">Not translated</span>}</td>
-                        <td>{r.type}</td>
-                        <td>{r.discipline}</td>
-                        <td>{r.category}</td>
+                        <td>{r.title_bn ? t('common.yes') : <span className="admin-untranslated">{t('admin.res.untranslated')}</span>}</td>
+                        <td>{tc(`resources.type.${r.type}`, r.type)}</td>
+                        <td>{r.discipline === 'All disciplines' ? t('common.allDisciplines') : r.discipline}</td>
+                        <td>{tc(`resources.category.${r.category}`, r.category)}</td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingResourceId(r.id); setResourceForm({ title_en: r.title_en, title_bn: r.title_bn ?? '', description_en: r.description_en, description_bn: r.description_bn ?? '', type: r.type, discipline: r.discipline, category: r.category, url: r.url }) }}>Edit</button>
-                          <button className="btn-delete" onClick={() => remove(`/api/resources/${r.id}`, 'Delete this resource?', fetchResources, 'Resource')}>Delete</button>
+                          <button className="btn-edit" onClick={() => { setEditingResourceId(r.id); setResourceForm({ title_en: r.title_en, title_bn: r.title_bn ?? '', description_en: r.description_en, description_bn: r.description_bn ?? '', type: r.type, discipline: r.discipline, category: r.category, url: r.url }) }}>{t('common.edit')}</button>
+                          <button className="btn-delete" onClick={() => remove(`/api/resources/${r.id}`, 'admin.res.confirmDelete', fetchResources, 'admin.label.resource')}>{t('common.delete')}</button>
                         </td>
                       </tr>
                     ))}
@@ -477,49 +484,49 @@ export default function AdminDashboard() {
           {activeTab === 'alumni' && (
             <div>
               <div className="admin-form-card">
-                <h2>{editingAlumniId ? 'Edit Alumni' : 'Add New Alumni'}</h2>
+                <h2>{t(editingAlumniId ? 'admin.alum.editHeading' : 'admin.alum.addHeading')}</h2>
                 <form onSubmit={handleAlumniSubmit}>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Full Name</label>
+                      <label className="form-label">{t('admin.alum.fullName')}</label>
                       <input className="form-input" value={alumniForm.full_name} onChange={(e) => setAlumniForm({ ...alumniForm, full_name: e.target.value })} required />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Institution</label>
+                      <label className="form-label">{t('admin.alum.institution')}</label>
                       <input className="form-input" value={alumniForm.institution} onChange={(e) => setAlumniForm({ ...alumniForm, institution: e.target.value })} required />
                     </div>
                   </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Discipline</label>
+                      <label className="form-label">{t('admin.alum.discipline')}</label>
                       <select className="form-input" value={alumniForm.discipline} onChange={(e) => setAlumniForm({ ...alumniForm, discipline: e.target.value })} required>
-                        <option value="">Select discipline</option>
+                        <option value="">{t('admin.alum.selectDiscipline')}</option>
                         {disciplines.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                       </select>
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Graduation Year</label>
+                      <label className="form-label">{t('admin.alum.graduationYear')}</label>
                       <input className="form-input" type="number" value={alumniForm.graduation_year} onChange={(e) => setAlumniForm({ ...alumniForm, graduation_year: e.target.value })} required />
                     </div>
                   </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Current Role</label>
+                      <label className="form-label">{t('admin.alum.currentRole')}</label>
                       <input className="form-input" value={alumniForm.current_role} onChange={(e) => setAlumniForm({ ...alumniForm, current_role: e.target.value })} required />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Industry</label>
+                      <label className="form-label">{t('admin.alum.industry')}</label>
                       <input className="form-input" value={alumniForm.industry} onChange={(e) => setAlumniForm({ ...alumniForm, industry: e.target.value })} required />
                     </div>
                   </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label className="form-label">Initials (for avatar)</label>
+                      <label className="form-label">{t('admin.alum.initials')}</label>
                       <input className="form-input" value={alumniForm.image_initials} onChange={(e) => setAlumniForm({ ...alumniForm, image_initials: e.target.value })} placeholder="SR" />
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Bio</label>
+                    <label className="form-label">{t('admin.alum.bio')}</label>
                     <textarea className="form-textarea" value={alumniForm.bio} onChange={(e) => setAlumniForm({ ...alumniForm, bio: e.target.value })} rows="3" required />
                   </div>
 
@@ -529,28 +536,28 @@ export default function AdminDashboard() {
                   <div className="form-group admin-consent">
                     <label className="form-checkbox">
                       <input type="checkbox" checked={alumniForm.consent_given} onChange={(e) => setAlumniForm({ ...alumniForm, consent_given: e.target.checked })} />
-                      <span>This graduate has given consent for their profile to be used</span>
+                      <span>{t('admin.alum.consent')}</span>
                     </label>
                     <label className="form-checkbox">
                       <input type="checkbox" checked={alumniForm.is_published} disabled={!alumniForm.consent_given} onChange={(e) => setAlumniForm({ ...alumniForm, is_published: e.target.checked })} />
-                      <span>Publish this profile on the public alumni page</span>
+                      <span>{t('admin.alum.publish')}</span>
                     </label>
                     {!alumniForm.consent_given && (
-                      <p className="admin-hint">Consent must be recorded before a profile can be published.</p>
+                      <p className="admin-hint">{t('admin.alum.consentRequired')}</p>
                     )}
                   </div>
 
                   <div className="form-buttons">
-                    <button type="submit" className="btn-primary">{editingAlumniId ? 'Update' : 'Add'} Alumni</button>
-                    {editingAlumniId && <button type="button" className="btn-secondary" onClick={() => { setEditingAlumniId(null); setAlumniForm(emptyAlumni) }}>Cancel</button>}
+                    <button type="submit" className="btn-primary">{t(editingAlumniId ? 'admin.alum.updateButton' : 'admin.alum.addButton')}</button>
+                    {editingAlumniId && <button type="button" className="btn-secondary" onClick={() => { setEditingAlumniId(null); setAlumniForm(emptyAlumni) }}>{t('common.cancel')}</button>}
                   </div>
                 </form>
               </div>
               <div className="admin-list-card">
-                <h2>Existing Alumni ({alumni.length})</h2>
+                <h2>{t('admin.alum.existing', { count: n(alumni.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>ID</th><th>Name</th><th>Institution</th><th>Discipline</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.table.institution')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.role')}</th><th>{t('admin.table.status')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {alumni.map(a => (
@@ -560,10 +567,10 @@ export default function AdminDashboard() {
                         <td>{a.institution}</td>
                         <td>{a.discipline}</td>
                         <td>{a.current_role}</td>
-                        <td>{a.is_published ? 'Published' : <span className="admin-untranslated">Draft</span>}</td>
+                        <td>{a.is_published ? t('admin.alum.published') : <span className="admin-untranslated">{t('admin.alum.draft')}</span>}</td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingAlumniId(a.id); setAlumniForm({ full_name: a.full_name, institution: a.institution, discipline: a.discipline, graduation_year: a.graduation_year ?? '', current_role: a.current_role, industry: a.industry, bio: a.bio, image_initials: a.image_initials || '', consent_given: a.consent_given === true, is_published: a.is_published === true }) }}>Edit</button>
-                          <button className="btn-delete" onClick={() => remove(`/api/alumni/${a.id}`, 'Delete this alumni profile?', fetchAlumni, 'Alumni profile')}>Delete</button>
+                          <button className="btn-edit" onClick={() => { setEditingAlumniId(a.id); setAlumniForm({ full_name: a.full_name, institution: a.institution, discipline: a.discipline, graduation_year: a.graduation_year ?? '', current_role: a.current_role, industry: a.industry, bio: a.bio, image_initials: a.image_initials || '', consent_given: a.consent_given === true, is_published: a.is_published === true }) }}>{t('common.edit')}</button>
+                          <button className="btn-delete" onClick={() => remove(`/api/alumni/${a.id}`, 'admin.alum.confirmDelete', fetchAlumni, 'admin.label.alumniProfile')}>{t('common.delete')}</button>
                         </td>
                       </tr>
                     ))}

@@ -13,7 +13,7 @@ import './Navbar.css'
  * from context, which no caller can override with a stale value.
  */
 export default function Navbar() {
-  const { lang, setLang } = useLanguage()
+  const { lang, setLang, t } = useLanguage()
   const { user, isAuthenticated, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
@@ -21,10 +21,10 @@ export default function Navbar() {
   const navigate = useNavigate()
 
   const links = [
-    { label: 'Resources', to: '/resources' },
-    { label: 'Career paths', to: '/careers' },
-    { label: 'Alumni', to: '/alumni' },
-    { label: 'Resume review', to: '/resume-review' },
+    { key: 'nav.resources', to: '/resources' },
+    { key: 'nav.careers', to: '/careers' },
+    { key: 'nav.alumni', to: '/alumni' },
+    { key: 'nav.resumeReview', to: '/resume-review' },
   ]
 
   // Administrators previously had to type /admin by hand, because nothing in
@@ -52,20 +52,20 @@ export default function Navbar() {
   const authControls = (extraClass = '') => (
     isAuthenticated ? (
       <>
-        <span className={`navbar-user ${extraClass}`}>{user?.full_name ?? user?.name ?? 'Account'}</span>
+        <span className={`navbar-user ${extraClass}`}>{user?.full_name ?? user?.name ?? t('nav.account')}</span>
         <button
           type="button"
           className={`btn-outline-sm navbar-auth-action ${extraClass}`}
           onClick={handleLogout}
           disabled={signingOut}
         >
-          {signingOut ? 'Logging out...' : 'Log out'}
+          {signingOut ? t('nav.loggingOut') : t('nav.logOut')}
         </button>
       </>
     ) : (
       <>
-        <Link to="/login" className={`btn-outline-sm navbar-auth-action ${extraClass}`} onClick={closeMenu}>Log in</Link>
-        <Link to="/register" className={`btn-filled-sm navbar-auth-action ${extraClass}`} onClick={closeMenu}>Sign up</Link>
+        <Link to="/login" className={`btn-outline-sm navbar-auth-action ${extraClass}`} onClick={closeMenu}>{t('nav.logIn')}</Link>
+        <Link to="/register" className={`btn-filled-sm navbar-auth-action ${extraClass}`} onClick={closeMenu}>{t('nav.signUp')}</Link>
       </>
     )
   )
@@ -73,7 +73,7 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        <Link to="/" className="navbar-logo">Digital Career Hub</Link>
+        <Link to="/" className="navbar-logo">{t('common.brand')}</Link>
 
         <ul className={`navbar-links ${menuOpen ? 'open' : ''}`} id="primary-navigation">
           {links.map(l => (
@@ -83,7 +83,7 @@ export default function Navbar() {
                 className={`navbar-link ${location.pathname === l.to ? 'active' : ''}`}
                 onClick={closeMenu}
               >
-                {l.label}
+                {t(l.key)}
               </Link>
             </li>
           ))}
@@ -95,7 +95,7 @@ export default function Navbar() {
                 className={`navbar-link ${location.pathname === '/admin' ? 'active' : ''}`}
                 onClick={closeMenu}
               >
-                Admin
+                {t('nav.admin')}
               </Link>
             </li>
           )}
@@ -129,7 +129,7 @@ export default function Navbar() {
           onClick={() => setMenuOpen(o => !o)}
           aria-expanded={menuOpen}
           aria-controls="primary-navigation"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-label={menuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
         >
           <span /><span /><span />
         </button>

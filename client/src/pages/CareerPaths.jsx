@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
+import { useLanguage } from '../context/LanguageContext'
 import './CareerPaths.css'
 
 export default function CareerPaths() {
+  const { t, n } = useLanguage()
   const [disc, setDisc] = useState('All')
   const [selectedId, setSelectedId] = useState(null)
   const [disciplines, setDisciplines] = useState(['All'])
@@ -50,7 +52,11 @@ export default function CareerPaths() {
   const goToResources = (discipline, careerTitle) => {
     localStorage.setItem('selectedDiscipline', discipline)
     localStorage.setItem('selectedCareer', careerTitle)
-    window.location.href = '/resources'
+    // assign() rather than an href assignment: identical navigation, but the
+    // React Compiler's immutability rule rejects writing to a value defined
+    // outside the component, and it now analyses this component far enough to
+    // see it.
+    window.location.assign('/resources')
   }
 
   const filtered = paths.filter(p => disc === 'All' || p.discipline === disc)
@@ -60,7 +66,7 @@ export default function CareerPaths() {
     return (
       <div className="page-enter">
         <Navbar />
-        <div style={{ textAlign: 'center', padding: '50px' }}>Loading career paths...</div>
+        <div style={{ textAlign: 'center', padding: '50px' }}>{t('careers.loading')}</div>
       </div>
     )
   }
@@ -71,10 +77,8 @@ export default function CareerPaths() {
 
       <div className="cp-header">
         <div className="cp-header-inner">
-          <h1 className="cp-title">Career path explorer</h1>
-          <p className="cp-sub">
-            Explore career paths across all industries relevant to Bangladeshi graduates — from entry level to senior roles, with local salary context and required skills.
-          </p>
+          <h1 className="cp-title">{t('careers.title')}</h1>
+          <p className="cp-sub">{t('careers.sub')}</p>
           <div className="filter-row">
             {disciplines.map(d => (
               <button
@@ -90,7 +94,7 @@ export default function CareerPaths() {
                   }
                 }}
               >
-                {d}
+                {d === 'All' ? t('common.all') : d}
               </button>
             ))}
           </div>
@@ -100,7 +104,7 @@ export default function CareerPaths() {
       <div className="cp-body">
         <div className="cp-list-col">
           {filtered.length === 0 && (
-            <div className="cp-empty">No paths found for this discipline.</div>
+            <div className="cp-empty">{t('careers.empty')}</div>
           )}
           {filtered.map(p => (
             <button
@@ -120,8 +124,9 @@ export default function CareerPaths() {
             </button>
           ))}
           <div className="cp-list-count">
-            Showing {filtered.length} of {paths.length} paths
-            {disc !== 'All' ? ` in ${disc}` : ''}
+            {disc === 'All'
+              ? t('careers.showingCount', { shown: n(filtered.length), total: n(paths.length) })
+              : t('careers.showingCountFiltered', { shown: n(filtered.length), total: n(paths.length), discipline: disc })}
           </div>
         </div>
 
@@ -134,14 +139,14 @@ export default function CareerPaths() {
             </div>
             <p className="cp-detail-desc">{selected.desc}</p>
 
-            <div className="cp-section-label">Required skills</div>
+            <div className="cp-section-label">{t('careers.requiredSkills')}</div>
             <div className="cp-skills">
               {selected.skills.map(s => (
                 <span key={s} className="cp-skill-pill">{s}</span>
               ))}
             </div>
 
-            <div className="cp-section-label">Typical progression</div>
+            <div className="cp-section-label">{t('careers.progression')}</div>
             <div className="cp-progression">
               {selected.progression.map((step, i) => (
                 <div key={i} className="cp-prog-step">
@@ -153,17 +158,17 @@ export default function CareerPaths() {
               ))}
             </div>
 
-            <div className="cp-section-label">Salary context (Bangladesh)</div>
+            <div className="cp-section-label">{t('careers.salaryContext')}</div>
             <div className="cp-salary-cards">
               <div className="cp-salary-card">
-                <div className="cp-salary-level">Entry level</div>
+                <div className="cp-salary-level">{t('careers.entryLevel')}</div>
                 <div className="cp-salary-amount">{selected.salaryEntry}</div>
-                <div className="cp-salary-period">per month</div>
+                <div className="cp-salary-period">{t('common.perMonth')}</div>
               </div>
               <div className="cp-salary-card">
-                <div className="cp-salary-level">Senior level</div>
+                <div className="cp-salary-level">{t('careers.seniorLevel')}</div>
                 <div className="cp-salary-amount">{selected.salarySenior}</div>
-                <div className="cp-salary-period">per month</div>
+                <div className="cp-salary-period">{t('common.perMonth')}</div>
               </div>
             </div>
 
@@ -171,7 +176,7 @@ export default function CareerPaths() {
               className="cp-resources-btn"
               onClick={() => goToResources(selected.discipline, selected.title)}
             >
-              Find related resources for {selected.title} →
+              {t('careers.findResources', { title: selected.title })}
             </button>
           </div>
         )}

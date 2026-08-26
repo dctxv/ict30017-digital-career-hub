@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { AUTH_UNAUTHORISED_EVENT, SESSION_EXPIRED_MESSAGE } from '../utils/apiClient'
+import { AUTH_UNAUTHORISED_EVENT, SESSION_EXPIRED_MESSAGE_KEY } from '../utils/apiClient'
 
 /**
  * Turns any 401 raised through apiFetch into a single, consistent recovery:
@@ -22,7 +22,7 @@ export default function SessionWatcher() {
       if (location.pathname === '/login') return
       navigate('/login', {
         replace: true,
-        state: { message: SESSION_EXPIRED_MESSAGE, from: location.pathname },
+        state: { messageKey: SESSION_EXPIRED_MESSAGE_KEY, from: location.pathname },
       })
     }
 

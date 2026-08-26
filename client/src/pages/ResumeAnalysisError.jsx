@@ -1,3 +1,5 @@
+import { useLanguage } from '../context/LanguageContext'
+
 /**
  * Terminal failure screen for a resume analysis.
  *
@@ -11,48 +13,40 @@
  * what to do next, and renders both recovery actions unconditionally.
  */
 
-const FALLBACK = {
-  title: 'The analysis could not be completed',
-  body: 'Something went wrong while your resume was being reviewed. Your file was not saved. Try again, and if it keeps failing, upload a different copy of your resume.',
-}
-
 /**
- * Maps a failure to copy that names the cause and the next step. Distinct from
- * the partial-failure banner in ResultsView, which only ever appears alongside
- * feedback that actually arrived.
+ * Maps a failure to the copy that names the cause and the next step. Returns
+ * translation keys rather than sentences, so the screen follows the language
+ * toggle. Distinct from the partial-failure banner in ResultsView, which only
+ * ever appears alongside feedback that actually arrived.
  */
-function describeFailure(code, message) {
+function describeFailure(code) {
   switch (code) {
     case 'FILE_TOO_LARGE':
-      return {
-        title: 'That file is too large',
-        body: 'Your resume must be 3 MB or smaller. Save it again at a lower quality, or export a fresh PDF from your word processor, then upload it again.',
-      }
+      return { titleKey: 'reviewError.tooLargeTitle', bodyKey: 'reviewError.tooLargeBody' }
     case 'INVALID_TYPE':
-      return {
-        title: 'That file type is not supported',
-        body: 'Upload your resume as a PDF or DOCX file. Other formats, including images and plain text files, cannot be read.',
-      }
+      return { titleKey: 'reviewError.invalidTypeTitle', bodyKey: 'reviewError.invalidTypeBody' }
     case 'RATE_LIMIT':
-      return {
-        title: 'You have reached your review limit',
-        body: message || 'You have used all of your resume reviews for now. Your allowance resets shortly, so try again later.',
-      }
+      // The server's own rate-limit wording is already localised from the lang
+      // cookie, so when it sends one it is preferred over the generic copy.
+      return { titleKey: 'reviewError.rateLimitTitle', bodyKey: 'reviewError.rateLimitBody', preferServerMessage: true }
     case 'UNREADABLE':
-      return {
-        title: 'Your resume could not be read',
-        body: 'The file opened but no text could be extracted from it. Scanned images and photographs of a printed resume will not work. Upload a version saved directly from a word processor.',
-      }
+      return { titleKey: 'reviewError.unreadableTitle', bodyKey: 'reviewError.unreadableBody' }
     default:
-      return {
-        title: FALLBACK.title,
-        body: message ? `${FALLBACK.body} (${message})` : FALLBACK.body,
-      }
+      return { titleKey: 'reviewError.fallbackTitle', bodyKey: 'reviewError.fallbackBody', appendDetail: true }
   }
 }
 
 export default function ResumeAnalysisError({ code, message, filename, onRetry, onUploadNew }) {
-  const { title, body } = describeFailure(code, message)
+  const { t } = useLanguage()
+  const { titleKey, bodyKey, preferServerMessage, appendDetail } = describeFailure(code)
+
+  const title = t(titleKey)
+  let body = t(bodyKey)
+  if (preferServerMessage && message) {
+    body = message
+  } else if (appendDetail && message) {
+    body = t('reviewError.fallbackBodyWithDetail', { message })
+  }
 
   return (
     <div className="rr-content">
@@ -65,10 +59,10 @@ export default function ResumeAnalysisError({ code, message, filename, onRetry, 
           <div className="rr-error__actions">
             {/* Both actions always render. That is the whole point of this view. */}
             <button type="button" className="btn btn-filled" onClick={onRetry}>
-              Try again
+              {t('reviewError.tryAgain')}
             </button>
             <button type="button" className="btn btn-outline" onClick={onUploadNew}>
-              Upload new resume
+              {t('reviewError.uploadNew')}
             </button>
           </div>
       </div>

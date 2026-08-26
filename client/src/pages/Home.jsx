@@ -1,41 +1,49 @@
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import { useLanguage } from '../context/LanguageContext'
 import './Home.css'
 
+/*
+ * Feature cards hold translation keys rather than copy. The array used to carry
+ * English strings directly, which made the whole section untranslatable without
+ * rewriting it per language.
+ */
 const features = [
-  { icon: '📄', title: 'AI resume review', desc: 'Upload your resume and get precise, actionable feedback based on Bangladeshi job market standards.', badge: 'Primary feature', badgeClass: 'badge-blue' },
-  { icon: '📚', title: 'Career resources', desc: 'Browse guides, videos, and articles covering resume writing, interview prep, and job searching in Bangladesh.', badge: 'All disciplines', badgeClass: 'badge-neutral' },
-  { icon: '🗺️', title: 'Career path explorer', desc: 'Explore career paths across IT, Finance, Science, Engineering, and more — with local salary and skills data.', badge: 'All industries', badgeClass: 'badge-neutral' },
-  { icon: '💬', title: 'Career chatbot', desc: 'Ask career questions and get guidance on job searching, interviews, and professional development.', badge: 'EN / BN', badgeClass: 'badge-neutral' },
-  { icon: '👥', title: 'Alumni network', desc: 'See real career journeys from Bangladeshi graduates across all disciplines and industries.', badge: 'Real stories', badgeClass: 'badge-neutral' },
-  { icon: '🌐', title: 'Bangla language support', desc: 'Switch the entire platform to Bangla with one click — including AI feedback and chatbot responses.', badge: 'EN / BN toggle', badgeClass: 'badge-green', highlight: true },
+  { icon: '📄', key: 'review', badgeClass: 'badge-blue' },
+  { icon: '📚', key: 'resources', badgeClass: 'badge-neutral' },
+  { icon: '🗺️', key: 'paths', badgeClass: 'badge-neutral' },
+  { icon: '💬', key: 'chatbot', badgeClass: 'badge-neutral' },
+  { icon: '👥', key: 'alumni', badgeClass: 'badge-neutral' },
+  { icon: '🌐', key: 'language', badgeClass: 'badge-green', highlight: true },
 ]
 
 export default function Home() {
+  const { t } = useLanguage()
+
   return (
     <div className="page-enter">
       <Navbar />
       <section className="hero">
         <div className="hero-inner">
-          <h1 className="hero-title">Career guidance built for<br />Bangladeshi graduates</h1>
-          <p className="hero-sub">Get AI-powered feedback on your resume, explore career paths across all industries, and access resources tailored to the Bangladeshi job market.</p>
+          <h1 className="hero-title">{t('home.heroTitleLine1')}<br />{t('home.heroTitleLine2')}</h1>
+          <p className="hero-sub">{t('home.heroSub')}</p>
           <div className="hero-btns">
-            <Link to="/resume-review" className="btn-primary-lg">Review my resume</Link>
-            <Link to="/careers" className="btn-outline-lg">Explore careers</Link>
+            <Link to="/resume-review" className="btn-primary-lg">{t('home.ctaReview')}</Link>
+            <Link to="/careers" className="btn-outline-lg">{t('home.ctaExplore')}</Link>
           </div>
         </div>
       </section>
 
       <section className="features">
         <div className="features-inner">
-          <p className="section-label">What you can do</p>
+          <p className="section-label">{t('home.sectionLabel')}</p>
           <div className="features-grid">
-            {features.map((f, i) => (
-              <div key={i} className={`feat-card ${f.highlight ? 'feat-card--highlight' : ''}`}>
+            {features.map(f => (
+              <div key={f.key} className={`feat-card ${f.highlight ? 'feat-card--highlight' : ''}`}>
                 <div className="feat-icon">{f.icon}</div>
-                <h3 className="feat-title">{f.title}</h3>
-                <p className="feat-desc">{f.desc}</p>
-                <span className={`badge ${f.badgeClass}`}>{f.badge}</span>
+                <h3 className="feat-title">{t(`home.feature.${f.key}.title`)}</h3>
+                <p className="feat-desc">{t(`home.feature.${f.key}.desc`)}</p>
+                <span className={`badge ${f.badgeClass}`}>{t(`home.feature.${f.key}.badge`)}</span>
               </div>
             ))}
           </div>
