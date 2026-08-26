@@ -72,11 +72,51 @@ const BENGALI_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', 
 
 /**
  * Converts the digits in a value to Bengali numerals when Bangla is selected.
- * Applied to counts and scores in the interface. Deliberately not applied to
- * anything the user typed, to any identifier, or to salary strings that come
- * from the database, since those are content rather than chrome.
+ *
+ * Applied to counts, scores and figures the interface renders — including the
+ * salary bands, which read wrong beside a Bengali count otherwise: a page
+ * showing "৭০টির মধ্যে ৭০টি পথ" next to "BDT 25,000" is visibly half-converted.
+ * Salary figures are descriptive rather than search terms, so unlike a job
+ * title nobody carries them to a job advert.
+ *
+ * Never applied to anything the user typed, or to an identifier.
  */
 export function localiseDigits(value, lang) {
   if (lang !== 'bn' || value == null) return value
   return String(value).replace(/[0-9]/g, d => BENGALI_DIGITS[Number(d)])
+}
+
+/*
+ * Career-path progression durations.
+ *
+ * These live inside the progression JSONB as "0–1 yr", "3–5 yrs", "8+ yrs" —
+ * 18 distinct values across the 70 seeded paths, all matching one of two
+ * shapes. They were the last English left on a fully translated Bangla page,
+ * and they have none of the reasons the job titles beside them stay English:
+ * a duration is not a term anyone searches a job board for.
+ *
+ * Handled by pattern rather than by a progression_bn column, because the
+ * grammar is small and regular and a column would mean translating 340 step
+ * labels to reach 18 distinct strings. Bangla draws no singular/plural
+ * distinction here, so "yr" and "yrs" both become বছর.
+ *
+ * Anything that does not match is returned untouched — an admin can type
+ * whatever they like into the progression JSON, and a guess is worse than the
+ * original.
+ */
+const RANGE = /^(\d+)\s*[–-]\s*(\d+)\s*yrs?$/
+const OPEN_ENDED = /^(\d+)\s*\+\s*yrs?$/
+
+export function localiseDuration(value, lang) {
+  if (lang !== 'bn' || typeof value !== 'string') return value
+
+  const range = value.trim().match(RANGE)
+  if (range) {
+    return `${localiseDigits(range[1], lang)}–${localiseDigits(range[2], lang)} বছর`
+  }
+
+  const open = value.trim().match(OPEN_ENDED)
+  if (open) return `${localiseDigits(open[1], lang)}+ বছর`
+
+  return value
 }

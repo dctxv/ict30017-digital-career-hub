@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext'
 import './CareerPaths.css'
 
 export default function CareerPaths() {
-  const { lang, t, n } = useLanguage()
+  const { lang, t, n, d } = useLanguage()
   const [disc, setDisc] = useState('All')
   const [selectedId, setSelectedId] = useState(null)
   // { name, label }: `name` is the English key rows are filtered by, `label` is
@@ -169,7 +169,7 @@ export default function CareerPaths() {
                   <div className={`cp-prog-dot ${step.current ? 'current' : ''}`} />
                   {i < selected.progression.length - 1 && <div className="cp-prog-line" />}
                   <div className={`cp-prog-label ${step.current ? 'current' : ''}`}>{step.label}</div>
-                  <div className="cp-prog-time">{step.time}</div>
+                  <div className="cp-prog-time">{d(step.time)}</div>
                 </div>
               ))}
             </div>
@@ -178,12 +178,12 @@ export default function CareerPaths() {
             <div className="cp-salary-cards">
               <div className="cp-salary-card">
                 <div className="cp-salary-level">{t('careers.entryLevel')}</div>
-                <div className="cp-salary-amount">{selected.salaryEntry}</div>
+                <div className="cp-salary-amount">{n(selected.salaryEntry)}</div>
                 <div className="cp-salary-period">{t('common.perMonth')}</div>
               </div>
               <div className="cp-salary-card">
                 <div className="cp-salary-level">{t('careers.seniorLevel')}</div>
-                <div className="cp-salary-amount">{selected.salarySenior}</div>
+                <div className="cp-salary-amount">{n(selected.salarySenior)}</div>
                 <div className="cp-salary-period">{t('common.perMonth')}</div>
               </div>
             </div>

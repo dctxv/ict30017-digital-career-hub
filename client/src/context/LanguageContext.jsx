@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { translate, localiseDigits, hasTranslation } from '../i18n'
+import { translate, localiseDigits, localiseDuration, hasTranslation } from '../i18n'
 
 /**
  * Shared language selection.
@@ -70,6 +70,8 @@ export function LanguageProvider({ children }) {
     tc: (key, value) => (hasTranslation(key) ? translate(lang, key) : value),
     /** Numerals in the selected script. Chrome only — never user content. */
     n: (value) => localiseDigits(value, lang),
+    /** A career-path duration like "3–5 yrs", rendered in the selected language. */
+    d: (value) => localiseDuration(value, lang),
   }), [lang])
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
