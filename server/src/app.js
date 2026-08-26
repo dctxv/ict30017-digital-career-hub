@@ -10,6 +10,7 @@ import pool from './db.js';
 import { getAllowedOrigins } from './config/origins.js';
 import { assertModelConfig } from 'ai-service';
 import { localiseResponses } from './i18n/index.js';
+import { checkContentSchema } from './schemaCheck.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -88,6 +89,10 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  // Reported after the port is up, so a schema warning cannot stop the server
+  // from starting. It names the migration to run rather than leaving the cause
+  // to be inferred from a per-request column error.
+  checkContentSchema(pool).catch(() => { /* already reported */ });
 });
 
 export default app;
