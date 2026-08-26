@@ -32,13 +32,15 @@ export function getGroqClient() {
  * substitution. The previous implementation fell back to 'openai/gpt-4o-mini',
  * which meant an unset AI_MODEL silently shipped a banned model to production.
  *
- * Production models (May 2026 feasibility report, confirmed with the client):
- *   free    -> Gemini 3.1 Flash Lite  (google/gemini-3.1-flash-lite)
- *   premium -> Claude Haiku 4.5       (anthropic/claude-haiku-4.5)
+ * Production model (client decision, 2026-08-22): a single model on both tiers
+ * until further notice.
+ *   free    -> GLM-5.2  (z-ai/glm-5.2)
+ *   premium -> GLM-5.2  (z-ai/glm-5.2)
  *
- * Live calls to those two are not wired yet — pending client API budget
- * approval. Both tiers currently point at the same working model, so the
- * cutover is a pure env-var change with no code edit.
+ * This supersedes the split proposed in the May 2026 feasibility report
+ * (Gemini 3.1 Flash Lite free / Claude Haiku 4.5 premium), which was never
+ * wired up. The per-tier variables stay separate so reinstating a split — or
+ * any other model — is a pure env-var change with no code edit.
  *
  * The tier parameter exists so free/premium routing is structurally present.
  * Nothing selects a tier yet: registration ignores the chosen plan, so every
