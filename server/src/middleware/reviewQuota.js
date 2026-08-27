@@ -63,6 +63,7 @@ export async function readReviewQuota(userId) {
   const result = await pool.query(
     `SELECT role,
             tier,
+            is_active,
             CASE
               WHEN resume_review_reset_date IS NULL OR resume_review_reset_date < CURRENT_DATE
                 THEN 0
@@ -73,7 +74,10 @@ export async function readReviewQuota(userId) {
     [userId]
   );
 
-  if (result.rows.length === 0) return null;
+  // A deleted account keeps its row so audit records still resolve, and its
+  // token stays valid for the rest of its hour. Treated as missing rather than
+  // as a free account: it must not be able to spend an allowance either.
+  if (result.rows.length === 0 || result.rows[0].is_active === false) return null;
 
   const { role, tier, used } = result.rows[0];
   const unlimited = UNLIMITED_TIERS.has(tier) || UNLIMITED_ROLES.has(role);

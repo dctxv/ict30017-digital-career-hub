@@ -8,7 +8,7 @@ import { resolveLanguage, translateMessage } from '../i18n/index.js';
 import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
 import { analyzeResume, analyzeResumeStream, getModel } from 'ai-service';
 import pool from  '../db.js'; 
-import { optionalAuth } from '../middleware/auth.js';
+import { optionalAuth, requireAuth, requireActiveAccount } from '../middleware/auth.js';
 import { attachReviewContext } from '../middleware/reviewContext.js';
 import {
   enforceDailyReviewLimit,
@@ -408,6 +408,81 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
       fs.unlinkSync(uploadedFilePath);
       console.log(`[resume-stream] Temp file deleted: ${uploadedFilePath}`);
     }
+  }
+});
+
+
+/**
+ * GET /api/resume/history
+ *
+ * Past reviews for the signed-in account, newest first.
+ *
+ * The feedback object is deliberately NOT returned here. It is by far the
+ * largest column in the table, and a list of twenty reviews would carry twenty
+ * full analyses across the wire to render twenty score chips. The account page
+ * shows the score, the filename and the date; /history/:id fetches the analysis
+ * itself when one is actually opened.
+ *
+ * Guests get 401 rather than an empty list. An empty list reads as "you have no
+ * reviews" to someone who has run several and has simply lost their session.
+ */
+router.get('/history', requireAuth, requireActiveAccount, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT r.review_id, r.overall_score, r.ats_score, r.grammar_score,
+              r.format_score, r.content_score, r.language, r.market_mode,
+              r.created_at, res.file_name
+         FROM ai_reviews r
+         JOIN resumes res ON res.resume_id = r.resume_id
+        WHERE r.user_id = $1
+        ORDER BY r.created_at DESC
+        LIMIT 50`,
+      [req.user.id]
+    );
+    return res.json(result.rows);
+  } catch (err) {
+    console.error('[resume] History read failed:', err.message);
+    return res.status(500).json({ error: 'Could not load your review history.' });
+  }
+});
+
+/**
+ * GET /api/resume/history/:id
+ *
+ * One past review in full, including the feedback the user actually read.
+ *
+ * user_id is in the WHERE clause rather than compared after the row is
+ * fetched. Both refuse the request; only one of them cannot be undone by a
+ * later edit that forgets the check, and the difference between the two is
+ * somebody reading another account's resume analysis.
+ *
+ * A review belonging to someone else is 404, not 403. Confirming that a review
+ * exists but is not yours is an answer nobody outside the account is owed.
+ */
+router.get('/history/:id', requireAuth, requireActiveAccount, async (req, res) => {
+  const id = Number.parseInt(req.params.id, 10);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'Invalid review id.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT r.review_id, r.overall_score, r.feedback, r.model, r.tier,
+              r.language, r.market_mode, r.created_at, res.file_name
+         FROM ai_reviews r
+         JOIN resumes res ON res.resume_id = r.resume_id
+        WHERE r.review_id = $1 AND r.user_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Review not found.' });
+    }
+
+    return res.json(result.rows[0]);
+  } catch (err) {
+    console.error('[resume] Review read failed:', err.message);
+    return res.status(500).json({ error: 'Could not load that review.' });
   }
 });
 

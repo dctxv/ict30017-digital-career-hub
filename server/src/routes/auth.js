@@ -72,6 +72,20 @@ const ALLOWED_TIERS = ['free', 'premium'];
 const PlanSchema = z.enum(ALLOWED_TIERS);
 const DEFAULT_TIER = 'free';
 
+/*
+ * How the user said they would pay, recorded against the subscription.
+ *
+ * Descriptive only. No gateway is connected, nothing is charged, and the
+ * account number and card details the form collects are never sent to the
+ * server — only the name of the instrument. It is kept because on this market
+ * bKash-versus-card is the most useful signal the project can collect about
+ * whether anyone would actually pay, and `source = 'signup'` throws it away.
+ *
+ * Anything unrecognised is dropped rather than stored, so a crafted request
+ * cannot write arbitrary text into the billing record.
+ */
+const PAYMENT_METHODS = ['bkash', 'nagad', 'card'];
+
 const PASSWORD_MIN_LENGTH = 12;
 const PASSWORD_MAX_LENGTH = 128;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -172,14 +186,19 @@ router.post('/register', registerLimiter, async (req, res) => {
     // Records why this account holds its tier. users.tier stays the value the
     // application reads; this is the provenance behind it, so a premium account
     // is a fact with a date rather than a column somebody set.
+    const paymentMethod = PAYMENT_METHODS.includes(req.body.payment_method)
+      ? req.body.payment_method
+      : null;
+
     await pool.query(
-      `INSERT INTO subscriptions (user_id, tier, status, source, note)
-       VALUES ($1, $2, 'active', 'signup', $3)`,
+      `INSERT INTO subscriptions (user_id, tier, status, source, payment_method, note)
+       VALUES ($1, $2, 'active', 'signup', $3, $4)`,
       [
         result.rows[0].user_id,
         tier,
+        tier === 'premium' ? paymentMethod : null,
         tier === 'premium'
-          ? 'Chosen at registration. No payment was taken and no expiry is set.'
+          ? 'Chosen at registration. No payment gateway is connected, so no payment was taken, no amount is recorded and no expiry is set.'
           : 'Default tier at registration.',
       ]
     ).catch((err) => {
@@ -216,7 +235,7 @@ router.post('/login', loginLimiter, async (req, res) => {
     const normalisedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
     const result = await pool.query(
       `SELECT user_id, full_name, email, password_hash, role, tier,
-              failed_login_attempts, lockout_until
+              failed_login_attempts, lockout_until, is_active
        FROM users WHERE email = $1`,
       [normalisedEmail]
     );
@@ -228,6 +247,14 @@ router.post('/login', loginLimiter, async (req, res) => {
     }
 
     const user = result.rows[0];
+
+    // A deleted account keeps its row, deactivated and scrubbed, so that audit
+    // records and foreign keys still resolve. It must not be a way back in.
+    // Answered with the same generic error as a wrong password: whether an
+    // address once had an account is not something a stranger gets to learn.
+    if (user.is_active === false) {
+      return res.status(401).json(genericError);
+    }
 
     // Check account lockout — degrade gracefully if columns don't exist yet
     if (user.lockout_until && new Date() < new Date(user.lockout_until)) {
@@ -382,12 +409,15 @@ router.post('/reset-password', passwordResetLimiter, async (req, res) => {
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT user_id, full_name, email, role, tier, preferred_language FROM users WHERE user_id = $1',
+      `SELECT user_id, full_name, email, role, tier, preferred_language, is_active
+         FROM users WHERE user_id = $1`,
       [req.user.id]
     );
 
-    if (result.rows.length === 0) {
-      // Valid signature, but the account is gone. Treat as unauthenticated.
+    if (result.rows.length === 0 || result.rows[0].is_active === false) {
+      // Either the row is gone or the account was deleted and deactivated. The
+      // token can still be valid for the rest of its hour, and this is the call
+      // every page load makes to find out whether it means anything.
       return res.status(401).json({ error: 'Session is no longer valid.' });
     }
 

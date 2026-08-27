@@ -23,6 +23,7 @@
  */
 
 import jwt from 'jsonwebtoken';
+import pool from '../db.js';
 
 const AUTH_COOKIE_NAMES = ['token', 'jwt', 'access_token', 'accessToken'];
 
@@ -111,6 +112,40 @@ export function requireRole(...roles) {
     }
     return next();
   };
+}
+
+/**
+ * Refuses a token belonging to a deactivated account. Must run after requireAuth.
+ *
+ * Deleting an account keeps its users row — deactivated and scrubbed — so that
+ * audit records and foreign keys still resolve. The token it was holding stays
+ * cryptographically valid for the rest of its hour, and signature validity is
+ * the only thing requireAuth can check. Without this, a deleted account could
+ * go on reading and editing itself until the token expired.
+ *
+ * This costs one query per request, which is why it is applied to the account
+ * routes rather than globally: those are the ones where acting on a deleted
+ * account would be a real problem, and the public content routes read nothing
+ * that belongs to anyone.
+ */
+export async function requireActiveAccount(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+
+  try {
+    const result = await pool.query('SELECT is_active FROM users WHERE user_id = $1', [req.user.id]);
+    if (result.rows.length === 0 || result.rows[0].is_active === false) {
+      return res.status(401).json({ error: 'Session is no longer valid.' });
+    }
+    return next();
+  } catch (err) {
+    // A database failure is not an authorisation decision. Reporting it as one
+    // would send the user to re-authenticate against a problem no password
+    // fixes, which is the same mistake the JWT_SECRET branch above avoids.
+    console.error('[auth] Active-account check failed:', err.message);
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
 }
 
 /**

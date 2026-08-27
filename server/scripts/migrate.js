@@ -58,6 +58,7 @@ const ORDER = [
   'create_chat_history_tables.sql',
   'create_subscriptions_table.sql',
   'create_audit_log_table.sql',
+  'add_subscription_payment_method.sql',
 ];
 
 async function ensureLedger() {
