@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import './Alumni.css'
+import { fetchList } from '../api/fetchList'
 
 export default function Alumni() {
   const { lang, t, n } = useLanguage()
@@ -11,14 +12,14 @@ export default function Alumni() {
   // make a Bangla label match no alumni row.
   const [disciplines, setDisciplines] = useState([{ name: 'All', label: 'All' }])
   const [alumni, setAlumni] = useState([])
+  const [loadError, setLoadError] = useState(false)
   const [loading, setLoading] = useState(true)
 
   // Fetch disciplines from API
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch(`/api/disciplines?lang=${lang}`)
-        const data = await response.json()
+        const data = await fetchList(`/api/disciplines?lang=${lang}`)
         setDisciplines([
           { name: 'All', label: t('common.all') },
           ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
@@ -44,11 +45,12 @@ export default function Alumni() {
         if (disc !== 'All') {
           url = `/api/alumni/discipline/${disc}`
         }
-        const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}lang=${lang}`)
-        const data = await response.json()
-        setAlumni(data)
+        setAlumni(await fetchList(`${url}${url.includes('?') ? '&' : '?'}lang=${lang}`))
+        setLoadError(false)
       } catch (error) {
         console.error('Error fetching alumni:', error)
+        setAlumni([])
+        setLoadError(true)
       } finally {
         setLoading(false)
       }
@@ -74,6 +76,15 @@ export default function Alumni() {
   return (
     <div className="page-enter">
       <Navbar />
+      {loadError && (
+        <div role="alert" style={{
+          margin: '16px auto', maxWidth: '900px', padding: '12px 16px',
+          border: '1px solid #f0b4a8', background: '#fdf1ee', color: '#8c2f1a',
+          borderRadius: '6px', fontSize: '0.95rem',
+        }}>
+          {t('common.loadFailed')}
+        </div>
+      )}
       
       <div className="alumni-header">
         <div className="alumni-header-inner">

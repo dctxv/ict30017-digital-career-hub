@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import './Resources.css'
+import { fetchList } from '../api/fetchList'
 
 const categories = ['All', 'Resume Writing', 'Interview Prep', 'Job Search', 'Soft Skills', 'Skill Development']
 
@@ -30,14 +31,14 @@ export default function Resources() {
   // { name, label }: `name` is the English key resources are filtered by.
   const [disciplines, setDisciplines] = useState([{ name: 'All disciplines', label: 'All disciplines' }])
   const [resources, setResources] = useState([])
+  const [loadError, setLoadError] = useState(false)
   const [loading, setLoading] = useState(true)
 
   // Fetch disciplines from API
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch(`/api/disciplines?lang=${lang}`)
-        const data = await response.json()
+        const data = await fetchList(`/api/disciplines?lang=${lang}`)
         setDisciplines([
           { name: 'All disciplines', label: t('common.allDisciplines') },
           ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
@@ -61,11 +62,12 @@ export default function Resources() {
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const response = await fetch(`/api/resources?lang=${lang}`)
-        const data = await response.json()
-        setResources(data)
+        setResources(await fetchList(`/api/resources?lang=${lang}`))
+        setLoadError(false)
       } catch (error) {
         console.error('Error fetching resources:', error)
+        setResources([])
+        setLoadError(true)
       } finally {
         setLoading(false)
       }
@@ -100,6 +102,15 @@ export default function Resources() {
   return (
     <div className="page-enter">
       <Navbar />
+      {loadError && (
+        <div role="alert" style={{
+          margin: '16px auto', maxWidth: '900px', padding: '12px 16px',
+          border: '1px solid #f0b4a8', background: '#fdf1ee', color: '#8c2f1a',
+          borderRadius: '6px', fontSize: '0.95rem',
+        }}>
+          {t('common.loadFailed')}
+        </div>
+      )}
       <div className="res-header">
         <div className="res-header-inner">
           <h1 className="res-title">{t('resources.title')}</h1>

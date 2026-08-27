@@ -19,6 +19,7 @@ export default {
   'common.hide': 'Hide',
   'common.all': 'All',
   'common.allDisciplines': 'All disciplines',
+  'common.loadFailed': 'Could not load this list. The server may be unavailable — check the console for details.',
   'common.or': 'or',
   'common.optional': '(optional)',
   'common.yes': 'Yes',

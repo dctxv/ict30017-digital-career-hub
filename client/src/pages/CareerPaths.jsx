@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import './CareerPaths.css'
+import { fetchList } from '../api/fetchList'
 
 export default function CareerPaths() {
   const { lang, t, n, d } = useLanguage()
@@ -11,14 +12,14 @@ export default function CareerPaths() {
   // what the pill shows. See the disciplines route for why they stay separate.
   const [disciplines, setDisciplines] = useState([{ name: 'All', label: 'All' }])
   const [paths, setPaths] = useState([])
+  const [loadError, setLoadError] = useState(false)
   const [loading, setLoading] = useState(true)
 
   // Fetch disciplines from API
   useEffect(() => {
     const fetchDisciplines = async () => {
       try {
-        const response = await fetch(`/api/disciplines?lang=${lang}`)
-        const data = await response.json()
+        const data = await fetchList(`/api/disciplines?lang=${lang}`)
         setDisciplines([
           { name: 'All', label: t('common.all') },
           ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
@@ -40,14 +41,16 @@ export default function CareerPaths() {
   useEffect(() => {
     const fetchPaths = async () => {
       try {
-        const response = await fetch(`/api/career-paths?lang=${lang}`)
-        const data = await response.json()
+        const data = await fetchList(`/api/career-paths?lang=${lang}`)
         setPaths(data)
+        setLoadError(false)
         if (data.length > 0 && !selectedId) {
           setSelectedId(data[0].id)
         }
       } catch (error) {
         console.error('Error fetching career paths:', error)
+        setPaths([])
+        setLoadError(true)
       } finally {
         setLoading(false)
       }
@@ -84,6 +87,15 @@ export default function CareerPaths() {
   return (
     <div className="page-enter">
       <Navbar />
+      {loadError && (
+        <div role="alert" style={{
+          margin: '16px auto', maxWidth: '900px', padding: '12px 16px',
+          border: '1px solid #f0b4a8', background: '#fdf1ee', color: '#8c2f1a',
+          borderRadius: '6px', fontSize: '0.95rem',
+        }}>
+          {t('common.loadFailed')}
+        </div>
+      )}
 
       <div className="cp-header">
         <div className="cp-header-inner">

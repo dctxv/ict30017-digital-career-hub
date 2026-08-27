@@ -28,6 +28,7 @@ export default {
   'common.hide': 'লুকান',
   'common.all': 'সব',
   'common.allDisciplines': 'সব বিষয়',
+  'common.loadFailed': 'এই তালিকাটি লোড করা যায়নি। সার্ভার সম্ভবত অনুপলব্ধ — বিস্তারিত জানতে কনসোল দেখুন।',
   'common.or': 'অথবা',
   'common.optional': '(ঐচ্ছিক)',
   'common.yes': 'হ্যাঁ',

@@ -84,6 +84,35 @@ that.
 
 If you would rather run the SQL by hand, the files are in `server/migrations`
 and the order is the `ORDER` array at the top of `server/scripts/migrate.js`.
+### If the server starts but every query fails
+
+```
+Server running on http://localhost:3000
+[schema] Could not verify content schema: password authentication failed for user "postgres"
+[resources] list failed: password authentication failed for user "postgres"
+```
+
+The server booted, so `server/.env` exists and the AI variables are set. The
+database half of it is wrong. In order of likelihood:
+
+1. `DB_PASSWORD` does not match the password set for the `postgres` role during
+   the PostgreSQL install. It is not the Windows account password. Reset it if
+   you cannot remember it:
+   `psql -U postgres -c "ALTER USER postgres WITH PASSWORD 'yourpassword';"`
+2. `DB_NAME` names a database that does not exist yet. Create it, then run
+   `npm run migrate`.
+3. A stray quote or trailing space in the `.env` value — `DB_PASSWORD=pass`,
+   not `DB_PASSWORD="pass"`.
+
+Verify the credentials outside the app before changing anything else:
+
+```
+psql -U postgres -d career_hub_db -c "select 1"
+```
+
+If that prompts and succeeds, the same values belong in `server/.env`. If it
+fails, the problem is PostgreSQL, not this repository.
+
 On Windows, `psql` is not on PATH after a default PostgreSQL install — it lives
 at `C:\Program Files\PostgreSQL\<version>\bin\psql.exe` — which is the main
 reason this runner exists.
