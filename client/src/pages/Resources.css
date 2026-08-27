@@ -1,42 +1,137 @@
-.res-header { background: var(--green-50); padding: 48px 24px 32px; border-bottom: 1px solid var(--border); }
-.res-header-inner { max-width: 1100px; margin: 0 auto; }
-.res-title { font-family: var(--font-display); font-size: 26px; color: var(--green-900); margin-bottom: 8px; }
-.res-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; max-width: 680px; line-height: 1.6; }
-.res-search-wrap { position: relative; margin-bottom: 20px; }
-.res-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-hint); }
+/* Career resources. */
+
 .res-search {
-  width: 100%; padding: 11px 14px 11px 40px;
-  border: 1.5px solid var(--border); border-radius: var(--radius-pill);
-  font-size: 14px; outline: none;
-  transition: border-color var(--transition);
+  position: relative;
+  max-width: 520px;
+  margin: 24px 0 18px;
 }
-.res-search:focus { border-color: var(--green-700); }
-.filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-.filter-pill {
-  padding: 6px 16px; border-radius: var(--radius-pill);
-  font-size: 13px; font-weight: 500;
-  border: 1.5px solid var(--border); color: var(--text-muted);
-  transition: all var(--transition); cursor: pointer;
+
+.res-search__icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  margin-top: -8px;
+  color: var(--muted-2);
+  pointer-events: none;
 }
-.filter-pill:hover { border-color: var(--green-500); color: var(--green-700); }
-.filter-pill.active { background: var(--green-700); border-color: var(--green-700); color: white; }
-.filter-pill--sm { font-size: 12px; padding: 4px 12px; }
-.res-content { max-width: 1100px; margin: 0 auto; padding: 40px 24px 64px; }
-.res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.res-card { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: white; transition: box-shadow var(--transition); }
-.res-card:hover { box-shadow: var(--shadow-md); }
-.res-card-banner { height: 72px; display: flex; align-items: flex-end; padding: 0 16px 10px; }
-.res-type-badge { font-size: 12px; font-weight: 600; }
-.res-card-body { padding: 16px 18px 18px; }
-.res-card-title { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; line-height: 1.4; }
-.res-card-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
-.res-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-.res-tag { font-size: 11px; font-weight: 500; padding: 3px 9px; background: var(--green-50); color: var(--green-900); border-radius: var(--radius-pill); }
-.res-card-footer { border-top: 1px solid var(--border); padding-top: 12px; }
-.res-read-more { font-size: 13px; font-weight: 500; color: var(--green-500); }
-.res-read-more:hover { color: var(--green-700); }
-.res-empty { text-align: center; color: var(--text-muted); padding: 60px 0; font-size: 14px; }
-.btn-load-more { padding: 11px 28px; border: 1.5px solid var(--green-700); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; color: var(--green-700); transition: background var(--transition); }
-.btn-load-more:hover { background: var(--green-50); }
-@media (max-width: 900px) { .res-grid { grid-template-columns: repeat(2,1fr); } }
-@media (max-width: 580px) { .res-grid { grid-template-columns: 1fr; } }
+
+.res-search__input { padding-left: 44px; }
+
+.res-filters { margin-bottom: 10px; }
+
+.res-count {
+  font-size: 13.5px;
+  color: var(--muted-2);
+  margin-bottom: 18px;
+}
+
+.res-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.res-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.res-card:hover {
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+/* The banner colour is the resource type. It is the only thing distinguishing a
+   video from a guide at a glance, so it carries the label rather than sitting
+   behind one. */
+.res-card__banner {
+  height: 64px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 22px 12px;
+  background: var(--tint);
+}
+
+.res-card__banner--guide { background: var(--type-guide); }
+.res-card__banner--article { background: var(--type-article); }
+.res-card__banner--video { background: var(--type-video); }
+.res-card__banner--course { background: var(--type-course); }
+
+.res-card__type {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--accent-text);
+}
+
+.res-card__banner--guide .res-card__type { color: var(--dot-guide); }
+.res-card__banner--article .res-card__type { color: var(--dot-article); }
+.res-card__banner--video .res-card__type { color: var(--dot-video); }
+.res-card__banner--course .res-card__type { color: var(--dot-course); }
+
+.res-card__body {
+  padding: 20px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.res-card__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.res-card__desc {
+  font-size: 14.5px;
+  color: var(--body-2);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.res-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+/* Pushed to the bottom so the call to action sits on the same line across a row
+   of cards whose descriptions differ in length. */
+.res-card__footer {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.res-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.res-card__link:hover { color: var(--accent); }
+
+.res-more {
+  text-align: center;
+  margin-top: 36px;
+}
+
+@media (max-width: 980px) {
+  .res-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .res-grid { grid-template-columns: 1fr; }
+}

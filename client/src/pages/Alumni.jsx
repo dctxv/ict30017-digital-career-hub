@@ -1,7 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import './Alumni.css'
+
+const FALLBACK_DISCIPLINES = ['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
+
+function initialsOf(name) {
+  return (name ?? '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(part => part[0] ?? '')
+    .join('')
+    .toUpperCase()
+}
 
 export default function Alumni() {
   const { lang, t, n } = useLanguage()
@@ -13,112 +25,92 @@ export default function Alumni() {
   const [alumni, setAlumni] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch disciplines from API
   useEffect(() => {
-    const fetchDisciplines = async () => {
-      try {
-        const response = await fetch(`/api/disciplines?lang=${lang}`)
-        const data = await response.json()
+    let cancelled = false
+    fetch(`/api/disciplines?lang=${lang}`)
+      .then(response => (response.ok ? response.json() : Promise.reject(new Error('unavailable'))))
+      .then(data => {
+        if (cancelled) return
         setDisciplines([
           { name: 'All', label: t('common.all') },
-          ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
+          ...data.map(row => ({ name: row.name, label: (lang === 'bn' && row.name_bn) || row.name })),
         ])
-      } catch (error) {
-        console.error('Error fetching disciplines:', error)
+      })
+      .catch(() => {
+        if (cancelled) return
         setDisciplines([
           { name: 'All', label: t('common.all') },
-          ...['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
-            .map(name => ({ name, label: name })),
+          ...FALLBACK_DISCIPLINES.map(name => ({ name, label: name })),
         ])
-      }
-    }
-
-    fetchDisciplines()
+      })
+    return () => { cancelled = true }
   }, [lang, t])
 
-  // Fetch alumni from API
   useEffect(() => {
-    const fetchAlumni = async () => {
-      try {
-        let url = '/api/alumni'
-        if (disc !== 'All') {
-          url = `/api/alumni/discipline/${disc}`
-        }
-        const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}lang=${lang}`)
-        const data = await response.json()
-        setAlumni(data)
-      } catch (error) {
-        console.error('Error fetching alumni:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    fetchAlumni()
+    let cancelled = false
+    const path = disc === 'All' ? '/api/alumni' : `/api/alumni/discipline/${encodeURIComponent(disc)}`
+    fetch(`${path}?lang=${lang}`)
+      .then(response => (response.ok ? response.json() : []))
+      .then(data => { if (!cancelled) setAlumni(Array.isArray(data) ? data : []) })
+      .catch(() => { if (!cancelled) setAlumni([]) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [disc, lang])
-
-  // Function to get initials for avatar
-  const getInitials = (name) => {
-    return name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2)
-  }
-
-  if (loading) {
-    return (
-      <div className="page-enter">
-        <Navbar />
-        <div style={{ textAlign: 'center', padding: '50px' }}>{t('alumni.loading')}</div>
-      </div>
-    )
-  }
 
   return (
     <div className="page-enter">
       <Navbar />
-      
-      <div className="alumni-header">
-        <div className="alumni-header-inner">
-          <h1 className="alumni-title">{t('alumni.title')}</h1>
-          <p className="alumni-sub">{t('alumni.sub')}</p>
-          <div className="filter-row">
-            {disciplines.map(d => (
+
+      <section className="page-head alumni-head">
+        <div className="shell">
+          <h1 className="alumni-head__title">{t('alumni.title')}</h1>
+          <p className="alumni-head__sub">{t('alumni.sub')}</p>
+          <div className="pill-row alumni-head__filters">
+            {disciplines.map(item => (
               <button
-                key={d.name}
-                className={`filter-pill ${disc === d.name ? 'active' : ''}`}
-                onClick={() => setDisc(d.name)}
+                key={item.name}
+                type="button"
+                className={`pill${disc === item.name ? ' pill--on' : ''}`}
+                onClick={() => setDisc(item.name)}
               >
-                {d.label}
+                {item.label}
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="alumni-content">
-        <div className="alumni-grid">
-          {alumni.length === 0 && (
-            <div className="alumni-empty">{t('alumni.empty')}</div>
-          )}
-          {alumni.map(alum => (
-            <div key={alum.id} className="alumni-card">
-              <div className="alumni-avatar">
-                <div className="alumni-avatar-initials">{alum.image_initials || getInitials(alum.full_name)}</div>
-              </div>
-              <div className="alumni-info">
-                <h3 className="alumni-name">{alum.full_name}</h3>
-                <div className="alumni-details">
-                  <span className="alumni-institution">{alum.institution} · {n(alum.graduation_year)}</span>
-                  <span className="alumni-role">{alum.current_role}</span>
-                  <span className="alumni-industry">{alum.industry}</span>
+      <section className="page-body">
+        {loading ? (
+          <div className="empty-state">{t('alumni.loading')}</div>
+        ) : alumni.length === 0 ? (
+          <div className="empty-state">{t('alumni.empty')}</div>
+        ) : (
+          <div className="alumni-grid">
+            {alumni.map(person => (
+              <article key={person.id} className="alumni-card">
+                <span className="alumni-card__avatar">
+                  {person.image_initials || initialsOf(person.full_name)}
+                </span>
+
+                <div className="alumni-card__body">
+                  <h3 className="alumni-card__name">{person.full_name}</h3>
+
+                  <div className="alumni-card__tags">
+                    <span className="tag tag--accent">
+                      {person.institution} · {n(person.graduation_year)}
+                    </span>
+                    <span className="tag tag--tint">{person.current_role}</span>
+                    <span className="tag">{person.industry}</span>
+                  </div>
+
+                  <p className="alumni-card__bio">{person.bio}</p>
                 </div>
-                <p className="alumni-bio">{alum.bio}</p>
-                <div className="alumni-tags">
-                  <span className="alumni-tag">{alum.discipline}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }

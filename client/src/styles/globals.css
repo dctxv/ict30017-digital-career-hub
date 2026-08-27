@@ -1,77 +1,423 @@
-/* DM Sans and DM Serif Display carry no Bengali glyphs. Without a Bengali face
-   in the stack, Bangla falls through to whatever the operating system happens
-   to have: usually fine on Windows, unreliable on Android and Linux, and it
-   renders as empty boxes where nothing is installed. Noto Sans Bengali and Noto
-   Serif Bengali are loaded alongside the Latin faces and listed after them, so
-   Latin text keeps the existing design and only Bengali codepoints fall to Noto. */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Noto+Serif+Bengali:wght@400;600&display=swap');
+/**
+ * Shared primitives.
+ *
+ * Tokens and the base reset live in theme.css. What is here is the small set of
+ * elements that appear on more than one screen — buttons, filter pills, form
+ * fields, cards, page headers — so a page stylesheet only has to describe what
+ * is genuinely particular to that page.
+ *
+ * The rule for adding to this file: it belongs here once a third screen wants
+ * it. Two screens sharing something is a coincidence; three is a pattern.
+ */
 
-:root {
-  --green-900: #1B4332;
-  --green-700: #2D6A4F;
-  --green-500: #40916C;
-  --green-200: #D8F3DC;
-  --green-50:  #F0FAF2;
-  --text-primary: #111827;
-  --text-body: #374151;
-  --text-muted: #6B7280;
-  --text-hint: #9CA3AF;
-  --white: #FFFFFF;
-  --surface: #F9FAFB;
-  --border: #E5E7EB;
-  --border-focus: #2D6A4F;
-  --amber-bg: #FFFBEB;
-  --amber-text: #92400E;
-  --amber-border: #FCD34D;
-  --blue-bg: #EFF6FF;
-  --blue-text: #1E40AF;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-pill: 999px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --font-display: 'DM Serif Display', 'Noto Serif Bengali', 'Nirmala UI', Georgia, serif;
-  --font-body: 'DM Sans', 'Noto Sans Bengali', 'Hind Siliguri', 'Nirmala UI', system-ui, sans-serif;
-  --transition: 0.18s ease;
+@import './theme.css';
+
+/* ── Layout shells ─────────────────────────────────────────────────── */
+
+.shell {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* The tinted band every inner page opens with. It fades into the page
+   background rather than ending on a hard edge, so the header reads as part of
+   the page and not as a separate block sitting on top of it. */
+.page-head {
+  background: linear-gradient(180deg, var(--grad-a) 0%, var(--grad-b) 100%);
+  border-bottom: 1px solid var(--border-soft);
+  padding: 44px 24px 34px;
+}
 
-html { font-size: 16px; scroll-behavior: smooth; }
+.page-head__title {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
 
-body {
-  font-family: var(--font-body);
-  color: var(--text-body);
-  background: var(--white);
+.page-head__sub {
+  font-size: 16px;
+  color: var(--body);
+  line-height: 1.65;
+  max-width: 76ch;
+}
+
+.page-body {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 32px 24px 72px;
+}
+
+.eyebrow {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--accent-text);
+  margin-bottom: 12px;
+}
+
+@media (max-width: 640px) {
+  .page-head__title { font-size: 28px; }
+  .page-head { padding: 32px 20px 26px; }
+  .shell, .page-body { padding-left: 20px; padding-right: 20px; }
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-size: 14.5px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background var(--transition), border-color var(--transition),
+              color var(--transition), box-shadow var(--transition);
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.btn--primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 2px 8px rgba(27, 67, 50, 0.18);
+}
+
+.btn--primary:hover:not(:disabled) { background: var(--primary-hover); }
+
+.btn--primary:disabled {
+  background: var(--primary-disabled);
+  box-shadow: none;
+  opacity: 1;
+}
+
+.btn--outline {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--ink);
+}
+
+.btn--outline:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--muted);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.btn--danger {
+  background: var(--danger-text);
+  color: #FFFFFF;
+}
+
+.btn--danger:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn--lg {
+  min-height: 50px;
+  padding: 14px 26px;
+  font-size: 15.5px;
+}
+
+.btn--sm {
+  min-height: 38px;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  gap: 7px;
+}
+
+.btn--full { width: 100%; }
+
+/* ── Filter pills ──────────────────────────────────────────────────── */
+
+.pill {
+  min-height: 38px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--body);
+  transition: background var(--transition), color var(--transition),
+              border-color var(--transition);
+}
+
+.pill:hover { border-color: var(--accent); }
+
+.pill--on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.pill--sm {
+  font-size: 13px;
+  padding: 7px 14px;
+  min-height: 34px;
+}
+
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ── Tags ──────────────────────────────────────────────────────────── */
+
+.tag {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--neutral);
+  color: var(--muted);
+}
+
+.tag--accent {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.tag--tint {
+  background: var(--tint);
+  color: var(--accent-text);
+}
+
+.tag--solid {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* ── Cards ─────────────────────────────────────────────────────────── */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 26px;
+}
+
+.card--tinted {
+  background: var(--surface-2);
+  border-color: var(--border-accent);
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.025em;
+  margin-bottom: 6px;
+}
+
+.card__sub {
+  font-size: 14px;
+  color: var(--muted-2);
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+
+/* ── Forms ─────────────────────────────────────────────────────────── */
+
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.field__label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--body);
+  margin-bottom: 7px;
+}
+
+.field__label .optional {
+  font-weight: 400;
+  color: var(--muted-2);
+}
+
+.field__hint {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted-2);
+  margin-top: 6px;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.textarea {
+  min-height: 96px;
+  padding: 12px 14px;
   line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
+  resize: vertical;
 }
 
-/* Bengali sits taller than Latin and its conjuncts and vowel signs extend above
-   and below the baseline, so the Latin leading crowds them. These two rules are
-   the whole Bangla type adjustment: the layout is otherwise unchanged. */
-:root[lang='bn'] body,
-[lang='bn'] {
-  line-height: 1.85;
+.select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
 }
 
-:root[lang='bn'] h1,
-:root[lang='bn'] h2,
-:root[lang='bn'] h3 {
-  line-height: 1.45;
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.14);
 }
 
-a { color: inherit; text-decoration: none; }
-button { font-family: var(--font-body); cursor: pointer; border: none; background: none; }
-input, textarea, select { font-family: var(--font-body); }
-img { max-width: 100%; display: block; }
-ul { list-style: none; }
-
-.page-enter {
-  animation: fadeUp 0.35s ease forwards;
+/* The chevron is drawn rather than left to the browser, because the native one
+   cannot be recoloured and is invisible against the dark surface. */
+.select-wrap {
+  position: relative;
+  display: block;
 }
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+
+.select-wrap__chevron {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  margin-top: -8px;
+  color: var(--muted-2);
+  pointer-events: none;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .field-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Messages ──────────────────────────────────────────────────────── */
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  line-height: 1.55;
+  border: 1px solid transparent;
+}
+
+.notice--error {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
+}
+
+.notice--warn {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+  color: var(--warn-text);
+}
+
+.notice--ok {
+  background: var(--tint);
+  border-color: var(--border-accent);
+  color: var(--accent-text);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 64px 0;
+  color: var(--muted-2);
+  font-size: 15px;
+}
+
+/* ── Loading ───────────────────────────────────────────────────────── */
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--accent-soft);
+  border-top-color: var(--primary);
+  animation: spin 0.9s linear infinite;
+}
+
+.spinner--lg {
+  width: 64px;
+  height: 64px;
+  border-width: 3px;
+}
+
+.dots {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  animation: dotPulse 1.2s infinite;
+}
+
+.dots span:nth-child(2) { animation-delay: 0.18s; }
+.dots span:nth-child(3) { animation-delay: 0.36s; }
+
+/* ── Utility ───────────────────────────────────────────────────────── */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Wide content — tables, keyword rows, progression tracks — scrolls inside its
+   own box. The page body must never scroll sideways. */
+.scroll-x {
+  overflow-x: auto;
+  scrollbar-width: thin;
 }

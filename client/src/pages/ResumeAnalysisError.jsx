@@ -1,4 +1,6 @@
+import { TriangleAlert } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
+import './ResumeAnalysisError.css'
 
 /**
  * Terminal failure screen for a resume analysis.
@@ -72,27 +74,25 @@ export default function ResumeAnalysisError({ code, message, filename, onRetry, 
   }
 
   return (
-    <div className="rr-content">
-        <div className="rr-error" role="alert">
-          <div className="rr-error__icon" aria-hidden="true">⚠</div>
-          <h1 className="rr-error__title">{title}</h1>
-          {filename && <p className="rr-error__file">{filename}</p>}
-          <p className="rr-error__body">{body}</p>
+    <div className="rr-error" role="alert">
+      <span className="rr-error__icon" aria-hidden="true"><TriangleAlert size={24} /></span>
+      <h1 className="rr-error__title">{title}</h1>
+      {filename && <p className="rr-error__file">{filename}</p>}
+      <p className="rr-error__body">{body}</p>
 
-          <div className="rr-error__actions">
-            {/* Both actions always render. That is the whole point of this view. */}
-            <button type="button" className="btn btn-filled" onClick={onRetry}>
-              {t('reviewError.tryAgain')}
-            </button>
-            <button type="button" className="btn btn-outline" onClick={onUploadNew}>
-              {t('reviewError.uploadNew')}
-            </button>
-          </div>
-
-          <p className="rr-error__diagnostic">
-            {t('reviewError.diagnosticLabel')} <code>{diagnostic}</code>
-          </p>
+      <div className="rr-error__actions">
+        {/* Both actions always render. That is the whole point of this view. */}
+        <button type="button" className="btn btn--primary" onClick={onRetry}>
+          {t('reviewError.tryAgain')}
+        </button>
+        <button type="button" className="btn btn--outline" onClick={onUploadNew}>
+          {t('reviewError.uploadNew')}
+        </button>
       </div>
+
+      <p className="rr-error__diagnostic">
+        {t('reviewError.diagnosticLabel')} <code>{diagnostic}</code>
+      </p>
     </div>
   )
 }
