@@ -32,6 +32,7 @@ export default {
   'common.optional': '(ঐচ্ছিক)',
   'common.yes': 'হ্যাঁ',
   'common.perMonth': 'প্রতি মাসে',
+  'common.loadFailed': 'এই তালিকাটি লোড করা যায়নি। সার্ভার সম্ভবত অনুপলব্ধ — বিস্তারিত জানতে কনসোল দেখুন।',
   'common.serverUnreachable': 'সার্ভারের সাথে সংযোগ করা যায়নি।',
   'common.sessionExpired': 'আপনার সেশনের মেয়াদ শেষ হয়ে গেছে। চালিয়ে যেতে আবার লগ ইন করুন।',
 

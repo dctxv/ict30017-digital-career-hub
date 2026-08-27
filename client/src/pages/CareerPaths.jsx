@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronRight, ArrowRight } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
+import { fetchList } from '../api/fetchList'
 import './CareerPaths.css'
 
 const FALLBACK_DISCIPLINES = ['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
@@ -17,11 +18,11 @@ export default function CareerPaths() {
   const [disciplines, setDisciplines] = useState([{ name: 'All', label: 'All' }])
   const [paths, setPaths] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    fetch(`/api/disciplines?lang=${lang}`)
-      .then(response => (response.ok ? response.json() : Promise.reject(new Error('unavailable'))))
+    fetchList(`/api/disciplines?lang=${lang}`)
       .then(data => {
         if (cancelled) return
         setDisciplines([
@@ -43,15 +44,19 @@ export default function CareerPaths() {
   // selected path survives it because selection is keyed on id, not index.
   useEffect(() => {
     let cancelled = false
-    fetch(`/api/career-paths?lang=${lang}`)
-      .then(response => (response.ok ? response.json() : []))
-      .then(data => {
+    fetchList(`/api/career-paths?lang=${lang}`)
+      .then(rows => {
         if (cancelled) return
-        const rows = Array.isArray(data) ? data : []
         setPaths(rows)
         setSelectedId(current => current ?? rows[0]?.id ?? null)
+        setLoadError(false)
       })
-      .catch(() => { if (!cancelled) setPaths([]) })
+      .catch(error => {
+        if (cancelled) return
+        console.error('[career-paths]', error.message)
+        setPaths([])
+        setLoadError(true)
+      })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [lang])
@@ -103,12 +108,20 @@ export default function CareerPaths() {
         </div>
       </section>
 
+      {loadError && (
+        <div className="page-body" style={{ paddingBottom: 0 }}>
+          <p className="notice notice--error" role="alert">{t('common.loadFailed')}</p>
+        </div>
+      )}
+
       {loading ? (
         <div className="empty-state">{t('careers.loading')}</div>
       ) : (
         <section className="cp-body">
           <div className="cp-list">
-            {filtered.length === 0 && <div className="empty-state">{t('careers.empty')}</div>}
+            {!loadError && filtered.length === 0 && (
+              <div className="empty-state">{t('careers.empty')}</div>
+            )}
 
             {filtered.map(path => {
               const on = selected?.id === path.id

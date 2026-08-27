@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
+import { fetchList } from '../api/fetchList'
 import './Alumni.css'
 
 const FALLBACK_DISCIPLINES = ['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
@@ -24,11 +25,11 @@ export default function Alumni() {
   const [disciplines, setDisciplines] = useState([{ name: 'All', label: 'All' }])
   const [alumni, setAlumni] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    fetch(`/api/disciplines?lang=${lang}`)
-      .then(response => (response.ok ? response.json() : Promise.reject(new Error('unavailable'))))
+    fetchList(`/api/disciplines?lang=${lang}`)
       .then(data => {
         if (cancelled) return
         setDisciplines([
@@ -49,10 +50,14 @@ export default function Alumni() {
   useEffect(() => {
     let cancelled = false
     const path = disc === 'All' ? '/api/alumni' : `/api/alumni/discipline/${encodeURIComponent(disc)}`
-    fetch(`${path}?lang=${lang}`)
-      .then(response => (response.ok ? response.json() : []))
-      .then(data => { if (!cancelled) setAlumni(Array.isArray(data) ? data : []) })
-      .catch(() => { if (!cancelled) setAlumni([]) })
+    fetchList(`${path}?lang=${lang}`)
+      .then(data => { if (!cancelled) { setAlumni(data); setLoadError(false) } })
+      .catch(error => {
+        if (cancelled) return
+        console.error('[alumni]', error.message)
+        setAlumni([])
+        setLoadError(true)
+      })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [disc, lang])
@@ -81,10 +86,14 @@ export default function Alumni() {
       </section>
 
       <section className="page-body">
+        {loadError && (
+          <p className="notice notice--error" role="alert">{t('common.loadFailed')}</p>
+        )}
+
         {loading ? (
           <div className="empty-state">{t('alumni.loading')}</div>
         ) : alumni.length === 0 ? (
-          <div className="empty-state">{t('alumni.empty')}</div>
+          loadError ? null : <div className="empty-state">{t('alumni.empty')}</div>
         ) : (
           <div className="alumni-grid">
             {alumni.map(person => (

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Search, ArrowUpRight } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
+import { fetchList } from '../api/fetchList'
 import './Resources.css'
 
 const CATEGORIES = ['All', 'Resume Writing', 'Interview Prep', 'Job Search', 'Soft Skills', 'Skill Development']
@@ -36,11 +37,11 @@ export default function Resources() {
   const [disciplines, setDisciplines] = useState([{ name: 'All disciplines', label: 'All disciplines' }])
   const [resources, setResources] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    fetch(`/api/disciplines?lang=${lang}`)
-      .then(response => (response.ok ? response.json() : Promise.reject(new Error('unavailable'))))
+    fetchList(`/api/disciplines?lang=${lang}`)
       .then(data => {
         if (cancelled) return
         setDisciplines([
@@ -63,10 +64,16 @@ export default function Resources() {
   // yet translated.
   useEffect(() => {
     let cancelled = false
-    fetch(`/api/resources?lang=${lang}`)
-      .then(response => (response.ok ? response.json() : []))
-      .then(data => { if (!cancelled) setResources(Array.isArray(data) ? data : []) })
-      .catch(() => { if (!cancelled) setResources([]) })
+    fetchList(`/api/resources?lang=${lang}`)
+      .then(data => { if (!cancelled) { setResources(data); setLoadError(false) } })
+      .catch(error => {
+        if (cancelled) return
+        // The list is emptied AND the failure is shown. Emptying alone
+        // renders as "no resources found", which is a different claim.
+        console.error('[resources]', error.message)
+        setResources([])
+        setLoadError(true)
+      })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [lang])
@@ -137,13 +144,19 @@ export default function Resources() {
       </section>
 
       <section className="page-body">
+        {loadError && (
+          <p className="notice notice--error" role="alert">{t('common.loadFailed')}</p>
+        )}
+
         {loading ? (
           <div className="empty-state">{t('resources.loading')}</div>
         ) : (
           <>
-            <p className="res-count">
-              {t('resources.count', { shown: n(filtered.length), total: n(resources.length) })}
-            </p>
+            {!loadError && (
+              <p className="res-count">
+                {t('resources.count', { shown: n(filtered.length), total: n(resources.length) })}
+              </p>
+            )}
 
             <div className="res-grid">
               {shown.map(r => (
@@ -177,7 +190,9 @@ export default function Resources() {
               ))}
             </div>
 
-            {filtered.length === 0 && <div className="empty-state">{t('resources.empty')}</div>}
+            {!loadError && filtered.length === 0 && (
+              <div className="empty-state">{t('resources.empty')}</div>
+            )}
 
             {/* Only rendered when there is genuinely more to show. */}
             {visible < filtered.length && (

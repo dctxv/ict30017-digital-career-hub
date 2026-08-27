@@ -23,6 +23,7 @@ export default {
   'common.optional': '(optional)',
   'common.yes': 'Yes',
   'common.perMonth': 'per month',
+  'common.loadFailed': 'Could not load this list. The server may be unavailable — check the console for details.',
   'common.serverUnreachable': 'Could not connect to server.',
   'common.sessionExpired': 'Your session has expired. Please log in again to continue.',
 
