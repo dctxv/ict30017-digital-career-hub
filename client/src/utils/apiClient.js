@@ -45,6 +45,3 @@ export async function apiFetch(url, options = {}, config = {}) {
 
   return response
 }
-
-export const SESSION_EXPIRED_MESSAGE =
-  'Your session has expired. Please log in again to continue.'

@@ -10,51 +10,56 @@
  * Every field is optional and defaults to "Not sure", which asks the server to
  * infer and to report the inference back. Labels are written for a Bangladeshi
  * job seeker, not for the enum behind them.
+ *
+ * Labels are i18next keys (labelKey) rather than literal text — the option
+ * `value` is a closed enum validated server-side and must never be translated,
+ * only the displayed label. Components resolve labelKey via useTranslation()'s
+ * t() at render time.
  */
 
 /** Sent when the user leaves a field alone. */
 export const UNKNOWN = 'unknown'
 
 export const APPLICATION_CHANNEL_OPTIONS = [
-  { value: UNKNOWN, label: 'Not sure' },
-  { value: 'bdjobs_profile', label: 'Bdjobs profile' },
-  { value: 'direct_pdf', label: 'Emailing a PDF directly' },
-  { value: 'corporate_ats', label: 'Company online application' },
-  { value: 'government_form', label: 'Government prescribed form' },
-  { value: 'ngo_development', label: 'NGO or development organisation' },
-  { value: 'consultancy_tender', label: 'Consultancy or tender submission' },
-  { value: 'academic_cv', label: 'Academic CV' },
+  { value: UNKNOWN, labelKey: 'reviewContext.notSure' },
+  { value: 'bdjobs_profile', labelKey: 'reviewContext.channel.bdjobsProfile' },
+  { value: 'direct_pdf', labelKey: 'reviewContext.channel.directPdf' },
+  { value: 'corporate_ats', labelKey: 'reviewContext.channel.corporateAts' },
+  { value: 'government_form', labelKey: 'reviewContext.channel.governmentForm' },
+  { value: 'ngo_development', labelKey: 'reviewContext.channel.ngoDevelopment' },
+  { value: 'consultancy_tender', labelKey: 'reviewContext.channel.consultancyTender' },
+  { value: 'academic_cv', labelKey: 'reviewContext.channel.academicCv' },
 ]
 
 export const EMPLOYER_TYPE_OPTIONS = [
-  { value: UNKNOWN, label: 'Not sure' },
-  { value: 'local_traditional', label: 'Traditional local company' },
-  { value: 'local_modern', label: 'Local technology company or startup' },
-  { value: 'multinational', label: 'Multinational company' },
-  { value: 'government', label: 'Government' },
-  { value: 'ngo_development', label: 'NGO or development organisation' },
-  { value: 'academic', label: 'University or research institute' },
-  { value: 'consultancy', label: 'Consultancy firm' },
+  { value: UNKNOWN, labelKey: 'reviewContext.notSure' },
+  { value: 'local_traditional', labelKey: 'reviewContext.employer.localTraditional' },
+  { value: 'local_modern', labelKey: 'reviewContext.employer.localModern' },
+  { value: 'multinational', labelKey: 'reviewContext.employer.multinational' },
+  { value: 'government', labelKey: 'reviewContext.employer.government' },
+  { value: 'ngo_development', labelKey: 'reviewContext.employer.ngoDevelopment' },
+  { value: 'academic', labelKey: 'reviewContext.employer.academic' },
+  { value: 'consultancy', labelKey: 'reviewContext.employer.consultancy' },
 ]
 
 export const CANDIDATE_STAGE_OPTIONS = [
-  { value: UNKNOWN, label: 'Not sure' },
-  { value: 'student', label: 'Still studying' },
-  { value: 'fresher', label: 'Fresh graduate' },
-  { value: 'early_career', label: '2 to 5 years experience' },
-  { value: 'experienced', label: 'More than 5 years experience' },
-  { value: 'senior', label: 'Senior or specialist' },
+  { value: UNKNOWN, labelKey: 'reviewContext.notSure' },
+  { value: 'student', labelKey: 'reviewContext.stage.student' },
+  { value: 'fresher', labelKey: 'reviewContext.stage.fresher' },
+  { value: 'early_career', labelKey: 'reviewContext.stage.earlyCareer' },
+  { value: 'experienced', labelKey: 'reviewContext.stage.experienced' },
+  { value: 'senior', labelKey: 'reviewContext.stage.senior' },
 ]
 
 export const TARGET_SECTOR_OPTIONS = [
-  { value: UNKNOWN, label: 'Not sure' },
-  { value: 'it_software', label: 'IT and software' },
-  { value: 'rmg_manufacturing', label: 'RMG, textiles or manufacturing' },
-  { value: 'banking_finance', label: 'Banking and finance' },
-  { value: 'ngo_development', label: 'NGO and development' },
-  { value: 'civil_engineering', label: 'Civil engineering and construction' },
-  { value: 'business', label: 'General business' },
-  { value: 'academic_research', label: 'Academic and research' },
+  { value: UNKNOWN, labelKey: 'reviewContext.notSure' },
+  { value: 'it_software', labelKey: 'reviewContext.sector.itSoftware' },
+  { value: 'rmg_manufacturing', labelKey: 'reviewContext.sector.rmgManufacturing' },
+  { value: 'banking_finance', labelKey: 'reviewContext.sector.bankingFinance' },
+  { value: 'ngo_development', labelKey: 'reviewContext.sector.ngoDevelopment' },
+  { value: 'civil_engineering', labelKey: 'reviewContext.sector.civilEngineering' },
+  { value: 'business', labelKey: 'reviewContext.sector.business' },
+  { value: 'academic_research', labelKey: 'reviewContext.sector.academicResearch' },
 ]
 
 /** The shape held in component state before submission. */

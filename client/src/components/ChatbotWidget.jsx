@@ -4,26 +4,9 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { useLanguage } from '../context/LanguageContext'
+import { useTranslation } from '../i18n/useTranslation'
 import styles from './ChatbotWidget.module.css'
-
-const INITIAL_MESSAGE = {
-  role: 'assistant',
-  content: 'Hi! I can help with career guidance, resume tips, interview prep, and job searching in Bangladesh.',
-}
-
-const LIMIT_MESSAGE = "You've reached your daily chat limit. Upgrade to Premium for unlimited access."
-const GENERIC_ERROR = 'Something went wrong. Please try again.'
-
-function readCurrentLanguage() {
-  const activeToggle = document.querySelector('.lang-btn.active')
-  const activeText = activeToggle?.textContent?.trim().toLowerCase()
-
-  if (activeText === 'bn') return 'bn'
-  if (document.documentElement.lang?.toLowerCase().startsWith('bn')) return 'bn'
-  if (navigator.language?.toLowerCase().startsWith('bn')) return 'bn'
-
-  return 'en'
-}
 
 function parseSseFrame(frame) {
   const dataLines = frame
@@ -45,23 +28,22 @@ function updateAssistantAt(history, index, content) {
 }
 
 export default function ChatbotWidget() {
+  // The toggle already lives in shared context — this used to re-derive the
+  // language by scraping the DOM for '.lang-btn.active' and re-checking on
+  // every click anywhere on the page, which broke the moment the toggle's
+  // markup changed and did unnecessary work on every unrelated click. Reading
+  // it straight from useLanguage() is both correct and simpler.
+  const { lang: language } = useLanguage()
+  const { t } = useTranslation()
+
   const [open, setOpen] = useState(false)
-  const [conversationHistory, setConversationHistory] = useState([INITIAL_MESSAGE])
+  const [conversationHistory, setConversationHistory] = useState(() => ([
+    { role: 'assistant', content: t('chatbot.initialMessage') },
+  ]))
   const [input, setInput] = useState('')
   const [isResponding, setIsResponding] = useState(false)
   const [error, setError] = useState('')
-  const [language, setLanguage] = useState(() => readCurrentLanguage())
   const bottomRef = useRef(null)
-
-  useEffect(() => {
-    const syncLanguage = () => setLanguage(readCurrentLanguage())
-    const onDocumentClick = () => window.setTimeout(syncLanguage, 0)
-
-    syncLanguage()
-    document.addEventListener('click', onDocumentClick)
-
-    return () => document.removeEventListener('click', onDocumentClick)
-  }, [])
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -94,28 +76,28 @@ export default function ChatbotWidget() {
       })
     } catch {
       setConversationHistory([...historyBeforeSend, userMessage])
-      setError(GENERIC_ERROR)
+      setError(t('chatbot.genericError'))
       setIsResponding(false)
       return
     }
 
     if (response.status === 401) {
       setConversationHistory([...historyBeforeSend, userMessage])
-      setError(GENERIC_ERROR)
+      setError(t('chatbot.genericError'))
       setIsResponding(false)
       return
     }
 
     if (response.status === 429) {
       setConversationHistory([...historyBeforeSend, userMessage])
-      setError(LIMIT_MESSAGE)
+      setError(t('chatbot.limitMessage'))
       setIsResponding(false)
       return
     }
 
     if (!response.ok || !response.body) {
       setConversationHistory([...historyBeforeSend, userMessage])
-      setError(GENERIC_ERROR)
+      setError(t('chatbot.genericError'))
       setIsResponding(false)
       return
     }
@@ -144,7 +126,7 @@ export default function ChatbotWidget() {
           }
 
           if (payload === '[ERROR]') {
-            setError(GENERIC_ERROR)
+            setError(t('chatbot.genericError'))
             setIsResponding(false)
             return
           }
@@ -166,7 +148,7 @@ export default function ChatbotWidget() {
 
       setIsResponding(false)
     } catch {
-      setError(GENERIC_ERROR)
+      setError(t('chatbot.genericError'))
       setIsResponding(false)
     }
   }
@@ -178,7 +160,7 @@ export default function ChatbotWidget() {
   return (
     <>
       {open && (
-        <section className={styles.widget} aria-label="Career chatbot">
+        <section className={styles.widget} aria-label={t('chatbot.title')}>
           <header className={styles.header}>
             <div className={styles.headerIdentity}>
               <div className={styles.avatar} aria-hidden="true">
@@ -188,11 +170,11 @@ export default function ChatbotWidget() {
                 </svg>
               </div>
               <div>
-                <div className={styles.title}>Career Assistant</div>
-                <div className={styles.subtitle}>{language === 'bn' ? 'Bangla' : 'English'}</div>
+                <div className={styles.title}>{t('chatbot.title')}</div>
+                <div className={styles.subtitle}>{language === 'bn' ? t('chatbot.subtitleBangla') : t('chatbot.subtitleEnglish')}</div>
               </div>
             </div>
-            <button className={styles.iconButton} type="button" onClick={() => setOpen(false)} aria-label="Close chat">
+            <button className={styles.iconButton} type="button" onClick={() => setOpen(false)} aria-label={t('chatbot.closeChat')}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
@@ -223,7 +205,7 @@ export default function ChatbotWidget() {
             <textarea
               className={styles.input}
               rows={1}
-              placeholder="Ask a career question..."
+              placeholder={t('chatbot.placeholder')}
               value={input}
               onChange={event => setInput(event.target.value)}
               onKeyDown={event => {
@@ -234,7 +216,7 @@ export default function ChatbotWidget() {
               }}
               disabled={isResponding}
             />
-            <button className={styles.sendButton} type="submit" disabled={!canSend} aria-label="Send message">
+            <button className={styles.sendButton} type="submit" disabled={!canSend} aria-label={t('chatbot.sendMessage')}>
               <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
                 <path d="M15.75 2.25L8.25 9.75M15.75 2.25l-4.5 13.5-3-6-6-3 13.5-4.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -243,7 +225,7 @@ export default function ChatbotWidget() {
         </section>
       )}
 
-      <button className={styles.trigger} type="button" onClick={() => setOpen(value => !value)} aria-label={open ? 'Close career chatbot' : 'Open career chatbot'}>
+      <button className={styles.trigger} type="button" onClick={() => setOpen(value => !value)} aria-label={open ? t('chatbot.closeChatbot') : t('chatbot.openChat')}>
         {open ? (
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

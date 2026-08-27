@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import { useTranslation } from '../i18n/useTranslation'
 import './Auth.css'
 
 export default function Register() {
+  const { t } = useTranslation()
   const [show, setShow] = useState(false)
   const [tier, setTier] = useState('free')
   const [agreed, setAgreed] = useState(false)
@@ -19,17 +21,17 @@ export default function Register() {
     setMessage('')
 
     if (!fullName || !email || !password || !confirmPassword) {
-      setMessage('Please fill in all fields.')
+      setMessage(t('register.errors.missingFields'))
       return
     }
 
     if (password !== confirmPassword) {
-      setMessage('Passwords do not match.')
+      setMessage(t('register.errors.passwordMismatch'))
       return
     }
 
     if (!agreed) {
-      setMessage('Please agree to the terms first.')
+      setMessage(t('register.errors.agreeTerms'))
       return
     }
 
@@ -53,11 +55,11 @@ export default function Register() {
       const data = await response.json()
 
       if (!response.ok) {
-        setMessage(data.error || 'Registration failed.')
+        setMessage(data.error || t('register.errors.registrationFailed'))
         return
       }
 
-      setMessage('Account created! You can now log in.')
+      setMessage(t('register.success'))
       setFullName('')
       setEmail('')
       setPassword('')
@@ -66,7 +68,7 @@ export default function Register() {
       setTier('free')
     } catch (error) {
       console.error(error)
-      setMessage('Could not connect to server.')
+      setMessage(t('register.errors.networkError'))
     } finally {
       setLoading(false)
     }
@@ -77,23 +79,23 @@ export default function Register() {
       <Navbar />
       <div className="auth-bg">
         <div className="auth-card auth-card--wide">
-          <div className="auth-brand">Digital Career Hub</div>
-          <h1 className="auth-title">Create your account</h1>
-          <p className="auth-sub">Join to access career tools and AI resume review</p>
+          <div className="auth-brand">{t('auth.brand')}</div>
+          <h1 className="auth-title">{t('register.title')}</h1>
+          <p className="auth-sub">{t('register.subtitle')}</p>
 
           <div className="form-group">
-            <label className="form-label">Full name</label>
+            <label className="form-label">{t('register.fullNameLabel')}</label>
             <input
               className="form-input"
               type="text"
-              placeholder="Your full name"
+              placeholder={t('register.fullNamePlaceholder')}
               value={fullName}
               onChange={e => setFullName(e.target.value)}
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email address</label>
+            <label className="form-label">{t('register.emailLabel')}</label>
             <input
               className="form-input"
               type="email"
@@ -104,12 +106,12 @@ export default function Register() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label">{t('register.passwordLabel')}</label>
             <div className="input-row">
               <input
                 className="form-input"
                 type={show ? 'text' : 'password'}
-                placeholder="Create a password"
+                placeholder={t('register.passwordPlaceholder')}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
@@ -118,40 +120,40 @@ export default function Register() {
                 className="show-btn"
                 onClick={() => setShow(s => !s)}
               >
-                {show ? 'Hide' : 'Show'}
+                {show ? t('auth.hide') : t('auth.show')}
               </button>
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Confirm password</label>
+            <label className="form-label">{t('register.confirmPasswordLabel')}</label>
             <input
               className="form-input"
               type="password"
-              placeholder="Repeat your password"
+              placeholder={t('register.confirmPasswordPlaceholder')}
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Choose your plan</label>
+            <label className="form-label">{t('register.choosePlan')}</label>
             <div className="tier-cards">
               <div
                 className={`tier-card ${tier === 'free' ? 'tier-card--active' : ''}`}
                 onClick={() => setTier('free')}
               >
-                <div className="tier-name">Free</div>
-                <div className="tier-desc">3 resume reviews per day</div>
+                <div className="tier-name">{t('register.freeName')}</div>
+                <div className="tier-desc">{t('register.freeDesc')}</div>
               </div>
 
               <div
                 className={`tier-card ${tier === 'premium' ? 'tier-card--active' : ''}`}
                 onClick={() => setTier('premium')}
               >
-                <span className="tier-recommended">Recommended</span>
-                <div className="tier-name">Premium</div>
-                <div className="tier-desc">Unlimited reviews + priority feedback</div>
+                <span className="tier-recommended">{t('register.premiumRecommended')}</span>
+                <div className="tier-name">{t('register.premiumName')}</div>
+                <div className="tier-desc">{t('register.premiumDesc')}</div>
               </div>
             </div>
           </div>
@@ -164,7 +166,7 @@ export default function Register() {
               onChange={e => setAgreed(e.target.checked)}
             />
             <label htmlFor="terms" className="checkbox-label">
-              I agree to the <Link to="/terms" className="link-green">Terms of Service</Link> and <Link to="/privacy" className="link-green">Privacy Policy</Link>
+              {t('register.termsPrefix')} <Link to="/terms" className="link-green">{t('register.termsOfService')}</Link> {t('register.and')} <Link to="/privacy" className="link-green">{t('register.privacyPolicy')}</Link>
             </label>
           </div>
 
@@ -176,11 +178,11 @@ export default function Register() {
             onClick={handleRegister}
             disabled={loading}
           >
-            {loading ? 'Creating account...' : 'Create account'}
+            {loading ? t('register.submitting') : t('register.submit')}
           </button>
 
           <p className="auth-switch">
-            Already have an account? <Link to="/login" className="link-green">Log in</Link>
+            {t('register.haveAccount')} <Link to="/login" className="link-green">{t('register.logIn')}</Link>
           </p>
         </div>
       </div>

@@ -8,6 +8,13 @@
  *    was actually sent to the backend. Cleared to null in showSample() because
  *    sample mode has no real file. Passed to ResultsView so PDFPanel can derive
  *    a blob URL from it directly without requiring a backend file URL.
+ * 2. i18next — all static UI copy (labels, buttons, hints) now goes through
+ *    useTranslation()'s t(). The sample review ("View sample") is static demo
+ *    copy written into this file, not real AI output, so it IS translated —
+ *    SAMPLE_EN / SAMPLE_BN below, picked by the current i18next language and
+ *    kept in sync if the user flips the language toggle while viewing it.
+ *    Real AI-generated feedback (an actual analysed resume) stays untranslated
+ *    until the backend AI-language wiring work (explicitly on hold) resumes.
  */
 import { useState, useRef, useEffect } from 'react'
 import Navbar from '../components/Navbar'
@@ -22,12 +29,18 @@ import {
   TARGET_SECTOR_OPTIONS,
 } from '../utils/reviewContext'
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from '../i18n/useTranslation'
 import { streamResumeReview } from '../api/reviewResume'
 import ResultsView from './ResultsView'
 import './ResumeReview.css'
 
 /* ── Hardcoded sample data ───────────────────────────────────────── */
-const SAMPLE = {
+/* This is static demo copy authored for this file, not real AI output, so
+ * unlike actual resume feedback it IS translated. SAMPLE_EN / SAMPLE_BN carry
+ * identical structure; the component below picks whichever matches the
+ * current i18next language and re-picks it if the user switches language
+ * while the sample is on screen. */
+const SAMPLE_EN = {
   overall_score: 52,
   formatting: {
     score: 61,
@@ -85,6 +98,64 @@ const SAMPLE = {
   job_match: null,
 }
 
+const SAMPLE_BN = {
+  overall_score: 52,
+  formatting: {
+    score: 61,
+    feedback: 'জীবনবৃত্তান্তে স্পষ্ট বিভাগ কাঠামো ও সুপাঠ্য লেআউট রয়েছে। তবে বেশ কিছু পুরনো বাংলাদেশি রীতি রয়ে গেছে, যা বহুজাতিক প্রতিষ্ঠানগুলোর ব্যবহৃত আধুনিক ATS সিস্টেমে কর্মক্ষমতা সীমিত করবে।',
+    issues: [
+      { section: 'যোগাযোগ শিরোনাম', issue: 'LinkedIn URL অনুপস্থিত', suggestion: 'আপনার LinkedIn প্রোফাইলের URL যোগ করুন (যেমন: linkedin.com/in/yourname) — বাংলাদেশি বহুজাতিক প্রতিষ্ঠানের নিয়োগকর্তারা শর্টলিস্ট করার আগে ক্রমবর্ধমানভাবে ডিজিটাল উপস্থিতি যাচাই করছেন।' },
+      { section: 'দক্ষতা', issue: '"Computer Knowledge" শিরোনামটি পুরনো', suggestion: '"Technical Skills"-এ পরিবর্তন করুন — আধুনিক নিয়োগকর্তা ও ATS সিস্টেম এই প্রমিত শিরোনাম আশা করে।' },
+      { section: 'ফুটার', issue: 'ঘোষণা বিভাগ কোনো মূল্য যোগ করে না', suggestion: 'দক্ষতা বা অর্জনের জন্য জায়গা পুনরুদ্ধার করতে ঘোষণা বিভাগটি সম্পূর্ণভাবে সরিয়ে ফেলুন।' },
+    ],
+  },
+  content_quality: {
+    score: 48,
+    feedback: 'শিক্ষাগত যোগ্যতা শক্তিশালী, তবে অভিজ্ঞতা বিভাগে পরিমাপযোগ্য অর্জনের গুরুতর ঘাটতি রয়েছে। CAR পদ্ধতি ব্যবহার করে নির্দিষ্ট ফলাফল ছাড়া নিয়োগকর্তারা শর্টলিস্ট করবেন না।',
+    strengths: [
+      'শিক্ষাগত পটভূমি প্রাসঙ্গিক যোগ্যতা দেখায় (পাওয়ার টেকনোলজিতে ডিপ্লোমা)',
+      'প্রশিক্ষণ বিভাগে বৈদ্যুতিক খাতের সাথে সামঞ্জস্যপূর্ণ বাস্তব হাতে-কলমে দক্ষতা অন্তর্ভুক্ত রয়েছে',
+    ],
+    weaknesses: [
+      'অভিজ্ঞতা বিভাগে শুধু বিষয়ক্ষেত্র তালিকাভুক্ত করা হয়েছে — প্রকৃত চাকরির পদ, নিয়োগকর্তা, তারিখ বা ফলাফল নেই',
+      'ক্যারিয়ার লক্ষ্য সাধারণ মানের ("একটি গতিশীল পরিবেশে চ্যালেঞ্জিং পদ খুঁজছি") — পাওয়ার সেক্টর ও আপনার মূল যোগ্যতার নাম উল্লেখ করে একটি লক্ষ্যভিত্তিক পেশাদার সারাংশ দিয়ে প্রতিস্থাপন করুন',
+      'প্রশিক্ষণ এন্ট্রিতে তারিখের পরিসীমা নেই — "3 months" না লিখে "Jan 2023 – Mar 2023" এভাবে দেখান',
+    ],
+  },
+  language_grammar: {
+    score: 61,
+    feedback: 'সাধারণভাবে সুপাঠ্য, তবে দুর্বল ক্রিয়াপদ নির্বাচন ও অস্পষ্ট বর্ণনা পেশাদার প্রভাব কমিয়ে দেয়। পুরো জীবনবৃত্তান্তে ব্রিটিশ ইংরেজি প্রমিত করা উচিত।',
+    issues: [
+      { original: 'Responsible for handling electrical maintenance', corrected: 'Spearheaded electrical maintenance operations for a 12-unit residential complex', type: 'দুর্বল ক্রিয়াপদ' },
+      { original: 'Good command in English', corrected: 'Professional working proficiency in English (IELTS 6.5)', type: 'অস্পষ্ট ভাষা বর্ণনা' },
+      { original: 'organization (used alongside "organisation")', corrected: 'organisation — standardise to British English throughout', type: 'ব্রিটিশ/আমেরিকান ইংরেজির মিশ্রণ' },
+    ],
+  },
+  action_items: [
+    'অভিজ্ঞতা বিভাগ: নিয়োগকর্তা, তারিখের পরিসীমা এবং প্রতিটিতে ২–৩টি CAR-পদ্ধতির বুলেট পয়েন্টসহ অন্তত ২টি প্রকৃত চাকরির পদ যোগ করুন — এটিই নিয়োগকর্তাদের চিহ্নিত করা সবচেয়ে বড় ঘাটতি।',
+    'প্রশিক্ষণ বিভাগ: সব এন্ট্রিতে শুরু–শেষের তারিখ যোগ করুন (যেমন: "Jan 2023 – Mar 2023") — তারিখ দেখায় আপনি কখন প্রশিক্ষণ নিয়েছেন, শুধু কতদিন তা নয়।',
+    'ক্যারিয়ার লক্ষ্য: একটি নির্দিষ্ট খাত (পাওয়ার, বৈদ্যুতিক বা নবায়নযোগ্য জ্বালানি) লক্ষ্য করে এবং আপনার সবচেয়ে শক্তিশালী যোগ্যতার নাম উল্লেখ করে ২-বাক্যের একটি পেশাদার সারাংশ দিয়ে প্রতিস্থাপন করুন।',
+    'দক্ষতা বিভাগ: আপনার লক্ষ্য খাতে ৫টি বর্তমান চাকরির বিজ্ঞাপন পর্যালোচনা করুন এবং তাদের ঠিক কীওয়ার্ড ভাষা অনুসরণ করুন — ATS সিস্টেম কীওয়ার্ড মিলের উপর ব্যাপকভাবে স্কোর করে।',
+  ],
+  ats_analysis: {
+    inferred_role: 'ইলেকট্রিক্যাল ইঞ্জিনিয়ার',
+    inferred_industry: 'পাওয়ার ও জ্বালানি',
+    keyword_hits: ['ইলেকট্রিক্যাল ওয়্যারিং', 'পাওয়ার সিস্টেম', 'ইন্ডাস্ট্রিয়াল অ্যাটাচমেন্ট', 'AutoCAD', 'সার্কিট ডিজাইন'],
+    keyword_gaps: ['PLC প্রোগ্রামিং', 'SCADA', 'লোড ফ্লো বিশ্লেষণ', 'IEEE মানদণ্ড', 'এনার্জি অডিট'],
+    heading_risks: [
+      { original: 'Computer Knowledge', issue: 'অপ্রচলিত শিরোনাম — অনেক ATS সিস্টেম এটিকে একটি স্বীকৃত বিভাগের সাথে ম্যাপ করতে ব্যর্থ হবে', recommended: 'Technical Skills' },
+    ],
+    ats_tips: [
+      '"PLC Programming" ও "SCADA" স্পষ্টভাবে Technical Skills বিভাগে যোগ করুন — এগুলো বাংলাদেশের পাওয়ার সেক্টরের চাকরির বিজ্ঞাপনে উচ্চ-ফ্রিকোয়েন্সি কীওয়ার্ড।',
+      '"Computer Knowledge" শিরোনামটি "Technical Skills" দিয়ে প্রতিস্থাপন করুন — বহুজাতিক প্রতিষ্ঠানের ATS পার্সার এটিকে প্রমিত শনাক্তকারী হিসেবে ব্যবহার করে।',
+      'সব শিক্ষাগত এন্ট্রিতে CGPA-র হর অন্তর্ভুক্ত করুন (যেমন: "3.72/4.00") — হর অনুপস্থিত থাকলে বাংলাদেশের দ্বৈত 4.00/5.00 স্কেলে ATS ভুল পাঠ করতে পারে।',
+    ],
+    standard: 'আন্তর্জাতিক/বহুজাতিক ATS',
+    ats_score: 44,
+  },
+  job_match: null,
+}
+
 /* ── FileIcon ────────────────────────────────────────────────────── */
 function FileIcon({ size = 36 }) {
   return (
@@ -123,20 +194,20 @@ function useReviewQuota() {
   return quota
 }
 
-function describeQuota(quota, isAuthenticated) {
-  if (!quota) return 'Free plan'
-  if (quota.unlimited) return 'Premium plan — unlimited resume reviews'
+function describeQuota(quota, isAuthenticated, t) {
+  if (!quota) return t('resumeReview.quota.free')
+  if (quota.unlimited) return t('resumeReview.quota.premiumUnlimited')
   if (!quota.authenticated || !isAuthenticated) {
-    return `Free plan — ${quota.limit} resume reviews per day. Log in to track how many you have left.`
+    return t('resumeReview.quota.freeLoginPrompt', { limit: quota.limit })
   }
   if (quota.remaining === 0) {
-    return 'Free plan — no resume reviews left today. Your allowance resets tomorrow.'
+    return t('resumeReview.quota.freeNoneLeft')
   }
-  const plural = quota.remaining === 1 ? 'review' : 'reviews'
-  return `Free plan — ${quota.remaining} of ${quota.limit} resume ${plural} remaining today`
+  return t('resumeReview.quota.freeRemaining', { count: quota.remaining, remaining: quota.remaining, limit: quota.limit })
 }
 
 function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marketMode, setMarketMode, reviewContext, setReviewContext, onAnalyse, onSample }) {
+  const { t } = useTranslation()
   const [drag, setDrag] = useState(false)
   const [enhanceOpen, setEnhanceOpen] = useState(false)
   const inputRef = useRef()
@@ -165,7 +236,7 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
       else if (value !== 'unknown') setMarketMode('bangladesh')
     }
   }
-  const quotaLabel = describeQuota(quota, isAuthenticated)
+  const quotaLabel = describeQuota(quota, isAuthenticated, t)
 
   // Runs for both the picker and the drop zone. accept=".pdf,.docx" only
   // filters the dialog, so a dropped .txt reached the server before this.
@@ -182,11 +253,25 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
   }
   const handleDrop = e => { e.preventDefault(); setDrag(false); pick(e.dataTransfer.files[0]) }
 
+  const contextFields = [
+    ['applicationChannel', t('resumeReview.context.applicationChannel'), APPLICATION_CHANNEL_OPTIONS],
+    ['employerType', t('resumeReview.context.employerType'), EMPLOYER_TYPE_OPTIONS],
+    ['candidateStage', t('resumeReview.context.candidateStage'), CANDIDATE_STAGE_OPTIONS],
+    ['targetSector', t('resumeReview.context.targetSector'), TARGET_SECTOR_OPTIONS],
+  ]
+
+  const coverageItems = [
+    ['📋', t('resumeReview.covers.contentQuality.title'), t('resumeReview.covers.contentQuality.desc')],
+    ['✏️', t('resumeReview.covers.languageGrammar.title'), t('resumeReview.covers.languageGrammar.desc')],
+    ['📐', t('resumeReview.covers.formatStructure.title'), t('resumeReview.covers.formatStructure.desc')],
+    ['🔍', t('resumeReview.covers.atsAnalysis.title'), t('resumeReview.covers.atsAnalysis.desc')],
+  ]
+
   return (
     <div className="rr-content">
       <div className="rr-upload-header">
-        <h1 className="rr-title">Resume review</h1>
-        <p className="rr-sub">AI-powered feedback tailored to the Bangladeshi job market. Upload your resume to get started.</p>
+        <h1 className="rr-title">{t('resumeReview.title')}</h1>
+        <p className="rr-sub">{t('resumeReview.subtitle')}</p>
       </div>
 
       {!file ? (
@@ -198,13 +283,13 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
           onClick={() => inputRef.current.click()}
         >
           <div className="drop-zone__icon"><FileIcon size={40} /></div>
-          <div className="drop-zone__title">Drop your resume here</div>
-          <div className="drop-zone__hint">PDF or DOCX · up to 3 MB</div>
+          <div className="drop-zone__title">{t('resumeReview.dropTitle')}</div>
+          <div className="drop-zone__hint">{t('resumeReview.dropHint')}</div>
           <button
             className="btn btn-outline"
             onClick={e => { e.stopPropagation(); inputRef.current.click() }}
           >
-            Browse files
+            {t('resumeReview.browseFiles')}
           </button>
           <input
             ref={inputRef}
@@ -227,31 +312,31 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
               </svg>
               {file.name}
             </span>
-            <button className="btn btn-ghost btn-sm" onClick={() => setFile(null)}>✕ Remove</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setFile(null)}>{t('resumeReview.remove')}</button>
           </div>
 
           <div className="market-mode-card">
             <div className="market-mode-label">
               <span className="market-mode-icon">🎯</span>
-              <span className="market-mode-title">Who are you applying to?</span>
+              <span className="market-mode-title">{t('resumeReview.marketMode.title')}</span>
             </div>
             <div className="market-mode-options">
               <button
                 className={`market-mode-btn ${marketMode === 'bangladesh' ? 'market-mode-btn--active' : ''}`}
                 onClick={() => chooseMarket('bangladesh')}
               >
-                <span className="market-mode-btn-label">Bangladesh employers</span>
+                <span className="market-mode-btn-label">{t('resumeReview.marketMode.bangladeshLabel')}</span>
                 <span className="market-mode-btn-desc">
-                  Personal details, declarations and local conventions are treated as standard practice
+                  {t('resumeReview.marketMode.bangladeshDesc')}
                 </span>
               </button>
               <button
                 className={`market-mode-btn ${marketMode === 'international' ? 'market-mode-btn--active' : ''}`}
                 onClick={() => chooseMarket('international')}
               >
-                <span className="market-mode-btn-label">International / multinational</span>
+                <span className="market-mode-btn-label">{t('resumeReview.marketMode.internationalLabel')}</span>
                 <span className="market-mode-btn-desc">
-                  Personal details, declarations and photos flagged for removal per Western standards
+                  {t('resumeReview.marketMode.internationalDesc')}
                 </span>
               </button>
             </div>
@@ -262,19 +347,13 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
           <div className="context-card">
             <div className="context-card__label">
               <span className="context-card__icon">🧭</span>
-              <span className="context-card__title">Tell us about this application</span>
+              <span className="context-card__title">{t('resumeReview.context.title')}</span>
             </div>
             <p className="context-card__hint">
-              Optional, and it makes the review far more accurate. A Bdjobs profile,
-              a government form and a multinational application are judged differently.
+              {t('resumeReview.context.hint')}
             </p>
             <div className="context-card__grid">
-              {[
-                ['applicationChannel', 'How are you applying?', APPLICATION_CHANNEL_OPTIONS],
-                ['employerType', 'What kind of employer?', EMPLOYER_TYPE_OPTIONS],
-                ['candidateStage', 'Where are you in your career?', CANDIDATE_STAGE_OPTIONS],
-                ['targetSector', 'Which sector?', TARGET_SECTOR_OPTIONS],
-              ].map(([key, label, options]) => (
+              {contextFields.map(([key, label, options]) => (
                 <div className="form-group" key={key}>
                   <label className="form-label" htmlFor={`ctx-${key}`}>{label}</label>
                   <select
@@ -284,7 +363,7 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
                     onChange={e => chooseContext(key, e.target.value)}
                   >
                     {options.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                      <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                     ))}
                   </select>
                 </div>
@@ -295,27 +374,27 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
           <div className="enhance-card">
             <div className="enhance-card__trigger" onClick={() => setEnhanceOpen(o => !o)}>
               <span className="enhance-card__star">✦</span>
-              <span className="enhance-card__label">Improve my analysis</span>
-              <span className="enhance-card__hint">Add job role or ad for targeted feedback</span>
+              <span className="enhance-card__label">{t('resumeReview.enhance.label')}</span>
+              <span className="enhance-card__hint">{t('resumeReview.enhance.hint')}</span>
               <span className="enhance-card__chevron">{enhanceOpen ? '▴' : '▾'}</span>
             </div>
             {enhanceOpen && (
               <div className="enhance-card__fields">
                 <div className="form-group">
-                  <label className="form-label">Target job role <span className="optional">(optional)</span></label>
+                  <label className="form-label">{t('resumeReview.enhance.jobRoleLabel')} <span className="optional">{t('resumeReview.enhance.optional')}</span></label>
                   <input
                     className="form-input"
-                    placeholder="e.g. Electrical Engineer, Power Sector"
+                    placeholder={t('resumeReview.enhance.jobRolePlaceholder')}
                     value={jobRole}
                     onChange={e => setJobRole(e.target.value)}
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Job advertisement <span className="optional">(optional — paste for job match analysis)</span></label>
+                  <label className="form-label">{t('resumeReview.enhance.jobAdLabel')} <span className="optional">{t('resumeReview.enhance.jobAdOptional')}</span></label>
                   <textarea
                     className="form-textarea"
                     rows={4}
-                    placeholder="Paste the job description here…"
+                    placeholder={t('resumeReview.enhance.jobAdPlaceholder')}
                     value={jobAd}
                     onChange={e => setJobAd(e.target.value)}
                   />
@@ -333,20 +412,15 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
             <span>{quotaLabel}</span>
           </div>
           <button className="btn btn-primary btn-full" onClick={onAnalyse}>
-            Analyse my resume
+            {t('resumeReview.analyseButton')}
           </button>
         </div>
       )}
 
       <div className="val-section">
-        <div className="val-section__label">What the analysis covers</div>
+        <div className="val-section__label">{t('resumeReview.covers.label')}</div>
         <div className="val-grid">
-          {[
-            ['📋', 'Content quality', 'Specific experience, CAR-method achievements, and quantified outcomes.'],
-            ['✏️', 'Language & grammar', 'Tense consistency, strong action verbs, and professional tone.'],
-            ['📐', 'Format & structure', 'ATS-friendly headings, section order, and contact completeness.'],
-            ['🔍', 'ATS analysis', 'Keyword coverage, heading risks, and role-specific gap analysis.'],
-          ].map(([icon, title, desc]) => (
+          {coverageItems.map(([icon, title, desc]) => (
             <div key={title} className="val-card">
               <div className="val-card__icon">{icon}</div>
               <div className="val-card__title">{title}</div>
@@ -357,10 +431,10 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
         <div className="sample-card">
           <span className="sample-card__icon">👁</span>
           <div className="sample-card__text">
-            <div className="sample-card__title">See a sample review</div>
-            <div className="sample-card__sub">Understand what feedback looks like before uploading</div>
+            <div className="sample-card__title">{t('resumeReview.sample.title')}</div>
+            <div className="sample-card__sub">{t('resumeReview.sample.sub')}</div>
           </div>
-          <button className="btn btn-outline btn-sm" onClick={onSample}>View sample →</button>
+          <button className="btn btn-outline btn-sm" onClick={onSample}>{t('resumeReview.sample.button')}</button>
         </div>
       </div>
     </div>
@@ -369,11 +443,12 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
 
 /* ── AnalysingView ───────────────────────────────────────────────── */
 function AnalysingView({ filename }) {
+  const { t } = useTranslation()
   const msgs = [
-    'Checking content completeness…',
-    'Reviewing language quality…',
-    'Evaluating format & structure…',
-    'Analysing ATS compatibility…',
+    t('resumeReview.analysing.step1'),
+    t('resumeReview.analysing.step2'),
+    t('resumeReview.analysing.step3'),
+    t('resumeReview.analysing.step4'),
   ]
   return (
     <div className="rr-analysing">
@@ -385,7 +460,7 @@ function AnalysingView({ filename }) {
         <span className="analysing-spinner__emoji">🔍</span>
       </div>
       <div className="analysing-text">
-        <div className="analysing-text__title">Analysing your resume…</div>
+        <div className="analysing-text__title">{t('resumeReview.analysing.title')}</div>
         <div className="analysing-text__file">{filename}</div>
       </div>
       <div className="analysing-dots">
@@ -404,6 +479,7 @@ function AnalysingView({ filename }) {
 
 /* ── Main page ───────────────────────────────────────────────────── */
 export default function ResumeReview() {
+  const { t, i18n } = useTranslation()
   const [view, setView] = useState('upload')
   const [file, setFile] = useState(null)
   const [uploadedFile, setUploadedFile] = useState(null)
@@ -453,7 +529,7 @@ export default function ResumeReview() {
         // must never route to the results shell with null feedback.
         setFeedback(current => {
           if (current) {
-            setStreamError(msg || 'The analysis stopped early.')
+            setStreamError(msg || t('resumeReview.streamStoppedEarly'))
             setView('results')
           } else {
             setAnalysisError({ code, message: msg })
@@ -466,7 +542,7 @@ export default function ResumeReview() {
   }
 
   function showSample() {
-    setFeedback(SAMPLE)
+    setFeedback(i18n.language === 'bn' ? SAMPLE_BN : SAMPLE_EN)
     setFilename('Sample_Resume.pdf')
     setUploadedFile(null)
     setIsSample(true)
@@ -475,6 +551,15 @@ export default function ResumeReview() {
     setView('analysing')
     setTimeout(() => setView('results'), 1400)
   }
+
+  // If the user flips the EN/BN toggle while the sample is on screen, swap the
+  // sample data to match rather than leaving stale-language text visible. Real
+  // analysed feedback is untouched — this only re-picks between SAMPLE_EN and
+  // SAMPLE_BN, both static, so there is nothing to re-fetch.
+  useEffect(() => {
+    if (!isSample) return
+    setFeedback(i18n.language === 'bn' ? SAMPLE_BN : SAMPLE_EN)
+  }, [i18n.language, isSample])
 
   function handleReanalyse() {
     setAnalysisError(null)

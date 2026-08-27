@@ -1,9 +1,20 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
+import { useTranslation } from '../i18n/useTranslation'
+import { disciplineLabel } from '../utils/disciplineLabels'
 import './Resources.css'
 
 const categories = ['All', 'Resume Writing', 'Interview Prep', 'Job Search', 'Soft Skills', 'Skill Development']
+
+const categoryLabelKeys = {
+  'All': 'common.all',
+  'Resume Writing': 'resources.categories.resumeWriting',
+  'Interview Prep': 'resources.categories.interviewPrep',
+  'Job Search': 'resources.categories.jobSearch',
+  'Soft Skills': 'resources.categories.softSkills',
+  'Skill Development': 'resources.categories.skillDevelopment',
+}
 
 const typeColors = {
   Guide: '#D8F3DC',
@@ -19,6 +30,7 @@ const typeDots = {
 }
 
 export default function Resources() {
+  const { t } = useTranslation()
   const { lang } = useLanguage()
   const [cat, setCat] = useState('All')
   // Seeded from the Career Paths hand-off. Reading it in the initialiser
@@ -44,7 +56,7 @@ export default function Resources() {
         setDisciplines(['All disciplines', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education'])
       }
     }
-    
+
     fetchDisciplines()
   }, [])
 
@@ -85,7 +97,7 @@ export default function Resources() {
     return (
       <div className="page-enter">
         <Navbar />
-        <div style={{ textAlign: 'center', padding: '50px' }}>Loading resources...</div>
+        <div style={{ textAlign: 'center', padding: '50px' }}>{t('resources.loading')}</div>
       </div>
     )
   }
@@ -95,23 +107,27 @@ export default function Resources() {
       <Navbar />
       <div className="res-header">
         <div className="res-header-inner">
-          <h1 className="res-title">Career resources</h1>
-          <p className="res-sub">Guides, videos, and articles covering resume writing, interview preparation, job searching, and skill development — tailored for Bangladeshi graduates across all disciplines.</p>
+          <h1 className="res-title">{t('resources.title')}</h1>
+          <p className="res-sub">{t('resources.subtitle')}</p>
           <div className="res-search-wrap">
             <svg className="res-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
               <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.4"/>
               <path d="M11 11L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
             </svg>
-            <input className="res-search" placeholder="Search resources..." value={query} onChange={e => setQuery(e.target.value)} />
+            <input className="res-search" placeholder={t('resources.searchPlaceholder')} value={query} onChange={e => setQuery(e.target.value)} />
           </div>
           <div className="filter-row">
             {categories.map(c => (
-              <button key={c} className={`filter-pill ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>{c}</button>
+              <button key={c} className={`filter-pill ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>
+                {t(categoryLabelKeys[c] || c)}
+              </button>
             ))}
           </div>
           <div className="filter-row filter-row--sm">
             {disciplines.map(d => (
-              <button key={d} className={`filter-pill filter-pill--sm ${disc === d ? 'active' : ''}`} onClick={() => setDisc(d)}>{d}</button>
+              <button key={d} className={`filter-pill filter-pill--sm ${disc === d ? 'active' : ''}`} onClick={() => setDisc(d)}>
+                {d === 'All disciplines' ? t('common.allDisciplines') : disciplineLabel(d, t)}
+              </button>
             ))}
           </div>
         </div>
@@ -128,21 +144,21 @@ export default function Resources() {
                 <h3 className="res-card-title">{r.title}</h3>
                 <p className="res-card-desc">{r.desc}</p>
                 <div className="res-card-tags">
-                  <span className="res-tag">{r.discipline}</span>
+                  <span className="res-tag">{disciplineLabel(r.discipline, t)}</span>
                   <span className="res-tag">{r.category}</span>
                 </div>
                 <div className="res-card-footer">
                   <a href={r.url || "#"} className="res-read-more" target="_blank" rel="noopener noreferrer">
-                    {r.type === 'Video' ? 'Watch →' : 'Read more →'}
+                    {r.type === 'Video' ? t('resources.watch') : t('resources.readMore')}
                   </a>
                 </div>
               </div>
             </div>
           ))}
         </div>
-        {filtered.length === 0 && <div className="res-empty">No resources found. Try a different filter.</div>}
+        {filtered.length === 0 && <div className="res-empty">{t('resources.empty')}</div>}
         <div style={{ textAlign: 'center', marginTop: '40px' }}>
-          <button className="btn-load-more">Load more resources</button>
+          <button className="btn-load-more">{t('resources.loadMore')}</button>
         </div>
       </div>
     </div>

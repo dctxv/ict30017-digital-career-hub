@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from '../i18n/useTranslation'
 import './Auth.css'
 
 export default function Login() {
+  const { t } = useTranslation()
   const [show, setShow] = useState(false)
   const [form, setForm] = useState({ email: '', password: '' })
   const [message, setMessage] = useState('')
@@ -19,7 +21,7 @@ export default function Login() {
   const handleLogin = async () => {
     setMessage('')
     if (!form.email || !form.password) {
-      setMessage('Email and password are required.')
+      setMessage(t('login.errors.missingFields'))
       return
     }
     try {
@@ -32,7 +34,7 @@ export default function Login() {
       })
       const data = await response.json()
       if (!response.ok) {
-        setMessage(data.error || 'Login failed.')
+        setMessage(data.error || t('login.errors.loginFailed'))
         return
       }
       // Records the session in context so the navbar updates immediately,
@@ -40,7 +42,7 @@ export default function Login() {
       login(data.user)
       navigate(location.state?.from ?? '/')
     } catch {
-      setMessage('Could not connect to server.')
+      setMessage(t('login.errors.networkError'))
     } finally {
       setLoading(false)
     }
@@ -51,9 +53,9 @@ export default function Login() {
       <Navbar />
       <div className="auth-bg">
         <div className="auth-card">
-          <div className="auth-brand">Digital Career Hub</div>
-          <h1 className="auth-title">Welcome back</h1>
-          <p className="auth-sub">Log in to your account to continue</p>
+          <div className="auth-brand">{t('auth.brand')}</div>
+          <h1 className="auth-title">{t('login.title')}</h1>
+          <p className="auth-sub">{t('login.subtitle')}</p>
 
           {/* Set by SessionWatcher when an expired session redirected here, so
               the user is told why they landed on the login page. */}
@@ -62,32 +64,32 @@ export default function Login() {
           )}
 
           <div className="form-group">
-            <label className="form-label">Email address</label>
+            <label className="form-label">{t('login.emailLabel')}</label>
             <input className="form-input" type="email" placeholder="you@example.com"
               value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
               onKeyDown={e => e.key === 'Enter' && handleLogin()} />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label">{t('login.passwordLabel')}</label>
             <div className="input-row">
               <input className="form-input" type={show ? 'text' : 'password'} placeholder="••••••••"
                 value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                 onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-              <button className="show-btn" onClick={() => setShow(s => !s)}>{show ? 'Hide' : 'Show'}</button>
+              <button className="show-btn" onClick={() => setShow(s => !s)}>{show ? t('auth.hide') : t('auth.show')}</button>
             </div>
             <div className="forgot-row">
-              <Link to="/forgot-password" className="link-green">Forgot password?</Link>
+              <Link to="/forgot-password" className="link-green">{t('login.forgotPassword')}</Link>
             </div>
           </div>
 
           {message && <p className="auth-sub" style={{ color: '#c0392b' }}>{message}</p>}
 
           <button className="btn-auth" onClick={handleLogin} disabled={loading}>
-            {loading ? 'Logging in…' : 'Log in'}
+            {loading ? t('login.submitting') : t('login.submit')}
           </button>
 
-          <div className="auth-divider"><span>or</span></div>
+          <div className="auth-divider"><span>{t('login.or')}</span></div>
 
           <button className="btn-google">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -96,16 +98,16 @@ export default function Login() {
               <path d="M3.51 9.52A4.8 4.8 0 013.26 8c0-.53.09-1.04.25-1.52V4.41H.85A8 8 0 000 8c0 1.29.31 2.51.85 3.59l2.66-2.07z" fill="#FBBC05"/>
               <path d="M8 3.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 00.85 4.41l2.66 2.07C4.14 4.59 5.91 3.18 8 3.18z" fill="#EA4335"/>
             </svg>
-            Continue with Google
+            {t('login.continueWithGoogle')}
           </button>
 
-          <p className="auth-switch">Don't have an account? <Link to="/register" className="link-green">Sign up</Link></p>
+          <p className="auth-switch">{t('login.noAccount')} <Link to="/register" className="link-green">{t('login.signUp')}</Link></p>
 
           <div className="auth-secure">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M6 1L2 3v3c0 2.21 1.71 4.28 4 4.77C8.29 10.28 10 8.21 10 6V3L6 1z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
             </svg>
-            Your data is protected with end-to-end encryption
+            {t('login.secureNotice')}
           </div>
         </div>
       </div>
