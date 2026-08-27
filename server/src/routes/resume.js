@@ -6,7 +6,8 @@ import { extractText } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
 import { resolveLanguage, translateMessage } from '../i18n/index.js';
 import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
-import { analyzeResume, analyzeResumeStream, getModel } from 'ai-service';
+import { analyzeResume, analyzeResumeStream, getModel, extractGapsFromReview } from 'ai-service';
+import { reconcileGaps } from '../services/gapStore.js';
 import pool from  '../db.js'; 
 import { optionalAuth, requireAuth, requireActiveAccount } from '../middleware/auth.js';
 import { attachReviewContext } from '../middleware/reviewContext.js';
@@ -83,6 +84,62 @@ async function saveReviewToDb({ userId, filename, jobAd, feedback, model, tier, 
     console.error('[resume] Failed to save review to database:', err.message);
     return null;
   }
+}
+
+/**
+ * Converts a finished review into the gaps behind it, after the user has their
+ * feedback.
+ *
+ * A review already tells someone what is wrong with their resume. What it does
+ * not do is say what they are missing for the role and how they close it, in a
+ * form that can be tracked from one week to the next — that is the preparation
+ * layer, and this is the review half of its input. The interview half emits the
+ * same structure from its own evaluation call.
+ *
+ * Three deliberate choices here.
+ *
+ * It is fired and not awaited. It is a second model call, and a user watching a
+ * spinner should not wait on work that is for the next time they visit their
+ * plan. Both call sites invoke it after the response has been written.
+ *
+ * It is skipped for guests. A gap is stored against a person across analyses,
+ * and there is no person to store it against — spending a call to produce
+ * something that cannot be kept would be worse than not offering it.
+ *
+ * It never throws into anything. Like saveReviewToDb, a failure is logged and
+ * swallowed: the user has already received their review, and there is no longer
+ * a response to fail.
+ */
+function extractGapsInBackground({ userId, feedback, jobAd, jobRole, context, language, tier }) {
+  if (!userId || userId === 'guest') return;
+
+  Promise.resolve()
+    .then(() => extractGapsFromReview(feedback, {
+      jobAd,
+      targetRole: jobRole ?? context?.targetRole,
+      candidateStage: context?.candidateStage,
+      language,
+      tier,
+    }))
+    .then((result) => {
+      if (!result.ok) {
+        console.warn(`[gaps] Extraction skipped for user ${userId}: ${result.code}`);
+        return null;
+      }
+      // Even an empty list is reconciled. A review that found nothing is exactly
+      // when the previous analysis's gaps should close, and skipping the write
+      // would leave a user who has fixed everything looking at a full board.
+      return reconcileGaps({
+        userId,
+        gaps: result.gaps,
+        source: result.source,
+        targetRole: jobRole ?? context?.targetRole ?? null,
+        language,
+      });
+    })
+    .catch((err) => {
+      console.error('[gaps] Background extraction failed:', err.message);
+    });
 }
 
 /**
@@ -271,12 +328,25 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
     });
 
     // Step 6 — Return structured feedback
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       filename: req.file.originalname,
       feedback: safeFeedback,
       reviewId,
     });
+
+    // Step 7 — Turn the review into gaps, after the user has their feedback.
+    extractGapsInBackground({
+      userId: req.user?.id,
+      feedback: safeFeedback,
+      jobAd,
+      jobRole,
+      context: resolveReviewContext(res),
+      language,
+      tier: resolveTier(res),
+    });
+
+    return undefined;
 
   } catch (err) {
     console.error('[resume] Error during analysis:', err);
@@ -393,6 +463,18 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
 
     writeFrame({ done: true, filename: req.file.originalname, feedback: safeFeedback, reviewId });
     res.end();
+
+    // The stream is closed, so this cannot delay anything the user is waiting
+    // for. See extractGapsInBackground.
+    extractGapsInBackground({
+      userId: req.user?.id,
+      feedback: safeFeedback,
+      jobAd,
+      jobRole,
+      context: resolveReviewContext(res),
+      language,
+      tier: resolveTier(res),
+    });
 
   } catch (err) {
     console.error('[resume-stream] Error during analysis:', err);

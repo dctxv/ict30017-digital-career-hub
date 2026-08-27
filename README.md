@@ -68,6 +68,8 @@ translation someone has edited through the admin dashboard.
 | `resumes`, `ai_reviews` | Resume review history, including the full redacted feedback |
 | `chat_conversations`, `chat_messages` | Chatbot transcripts for signed-in users |
 | `subscriptions` | Why an account holds its tier, and until when |
+| `user_gaps` | What each user is missing for the roles they target, and whether it is still open |
+| `mock_interviews` | Practice interviews: the questions, the answers and the assessment |
 | `audit_log` | Administrative writes to content, with before/after snapshots |
 | `schema_migrations` | Which migrations have been applied |
 
@@ -80,7 +82,13 @@ one and add it, rather than letting history accumulate indefinitely by default.
 
 **Review history stores the redacted feedback, never the resume text.** Uploads
 are deleted from disk after analysis, and storing the extracted text would undo
-that.
+that. A mock interview reads a resume the same way — in memory, deleted in the
+same request — and keeps only the questions it produced and the file's name.
+
+**Interview answers are the second most sensitive column here**, for the same
+reason chat transcripts are the first: they are free text about the user's own
+career. They are destroyed outright when an account is deleted rather than
+anonymised, and the retention question is as open for them as it is for chat.
 
 If you would rather run the SQL by hand, the files are in `server/migrations`
 and the order is the `ORDER` array at the top of `server/scripts/migrate.js`.
@@ -197,6 +205,70 @@ is the only thing `requireAuth` can check.
 **No payment gateway is connected.** Choosing or upgrading to Premium records
 the tier and the name of the instrument, takes no money, and stores no card or
 mobile number. The registration and upgrade screens both say so on the form.
+
+### Preparation and the mock interview
+
+`/preparation` is three tabs over `/api/preparation`. Signed-in only throughout,
+which is a different call from the resume review deliberately: a gap belongs to a
+person across analyses, and an anonymous interview would spend two model calls to
+produce something the tab closing throws away.
+
+| Route | Does |
+|---|---|
+| `GET /api/preparation/gaps` | Every gap held for the account, with resource links resolved |
+| `GET /api/preparation/summary` | The severity-weighted progress figure and what to do next |
+| `PATCH /api/preparation/gaps/:id` | Dismiss a gap, or bring a dismissed one back |
+| `POST /api/preparation/interviews` | Write five questions. Optional resume upload and job advertisement |
+| `POST /api/preparation/interviews/:id/answers` | Assess the transcript and update the board |
+| `GET /api/preparation/interviews`, `/interviews/:id` | Past interviews, and one in full |
+| `GET /api/preparation/quota` | Remaining mock interviews today |
+
+**Preparation is not a third feature.** It is the shared output layer of the
+other two. The resume review produces action items and the mock interview
+produces identified weaknesses; both convert into the same Gap record, so there
+is one board fed by two sources rather than two lists that never meet.
+
+**A Gap is keyed, not described.** The model returns `gap_key` from a constrained
+vocabulary — `skill:sql`, `evidence:work-experience`, `credential:ielts` — and
+ai-service normalises it before it is stored. That key is the whole reason the
+profile can show progress: free-text descriptions never match across two runs, so
+a store keyed on prose accumulates duplicates it can never close.
+
+**Three statuses, and the difference matters.** A gap opens on first detection,
+closes when a later analysis from the same source no longer finds it, and can be
+dismissed by the user. Dismissed is not closed: it leaves the progress figure
+entirely rather than counting towards it, so nobody improves their score by
+disagreeing with the analysis. Progress is weighted by severity for the matching
+reason — counted, three trivial fixes would outrank the qualification the job
+actually required.
+
+**Gap extraction from a review costs one extra model call**, fired after the
+response has been written so nothing the user is waiting for gets slower, and
+skipped entirely for guests. A mock interview is exactly two calls: one writes all
+five questions, one assesses the whole transcript. A turn-by-turn design would be
+twelve or more and would exhaust the free-tier daily cap inside a single client
+demonstration.
+
+**The model is never asked for a URL.** It has no browsing tool and would invent
+plausible ones. It returns a search term instead, which the server matches against
+the `resources` table — so every link on the board points at a row an admin
+curated, and a gap with no match shows its steps and no links.
+
+**Free accounts get two mock interviews a day** (`FREE_DAILY_INTERVIEW_LIMIT` in
+`server/src/middleware/interviewQuota.js`), claimed when the questions are written
+rather than when the answers are submitted, and refunded if generation fails. The
+allowance is lower than the review's because an interview is two calls, not one.
+
+**Not in this version, and deliberately:** voice or video, live coding, real-time
+follow-up questioning, and anything needing a maintained skills taxonomy or a
+curated role dataset.
+
+**Open questions for the client**, all three unanswered as this ships: whether gap
+history should be visible to admins or to the user only; whether a dismissal
+should be permanent (it is reversible here, because the reversible version is the
+one that can be made permanent later without anyone losing anything); and whether
+a pasted job advertisement is retained indefinitely or purged after analysis. The
+last is a privacy question and should be answered before launch rather than after.
 
 ### Troubleshooting
 

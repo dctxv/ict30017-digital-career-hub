@@ -39,6 +39,8 @@ const REQUIRED_TABLES = [
   'chat_messages',
   'subscriptions',
   'audit_log',
+  'user_gaps',
+  'mock_interviews',
 ];
 
 /** Columns added by add_bilingual_content.sql and add_user_profile_fields.sql. */
@@ -52,6 +54,12 @@ const REQUIRED_COLUMNS = [
   ['users', 'discipline'],
   ['users', 'last_login_at'],
   ['users', 'updated_at'],
+  // create_preparation_tables.sql. Listed with the columns rather than with the
+  // tables above because the failure looks like theirs: the interview quota
+  // check reads these on every attempt, so a database behind the code refuses
+  // every interview with a column error instead of quietly not recording one.
+  ['users', 'mock_interview_count'],
+  ['users', 'mock_interview_reset_date'],
 ];
 
 // Named rather than listed one by one: the runner knows the full order, and a

@@ -107,6 +107,30 @@ export const BANGLA_MESSAGES = {
   'Invalid alumni id.': 'অ্যালামনাই আইডিটি সঠিক নয়।',
   'Alumni profile not found.': 'অ্যালামনাই প্রোফাইলটি পাওয়া যায়নি।',
   'Alumni profile deleted.': 'অ্যালামনাই প্রোফাইলটি মুছে ফেলা হয়েছে।',
+
+  /* ── Mock interview and preparation ──────────────────────── */
+  'Too many preparation requests. Please try again in an hour.':
+    'অনেক বেশি অনুরোধ এসেছে। এক ঘণ্টা পরে আবার চেষ্টা করুন।',
+  'Could not read your interview allowance.': 'আপনার ইন্টারভিউ কোটা পড়া যায়নি।',
+  'Could not verify your interview allowance.': 'আপনার ইন্টারভিউ কোটা যাচাই করা যায়নি।',
+  'Could not load your preparation plan.': 'আপনার প্রস্তুতি পরিকল্পনা লোড করা যায়নি।',
+  'Could not load your progress.': 'আপনার অগ্রগতি লোড করা যায়নি।',
+  'Invalid gap id.': 'গ্যাপের আইডিটি সঠিক নয়।',
+  'Gap not found.': 'গ্যাপটি পাওয়া যায়নি।',
+  'A gap can only be dismissed or restored.':
+    'একটি গ্যাপ কেবল বাতিল করা বা ফিরিয়ে আনা যায়।',
+  'Could not update that gap.': 'গ্যাপটি হালনাগাদ করা যায়নি।',
+  'Invalid interview id.': 'ইন্টারভিউয়ের আইডিটি সঠিক নয়।',
+  'Interview not found.': 'ইন্টারভিউটি পাওয়া যায়নি।',
+  'Could not start the interview.': 'ইন্টারভিউ শুরু করা যায়নি।',
+  'Answers are required.': 'উত্তর দিতে হবে।',
+  'Answer at least one question before submitting.':
+    'জমা দেওয়ার আগে অন্তত একটি প্রশ্নের উত্তর দিন।',
+  'This interview has already been assessed.':
+    'এই ইন্টারভিউটির মূল্যায়ন আগেই হয়ে গেছে।',
+  'Could not assess this interview.': 'এই ইন্টারভিউটির মূল্যায়ন করা যায়নি।',
+  'Could not load your interview history.': 'আপনার ইন্টারভিউয়ের ইতিহাস লোড করা যায়নি।',
+  'Could not load that interview.': 'ইন্টারভিউটি লোড করা যায়নি।',
 };
 
 /**
@@ -129,6 +153,13 @@ export const BANGLA_PATTERNS = [
     match: /^You have used all (\d+) of your free resume reviews for today\. Your allowance resets tomorrow\.$/,
     build: ([, count]) =>
       `আপনি আজকের ${toBengaliDigits(count)}টি ফ্রি রিজিউমে রিভিউই ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।`,
+  },
+  {
+    // Worded to match the review rejection above, so the two limits read the
+    // same way to a user who hits both.
+    match: /^You have used all (\d+) of your free mock interviews for today\. Your allowance resets tomorrow\.$/,
+    build: ([, count]) =>
+      `আপনি আজকের ${toBengaliDigits(count)}টি ফ্রি মক ইন্টারভিউই ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।`,
   },
 ];
 

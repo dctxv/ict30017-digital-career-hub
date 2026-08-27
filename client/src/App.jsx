@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
 import ResumeReview from './pages/ResumeReview'
+import Preparation from './pages/Preparation'
 import SavedReview from './pages/SavedReview'
 import Resources from './pages/Resources'
 import Alumni from './pages/Alumni'
@@ -59,6 +60,13 @@ export default function App() {
                   trusting the cached user. */}
               <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
               <Route path="/review/:id" element={<RequireAuth><SavedReview /></RequireAuth>} />
+
+              {/* Preparation is guarded for a different reason than the two
+                  above. Nothing on it is secret; it is that a gap is stored
+                  against a person across analyses, so an anonymous visitor
+                  would spend two model calls on an interview whose results
+                  cannot be kept once the tab closes. */}
+              <Route path="/preparation" element={<RequireAuth><Preparation /></RequireAuth>} />
 
               <Route
                 path="/admin"

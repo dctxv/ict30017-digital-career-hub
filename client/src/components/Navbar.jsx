@@ -36,6 +36,13 @@ export default function Navbar() {
     { key: 'nav.resumeReview', to: '/resume-review' },
   ]
 
+  // The gap board and the mock interview both belong to one account, so the
+  // link is shown to people who have one. A guest is not told about a page that
+  // would bounce them straight to the login form.
+  if (isAuthenticated) {
+    links.push({ key: 'nav.preparation', to: '/preparation' })
+  }
+
   // Administrators previously had to type /admin by hand, because nothing in
   // the interface linked to it. Shown only to the role that can use it.
   if (isAuthenticated && user?.role === 'admin') {

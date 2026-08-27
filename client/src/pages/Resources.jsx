@@ -21,7 +21,13 @@ export default function Resources() {
   const [disc, setDisc] = useState(
     () => localStorage.getItem('selectedDiscipline') || 'All disciplines'
   )
-  const [query, setQuery] = useState('')
+  // Seeded from a preparation gap. A remediation step names a subject to learn,
+  // and this is where the user lands with that subject already searched for —
+  // read in the initialiser for the same reason the discipline is, so the filter
+  // is applied on the first render rather than after a second one.
+  const [query, setQuery] = useState(
+    () => localStorage.getItem('selectedResourceQuery') || ''
+  )
   const [visible, setVisible] = useState(PAGE_SIZE)
 
   // Narrowing the list while page three is showing would leave the user looking
@@ -83,12 +89,21 @@ export default function Resources() {
   useEffect(() => {
     localStorage.removeItem('selectedDiscipline')
     localStorage.removeItem('selectedCareer')
+    localStorage.removeItem('selectedResourceQuery')
   }, [])
 
   const filtered = useMemo(() => resources.filter(r => {
     const matchCat = cat === 'All' || r.category === cat
     const matchDisc = disc === 'All disciplines' || r.discipline === disc || r.discipline === 'All disciplines'
-    const matchQuery = !query || r.title.toLowerCase().includes(query.trim().toLowerCase())
+    // Title and description both. A title-only match was adequate while every
+    // search was typed by hand, and stopped being adequate once a preparation
+    // gap could hand a subject over — "sql" is far likelier to appear in the
+    // blurb than in the heading, and an empty list reads as a broken link
+    // rather than as a narrow search.
+    const needle = query.trim().toLowerCase()
+    const matchQuery = !needle
+      || r.title.toLowerCase().includes(needle)
+      || (r.desc ?? '').toLowerCase().includes(needle)
     return matchCat && matchDisc && matchQuery
   }), [resources, cat, disc, query])
 

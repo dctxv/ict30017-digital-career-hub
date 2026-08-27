@@ -278,7 +278,7 @@ router.post('/me/password', reauthLimiter, async (req, res) => {
  */
 router.get('/me/export', async (req, res) => {
   try {
-    const [profile, subscriptions, reviews, usage] = await Promise.all([
+    const [profile, subscriptions, reviews, usage, gaps, interviews] = await Promise.all([
       readProfile(req.user.id),
       pool.query(
         `SELECT tier, status, source, payment_method, started_at, expires_at,
@@ -299,8 +299,26 @@ router.get('/me/export', async (req, res) => {
       ),
       pool.query(
         `SELECT resume_review_count, resume_review_reset_date,
-                chat_message_count, chat_count_reset_date
+                chat_message_count, chat_count_reset_date,
+                mock_interview_count, mock_interview_reset_date
            FROM users WHERE user_id = $1`,
+        [req.user.id]
+      ),
+      pool.query(
+        `SELECT gap_key, source, category, description, severity, closeable,
+                remediation, status, target_role, language,
+                first_seen, last_seen, closed_at, dismissed_at
+           FROM user_gaps WHERE user_id = $1 ORDER BY first_seen DESC`,
+        [req.user.id]
+      ),
+      // The transcript in full. The answers are the user's own words about their
+      // own career, which makes them the most personal thing this export
+      // carries and the clearest thing they are entitled to a copy of.
+      pool.query(
+        `SELECT interview_id, tier_level, target_role, candidate_stage,
+                resume_file_name, job_ad_text, questions, answers, evaluation,
+                overall_score, status, model, tier, language, created_at, completed_at
+           FROM mock_interviews WHERE user_id = $1 ORDER BY created_at DESC`,
         [req.user.id]
       ),
     ]);
@@ -315,6 +333,8 @@ router.get('/me/export', async (req, res) => {
       profile,
       subscriptions: subscriptions.rows,
       reviews: reviews.rows,
+      gaps: gaps.rows,
+      mock_interviews: interviews.rows,
       usage_today: usage.rows[0] ?? null,
     });
   } catch (err) {
@@ -403,6 +423,22 @@ router.delete('/me', reauthLimiter, async (req, res) => {
     } catch (err) {
       if (err.code !== '42P01') throw err;
       console.warn('[users] Chat history tables absent; nothing to delete there.');
+    }
+
+    // Preparation is the newest schema, so a database that has not run
+    // create_preparation_tables.sql must still be able to honour a deletion —
+    // same allowance, same reasoning, as the chat tables above.
+    //
+    // Interview answers are destroyed outright rather than anonymised, for the
+    // reason the chat migration gives about transcripts: an anonymised account
+    // of somebody's weakest interview answers is still an account of somebody's
+    // weakest interview answers.
+    try {
+      await client.query('DELETE FROM mock_interviews WHERE user_id = $1', [req.user.id]);
+      await client.query('DELETE FROM user_gaps WHERE user_id = $1', [req.user.id]);
+    } catch (err) {
+      if (err.code !== '42P01') throw err;
+      console.warn('[users] Preparation tables absent; nothing to delete there.');
     }
 
     await client.query(

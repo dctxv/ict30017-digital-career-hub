@@ -32,6 +32,7 @@ export default {
   'nav.careers': 'Career paths',
   'nav.alumni': 'Alumni',
   'nav.resumeReview': 'Resume review',
+  'nav.preparation': 'Preparation',
   'nav.admin': 'Admin',
   'nav.account': 'Account',
   'nav.logIn': 'Log in',
@@ -548,6 +549,7 @@ export default {
   'results.inferredIndustryValue': 'Industry: {value}',
   'results.relatedResources': 'Related resources',
   'results.askChatbot': 'Ask the career chatbot',
+  'results.buildPlan': 'Build my preparation plan',
 
   /* ── Account area ────────────────────────────────────────────── */
   'profile.title': 'Account',
@@ -611,6 +613,8 @@ export default {
   'profile.historyTitle': 'Past reviews',
   'profile.historySub': 'Every analysis run on this account. Open one to read it in full.',
   'profile.openReview': 'Open',
+  'profile.gapSummary': '{closed} closed, {open} still open across every analysis you have run.',
+  'profile.openPlan': 'Open my preparation plan',
   'profile.noHistory': 'You have not run a resume review yet.',
   'profile.loadingReview': 'Loading your review…',
   'profile.reviewLoadFailed': 'Could not load that review.',
@@ -700,4 +704,143 @@ export default {
   'auth.resetDone': 'Password updated. Taking you to the login page…',
   'auth.needAnotherLink': 'Token expired?',
   'auth.requestAgain': 'Request another',
+
+  /* ── Preparation: the gap board and the mock interview ───────── */
+
+  'prep.title': 'Preparation',
+  'prep.sub': 'What is missing for the roles you are going for, how to close it, and a practice interview to test whether you have.',
+
+  'prep.tabPlan': 'My plan',
+  'prep.tabInterview': 'Mock interview',
+  'prep.tabHistory': 'Past interviews',
+
+  'prep.loading': 'Loading…',
+  'prep.loadFailed': 'Could not load your preparation plan.',
+  'prep.updateFailed': 'Could not update that gap.',
+
+  'prep.progressLabel': 'Gaps closed',
+  'prep.progressWeighted': 'Weighted by how much each gap was holding you back, so one blocking gap counts for more than three small ones.',
+  'prep.status.open': 'Open',
+  'prep.status.closed': 'Closed',
+  'prep.status.dismissed': 'Dismissed',
+  'prep.allCategories': 'All types',
+  'prep.showing': 'Showing {shown} of {total}',
+  'prep.noneInFilter': 'Nothing matches those filters.',
+
+  'prep.nextUp': 'Start here',
+  'prep.practiseThis': 'Practise in a mock interview',
+
+  'prep.category.skill': 'Skill',
+  'prep.category.credential': 'Qualification',
+  'prep.category.evidence': 'Evidence',
+  'prep.category.experience': 'Experience',
+
+  'prep.severity.blocking': 'Blocking',
+  'prep.severity.significant': 'Significant',
+  'prep.severity.minor': 'Minor',
+
+  'prep.closeable.now': 'Can be done now',
+  'prep.closeable.months': 'Takes a few months',
+  'prep.closeable.not_short_term': 'Not a short-term fix',
+
+  'prep.closedOn': 'Closed {date}',
+  'prep.howToClose': 'How to close it',
+  'prep.effort': 'Roughly {effort}',
+  'prep.competitiveNow': 'Competitive for now:',
+  'prep.learnFrom': 'Where to learn it',
+  'prep.browseResources': 'More on {query}',
+
+  'prep.source.resume': 'From your resume review',
+  'prep.source.role_comparison': 'From a job advertisement you supplied',
+  'prep.source.interview': 'From a mock interview',
+  'prep.firstSeen': 'first found {date}',
+
+  'prep.dismiss': 'Not relevant to me',
+  'prep.restore': 'Put it back',
+  'prep.dismissedNote': 'Dismissed gaps stay off your progress figure. Closing one by actually fixing it is what counts.',
+  'prep.writtenIn.en': 'Written in English, when your last analysis was run in English.',
+  'prep.writtenIn.bn': 'Written in Bangla, when your last analysis was run in Bangla.',
+
+  'prep.emptyTitle': 'Nothing on your plan yet',
+  'prep.emptyBody': 'Run a resume review and your gaps appear here with the steps to close each one. A mock interview adds the ones your answers reveal.',
+  'prep.emptyReview': 'Review my resume',
+  'prep.emptyInterview': 'Try a mock interview',
+
+  /* Tier copy. Every line states what an input gains, never what its absence
+     costs — same information, and one of them does not tell the user off
+     before they have started. */
+  'prep.tier1Title': 'Questions for the role',
+  'prep.tier1Body': 'Five questions a candidate for this role should expect, and a full assessment of your answers.',
+  'prep.tier1Nudge': 'Add your resume for questions based on your actual experience.',
+  'prep.tier1Short': 'Role only',
+  'prep.tier2Title': 'Questions from your own experience',
+  'prep.tier2Body': 'Grounded in what your resume actually contains, so you are asked about work you have really done.',
+  'prep.tier2Nudge': 'Paste a job advertisement to match the questions to the role you are applying for.',
+  'prep.tier2Short': 'With resume',
+  'prep.tier3Title': 'Targeted at this job',
+  'prep.tier3Body': 'Your resume against this advertisement, so the questions and the gap analysis are a real comparison rather than an estimate.',
+  'prep.tier3Short': 'Resume and job ad',
+  'prep.willTargetGap': 'One question will target a gap already on your plan. You have {count} open.',
+
+  'prep.setupTitle': 'Set up your interview',
+  'prep.setupSub': 'Everything below is optional. The more you add, the closer the questions get to the job you are actually applying for.',
+  'prep.roleLabel': 'Role you are preparing for',
+  'prep.rolePlaceholder': 'e.g. Management Trainee, Retail Banking',
+  'prep.resumeLabel': 'Your resume',
+  'prep.resumeCta': 'Add a PDF or DOCX',
+  'prep.resumeNotStored': 'Read once to write your questions, then deleted. The text is never stored.',
+  'prep.jobAdLabel': 'Job advertisement',
+  'prep.jobAdPlaceholder': 'Paste the advertisement here — English, Bangla or a mix of both is fine…',
+  'prep.jobAdHint': 'Paste only the advertisement itself. Site navigation and application instructions take up space that could hold the requirements.',
+  'prep.charCount': '{used} of {max} characters',
+
+  'prep.quotaFallback': 'Free plan',
+  'prep.quotaUnlimited': 'Premium plan — unlimited mock interviews',
+  'prep.quotaExhausted': 'Free plan — no mock interviews left today. Your allowance resets tomorrow.',
+  'prep.quotaRemainingOne': 'Free plan — {remaining} of {limit} mock interview remaining today',
+  'prep.quotaRemainingMany': 'Free plan — {remaining} of {limit} mock interviews remaining today',
+
+  'prep.start': 'Start the interview',
+  'prep.starting': 'Writing your questions…',
+  'prep.startFailed': 'Could not start the interview.',
+
+  'prep.howItWorks': 'How it works',
+  'prep.how1': 'Five questions are written for you in one go — two about how you have handled real situations, two about the work itself, and one aimed at a gap already on your plan.',
+  'prep.how2': 'Answer them in your own time. Nothing is timed, and you can leave and come back.',
+  'prep.how3': 'The whole set is assessed together, and whatever your answers reveal is added to your plan.',
+  'prep.textOnly': 'Typed questions and typed answers. There is no voice or video in this version.',
+
+  'prep.interviewGeneric': 'Practice interview',
+  'prep.answeredCount': '{answered} of {total} answered',
+  'prep.kind.behavioural': 'Behavioural',
+  'prep.kind.role_specific': 'Role-specific',
+  'prep.kind.gap_targeted': 'From your plan',
+  'prep.fromYourPlan': 'Targets a gap on your plan',
+  'prep.answerPlaceholder': 'Answer as you would out loud. Name the situation, what you did, and how it ended.',
+  'prep.submitAnswers': 'Submit for assessment',
+  'prep.assessing': 'Assessing your answers…',
+  'prep.assessFailed': 'Could not assess this interview. Your answers have been kept.',
+  'prep.partialWarning': 'Unanswered questions are assessed as unanswered. You can finish them first.',
+  'prep.submitNote': 'Assessed once, all five together.',
+
+  'prep.band.low': 'Needs work',
+  'prep.band.mid': 'Getting there',
+  'prep.band.high': 'Interview-ready',
+  'prep.resultsTitle': 'How it went',
+  'prep.improvements': 'What to change',
+  'prep.strongerAnswer': 'A stronger answer would',
+
+  'prep.gapsFoundTitle': 'Added to your plan',
+  'prep.gapsFoundSub': '{count} gap(s) came out of these answers and are now on your plan alongside the ones from your resume.',
+  'prep.gapsFoundNone': 'Nothing new came out of these answers. Everything your answers touched is either solid or already on your plan.',
+  'prep.openPlan': 'Open my plan',
+  'prep.newInterview': 'New interview',
+
+  'prep.historyTitle': 'Past interviews',
+  'prep.historySub': 'Open a finished one to read the assessment again, or pick up one you left unanswered.',
+  'prep.noInterviews': 'You have not run a mock interview yet.',
+  'prep.withJobAd': 'against a job ad',
+  'prep.unfinished': 'Unfinished',
+  'prep.openInterview': 'Open',
+  'prep.resume': 'Continue',
 }

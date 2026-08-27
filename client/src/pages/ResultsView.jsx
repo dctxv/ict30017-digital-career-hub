@@ -19,6 +19,7 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import {
   FileText, FileSearch, RotateCcw, Download, Maximize2, X, Upload,
   BookOpen, MessageCircle, Lightbulb, ArrowRight, TriangleAlert, ChevronDown, ChevronUp,
+  Target,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
@@ -651,6 +652,15 @@ export default function ResultsView({
                 <Upload size={16} />
                 {t('results.uploadNew')}
               </button>
+              {/* The review found what is wrong with the document. The plan is
+                  where that becomes what to close and in what order, and where
+                  a mock interview can aim a question at one of these gaps.
+                  Extraction runs server side after the review is saved, so by
+                  the time anyone follows this link the board is already there. */}
+              <Link to="/preparation" className="btn btn--outline rv-next__btn">
+                <Target size={16} />
+                {t('results.buildPlan')}
+              </Link>
               <Link to="/resources" className="btn btn--outline rv-next__btn">
                 <BookOpen size={16} />
                 {t('results.relatedResources')}

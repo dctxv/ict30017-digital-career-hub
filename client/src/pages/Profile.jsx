@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   User, Gauge, History, Lock, Shield, ChevronDown, CheckCircle2, ShieldAlert,
-  FileText, Download, ShieldCheck,
+  FileText, Download, ShieldCheck, Target,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import ConfirmPasswordDialog from '../components/ConfirmPasswordDialog'
@@ -14,6 +14,7 @@ import {
   deleteAccount, fetchSubscription, fetchReviewHistory, fetchReviewQuota, fetchChatQuota,
   upgradePlan, cancelPlan,
 } from '../api/account'
+import { fetchGapSummary } from '../api/preparation'
 import './Profile.css'
 
 const TABS = [
@@ -79,6 +80,7 @@ export default function Profile() {
   const [history, setHistory] = useState([])
   const [reviewQuota, setReviewQuota] = useState(null)
   const [chatQuota, setChatQuota] = useState(null)
+  const [gapSummary, setGapSummary] = useState(null)
 
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
@@ -106,6 +108,9 @@ export default function Profile() {
     fetchReviewHistory()
       .then(rows => setHistory(Array.isArray(rows) ? rows : []))
       .catch(() => setHistory([]))
+    // The headline only, not the gaps themselves — this page renders one bar
+    // and has no use for eight remediation plans to do it.
+    fetchGapSummary().then(setGapSummary).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -539,6 +544,42 @@ export default function Profile() {
 
           {tab === 'history' && (
             <>
+              {/* A score history is a number over time and says nothing about
+                  what changed. The gap board is where a specific thing was
+                  found and later closed, so the headline sits here beside the
+                  scores rather than only on its own page. Rendered only once
+                  there is something to report — an empty progress bar on an
+                  account with no analyses would be a claim about nothing. */}
+              {gapSummary?.total > 0 && (
+                <div className="card card--tinted pf-gap-progress">
+                  <div className="pf-gap-progress__head">
+                    <div>
+                      <p className="card__title">{t('prep.progressLabel')}</p>
+                      <p className="card__sub">
+                        {t('profile.gapSummary', {
+                          closed: n(gapSummary.closed),
+                          open: n(gapSummary.open),
+                        })}
+                      </p>
+                    </div>
+                    <span className="pf-gap-progress__figure">{n(gapSummary.percent)}%</span>
+                  </div>
+
+                  <div className="usage__track">
+                    <span className="usage__fill" style={{ width: `${gapSummary.percent}%` }} />
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn--outline btn--sm pf-gap-progress__cta"
+                    onClick={() => navigate('/preparation')}
+                  >
+                    <Target size={15} />
+                    {t('profile.openPlan')}
+                  </button>
+                </div>
+              )}
+
               <div className="card">
                 <p className="card__title">{t('profile.trendTitle')}</p>
                 <p className="card__sub">

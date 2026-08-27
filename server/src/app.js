@@ -66,6 +66,7 @@ import careerPathsRoutes from './routes/careerPaths.js';
 import resourcesRoutes from './routes/resources.js';
 import alumniRoutes from './routes/alumni.js';
 import usersRouter from './routes/users.js';
+import preparationRouter from './routes/preparation.js';
 
 app.use('/api/resume', resumeRouter);
 app.use('/api/auth', authRouter);
@@ -77,6 +78,9 @@ app.use('/api/alumni', alumniRoutes);
 // Everything an account holder can do to their own account. Scoped to the
 // session throughout: no route here takes a user id from the caller.
 app.use('/api/users', usersRouter);
+// The gap board and the mock interview. Signed-in only throughout: a gap
+// belongs to a person across analyses, and a guest has nothing to attach one to.
+app.use('/api/preparation', preparationRouter);
 
 // Error handler
 app.use((err, req, res, next) => {
