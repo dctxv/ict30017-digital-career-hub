@@ -10,6 +10,7 @@ import Resources from './pages/Resources'
 import Alumni from './pages/Alumni'
 import CareerPaths from './pages/CareerPaths'
 import AdminDashboard from './pages/AdminDashboard'
+import Policy from './pages/Policy'
 import NotFound from './pages/NotFound'
 import ChatbotWidget from './components/ChatbotWidget'
 import RequireAuth from './components/RequireAuth'
@@ -39,6 +40,11 @@ export default function App() {
               <Route path="/resources" element={<Resources />} />
               <Route path="/alumni" element={<Alumni />} />
               <Route path="/careers" element={<CareerPaths />} />
+
+              {/* Registration requires agreeing to both of these, and both
+                  links pointed at nothing until now. */}
+              <Route path="/terms" element={<Policy kind="terms" />} />
+              <Route path="/privacy" element={<Policy kind="privacy" />} />
 
               {/* The account area and saved reviews belong to one person, so
                   both wait for the server to confirm the session rather than

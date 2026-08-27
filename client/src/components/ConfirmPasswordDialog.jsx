@@ -45,9 +45,10 @@ export default function ConfirmPasswordDialog({
         <h2 className="confirm__title" id="confirm-title">{t('profile.confirmTitle')}</h2>
         <p className="confirm__message">{message}</p>
 
-        <label className="field">
-          <span className="field__label">{t('profile.currentPassword')}</span>
+        <div className="field">
+          <label className="field__label" htmlFor="confirm-password">{t('profile.currentPassword')}</label>
           <input
+            id="confirm-password"
             ref={inputRef}
             className="input"
             type="password"
@@ -56,7 +57,7 @@ export default function ConfirmPasswordDialog({
             value={password}
             onChange={event => setPassword(event.target.value)}
           />
-        </label>
+        </div>
 
         <div className="confirm__actions">
           <button type="button" className="btn btn--outline" onClick={onCancel} disabled={busy}>

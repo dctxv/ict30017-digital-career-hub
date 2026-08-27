@@ -225,8 +225,8 @@ function UploadView({
             <p className="card__sub">{t('review.contextHint')}</p>
             <div className="field-grid">
               {CONTEXT_FIELDS.map(([key, labelKey, options]) => (
-                <label className="field" key={key} htmlFor={`ctx-${key}`}>
-                  <span className="field__label">{t(labelKey)}</span>
+                <div className="field" key={key}>
+                  <label className="field__label" htmlFor={`ctx-${key}`}>{t(labelKey)}</label>
                   <span className="select-wrap">
                     <select
                       id={`ctx-${key}`}
@@ -240,7 +240,7 @@ function UploadView({
                     </select>
                     <ChevronDown size={16} className="select-wrap__chevron" />
                   </span>
-                </label>
+                </div>
               ))}
             </div>
           </div>
@@ -260,29 +260,29 @@ function UploadView({
 
             {enhanceOpen && (
               <div className="rr-enhance__fields">
-                <label className="field">
-                  <span className="field__label">
+                <div className="field">
+                  <label className="field__label" htmlFor="rr-job-role">
                     {t('review.jobRoleLabel')} <span className="optional">{t('common.optional')}</span>
-                  </span>
-                  <input
+                  </label>
+                  <input id="rr-job-role"
                     className="input"
                     placeholder={t('review.jobRolePlaceholder')}
                     value={jobRole}
                     onChange={event => setJobRole(event.target.value)}
                   />
-                </label>
-                <label className="field">
-                  <span className="field__label">
+                </div>
+                <div className="field">
+                  <label className="field__label" htmlFor="rr-job-ad">
                     {t('review.jobAdLabel')} <span className="optional">{t('review.jobAdOptional')}</span>
-                  </span>
-                  <textarea
+                  </label>
+                  <textarea id="rr-job-ad"
                     className="textarea"
                     rows={4}
                     placeholder={t('review.jobAdPlaceholder')}
                     value={jobAd}
                     onChange={event => setJobAd(event.target.value)}
                   />
-                </label>
+                </div>
               </div>
             )}
           </div>

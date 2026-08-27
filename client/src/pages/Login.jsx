@@ -74,9 +74,14 @@ export default function Login() {
           {notice && <p className="notice notice--warn auth__message" role="status">{notice}</p>}
           {message && <p className="notice notice--error auth__message" role="alert">{message}</p>}
 
-          <label className="field">
-            <span className="field__label">{t('auth.emailLabel')}</span>
+          {/* The label wraps the caption only, never the control and its
+              neighbours. A <label> around the input, the reveal button and the
+              hint makes all three the field's accessible name, so a screen
+              reader announces "Password Show At least 12 characters". */}
+          <div className="field">
+            <label className="field__label" htmlFor="login-email">{t('auth.emailLabel')}</label>
             <input
+              id="login-email"
               className="input"
               type="email"
               autoComplete="email"
@@ -84,12 +89,13 @@ export default function Login() {
               value={form.email}
               onChange={event => setForm(f => ({ ...f, email: event.target.value }))}
             />
-          </label>
+          </div>
 
-          <label className="field">
-            <span className="field__label">{t('auth.passwordLabel')}</span>
+          <div className="field">
+            <label className="field__label" htmlFor="login-password">{t('auth.passwordLabel')}</label>
             <span className="auth__password">
               <input
+                id="login-password"
                 className="input"
                 type={show ? 'text' : 'password'}
                 autoComplete="current-password"
@@ -101,7 +107,7 @@ export default function Login() {
                 {show ? t('common.hide') : t('common.show')}
               </button>
             </span>
-          </label>
+          </div>
 
           <p className="auth__forgot">
             <Link to="/forgot-password">{t('auth.forgotPassword')}</Link>

@@ -239,20 +239,22 @@ export default function Register() {
 
           {step === 'details' && (
             <form onSubmit={goToPlan}>
-              <label className="field">
-                <span className="field__label">{t('auth.fullNameLabel')}</span>
+              <div className="field">
+                <label className="field__label" htmlFor="reg-full-name">{t('auth.fullNameLabel')}</label>
                 <input
+                  id="reg-full-name"
                   className="input"
                   autoComplete="name"
                   placeholder={t('auth.fullNamePlaceholder')}
                   value={form.fullName}
                   onChange={set('fullName')}
                 />
-              </label>
+              </div>
 
-              <label className="field">
-                <span className="field__label">{t('auth.emailLabel')}</span>
+              <div className="field">
+                <label className="field__label" htmlFor="reg-email">{t('auth.emailLabel')}</label>
                 <input
+                  id="reg-email"
                   className="input"
                   type="email"
                   autoComplete="email"
@@ -260,12 +262,14 @@ export default function Register() {
                   value={form.email}
                   onChange={set('email')}
                 />
-              </label>
+              </div>
 
-              <label className="field">
-                <span className="field__label">{t('auth.passwordLabel')}</span>
+              <div className="field">
+                <label className="field__label" htmlFor="reg-password">{t('auth.passwordLabel')}</label>
                 <span className="auth__password">
                   <input
+                    id="reg-password"
+                    aria-describedby="reg-password-hint"
                     className="input"
                     type={show ? 'text' : 'password'}
                     autoComplete="new-password"
@@ -280,12 +284,18 @@ export default function Register() {
                 {/* Stated before it can be got wrong. The server rejects a short
                     password with a message, but finding out after submitting is
                     a wasted round trip and a retyped form. */}
-                <span className="field__hint">{t('auth.passwordHint', { min: n(PASSWORD_MIN_LENGTH) })}</span>
-              </label>
+                {/* Referenced by aria-describedby rather than nested inside
+                    the label, so it is announced as a description of the
+                    field and not as part of the field's name. */}
+                <span className="field__hint" id="reg-password-hint">
+                  {t('auth.passwordHint', { min: n(PASSWORD_MIN_LENGTH) })}
+                </span>
+              </div>
 
-              <label className="field">
-                <span className="field__label">{t('auth.confirmPasswordLabel')}</span>
+              <div className="field">
+                <label className="field__label" htmlFor="reg-confirm">{t('auth.confirmPasswordLabel')}</label>
                 <input
+                  id="reg-confirm"
                   className="input"
                   type={show ? 'text' : 'password'}
                   autoComplete="new-password"
@@ -293,14 +303,14 @@ export default function Register() {
                   value={form.confirmPassword}
                   onChange={set('confirmPassword')}
                 />
-              </label>
+              </div>
 
-              <label className="field">
-                <span className="field__label">
+              <div className="field">
+                <label className="field__label" htmlFor="reg-discipline">
                   {t('auth.disciplineLabel')} <span className="optional">{t('common.optional')}</span>
-                </span>
+                </label>
                 <span className="select-wrap">
-                  <select className="select" value={form.discipline} onChange={set('discipline')}>
+                  <select id="reg-discipline" className="select" value={form.discipline} onChange={set('discipline')}>
                     <option value="">{t('auth.disciplinePlaceholder')}</option>
                     {/* value is the English name, which is the key every content
                         table stores; the label follows the language toggle. */}
@@ -310,52 +320,57 @@ export default function Register() {
                   </select>
                   <ChevronDown size={16} className="select-wrap__chevron" />
                 </span>
-              </label>
+              </div>
 
               <div className="field-grid">
-                <label className="field">
-                  <span className="field__label">
+                <div className="field">
+                  <label className="field__label" htmlFor="reg-year">
                     {t('auth.graduationYearLabel')} <span className="optional">{t('common.optional')}</span>
-                  </span>
+                  </label>
                   <input
+                    id="reg-year"
                     className="input"
                     inputMode="numeric"
                     placeholder={t('auth.graduationYearPlaceholder')}
                     value={form.graduationYear}
                     onChange={set('graduationYear')}
                   />
-                </label>
+                </div>
 
-                <label className="field">
-                  <span className="field__label">
+                <div className="field">
+                  <label className="field__label" htmlFor="reg-institution">
                     {t('auth.institutionLabel')} <span className="optional">{t('common.optional')}</span>
-                  </span>
+                  </label>
                   <input
+                    id="reg-institution"
                     className="input"
                     placeholder={t('auth.institutionPlaceholder')}
                     value={form.institution}
                     onChange={set('institution')}
                   />
-                </label>
+                </div>
               </div>
 
-              <button
-                type="button"
-                className="auth__agree"
-                onClick={() => setAgreed(value => !value)}
-                role="checkbox"
-                aria-checked={agreed}
-              >
-                <span className={`auth__checkbox${agreed ? ' auth__checkbox--on' : ''}`}>
-                  <Check size={13} />
-                </span>
-                <span>
+              {/* A real checkbox with the links beside it rather than inside
+                  it. As a <button> wrapping the caption, a click landing on
+                  either link navigated away from the half-filled form, and the
+                  control announced itself as the whole sentence instead of as a
+                  state. */}
+              <div className="auth__agree">
+                <input
+                  id="reg-agree"
+                  type="checkbox"
+                  className="auth__checkbox"
+                  checked={agreed}
+                  onChange={event => setAgreed(event.target.checked)}
+                />
+                <label htmlFor="reg-agree">
                   {t('auth.agreePrefix')}{' '}
                   <Link to="/terms">{t('auth.termsOfService')}</Link>{' '}
                   {t('auth.agreeJoin')}{' '}
                   <Link to="/privacy">{t('auth.privacyPolicy')}</Link>
-                </span>
-              </button>
+                </label>
+              </div>
 
               <button type="submit" className="btn btn--primary btn--lg btn--full">
                 {t('auth.continue')}
@@ -426,16 +441,17 @@ export default function Register() {
 
               {payMethod !== 'card' ? (
                 <>
-                  <label className="field">
-                    <span className="field__label">{t(`auth.pay.${payMethod}Number`)}</span>
+                  <div className="field">
+                    <label className="field__label" htmlFor="pay-mobile">{t(`auth.pay.${payMethod}Number`)}</label>
                     <input
+                      id="pay-mobile"
                       className="input"
                       inputMode="tel"
                       placeholder="01XXXXXXXXX"
                       value={payment.mobile}
                       onChange={setPay('mobile')}
                     />
-                  </label>
+                  </div>
                   <p className="pay__note">
                     <Smartphone size={16} />
                     {t(`auth.pay.${payMethod}Note`)}
@@ -443,49 +459,53 @@ export default function Register() {
                 </>
               ) : (
                 <>
-                  <label className="field">
-                    <span className="field__label">{t('auth.cardNumber')}</span>
+                  <div className="field">
+                    <label className="field__label" htmlFor="pay-card">{t('auth.cardNumber')}</label>
                     <input
+                      id="pay-card"
                       className="input"
                       inputMode="numeric"
                       placeholder="1234 5678 9012 3456"
                       value={payment.cardNumber}
                       onChange={setPay('cardNumber')}
                     />
-                  </label>
+                  </div>
 
                   <div className="field-grid">
-                    <label className="field">
-                      <span className="field__label">{t('auth.cardExpiry')}</span>
+                    <div className="field">
+                      <label className="field__label" htmlFor="pay-expiry">{t('auth.cardExpiry')}</label>
                       <input
+                        id="pay-expiry"
                         className="input"
                         inputMode="numeric"
                         placeholder="MM / YY"
                         value={payment.expiry}
                         onChange={setPay('expiry')}
                       />
-                    </label>
-                    <label className="field">
-                      <span className="field__label">{t('auth.cardCvc')}</span>
+                    </div>
+                    <div className="field">
+                      <label className="field__label" htmlFor="pay-cvc">{t('auth.cardCvc')}</label>
                       <input
+                        id="pay-cvc"
                         className="input"
                         inputMode="numeric"
                         placeholder="123"
                         value={payment.cvc}
                         onChange={setPay('cvc')}
                       />
-                    </label>
+                    </div>
                   </div>
 
-                  <label className="field">
-                    <span className="field__label">{t('auth.cardName')}</span>
+                  <div className="field">
+                    <label className="field__label" htmlFor="pay-name">{t('auth.cardName')}</label>
                     <input
+                      id="pay-name"
                       className="input"
                       placeholder={t('auth.cardNamePlaceholder')}
                       value={payment.cardName}
                       onChange={setPay('cardName')}
                     />
-                  </label>
+                  </div>
                 </>
               )}
 

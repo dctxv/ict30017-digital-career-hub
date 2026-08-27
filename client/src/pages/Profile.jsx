@@ -225,7 +225,13 @@ export default function Profile() {
     try {
       await deleteAccount(password)
       clearSession()
-      navigate('/')
+      // A full load rather than navigate(). RequireAuth redirects the instant
+      // the session goes away — which is its job — and it wins the race against
+      // an in-page navigation, so this used to end on /login: an invitation to
+      // sign in to an account that no longer exists. Reloading also discards
+      // every piece of in-memory state belonging to that account, which is the
+      // honest end state for a deletion.
+      window.location.assign('/')
     } catch (err) {
       setError(err.message || t('profile.deleteFailed'))
     } finally {
@@ -301,20 +307,20 @@ export default function Profile() {
               <p className="card__sub">{t('profile.accountSub')}</p>
 
               <div className="field-grid">
-                <label className="field">
-                  <span className="field__label">{t('auth.fullNameLabel')}</span>
-                  <input className="input" value={draft?.full_name ?? ''} onChange={set('full_name')} />
-                </label>
+                <div className="field">
+                  <label className="field__label" htmlFor="pf-full-name">{t('auth.fullNameLabel')}</label>
+                  <input id="pf-full-name" className="input" value={draft?.full_name ?? ''} onChange={set('full_name')} />
+                </div>
 
-                <label className="field">
-                  <span className="field__label">{t('auth.emailLabel')}</span>
-                  <input className="input" type="email" value={draft?.email ?? ''} onChange={set('email')} />
-                </label>
+                <div className="field">
+                  <label className="field__label" htmlFor="pf-email">{t('auth.emailLabel')}</label>
+                  <input id="pf-email" className="input" type="email" value={draft?.email ?? ''} onChange={set('email')} />
+                </div>
 
-                <label className="field">
-                  <span className="field__label">{t('profile.discipline')}</span>
+                <div className="field">
+                  <label className="field__label" htmlFor="pf-discipline">{t('profile.discipline')}</label>
                   <span className="select-wrap">
-                    <select className="select" value={draft?.discipline ?? ''} onChange={set('discipline')}>
+                    <select id="pf-discipline" className="select" value={draft?.discipline ?? ''} onChange={set('discipline')}>
                       <option value="">{t('auth.disciplinePlaceholder')}</option>
                       {disciplineOptions.map(option => (
                         <option key={option.value} value={option.value}>{option.label}</option>
@@ -322,22 +328,22 @@ export default function Profile() {
                     </select>
                     <ChevronDown size={16} className="select-wrap__chevron" />
                   </span>
-                </label>
+                </div>
 
-                <label className="field">
-                  <span className="field__label">{t('profile.institution')}</span>
-                  <input className="input" value={draft?.institution ?? ''} onChange={set('institution')} />
-                </label>
+                <div className="field">
+                  <label className="field__label" htmlFor="pf-institution">{t('profile.institution')}</label>
+                  <input id="pf-institution" className="input" value={draft?.institution ?? ''} onChange={set('institution')} />
+                </div>
 
-                <label className="field">
-                  <span className="field__label">{t('profile.graduationYear')}</span>
-                  <input
+                <div className="field">
+                  <label className="field__label" htmlFor="pf-year">{t('profile.graduationYear')}</label>
+                  <input id="pf-year"
                     className="input"
                     inputMode="numeric"
                     value={draft?.graduation_year ?? ''}
                     onChange={set('graduation_year')}
                   />
-                </label>
+                </div>
 
                 <div className="field">
                   <span className="field__label">{t('profile.preferredLanguage')}</span>
@@ -431,9 +437,13 @@ export default function Profile() {
                   {(subscription
                     ? [
                         [t('profile.subTier'), t('auth.tierPremium')],
-                        [t('profile.subMethod'), subscription.source === 'payment'
-                          ? t(`auth.pay.${subscription.payment_method ?? 'bkash'}`)
-                          : t(`profile.subSource.${subscription.source}`)],
+                        // How it was granted and what it was paid with are two
+                        // questions. Collapsing them into one row was what lost
+                        // the payment method on every signup-chosen Premium.
+                        [t('profile.subMethod'), t(`profile.subSource.${subscription.source}`)],
+                        ...(subscription.payment_method
+                          ? [[t('profile.subPaidWith'), t(`auth.pay.${subscription.payment_method}`)]]
+                          : []),
                         [t('profile.subGranted'), formatDate(subscription.started_at)],
                         [t('profile.subRenews'), subscription.expires_at
                           ? formatDate(subscription.expires_at)
@@ -530,36 +540,36 @@ export default function Profile() {
                 <p className="card__sub">{t('profile.passwordSub')}</p>
 
                 <div className="field-grid">
-                  <label className="field">
-                    <span className="field__label">{t('profile.currentPassword')}</span>
-                    <input
+                  <div className="field">
+                    <label className="field__label" htmlFor="pf-current-password">{t('profile.currentPassword')}</label>
+                    <input id="pf-current-password"
                       className="input"
                       type="password"
                       autoComplete="current-password"
                       value={passwords.current}
                       onChange={event => setPasswords(p => ({ ...p, current: event.target.value }))}
                     />
-                  </label>
-                  <label className="field">
-                    <span className="field__label">{t('profile.newPassword')}</span>
-                    <input
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="pf-new-password">{t('profile.newPassword')}</label>
+                    <input id="pf-new-password"
                       className="input"
                       type="password"
                       autoComplete="new-password"
                       value={passwords.next}
                       onChange={event => setPasswords(p => ({ ...p, next: event.target.value }))}
                     />
-                  </label>
-                  <label className="field">
-                    <span className="field__label">{t('auth.confirmPasswordLabel')}</span>
-                    <input
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="pf-confirm-password">{t('auth.confirmPasswordLabel')}</label>
+                    <input id="pf-confirm-password"
                       className="input"
                       type="password"
                       autoComplete="new-password"
                       value={passwords.confirm}
                       onChange={event => setPasswords(p => ({ ...p, confirm: event.target.value }))}
                     />
-                  </label>
+                  </div>
                 </div>
 
                 <div className="pf-actions">

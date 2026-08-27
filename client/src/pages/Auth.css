@@ -127,36 +127,25 @@
   align-items: flex-start;
   gap: 11px;
   margin: 0 0 20px;
-  cursor: pointer;
   font-size: 14px;
   color: var(--body-2);
   line-height: 1.55;
 }
 
+.auth__agree label { cursor: pointer; }
 .auth__agree a { font-weight: 600; color: var(--accent-text); }
+.auth__agree a:hover { color: var(--accent); }
 
+/* accent-color styles the native tick without replacing the control, so the
+   checkbox keeps its own keyboard behaviour and its announced state. */
 .auth__checkbox {
   flex: none;
-  width: 20px;
-  height: 20px;
-  margin-top: 1px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--on-primary);
-  transition: background var(--transition), border-color var(--transition);
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--primary);
+  cursor: pointer;
 }
-
-.auth__checkbox--on {
-  border-color: var(--primary);
-  background: var(--primary);
-}
-
-.auth__checkbox svg { opacity: 0; transition: opacity 0.15s ease; }
-.auth__checkbox--on svg { opacity: 1; }
 
 /* ── Divider and alternates ────────────────────────────────────────── */
 
