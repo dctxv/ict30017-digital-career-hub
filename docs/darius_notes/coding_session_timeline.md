@@ -152,3 +152,38 @@ Built the full file ingestion pipeline inside `server/` as a standalone Express.
 ### Outcome
 
 End-to-end pipeline confirmed working with `gpt-5-mini` via OpenRouter on both PDF (`BD_Resume_Test_01.pdf`) and DOCX (`BD_Resume_Test_02.docx`) inputs. Schema normalizer is now robust against the three failure modes observed across two different model providers.
+---
+
+## Session 7 — 27 August 2026
+
+> Sessions between 14 April and 27 August are not logged in this file. The work
+> from that period — localisation, the database schema and migration runner, the
+> prompt module rebuild, the provider moves — is recorded in the commit history
+> and in the topic notes alongside this one, not here.
+
+### What Was Done
+
+- Documented the resume reviewer's prompt pipeline for the client, quoting every
+  Bangladeshi rule verbatim from `ai-service/src/prompt/`, and led with the
+  photograph contradiction: REQUIRED on a BCS form, flagged for a multinational.
+- Recovered the project's full model history from code comments and git history.
+- Built `server/scripts/compare-models.js` — runs candidate models through the
+  *production* prompt and scores each on schema validity, protected-heading
+  over-flagging, advice that would get a government application rejected, and
+  Bangla contract compliance.
+- Measured free-tier capacity: ~5,000–6,600 tokens per review, ~1,500 reviews
+  per day before the API quota binds, against an application cap of 3 per day.
+- Fixed a bug where any failed API request blanked the Resources, Alumni and
+  Career Paths pages, and documented the database failure a teammate hit.
+- Merged `darius-ui-rework-wip` to main: the interface rebuild, the account area
+  and Profile page, and the five pages that previously rendered blank.
+
+### Outcome
+
+Main carries the rebuilt interface and the account area, with 189 tests passing
+and a clean build. The client has a documented answer on Bangladeshi context,
+and model selection now has a harness that measures it rather than an argument
+about it. Bangla output remains the one open question — the diagnostics are in
+place, but no successful measurement has been captured yet.
+
+Full detail: `docs/darius_notes/session_2026-08-27.md`.
