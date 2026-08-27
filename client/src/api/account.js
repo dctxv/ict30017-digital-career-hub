@@ -77,6 +77,22 @@ export function fetchSubscription() {
   return request('/api/users/me/subscription')
 }
 
+/**
+ * Moves the account to Premium, recording which instrument was chosen. No
+ * payment is taken — see the server route and the migration behind it.
+ */
+export function upgradePlan(paymentMethod) {
+  return request('/api/users/me/subscription', {
+    method: 'POST',
+    body: JSON.stringify({ payment_method: paymentMethod }),
+  })
+}
+
+/** Returns the account to the free tier, closing the subscription record. */
+export function cancelPlan() {
+  return request('/api/users/me/subscription', { method: 'DELETE' })
+}
+
 /** Past resume reviews, newest first. */
 export function fetchReviewHistory() {
   return request('/api/resume/history')

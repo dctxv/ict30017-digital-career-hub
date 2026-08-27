@@ -1,0 +1,136 @@
+.plan-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  background: var(--overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  animation: fadeUp 0.16s ease both;
+}
+
+.plan-dialog__card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: var(--shadow-modal);
+  animation: slideUp 0.2s ease both;
+}
+
+.plan-dialog__title {
+  font-size: 21px;
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
+}
+
+.plan-dialog__sub {
+  font-size: 14.5px;
+  color: var(--body-2);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.plan-dialog__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+}
+
+.plan-dialog__tier {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.plan-dialog__billing {
+  display: block;
+  font-size: 13px;
+  color: var(--body-2);
+  margin-top: 2px;
+}
+
+.plan-dialog__price {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.plan-dialog__perks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.plan-dialog__perks li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  color: var(--body-2);
+}
+
+.plan-dialog__perks svg { flex: none; color: var(--accent); }
+
+.plan-dialog__methods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.plan-dialog__method {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 10px 8px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--body);
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+
+.plan-dialog__method svg { flex: none; color: var(--muted-3); }
+
+.plan-dialog__method--on {
+  border: 1.5px solid var(--accent);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.plan-dialog__method--on svg { color: var(--accent); }
+
+.plan-dialog__disclosure { margin-bottom: 20px; }
+
+.plan-dialog__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.plan-dialog__actions .btn { flex: 1; }
+
+@media (max-width: 480px) {
+  .plan-dialog { padding: 16px; align-items: flex-start; }
+  .plan-dialog__card { padding: 22px 20px; }
+  .plan-dialog__methods { grid-template-columns: 1fr; }
+}

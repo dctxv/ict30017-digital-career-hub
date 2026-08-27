@@ -6,11 +6,13 @@ import {
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import ConfirmPasswordDialog from '../components/ConfirmPasswordDialog'
+import PlanDialog from '../components/PlanDialog'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import {
   ApiError, fetchProfile, updateProfile, changePassword, exportAccountData,
   deleteAccount, fetchSubscription, fetchReviewHistory, fetchReviewQuota, fetchChatQuota,
+  upgradePlan, cancelPlan,
 } from '../api/account'
 import './Profile.css'
 
@@ -82,6 +84,7 @@ export default function Profile() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [confirm, setConfirm] = useState(null)
+  const [planOpen, setPlanOpen] = useState(false)
   const [passwords, setPasswords] = useState({ current: '', next: '', confirm: '' })
 
   useEffect(() => {
@@ -234,6 +237,53 @@ export default function Profile() {
       window.location.assign('/')
     } catch (err) {
       setError(err.message || t('profile.deleteFailed'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  /*
+   * Changing the plan re-reads the profile and the quotas rather than patching
+   * them locally. The tier decides both meters and the subscription record, and
+   * three values guessed on the client is three chances to disagree with the
+   * server about what the account is now.
+   */
+  const refreshPlan = async () => {
+    const [profileRow, subscriptionRow, reviews, chats] = await Promise.all([
+      fetchProfile().catch(() => null),
+      fetchSubscription().catch(() => null),
+      fetchReviewQuota().catch(() => null),
+      fetchChatQuota().catch(() => null),
+    ])
+    if (profileRow) { setProfile(profileRow); setDraft(profileRow) }
+    setSubscription(subscriptionRow)
+    if (reviews) setReviewQuota(reviews)
+    if (chats) setChatQuota(chats)
+    await refresh()
+  }
+
+  const confirmUpgrade = async (method) => {
+    setBusy(true)
+    setError('')
+    try {
+      await upgradePlan(method)
+      await refreshPlan()
+      setPlanOpen(false)
+    } catch (err) {
+      setError(err.message || t('profile.planFailed'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const downgrade = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      await cancelPlan()
+      await refreshPlan()
+    } catch (err) {
+      setError(err.message || t('profile.planFailed'))
     } finally {
       setBusy(false)
     }
@@ -411,6 +461,26 @@ export default function Profile() {
                       {isPremium ? t('profile.premiumSummary') : t('profile.freeSummary')}
                     </span>
                   </span>
+
+                  {isPremium ? (
+                    <button
+                      type="button"
+                      className="btn btn--outline btn--sm"
+                      onClick={downgrade}
+                      disabled={busy}
+                    >
+                      {t('profile.cancelPremium')}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn--primary btn--sm"
+                      onClick={() => setPlanOpen(true)}
+                      disabled={busy}
+                    >
+                      {t('profile.upgrade')}
+                    </button>
+                  )}
                 </div>
 
                 <div className="pf-meters">
@@ -637,6 +707,14 @@ export default function Profile() {
           )}
         </div>
       </section>
+
+      {planOpen && (
+        <PlanDialog
+          busy={busy}
+          onCancel={() => setPlanOpen(false)}
+          onConfirm={confirmUpgrade}
+        />
+      )}
 
       {confirm && (
         <ConfirmPasswordDialog

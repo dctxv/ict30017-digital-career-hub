@@ -10,6 +10,8 @@ import Resources from './pages/Resources'
 import Alumni from './pages/Alumni'
 import CareerPaths from './pages/CareerPaths'
 import AdminDashboard from './pages/AdminDashboard'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Policy from './pages/Policy'
 import NotFound from './pages/NotFound'
 import ChatbotWidget from './components/ChatbotWidget'
@@ -35,6 +37,12 @@ export default function App() {
               {/* A signed-in user has no business on these two. */}
               <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
               <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
+
+              {/* The login page has linked to /forgot-password since it was
+                  written, and the route did not exist — so the one thing a
+                  locked-out user needs answered with the not-found page. */}
+              <Route path="/forgot-password" element={<GuestOnly><ForgotPassword /></GuestOnly>} />
+              <Route path="/reset-password" element={<GuestOnly><ResetPassword /></GuestOnly>} />
 
               <Route path="/resume-review" element={<ResumeReview />} />
               <Route path="/resources" element={<Resources />} />

@@ -38,6 +38,15 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUPPORTED_LANGUAGES = ['en', 'bn'];
 
 /*
+ * Recorded against a subscription, and nothing more. No gateway is connected,
+ * nothing is charged, and no account or card number reaches the server — the
+ * client sends the name of the instrument only. Anything unrecognised is
+ * dropped rather than stored, so a crafted request cannot write arbitrary text
+ * into the billing record.
+ */
+const PAYMENT_METHODS = ['bkash', 'nagad', 'card'];
+
+/*
  * The fields the profile page returns and edits. Named once so the SELECT, the
  * UPDATE and the export cannot drift apart — the failure mode otherwise is a
  * field that saves and then does not come back, which reads to the user as the
@@ -431,6 +440,122 @@ router.delete('/me', reauthLimiter, async (req, res) => {
   res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'strict' });
 
   return res.json({ message: 'Account deleted.' });
+});
+
+/* ── POST /api/users/me/subscription ───────────────────────────────── */
+
+/*
+ * Moves the account to Premium.
+ *
+ * The tier is written to users.tier, which is what every quota check reads, and
+ * a subscriptions row records why it now holds that value. source is 'upgrade'
+ * rather than 'payment': no gateway is connected, nothing is charged, and
+ * saying otherwise would put a false fact in the one table that exists to make
+ * the tier explicable. See add_subscription_upgrade_source.sql.
+ *
+ * Both writes are one transaction. A tier without its record is the thing this
+ * table was added to stop, and a record without the tier would grant nothing
+ * while claiming to.
+ *
+ * Already-Premium is answered with the existing record rather than an error.
+ * Two clicks on Upgrade is a slow network, not a mistake to report.
+ */
+router.post('/me/subscription', async (req, res) => {
+  const method = PAYMENT_METHODS.includes(req.body?.payment_method)
+    ? req.body.payment_method
+    : null;
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const current = await client.query(
+      `SELECT tier FROM users WHERE user_id = $1 FOR UPDATE`,
+      [req.user.id]
+    );
+    if (current.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(401).json({ error: 'Session is no longer valid.' });
+    }
+
+    if (current.rows[0].tier === 'premium') {
+      await client.query('ROLLBACK');
+      const existing = await pool.query(
+        `SELECT subscription_id, tier, status, source, payment_method,
+                started_at, expires_at, cancelled_at, amount_bdt, note
+           FROM subscriptions
+          WHERE user_id = $1 AND tier = 'premium' AND status = 'active'
+          ORDER BY started_at DESC LIMIT 1`,
+        [req.user.id]
+      );
+      return res.json(existing.rows[0] ?? null);
+    }
+
+    await client.query(`UPDATE users SET tier = 'premium' WHERE user_id = $1`, [req.user.id]);
+
+    // Any earlier Premium record is closed rather than left active, so
+    // "is this account entitled right now" stays answerable by one row.
+    await client.query(
+      `UPDATE subscriptions SET status = 'cancelled', cancelled_at = NOW()
+        WHERE user_id = $1 AND status = 'active'`,
+      [req.user.id]
+    );
+
+    const inserted = await client.query(
+      `INSERT INTO subscriptions (user_id, tier, status, source, payment_method, note)
+       VALUES ($1, 'premium', 'active', 'upgrade', $2, $3)
+       RETURNING subscription_id, tier, status, source, payment_method,
+                 started_at, expires_at, cancelled_at, amount_bdt, note`,
+      [
+        req.user.id,
+        method,
+        'Upgraded from the account page. No payment gateway is connected, so no payment was taken, no amount is recorded and no expiry is set.',
+      ]
+    );
+
+    await client.query('COMMIT');
+    return res.status(201).json(inserted.rows[0]);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[users] Upgrade failed:', err.message);
+    return res.status(500).json({ error: 'Could not change your plan.' });
+  } finally {
+    client.release();
+  }
+});
+
+/* ── DELETE /api/users/me/subscription ─────────────────────────────── */
+
+/*
+ * Returns the account to the free tier.
+ *
+ * The subscription row is closed, not deleted: what an account used to hold and
+ * when it stopped is exactly the history this table exists to keep, and a
+ * cancellation that erases its own evidence answers no question later.
+ *
+ * The daily counters are left alone. Someone who ran eight reviews today on
+ * Premium and then downgrades has used eight reviews today, and resetting the
+ * count would hand them a fresh free allowance for cancelling.
+ */
+router.delete('/me/subscription', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`UPDATE users SET tier = 'free' WHERE user_id = $1`, [req.user.id]);
+    await client.query(
+      `UPDATE subscriptions SET status = 'cancelled', cancelled_at = NOW()
+        WHERE user_id = $1 AND status = 'active'`,
+      [req.user.id]
+    );
+    await client.query('COMMIT');
+    return res.json({ message: 'Plan changed to Free.' });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('[users] Downgrade failed:', err.message);
+    return res.status(500).json({ error: 'Could not change your plan.' });
+  } finally {
+    client.release();
+  }
 });
 
 export default router;

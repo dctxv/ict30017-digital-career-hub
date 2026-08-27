@@ -309,7 +309,7 @@ export default function AdminDashboard() {
 
           {/* Disciplines Tab */}
           {activeTab === 'disciplines' && (
-            <div>
+            <div className="admin-tab-panel">
               <div className="admin-form-card">
                 <h2>{t(editingDiscId ? 'admin.disc.editHeading' : 'admin.disc.addHeading')}</h2>
                 <form onSubmit={handleDiscSubmit}>
@@ -367,7 +367,7 @@ export default function AdminDashboard() {
 
           {/* Career Paths Tab */}
           {activeTab === 'career-paths' && (
-            <div>
+            <div className="admin-tab-panel">
               <div className="admin-form-card">
                 <h2>{t(editingPathId ? 'admin.path.editHeading' : 'admin.path.addHeading')}</h2>
                 <form onSubmit={handlePathSubmit}>
@@ -459,7 +459,7 @@ export default function AdminDashboard() {
 
           {/* Resources Tab */}
           {activeTab === 'resources' && (
-            <div>
+            <div className="admin-tab-panel">
               <div className="admin-form-card">
                 <h2>{t(editingResourceId ? 'admin.res.editHeading' : 'admin.res.addHeading')}</h2>
                 <p className="admin-hint">{t('admin.res.bilingualHint')}</p>
@@ -553,7 +553,7 @@ export default function AdminDashboard() {
 
           {/* Alumni Tab */}
           {activeTab === 'alumni' && (
-            <div>
+            <div className="admin-tab-panel">
               <div className="admin-form-card">
                 <h2>{t(editingAlumniId ? 'admin.alum.editHeading' : 'admin.alum.addHeading')}</h2>
                 <form onSubmit={handleAlumniSubmit}>

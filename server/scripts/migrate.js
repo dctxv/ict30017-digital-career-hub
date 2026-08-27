@@ -59,6 +59,7 @@ const ORDER = [
   'create_subscriptions_table.sql',
   'create_audit_log_table.sql',
   'add_subscription_payment_method.sql',
+  'add_subscription_upgrade_source.sql',
 ];
 
 async function ensureLedger() {
