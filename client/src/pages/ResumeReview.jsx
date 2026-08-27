@@ -1,17 +1,10 @@
-/*
- * ResumeReview.jsx
- *
- * CHANGES:
- * 1. uploadedFile / setUploadedFile — new useState hook that stores the raw File
- *    object selected by the user. Set inside analyse() at the same point the
- *    file is resolved (alongside setFilename), so it is always the file that
- *    was actually sent to the backend. Cleared to null in showSample() because
- *    sample mode has no real file. Passed to ResultsView so PDFPanel can derive
- *    a blob URL from it directly without requiring a backend file URL.
- */
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import {
+  UploadCloud, FileCheck2, Sparkles, CheckCircle2, Eye, ChevronDown, ChevronUp,
+} from 'lucide-react'
 import Navbar from '../components/Navbar'
 import ResumeAnalysisError from './ResumeAnalysisError'
+import ResultsView from './ResultsView'
 import { validateResumeFile, ACCEPTED_EXTENSIONS } from '../utils/resumeFile'
 import { apiFetch } from '../utils/apiClient'
 import {
@@ -25,30 +18,24 @@ import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { sampleReview } from '../data/sampleReview'
 import { streamResumeReview } from '../api/reviewResume'
-import ResultsView from './ResultsView'
 import './ResumeReview.css'
 
-/* ── FileIcon ────────────────────────────────────────────────────── */
-function FileIcon({ size = 36 }) {
-  return (
-    <svg width={size} height={size * 1.2} viewBox="0 0 30 36">
-      <rect x="1" y="1" width="21" height="33" rx="3" fill="none" stroke="var(--green-700)" strokeWidth="1.8" />
-      <path d="M21 1 L28 8 L21 8 Z" fill="var(--green-700)" opacity=".2" />
-      <path d="M21 1 L21 8 L28 8" fill="none" stroke="var(--green-700)" strokeWidth="1.8" />
-      <line x1="6" y1="18" x2="17" y2="18" stroke="var(--green-700)" strokeWidth="1.8" strokeLinecap="round" />
-      <line x1="6" y1="24" x2="13" y2="24" stroke="var(--green-700)" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  )
-}
+const CONTEXT_FIELDS = [
+  ['applicationChannel', 'review.contextChannel', APPLICATION_CHANNEL_OPTIONS],
+  ['employerType', 'review.contextEmployer', EMPLOYER_TYPE_OPTIONS],
+  ['candidateStage', 'review.contextStage', CANDIDATE_STAGE_OPTIONS],
+  ['targetSector', 'review.contextSector', TARGET_SECTOR_OPTIONS],
+]
 
-/* ── UploadView ──────────────────────────────────────────────────── */
+const COVERAGE = ['Content', 'Language', 'Format', 'Ats']
+
 /*
  * Reads the caller's real remaining allowance.
  *
  * Three different numbers previously described one limit: static "3 reviews
  * remaining this month" text here, "3 resume reviews per day" on the register
  * page, and 5 per hour per IP in the server. The server is now the only
- * authority, and this hook renders whatever it reports. Enforcement stays in
+ * authority and this hook renders whatever it reports. Enforcement stays in
  * backend middleware; nothing here decides anything.
  */
 function useReviewQuota() {
@@ -57,7 +44,7 @@ function useReviewQuota() {
   useEffect(() => {
     let cancelled = false
     apiFetch('/api/resume/quota')
-      .then(r => (r.ok ? r.json() : null))
+      .then(response => (response.ok ? response.json() : null))
       .then(data => { if (!cancelled) setQuota(data) })
       .catch(() => { /* the label falls back to the generic plan text */ })
     return () => { cancelled = true }
@@ -78,19 +65,28 @@ function describeQuota(quota, isAuthenticated, t, n) {
   if (!quota.authenticated || !isAuthenticated) {
     return t('review.quotaAnonymous', { limit: n(quota.limit) })
   }
-  if (quota.remaining === 0) {
-    return t('review.quotaExhausted')
-  }
+  if (quota.remaining === 0) return t('review.quotaExhausted')
   const key = quota.remaining === 1 ? 'review.quotaRemainingOne' : 'review.quotaRemainingMany'
   return t(key, { remaining: n(quota.remaining), limit: n(quota.limit) })
 }
 
-function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marketMode, setMarketMode, reviewContext, setReviewContext, onAnalyse, onSample }) {
-  const [drag, setDrag] = useState(false)
-  const [enhanceOpen, setEnhanceOpen] = useState(false)
-  const inputRef = useRef()
+function formatSize(bytes) {
+  if (!bytes) return null
+  const mb = bytes / (1024 * 1024)
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`
+}
 
+/* ── Upload ──────────────────────────────────────────────────────────── */
+
+function UploadView({
+  file, setFile, jobRole, setJobRole, jobAd, setJobAd,
+  marketMode, setMarketMode, reviewContext, setReviewContext,
+  onAnalyse, onSample,
+}) {
+  const [dragging, setDragging] = useState(false)
+  const [enhanceOpen, setEnhanceOpen] = useState(false)
   const [fileError, setFileError] = useState(null)
+  const inputRef = useRef(null)
   const { isAuthenticated } = useAuth()
   const { t, n } = useLanguage()
   const quota = useReviewQuota()
@@ -115,13 +111,12 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
       else if (value !== 'unknown') setMarketMode('bangladesh')
     }
   }
-  const quotaLabel = describeQuota(quota, isAuthenticated, t, n)
 
   // Runs for both the picker and the drop zone. accept=".pdf,.docx" only
   // filters the dialog, so a dropped .txt reached the server before this.
-  const pick = f => {
-    if (!f) return
-    const check = validateResumeFile(f)
+  const pick = (candidate) => {
+    if (!candidate) return
+    const check = validateResumeFile(candidate)
     if (!check.ok) {
       // Held as a key plus its substitutions, not as a rendered sentence, so an
       // error already on screen re-renders in the new language if the user
@@ -131,225 +126,255 @@ function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marke
       return
     }
     setFileError(null)
-    setFile(f)
+    setFile(candidate)
   }
-  const handleDrop = e => { e.preventDefault(); setDrag(false); pick(e.dataTransfer.files[0]) }
+
+  const clearFile = () => {
+    setFile(null)
+    setFileError(null)
+    if (inputRef.current) inputRef.current.value = ''
+  }
 
   return (
-    <div className="rr-content">
-      <div className="rr-upload-header">
-        <h1 className="rr-title">{t('review.title')}</h1>
-        <p className="rr-sub">{t('review.sub')}</p>
-      </div>
+    <>
+      <section className="page-head">
+        <div className="shell rr-head">
+          <h1 className="page-head__title">{t('review.title')}</h1>
+          <p className="page-head__sub">{t('review.sub')}</p>
+        </div>
+      </section>
 
-      {!file ? (
-        <div
-          className={`drop-zone${drag ? ' drop-zone--active' : ''}`}
-          onDragOver={e => { e.preventDefault(); setDrag(true) }}
-          onDragLeave={() => setDrag(false)}
-          onDrop={handleDrop}
-          onClick={() => inputRef.current.click()}
-        >
-          <div className="drop-zone__icon"><FileIcon size={40} /></div>
-          <div className="drop-zone__title">{t('review.dropTitle')}</div>
-          <div className="drop-zone__hint">{t('review.dropHint')}</div>
-          <button
-            className="btn btn-outline"
-            onClick={e => { e.stopPropagation(); inputRef.current.click() }}
-          >
-            {t('review.browse')}
-          </button>
+      <section className="rr-upload">
+        <div className="rr-upload__main">
           <input
             ref={inputRef}
             type="file"
             accept={ACCEPTED_EXTENSIONS.join(',')}
-            style={{ display: 'none' }}
-            onChange={e => pick(e.target.files[0])}
+            className="visually-hidden"
+            onChange={event => pick(event.target.files?.[0])}
           />
-          {fileError && (
-            <p className="drop-zone__error" role="alert">{t(fileError.key, fileError.vars)}</p>
-          )}
-        </div>
-      ) : (
-        <div className="file-card">
-          <div className="file-card__top">
-            <span className="file-pill">
-              <svg width="12" height="15" viewBox="0 0 12 15">
-                <rect x="1" y="1" width="8" height="12" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M7.5 1v3.5h3" fill="none" stroke="currentColor" strokeWidth="1.5" />
-              </svg>
-              {file.name}
-            </span>
-            <button className="btn btn-ghost btn-sm" onClick={() => setFile(null)}>{t('review.remove')}</button>
+
+          {/* One control, two states. A separate "remove" button beside a filled
+              drop zone reads as a second upload target; the zone itself becomes
+              the way back once it holds something. */}
+          <div
+            className={`drop${file ? ' drop--filled' : ''}${dragging ? ' drop--dragging' : ''}`}
+            onDragOver={event => { event.preventDefault(); setDragging(true) }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={event => {
+              event.preventDefault()
+              setDragging(false)
+              pick(event.dataTransfer.files?.[0])
+            }}
+          >
+            {file ? (
+              <div className="drop__file">
+                <span className="drop__file-icon"><FileCheck2 size={21} /></span>
+                <span className="drop__file-text">
+                  <span className="drop__file-name">{file.name}</span>
+                  <span className="drop__file-meta">{formatSize(file.size)} · {file.name.split('.').pop().toUpperCase()}</span>
+                </span>
+                <button type="button" className="drop__remove" onClick={clearFile}>
+                  {t('review.remove')}
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="drop__empty" onClick={() => inputRef.current?.click()}>
+                <span className="drop__icon"><UploadCloud size={24} /></span>
+                <span className="drop__title">{t('review.dropTitle')}</span>
+                <span className="drop__hint">{t('review.dropHint')}</span>
+                <span className="drop__browse">{t('review.browse')}</span>
+              </button>
+            )}
           </div>
 
-          <div className="market-mode-card">
-            <div className="market-mode-label">
-              <span className="market-mode-icon">🎯</span>
-              <span className="market-mode-title">{t('review.marketTitle')}</span>
-            </div>
-            <div className="market-mode-options">
-              <button
-                className={`market-mode-btn ${marketMode === 'bangladesh' ? 'market-mode-btn--active' : ''}`}
-                onClick={() => chooseMarket('bangladesh')}
-              >
-                <span className="market-mode-btn-label">{t('review.marketLocal')}</span>
-                <span className="market-mode-btn-desc">{t('review.marketLocalDesc')}</span>
-              </button>
-              <button
-                className={`market-mode-btn ${marketMode === 'international' ? 'market-mode-btn--active' : ''}`}
-                onClick={() => chooseMarket('international')}
-              >
-                <span className="market-mode-btn-label">{t('review.marketInternational')}</span>
-                <span className="market-mode-btn-desc">{t('review.marketInternationalDesc')}</span>
-              </button>
+          {fileError && (
+            <p className="notice notice--error rr-file-error" role="alert">
+              {t(fileError.key, fileError.vars)}
+            </p>
+          )}
+
+          <div className="card rr-card">
+            <p className="card__title">{t('review.marketTitle')}</p>
+            <div className="rr-choices">
+              {[
+                ['bangladesh', 'review.marketLocal', 'review.marketLocalDesc'],
+                ['international', 'review.marketInternational', 'review.marketInternationalDesc'],
+              ].map(([mode, labelKey, descKey]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`rr-choice${marketMode === mode ? ' rr-choice--on' : ''}`}
+                  onClick={() => chooseMarket(mode)}
+                  aria-pressed={marketMode === mode}
+                >
+                  <span className="rr-choice__radio" />
+                  <span className="rr-choice__text">
+                    <span className="rr-choice__label">{t(labelKey)}</span>
+                    <span className="rr-choice__desc">{t(descKey)}</span>
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Routes the reviewer's rules. Every field is optional: left alone,
               the server infers it and reports what it inferred. */}
-          <div className="context-card">
-            <div className="context-card__label">
-              <span className="context-card__icon">🧭</span>
-              <span className="context-card__title">{t('review.contextTitle')}</span>
-            </div>
-            <p className="context-card__hint">{t('review.contextHint')}</p>
-            <div className="context-card__grid">
-              {[
-                ['applicationChannel', 'review.contextChannel', APPLICATION_CHANNEL_OPTIONS],
-                ['employerType', 'review.contextEmployer', EMPLOYER_TYPE_OPTIONS],
-                ['candidateStage', 'review.contextStage', CANDIDATE_STAGE_OPTIONS],
-                ['targetSector', 'review.contextSector', TARGET_SECTOR_OPTIONS],
-              ].map(([key, labelKey, options]) => (
-                <div className="form-group" key={key}>
-                  <label className="form-label" htmlFor={`ctx-${key}`}>{t(labelKey)}</label>
-                  <select
-                    id={`ctx-${key}`}
-                    className="form-input"
-                    value={reviewContext[key]}
-                    onChange={e => chooseContext(key, e.target.value)}
-                  >
-                    {options.map(o => (
-                      <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
-                    ))}
-                  </select>
+          <div className="card rr-card">
+            <p className="card__title">{t('review.contextTitle')}</p>
+            <p className="card__sub">{t('review.contextHint')}</p>
+            <div className="field-grid">
+              {CONTEXT_FIELDS.map(([key, labelKey, options]) => (
+                <div className="field" key={key}>
+                  <label className="field__label" htmlFor={`ctx-${key}`}>{t(labelKey)}</label>
+                  <span className="select-wrap">
+                    <select
+                      id={`ctx-${key}`}
+                      className="select"
+                      value={reviewContext[key]}
+                      onChange={event => chooseContext(key, event.target.value)}
+                    >
+                      {options.map(option => (
+                        <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
+                      ))}
+                    </select>
+                    <ChevronDown size={16} className="select-wrap__chevron" />
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="enhance-card">
-            <div className="enhance-card__trigger" onClick={() => setEnhanceOpen(o => !o)}>
-              <span className="enhance-card__star">✦</span>
-              <span className="enhance-card__label">{t('review.enhanceLabel')}</span>
-              <span className="enhance-card__hint">{t('review.enhanceHint')}</span>
-              <span className="enhance-card__chevron">{enhanceOpen ? '▴' : '▾'}</span>
-            </div>
+          <div className="card rr-card rr-enhance">
+            <button
+              type="button"
+              className="rr-enhance__trigger"
+              onClick={() => setEnhanceOpen(open => !open)}
+              aria-expanded={enhanceOpen}
+            >
+              <Sparkles size={16} />
+              <span className="rr-enhance__label">{t('review.enhanceLabel')}</span>
+              <span className="rr-enhance__hint">{t('review.enhanceHint')}</span>
+              {enhanceOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
             {enhanceOpen && (
-              <div className="enhance-card__fields">
-                <div className="form-group">
-                  <label className="form-label">{t('review.jobRoleLabel')} <span className="optional">{t('common.optional')}</span></label>
-                  <input
-                    className="form-input"
+              <div className="rr-enhance__fields">
+                <div className="field">
+                  <label className="field__label" htmlFor="rr-job-role">
+                    {t('review.jobRoleLabel')} <span className="optional">{t('common.optional')}</span>
+                  </label>
+                  <input id="rr-job-role"
+                    className="input"
                     placeholder={t('review.jobRolePlaceholder')}
                     value={jobRole}
-                    onChange={e => setJobRole(e.target.value)}
+                    onChange={event => setJobRole(event.target.value)}
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">{t('review.jobAdLabel')} <span className="optional">{t('review.jobAdOptional')}</span></label>
-                  <textarea
-                    className="form-textarea"
+                <div className="field">
+                  <label className="field__label" htmlFor="rr-job-ad">
+                    {t('review.jobAdLabel')} <span className="optional">{t('review.jobAdOptional')}</span>
+                  </label>
+                  <textarea id="rr-job-ad"
+                    className="textarea"
                     rows={4}
                     placeholder={t('review.jobAdPlaceholder')}
                     value={jobAd}
-                    onChange={e => setJobAd(e.target.value)}
+                    onChange={event => setJobAd(event.target.value)}
                   />
                 </div>
               </div>
             )}
           </div>
-        </div>
-      )}
 
-      {file && (
-        <div className="upload-actions">
-          <div className="free-notice">
-            <span>⚠</span>
-            <span>{quotaLabel}</span>
+          <div className="rr-submit">
+            <button
+              type="button"
+              className="btn btn--primary btn--lg"
+              onClick={onAnalyse}
+              disabled={!file}
+            >
+              {t('review.analyse')}
+              <Sparkles size={17} />
+            </button>
+            <span className="rr-quota">{describeQuota(quota, isAuthenticated, t, n)}</span>
           </div>
-          <button className="btn btn-primary btn-full" onClick={onAnalyse}>
-            {t('review.analyse')}
-          </button>
         </div>
-      )}
 
-      <div className="val-section">
-        <div className="val-section__label">{t('review.coversLabel')}</div>
-        <div className="val-grid">
-          {[
-            ['📋', 'Content'],
-            ['✏️', 'Language'],
-            ['📐', 'Format'],
-            ['🔍', 'Ats'],
-          ].map(([icon, name]) => (
-            <div key={name} className="val-card">
-              <div className="val-card__icon">{icon}</div>
-              <div className="val-card__title">{t(`review.covers${name}`)}</div>
-              <div className="val-card__desc">{t(`review.covers${name}Desc`)}</div>
+        <aside className="rr-aside">
+          <div className="card card--tinted">
+            <p className="eyebrow">{t('review.coversLabel')}</p>
+            <div className="rr-covers">
+              {COVERAGE.map(name => (
+                <div className="rr-cover" key={name}>
+                  <CheckCircle2 size={18} className="rr-cover__tick" />
+                  <div>
+                    <p className="rr-cover__title">{t(`review.covers${name}`)}</p>
+                    <p className="rr-cover__desc">{t(`review.covers${name}Desc`)}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="sample-card">
-          <span className="sample-card__icon">👁</span>
-          <div className="sample-card__text">
-            <div className="sample-card__title">{t('review.sampleTitle')}</div>
-            <div className="sample-card__sub">{t('review.sampleSub')}</div>
           </div>
-          <button className="btn btn-outline btn-sm" onClick={onSample}>{t('review.sampleButton')}</button>
-        </div>
-      </div>
-    </div>
+
+          <div className="card">
+            <p className="card__title">{t('review.sampleTitle')}</p>
+            <p className="rr-sample__sub">{t('review.sampleSub')}</p>
+            <button type="button" className="btn btn--outline btn--sm" onClick={onSample}>
+              {t('review.sampleButton')}
+              <Eye size={15} />
+            </button>
+          </div>
+        </aside>
+      </section>
+    </>
   )
 }
 
-/* ── AnalysingView ───────────────────────────────────────────────── */
+/* ── Analysing ───────────────────────────────────────────────────────── */
+
+/*
+ * The step list is a progress hint, not a report: the server streams one JSON
+ * object and does not announce which section it is writing. Steps advance on a
+ * timer that stops at the last one rather than looping, so it never claims to
+ * have finished something the response has not delivered.
+ */
 function AnalysingView({ filename }) {
   const { t } = useLanguage()
-  const msgs = [
-    t('review.analysingStep1'),
-    t('review.analysingStep2'),
-    t('review.analysingStep3'),
-    t('review.analysingStep4'),
-  ]
+  const [step, setStep] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => setStep(current => Math.min(current + 1, 3)), 1600)
+    return () => clearInterval(timer)
+  }, [])
+
   return (
     <div className="rr-analysing">
-      <div className="analysing-spinner">
-        <svg width="72" height="72" className="analysing-spinner__svg">
-          <circle cx="36" cy="36" r="28" fill="none" stroke="var(--green-200)" strokeWidth="5" />
-          <circle cx="36" cy="36" r="28" fill="none" stroke="var(--green-700)" strokeWidth="5" strokeDasharray="44 132" strokeLinecap="round" />
-        </svg>
-        <span className="analysing-spinner__emoji">🔍</span>
-      </div>
-      <div className="analysing-text">
-        <div className="analysing-text__title">{t('review.analysingTitle')}</div>
-        <div className="analysing-text__file">{filename}</div>
-      </div>
-      <div className="analysing-dots">
-        <span className="ldot" /><span className="ldot" /><span className="ldot" />
-      </div>
-      <div className="analysing-steps">
-        {msgs.map((m, i) => (
-          <div key={i} className="analysing-step" style={{ animationDelay: `${i * 0.5}s` }}>
-            <span className="analysing-step__dot" />{m}
-          </div>
-        ))}
+      <span className="spinner spinner--lg" />
+      <h1 className="rr-analysing__title">{t('review.analysingTitle')}</h1>
+      <p className="rr-analysing__file">{filename}</p>
+
+      <div className="rr-analysing__steps">
+        {[1, 2, 3, 4].map((number, index) => {
+          const done = step > index
+          const active = step === index
+          return (
+            <div className="rr-step" key={number}>
+              <span className={`rr-step__dot${done ? ' rr-step__dot--done' : active ? ' rr-step__dot--on' : ''}`} />
+              <span className={`rr-step__label${done || active ? ' rr-step__label--on' : ''}`}>
+                {t(`review.analysingStep${number}`)}
+              </span>
+            </div>
+          )
+        })}
+        <div className="rr-analysing__bar"><span /></div>
       </div>
     </div>
   )
 }
 
-/* ── Main page ───────────────────────────────────────────────────── */
+/* ── Page ────────────────────────────────────────────────────────────── */
+
 export default function ResumeReview() {
   const { lang } = useLanguage()
   const [view, setView] = useState('upload')
@@ -369,18 +394,20 @@ export default function ResumeReview() {
   const [isLoading, setIsLoading] = useState(false)
 
   async function analyse(fileArg) {
-    const f = (fileArg instanceof File) ? fileArg : file
-    if (!f) return
+    const target = fileArg instanceof File ? fileArg : file
+    if (!target) return
+
     setIsLoading(true)
     setFeedback(null)
     setStreamError(null)
     setAnalysisError(null)
     setIsSample(false)
-    setFilename(f.name)
-    setUploadedFile(f)
+    setFilename(target.name)
+    setUploadedFile(target)
     setView('analysing')
+    window.scrollTo({ top: 0 })
 
-    await streamResumeReview(f, {
+    await streamResumeReview(target, {
       jobRole: jobRole || undefined,
       jobAd: jobAd || undefined,
       marketMode,
@@ -398,7 +425,7 @@ export default function ResumeReview() {
         setView('results')
         setIsLoading(false)
       },
-      onError: (code, msg) => {
+      onError: (code, message) => {
         setIsLoading(false)
         // Feedback already on screen means the stream died partway: keep the
         // results and annotate them. Nothing on screen is a total failure and
@@ -410,7 +437,7 @@ export default function ResumeReview() {
             setStreamError(true)
             setView('results')
           } else {
-            setAnalysisError({ code, message: msg })
+            setAnalysisError({ code, message })
             setView('error')
           }
           return current
@@ -426,14 +453,15 @@ export default function ResumeReview() {
     setIsSample(true)
     setIsLoading(false)
     setStreamError(null)
-    setView('analysing')
-    setTimeout(() => setView('results'), 1400)
+    setView('results')
+    window.scrollTo({ top: 0 })
   }
 
   function handleReanalyse() {
     setAnalysisError(null)
     if (isSample) { setView('upload'); return }
-    if (file) analyse(); else setView('upload')
+    if (file) analyse()
+    else setView('upload')
   }
 
   function handleUploadNew() {
@@ -443,16 +471,13 @@ export default function ResumeReview() {
     setFile(null)
     setUploadedFile(null)
     setView('upload')
-  }
-
-  function handleNewFile(f) {
-    setFile(f)
-    setView('upload')
+    window.scrollTo({ top: 0 })
   }
 
   return (
-    <div className="rr-page">
+    <div className="page-enter rr">
       <Navbar />
+
       {view === 'upload' && (
         <UploadView
           file={file}
@@ -469,7 +494,9 @@ export default function ResumeReview() {
           onSample={showSample}
         />
       )}
+
       {view === 'analysing' && <AnalysingView filename={filename} />}
+
       {view === 'error' && (
         <ResumeAnalysisError
           code={analysisError?.code}
@@ -479,6 +506,7 @@ export default function ResumeReview() {
           onUploadNew={handleUploadNew}
         />
       )}
+
       {view === 'results' && (
         <ResultsView
           filename={filename}
@@ -486,13 +514,14 @@ export default function ResumeReview() {
           feedback={feedback}
           isLoading={isLoading}
           streamError={streamError}
+          marketMode={marketMode}
           jobRole={jobRole}
           setJobRole={setJobRole}
           jobAd={jobAd}
           setJobAd={setJobAd}
           onReanalyse={handleReanalyse}
-          onUploadNew={() => setView('upload')}
-          onNewFile={handleNewFile}
+          onUploadNew={handleUploadNew}
+          onNewFile={(next) => { setFile(next); analyse(next) }}
           uploadedFile={uploadedFile}
         />
       )}

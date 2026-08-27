@@ -1,20 +1,29 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Compass, Menu, X, Sun, Moon } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import './Navbar.css'
 
 /**
  * Site navigation.
  *
- * The `user` prop is gone on purpose. It defaulted to null, nine of the ten
- * render sites passed nothing, and the tenth passed a hardcoded demo name, so
- * the signed-in state shown here was never the real one. The session now comes
- * from context, which no caller can override with a stale value.
+ * The session comes from context rather than a prop. It used to be a `user`
+ * prop that defaulted to null, which nine of the ten render sites left unset
+ * and the tenth filled with a hardcoded demo name — so the signed-in state
+ * shown here was never the real one.
+ *
+ * Three controls sit to the right of the links and all three are reachable at
+ * every width, because each one is the way out of a state a user can get stuck
+ * in: the wrong language, an unreadable theme, and a session they want to end.
+ * The collapsible panel below carries the links and, under 600px where the
+ * inline pair is hidden, the sign-in actions too.
  */
 export default function Navbar() {
   const { lang, setLang, t } = useLanguage()
   const { user, isAuthenticated, logout } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
   const [menuOpen, setMenuOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const location = useLocation()
@@ -28,112 +37,172 @@ export default function Navbar() {
   ]
 
   // Administrators previously had to type /admin by hand, because nothing in
-  // the UI linked to it. Shown only to the roles that can actually use it.
-  const adminRoles = ['admin']
-  const showAdminLink = isAuthenticated && adminRoles.includes(user?.role)
+  // the interface linked to it. Shown only to the role that can use it.
+  if (isAuthenticated && user?.role === 'admin') {
+    links.push({ key: 'nav.admin', to: '/admin' })
+  }
 
-  const closeMenu = () => setMenuOpen(false)
+  // A panel left open across a navigation covers the page the user just asked
+  // for. Closing it during render on the path change, rather than in an effect,
+  // means the new page never paints once with the panel still over it.
+  const [lastPath, setLastPath] = useState(location.pathname)
+  if (lastPath !== location.pathname) {
+    setLastPath(location.pathname)
+    setMenuOpen(false)
+  }
 
   const handleLogout = async () => {
     setSigningOut(true)
     try {
       await logout()
-      closeMenu()
       navigate('/')
     } finally {
       setSigningOut(false)
     }
   }
 
-  // Rendered twice: once in the desktop bar, once inside the mobile menu. At
-  // 768px and below the desktop copy is hidden, and before this the mobile menu
-  // carried only the four content links, leaving no route to authentication
-  // except typing /login into the address bar.
-  const authControls = (extraClass = '') => (
-    isAuthenticated ? (
-      <>
-        <span className={`navbar-user ${extraClass}`}>{user?.full_name ?? user?.name ?? t('nav.account')}</span>
-        <button
-          type="button"
-          className={`btn-outline-sm navbar-auth-action ${extraClass}`}
-          onClick={handleLogout}
-          disabled={signingOut}
-        >
-          {signingOut ? t('nav.loggingOut') : t('nav.logOut')}
-        </button>
-      </>
-    ) : (
-      <>
-        <Link to="/login" className={`btn-outline-sm navbar-auth-action ${extraClass}`} onClick={closeMenu}>{t('nav.logIn')}</Link>
-        <Link to="/register" className={`btn-filled-sm navbar-auth-action ${extraClass}`} onClick={closeMenu}>{t('nav.signUp')}</Link>
-      </>
-    )
+  const displayName = user?.full_name ?? user?.name ?? t('nav.account')
+  const initials = displayName
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(word => word[0] ?? '')
+    .join('')
+    .toUpperCase() || '?'
+
+  const authActions = (
+    <>
+      <Link to="/login" className="nav-auth nav-auth--quiet">{t('nav.logIn')}</Link>
+      <Link to="/register" className="nav-auth nav-auth--solid">{t('nav.signUp')}</Link>
+    </>
   )
 
   return (
-    <nav className="navbar">
-      <div className="navbar-inner">
-        <Link to="/" className="navbar-logo">{t('common.brand')}</Link>
+    <nav className="nav">
+      <div className="nav__inner">
+        <Link to="/" className="nav__brand">
+          <span className="nav__mark"><Compass size={16} /></span>
+          <span className="nav__wordmark">{t('common.brand')}</span>
+        </Link>
 
-        <ul className={`navbar-links ${menuOpen ? 'open' : ''}`} id="primary-navigation">
-          {links.map(l => (
-            <li key={l.to}>
-              <Link
-                to={l.to}
-                className={`navbar-link ${location.pathname === l.to ? 'active' : ''}`}
-                onClick={closeMenu}
+        <ul className="nav__links">
+          {links.map(link => (
+            <li key={link.to}>
+              <NavLink
+                to={link.to}
+                className={({ isActive }) => `nav__link${isActive ? ' nav__link--on' : ''}`}
               >
-                {t(l.key)}
-              </Link>
+                {t(link.key)}
+              </NavLink>
             </li>
           ))}
-
-          {showAdminLink && (
-            <li>
-              <Link
-                to="/admin"
-                className={`navbar-link ${location.pathname === '/admin' ? 'active' : ''}`}
-                onClick={closeMenu}
-              >
-                {t('nav.admin')}
-              </Link>
-            </li>
-          )}
-
-          {/* Mobile-only copy of the auth actions, inside the collapsible menu. */}
-          <li className="navbar-mobile-auth">
-            {authControls('navbar-auth-mobile')}
-          </li>
         </ul>
 
-        <div className="navbar-right">
-          <div className="lang-toggle">
+        <div className="nav__controls">
+          <button
+            type="button"
+            className="nav__icon-btn nav__menu-btn"
+            onClick={() => setMenuOpen(open => !open)}
+            aria-expanded={menuOpen}
+            aria-controls="nav-panel"
+            aria-label={menuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
+          >
+            {menuOpen ? <X size={17} /> : <Menu size={17} />}
+          </button>
+
+          <button
+            type="button"
+            className="nav__icon-btn"
+            onClick={toggleTheme}
+            aria-label={isDark ? t('nav.themeLight') : t('nav.themeDark')}
+            title={isDark ? t('nav.themeLight') : t('nav.themeDark')}
+          >
+            {/* Both faces are mounted and cross-faded by CSS. Swapping the
+                element instead would make the rotation impossible to animate. */}
+            <span className="nav__theme-icons">
+              <span className="nav__theme-icon nav__theme-icon--sun"><Sun size={17} /></span>
+              <span className="nav__theme-icon nav__theme-icon--moon"><Moon size={17} /></span>
+            </span>
+          </button>
+
+          <div className="lang-switch" role="group" aria-label={t('nav.language')}>
+            <span className={`lang-switch__thumb${lang === 'bn' ? ' lang-switch__thumb--bn' : ''}`} />
             <button
-              className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
+              type="button"
+              className={`lang-switch__btn${lang === 'en' ? ' lang-switch__btn--on' : ''}`}
               aria-pressed={lang === 'en'}
               onClick={() => setLang('en')}
-            >EN</button>
+            >
+              EN
+            </button>
             <button
-              className={`lang-btn ${lang === 'bn' ? 'active' : ''}`}
+              type="button"
+              className={`lang-switch__btn${lang === 'bn' ? ' lang-switch__btn--on' : ''}`}
               aria-pressed={lang === 'bn'}
               onClick={() => setLang('bn')}
-            >BN</button>
+            >
+              বাং
+            </button>
           </div>
 
-          {authControls()}
+          {isAuthenticated ? (
+            <div className="nav__session">
+              <NavLink
+                to="/profile"
+                className={({ isActive }) => `nav__profile${isActive ? ' nav__profile--on' : ''}`}
+              >
+                <span className="nav__avatar">{initials}</span>
+                <span className="nav__profile-name">{displayName}</span>
+              </NavLink>
+              <button
+                type="button"
+                className="nav__signout"
+                onClick={handleLogout}
+                disabled={signingOut}
+              >
+                {signingOut ? t('nav.loggingOut') : t('nav.logOut')}
+              </button>
+            </div>
+          ) : (
+            <div className="nav__session nav__session--guest">{authActions}</div>
+          )}
         </div>
-
-        <button
-          type="button"
-          className="hamburger"
-          onClick={() => setMenuOpen(o => !o)}
-          aria-expanded={menuOpen}
-          aria-controls="primary-navigation"
-          aria-label={menuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
-        >
-          <span /><span /><span />
-        </button>
       </div>
+
+      {menuOpen && (
+        <div className="nav__panel" id="nav-panel">
+          {links.map(link => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) => `nav__panel-link${isActive ? ' nav__panel-link--on' : ''}`}
+            >
+              {t(link.key)}
+            </NavLink>
+          ))}
+
+          {isAuthenticated ? (
+            <div className="nav__panel-auth">
+              <span className="nav__panel-rule" />
+              <NavLink to="/profile" className="nav__panel-link">{t('nav.profile')}</NavLink>
+              <button
+                type="button"
+                className="nav__panel-link nav__panel-link--button"
+                onClick={handleLogout}
+                disabled={signingOut}
+              >
+                {signingOut ? t('nav.loggingOut') : t('nav.logOut')}
+              </button>
+            </div>
+          ) : (
+            <div className="nav__panel-auth nav__panel-auth--guest">
+              <span className="nav__panel-rule" />
+              <Link to="/login" className="nav__panel-link">{t('nav.logIn')}</Link>
+              <Link to="/register" className="nav__panel-link nav__panel-link--solid">{t('nav.signUp')}</Link>
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   )
 }

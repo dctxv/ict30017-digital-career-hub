@@ -150,6 +150,54 @@ Then open the client URL, which is http://localhost:5173 by default. Vite also
 prints a http://127.0.0.1:5173 address, and both are accepted by the API CORS
 allowlist.
 
+The dev server proxies `/api` to `http://localhost:3000`. If you are running a
+second checkout — a worktree, or a branch you are reviewing beside `main` — the
+two will fight over that port, so point the proxy somewhere else instead of
+moving the API:
+
+```
+$env:API_PROXY_TARGET = "http://localhost:3100"
+npm run dev
+```
+
+### Appearance and language
+
+Both are attributes on `<html>`, set before React mounts by the inline script in
+`client/index.html` — otherwise the first painted frame is always light and
+Latin, and a Bangla or dark-theme user sees the page reflow on every load.
+
+`data-theme` follows the operating system until the user picks one explicitly,
+and then stops following it. Every colour resolves through a token declared for
+both themes in `client/src/styles/theme.css`; nothing downstream hardcodes a hex
+value, which is what makes the switch a single attribute change. If you add a
+colour, add it there in both themes rather than inline.
+
+### The account area
+
+`/profile` is five tabs over `/api/users`, which is scoped to the session
+throughout and takes no user id from the caller:
+
+| Route | Does |
+|---|---|
+| `GET /api/users/me` | The full profile, including the fields `/api/auth/me` omits |
+| `PATCH /api/users/me` | Partial edit. Changing the email needs the current password |
+| `POST /api/users/me/password` | Change password, current one required |
+| `GET /api/users/me/export` | Everything held about the account, as JSON |
+| `DELETE /api/users/me` | Delete, current password required |
+| `GET/POST/DELETE /api/users/me/subscription` | Read or change the tier |
+| `GET /api/resume/history`, `/history/:id` | Past reviews, and one in full |
+
+Deleting an account removes every review, resume row and subscription record,
+and keeps the `users` row deactivated and scrubbed of anything identifying, so
+audit records still resolve. A deleted account is refused at login, at the
+session probe, and by `requireActiveAccount` on every account route — its token
+stays cryptographically valid for the rest of its hour, and signature validity
+is the only thing `requireAuth` can check.
+
+**No payment gateway is connected.** Choosing or upgrading to Premium records
+the tier and the name of the instrument, takes no money, and stores no card or
+mobile number. The registration and upgrade screens both say so on the form.
+
 ### Troubleshooting
 
 If the server fails to start with `Cannot find package 'dotenv' imported from

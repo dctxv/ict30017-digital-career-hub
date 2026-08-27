@@ -65,6 +65,7 @@ import disciplineRoutes from './routes/disciplines.js';
 import careerPathsRoutes from './routes/careerPaths.js';
 import resourcesRoutes from './routes/resources.js';
 import alumniRoutes from './routes/alumni.js';
+import usersRouter from './routes/users.js';
 
 app.use('/api/resume', resumeRouter);
 app.use('/api/auth', authRouter);
@@ -73,6 +74,9 @@ app.use('/api/disciplines', disciplineRoutes);
 app.use('/api/career-paths', careerPathsRoutes);
 app.use('/api/resources', resourcesRoutes);
 app.use('/api/alumni', alumniRoutes);
+// Everything an account holder can do to their own account. Scoped to the
+// session throughout: no route here takes a user id from the caller.
+app.use('/api/users', usersRouter);
 
 // Error handler
 app.use((err, req, res, next) => {

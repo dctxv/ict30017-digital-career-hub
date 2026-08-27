@@ -1,11 +1,16 @@
 /**
  * Module: ChatbotWidget
- * Responsibility: Floating AI career chatbot UI with POST-based SSE streaming.
+ * Responsibility: Floating career chatbot with POST-based SSE streaming.
+ *
+ * Callers elsewhere in the app open this through openChatbot() in chatbotBus.js
+ * — see that file for why it is an event rather than a provider.
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { MessageCircle, X, Send } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
-import styles from './ChatbotWidget.module.css'
+import { CHATBOT_OPEN_EVENT } from './chatbotBus'
+import './ChatbotWidget.css'
 
 function parseSseFrame(frame) {
   const dataLines = frame
@@ -98,6 +103,7 @@ export default function ChatbotWidget() {
   const [isResponding, setIsResponding] = useState(false)
   const [errorKey, setErrorKey] = useState('')
   const bottomRef = useRef(null)
+  const inputRef = useRef(null)
 
   /*
    * The greeting is rendered rather than stored, so toggling the language
@@ -108,8 +114,27 @@ export default function ChatbotWidget() {
   const greeting = { role: 'assistant', content: t('chatbot.greeting') }
 
   useEffect(() => {
+    const handler = () => setOpen(true)
+    window.addEventListener(CHATBOT_OPEN_EVENT, handler)
+    return () => window.removeEventListener(CHATBOT_OPEN_EVENT, handler)
+  }, [])
+
+  useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [conversationHistory, isResponding, open])
+
+  // Opening a panel and leaving focus behind it is the difference between a
+  // control a keyboard user can reach and one they cannot.
+  useEffect(() => {
+    if (open) inputRef.current?.focus()
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (event) => { if (event.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
 
   async function sendMessage() {
     const message = input.trim()
@@ -126,6 +151,12 @@ export default function ChatbotWidget() {
     setErrorKey('')
     setIsResponding(true)
 
+    const fail = (key) => {
+      setConversationHistory([...priorHistory, userMessage])
+      setErrorKey(key)
+      setIsResponding(false)
+    }
+
     let response
     try {
       response = await fetch('/api/chat', {
@@ -139,32 +170,15 @@ export default function ChatbotWidget() {
         }),
       })
     } catch {
-      setConversationHistory([...priorHistory, userMessage])
-      setErrorKey('chatbot.genericError')
-      setIsResponding(false)
+      fail('chatbot.genericError')
       return
     }
 
-    if (response.status === 401) {
-      setConversationHistory([...priorHistory, userMessage])
-      setErrorKey('chatbot.genericError')
-      setIsResponding(false)
-      return
-    }
-
-    if (response.status === 429) {
-      setConversationHistory([...priorHistory, userMessage])
-      setErrorKey('chatbot.limit')
-      setIsResponding(false)
-      return
-    }
-
-    if (!response.ok || !response.body) {
-      setConversationHistory([...priorHistory, userMessage])
-      setErrorKey('chatbot.genericError')
-      setIsResponding(false)
-      return
-    }
+    // 429 is the daily allowance, and it needs its own message: telling someone
+    // "something went wrong" when they have simply used today's messages sends
+    // them to retry a request that cannot succeed until tomorrow.
+    if (response.status === 429) { fail('chatbot.limit'); return }
+    if (!response.ok || !response.body) { fail('chatbot.genericError'); return }
 
     await streamAssistantReply(response.body, {
       onText: content => setConversationHistory(history => updateAssistantAt(history, assistantIndex, content)),
@@ -174,87 +188,86 @@ export default function ChatbotWidget() {
   }
 
   const canSend = input.trim().length > 0 && !isResponding
-  const visibleMessages = [greeting, ...conversationHistory].filter(message => message.content.trim().length > 0)
-  const isThinking = isResponding && conversationHistory.at(-1)?.role === 'assistant' && !conversationHistory.at(-1)?.content
+  const visibleMessages = [greeting, ...conversationHistory]
+    .filter(message => message.content.trim().length > 0)
+  const lastMessage = conversationHistory.at(-1)
+  const isThinking = isResponding && lastMessage?.role === 'assistant' && !lastMessage?.content
 
   return (
     <>
       {open && (
-        <section className={styles.widget} aria-label={t('chatbot.label')}>
-          <header className={styles.header}>
-            <div className={styles.headerIdentity}>
-              <div className={styles.avatar} aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                  <path d="M4 5.5A2.5 2.5 0 016.5 3h7A2.5 2.5 0 0116 5.5v5A2.5 2.5 0 0113.5 13H9l-4 3v-3.1A2.5 2.5 0 014 10.5v-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                  <path d="M7 8h.01M10 8h.01M13 8h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </div>
+        <section className="chat" aria-label={t('chatbot.label')}>
+          <header className="chat__header">
+            <div className="chat__identity">
+              <span className="chat__avatar" aria-hidden="true"><MessageCircle size={17} /></span>
               <div>
-                <div className={styles.title}>{t('chatbot.title')}</div>
-                <div className={styles.subtitle}>{language === 'bn' ? t('chatbot.langBangla') : t('chatbot.langEnglish')}</div>
+                <p className="chat__title">{t('chatbot.title')}</p>
+                <p className="chat__lang">
+                  {language === 'bn' ? t('chatbot.langBangla') : t('chatbot.langEnglish')}
+                </p>
               </div>
             </div>
-            <button className={styles.iconButton} type="button" onClick={() => setOpen(false)} aria-label={t('chatbot.close')}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
+            <button
+              type="button"
+              className="chat__close"
+              onClick={() => setOpen(false)}
+              aria-label={t('chatbot.close')}
+            >
+              <X size={16} />
             </button>
           </header>
 
-          <div className={styles.messages}>
+          <div className="chat__messages">
             {visibleMessages.map((message, index) => (
-              <div key={`${message.role}-${index}`} className={`${styles.messageRow} ${styles[message.role]}`}>
-                <div className={styles.bubble}>{message.content}</div>
+              <div key={`${message.role}-${index}`} className={`chat__row chat__row--${message.role}`}>
+                <div className="chat__bubble">{message.content}</div>
               </div>
             ))}
+
             {isThinking && (
-              <div className={`${styles.messageRow} ${styles.assistant}`}>
-                <div className={`${styles.bubble} ${styles.thinking}`}>
-                  <span className={styles.thinkingDot} aria-hidden="true" />
-                  <span className={styles.thinkingDot} aria-hidden="true" />
-                  <span className={styles.thinkingDot} aria-hidden="true" />
+              <div className="chat__row chat__row--assistant">
+                <div className="chat__bubble chat__bubble--thinking">
+                  <span /><span /><span />
                 </div>
               </div>
             )}
+
             <div ref={bottomRef} />
           </div>
 
-          {errorKey && <div className={styles.inlineError}>{t(errorKey)}</div>}
+          {errorKey && <div className="chat__error" role="status">{t(errorKey)}</div>}
 
-          <form className={styles.inputArea} onSubmit={(event) => { event.preventDefault(); sendMessage() }}>
-            <textarea
-              className={styles.input}
-              rows={1}
+          <form
+            className="chat__composer"
+            onSubmit={event => { event.preventDefault(); sendMessage() }}
+          >
+            <input
+              ref={inputRef}
+              className="chat__input"
               placeholder={t('chatbot.placeholder')}
               value={input}
               onChange={event => setInput(event.target.value)}
-              onKeyDown={event => {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                  event.preventDefault()
-                  sendMessage()
-                }
-              }}
               disabled={isResponding}
             />
-            <button className={styles.sendButton} type="submit" disabled={!canSend} aria-label={t('chatbot.send')}>
-              <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
-                <path d="M15.75 2.25L8.25 9.75M15.75 2.25l-4.5 13.5-3-6-6-3 13.5-4.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+            <button
+              className="chat__send"
+              type="submit"
+              disabled={!canSend}
+              aria-label={t('chatbot.send')}
+            >
+              <Send size={16} />
             </button>
           </form>
         </section>
       )}
 
-      <button className={styles.trigger} type="button" onClick={() => setOpen(value => !value)} aria-label={open ? t('chatbot.closeTrigger') : t('chatbot.openTrigger')}>
-        {open ? (
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        ) : (
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M4 5.5A2.5 2.5 0 016.5 3h9A2.5 2.5 0 0118 5.5v6A2.5 2.5 0 0115.5 14H9l-5 4v-4.5A2.5 2.5 0 011.5 11V5.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-          </svg>
-        )}
+      <button
+        type="button"
+        className="chat__trigger"
+        onClick={() => setOpen(value => !value)}
+        aria-label={open ? t('chatbot.closeTrigger') : t('chatbot.openTrigger')}
+      >
+        {open ? <X size={20} /> : <MessageCircle size={22} />}
       </button>
     </>
   )
