@@ -239,7 +239,11 @@ function filterMandatedFieldAdvice(parsed, context) {
   return next;
 }
 
-function normalizeResponse(raw, context = { marketMode: 'bangladesh' }) {
+/*
+ * Exported for the model comparison harness, so a candidate model is scored on
+ * the review a user would actually receive rather than on its raw output.
+ */
+export function normalizeResponse(raw, context = { marketMode: 'bangladesh' }) {
   if (!raw || typeof raw !== 'object') return raw;
 
   // Remap old key names the AI sometimes uses
@@ -424,7 +428,16 @@ function parseAIJSON(rawText) {
  * rules gate on: without it the model cannot know it is reading extracted text
  * and must not comment on fonts or margins.
  */
-function buildUserMessage(resumeText, { jobAd, jobRole, context, language } = {}) {
+/*
+ * Exported for the model comparison harness (server/scripts/compare-models.js).
+ *
+ * Not a convenience. A harness that builds its own user message does not test
+ * what production sends: the Bangla reminder, the context block and the job-ad
+ * block all live here, and the 2026-08-26 Bangla failure was caused entirely by
+ * where the reminder sat. A comparison built on a hand-rolled message would have
+ * reproduced that failure on every candidate model and blamed the models.
+ */
+export function buildUserMessage(resumeText, { jobAd, jobRole, context, language } = {}) {
   const parts = [];
 
   if (context) parts.push(renderContextBlock(context));
