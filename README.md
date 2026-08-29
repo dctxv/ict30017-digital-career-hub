@@ -10,6 +10,7 @@ A web platform designed to help students and job seekers improve their career re
 - Darius Tan
 - Sineth Munasinghe
 - Shalitha Senadeerage
+- Manuth Gamage
 <<<<<<< Updated upstream
 - Pubuditha Hettiarachchi
 =======
