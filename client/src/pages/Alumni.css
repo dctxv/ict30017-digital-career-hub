@@ -81,6 +81,31 @@
   line-height: 1.65;
 }
 
+.alumni-card__contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.alumni-card__contacts a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-size: 13.5px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.alumni-card__contacts a:hover { text-decoration: underline; }
+
+.alumni-card__contacts a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
 @media (max-width: 860px) {
   .alumni-grid { grid-template-columns: 1fr; }
 }

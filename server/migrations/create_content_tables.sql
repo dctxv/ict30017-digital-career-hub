@@ -58,6 +58,8 @@ CREATE TABLE IF NOT EXISTS alumni (
   industry        TEXT        NOT NULL DEFAULT '',
   bio             TEXT        NOT NULL DEFAULT '',
   image_initials  TEXT,
+  email           TEXT,
+  linkedin_url    TEXT,
   consent_given   BOOLEAN     NOT NULL DEFAULT FALSE,
   is_published    BOOLEAN     NOT NULL DEFAULT FALSE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
