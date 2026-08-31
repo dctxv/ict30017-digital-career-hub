@@ -51,6 +51,7 @@ const ORDER = [
   'add_user_tier.sql',
   'create_content_tables.sql',
   'seed_content_data.sql',
+  'fix_resource_links.sql',
   'add_bilingual_content.sql',
   'seed_bangla_content.sql',
   'add_user_profile_fields.sql',
