@@ -3,4 +3,3 @@
 -- values are exposed only when the graduate has approved the profile.
 ALTER TABLE alumni ADD COLUMN IF NOT EXISTS email        TEXT;
 ALTER TABLE alumni ADD COLUMN IF NOT EXISTS linkedin_url TEXT;
-

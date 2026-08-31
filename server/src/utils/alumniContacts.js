@@ -34,4 +34,3 @@ export function validateAlumniContacts({ email, linkedin_url } = {}) {
 
   return null;
 }
-

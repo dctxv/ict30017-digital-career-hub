@@ -27,4 +27,3 @@ describe('alumni contact validation', () => {
     assert.match(validateAlumniContacts({ linkedin_url: 'http://linkedin.com/in/name' }), /LinkedIn URL/);
   });
 });
-
