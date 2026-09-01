@@ -1,185 +1,216 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronRight, ArrowRight } from 'lucide-react'
 import Navbar from '../components/Navbar'
-import { useTranslation } from '../i18n/useTranslation'
-import { disciplineLabel } from '../utils/disciplineLabels'
+import { useLanguage } from '../context/LanguageContext'
+import { fetchList } from '../api/fetchList'
 import './CareerPaths.css'
 
+const FALLBACK_DISCIPLINES = ['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
+
 export default function CareerPaths() {
-  const { t } = useTranslation()
+  const { lang, t, n, d: duration } = useLanguage()
+  const navigate = useNavigate()
   const [disc, setDisc] = useState('All')
   const [selectedId, setSelectedId] = useState(null)
-  const [disciplines, setDisciplines] = useState(['All'])
+  // { name, label }: `name` is the English key rows are filtered by, `label` is
+  // what the pill shows. See the disciplines route for why they stay separate.
+  const [disciplines, setDisciplines] = useState([{ name: 'All', label: 'All' }])
   const [paths, setPaths] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
-  // Fetch disciplines from API
   useEffect(() => {
-    const fetchDisciplines = async () => {
-      try {
-        const response = await fetch('/api/disciplines')
-        const data = await response.json()
-        const disciplineNames = ['All', ...data.map(d => d.name)]
-        setDisciplines(disciplineNames)
-      } catch (error) {
-        console.error('Error fetching disciplines:', error)
-        setDisciplines(['All', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education'])
-      }
-    }
+    let cancelled = false
+    fetchList(`/api/disciplines?lang=${lang}`)
+      .then(data => {
+        if (cancelled) return
+        setDisciplines([
+          { name: 'All', label: t('common.all') },
+          ...data.map(row => ({ name: row.name, label: (lang === 'bn' && row.name_bn) || row.name })),
+        ])
+      })
+      .catch(() => {
+        if (cancelled) return
+        setDisciplines([
+          { name: 'All', label: t('common.all') },
+          ...FALLBACK_DISCIPLINES.map(name => ({ name, label: name })),
+        ])
+      })
+    return () => { cancelled = true }
+  }, [lang, t])
 
-    fetchDisciplines()
-  }, [])
-
-  // Fetch career paths from API
+  // Refetches on a language change so descriptions arrive translated. The
+  // selected path survives it because selection is keyed on id, not index.
   useEffect(() => {
-    const fetchPaths = async () => {
-      try {
-        const response = await fetch('/api/career-paths')
-        const data = await response.json()
-        setPaths(data)
-        if (data.length > 0 && !selectedId) {
-          setSelectedId(data[0].id)
-        }
-      } catch (error) {
-        console.error('Error fetching career paths:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+    let cancelled = false
+    fetchList(`/api/career-paths?lang=${lang}`)
+      .then(rows => {
+        if (cancelled) return
+        setPaths(rows)
+        setSelectedId(current => current ?? rows[0]?.id ?? null)
+        setLoadError(false)
+      })
+      .catch(error => {
+        if (cancelled) return
+        console.error('[career-paths]', error.message)
+        setPaths([])
+        setLoadError(true)
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [lang])
 
-    fetchPaths()
-  }, [])
+  const filtered = useMemo(
+    () => paths.filter(p => disc === 'All' || p.discipline === disc),
+    [paths, disc],
+  )
 
-  // Function to navigate to resources with discipline filter
-  const goToResources = (discipline, careerTitle) => {
-    localStorage.setItem('selectedDiscipline', discipline)
-    localStorage.setItem('selectedCareer', careerTitle)
-    window.location.href = '/resources'
+  const selected = filtered.find(p => p.id === selectedId) ?? filtered[0] ?? null
+
+  const chooseDiscipline = (name) => {
+    setDisc(name)
+    // Selecting a discipline whose first path is not the one on screen would
+    // leave the detail panel showing a path the list no longer contains.
+    const first = paths.find(p => name === 'All' || p.discipline === name)
+    if (first) setSelectedId(first.id)
   }
 
-  const filtered = paths.filter(p => disc === 'All' || p.discipline === disc)
-  const selected = paths.find(p => p.id === selectedId) || filtered[0]
-
-  if (loading) {
-    return (
-      <div className="page-enter">
-        <Navbar />
-        <div style={{ textAlign: 'center', padding: '50px' }}>{t('careerPaths.loading')}</div>
-      </div>
-    )
+  // The resources page reads these on mount and clears them immediately, so
+  // they are a one-shot hand-off rather than persisted state.
+  const goToResources = () => {
+    if (!selected) return
+    localStorage.setItem('selectedDiscipline', selected.discipline)
+    localStorage.setItem('selectedCareer', selected.title)
+    navigate('/resources')
   }
 
   return (
     <div className="page-enter">
       <Navbar />
 
-      <div className="cp-header">
-        <div className="cp-header-inner">
-          <h1 className="cp-title">{t('careerPaths.title')}</h1>
-          <p className="cp-sub">
-            {t('careerPaths.subtitle')}
-          </p>
-          <div className="filter-row">
-            {disciplines.map(d => (
+      <section className="page-head">
+        <div className="shell">
+          <h1 className="page-head__title">{t('careers.title')}</h1>
+          <p className="page-head__sub">{t('careers.sub')}</p>
+          <div className="pill-row cp-filters">
+            {disciplines.map(item => (
               <button
-                key={d}
-                className={`filter-pill ${disc === d ? 'active' : ''}`}
-                onClick={() => {
-                  setDisc(d)
-                  if (d !== 'All') {
-                    const first = paths.find(p => p.discipline === d)
-                    if (first) setSelectedId(first.id)
-                  } else if (filtered.length > 0) {
-                    setSelectedId(filtered[0].id)
-                  }
-                }}
+                key={item.name}
+                type="button"
+                className={`pill${disc === item.name ? ' pill--on' : ''}`}
+                onClick={() => chooseDiscipline(item.name)}
               >
-                {d === 'All' ? t('common.all') : disciplineLabel(d, t)}
+                {item.label}
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="cp-body">
-        <div className="cp-list-col">
-          {filtered.length === 0 && (
-            <div className="cp-empty">{t('careerPaths.empty')}</div>
-          )}
-          {filtered.map(p => (
-            <button
-              key={p.id}
-              className={`cp-path-item ${selectedId === p.id ? 'active' : ''}`}
-              onClick={() => setSelectedId(p.id)}
-            >
-              <div className="cp-path-item-inner">
-                <div>
-                  <div className="cp-path-title">{p.title}</div>
-                  <div className="cp-path-industry">{p.industry}</div>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="cp-arrow">
-                  <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </button>
-          ))}
-          <div className="cp-list-count">
-            {disc !== 'All'
-              ? t('careerPaths.showingIn', { shown: filtered.length, total: paths.length, discipline: disc })
-              : t('careerPaths.showing', { shown: filtered.length, total: paths.length })}
-          </div>
+      {loadError && (
+        <div className="page-body" style={{ paddingBottom: 0 }}>
+          <p className="notice notice--error" role="alert">{t('common.loadFailed')}</p>
         </div>
+      )}
 
-        {selected && (
-          <div className="cp-detail-col">
-            <h2 className="cp-detail-title">{selected.title}</h2>
-            <div className="cp-detail-tags">
-              <span className="cp-detail-tag">{selected.industry}</span>
-              <span className="cp-detail-tag">{disciplineLabel(selected.discipline, t)}</span>
-            </div>
-            <p className="cp-detail-desc">{selected.desc}</p>
+      {loading ? (
+        <div className="empty-state">{t('careers.loading')}</div>
+      ) : (
+        <section className="cp-body">
+          <div className="cp-list">
+            {!loadError && filtered.length === 0 && (
+              <div className="empty-state">{t('careers.empty')}</div>
+            )}
 
-            <div className="cp-section-label">{t('careerPaths.requiredSkills')}</div>
-            <div className="cp-skills">
-              {selected.skills.map(s => (
-                <span key={s} className="cp-skill-pill">{s}</span>
-              ))}
-            </div>
+            {filtered.map(path => {
+              const on = selected?.id === path.id
+              return (
+                <button
+                  key={path.id}
+                  type="button"
+                  className={`cp-item${on ? ' cp-item--on' : ''}`}
+                  onClick={() => setSelectedId(path.id)}
+                  aria-current={on}
+                >
+                  <span className="cp-item__text">
+                    <span className="cp-item__title">{path.title}</span>
+                    <span className="cp-item__industry">{path.industry}</span>
+                  </span>
+                  <ChevronRight size={16} className="cp-item__arrow" />
+                </button>
+              )
+            })}
 
-            <div className="cp-section-label">{t('careerPaths.typicalProgression')}</div>
-            <div className="cp-progression">
-              {selected.progression.map((step, i) => (
-                <div key={i} className="cp-prog-step">
-                  <div className={`cp-prog-dot ${step.current ? 'current' : ''}`} />
-                  {i < selected.progression.length - 1 && <div className="cp-prog-line" />}
-                  <div className={`cp-prog-label ${step.current ? 'current' : ''}`}>{step.label}</div>
-                  <div className="cp-prog-time">{step.time}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="cp-section-label">{t('careerPaths.salaryContext')}</div>
-            <div className="cp-salary-cards">
-              <div className="cp-salary-card">
-                <div className="cp-salary-level">{t('careerPaths.entryLevel')}</div>
-                <div className="cp-salary-amount">{selected.salaryEntry}</div>
-                <div className="cp-salary-period">{t('careerPaths.perMonth')}</div>
-              </div>
-              <div className="cp-salary-card">
-                <div className="cp-salary-level">{t('careerPaths.seniorLevel')}</div>
-                <div className="cp-salary-amount">{selected.salarySenior}</div>
-                <div className="cp-salary-period">{t('careerPaths.perMonth')}</div>
-              </div>
-            </div>
-
-            <button
-              className="cp-resources-btn"
-              onClick={() => goToResources(selected.discipline, selected.title)}
-            >
-              {t('careerPaths.findResources', { title: selected.title })}
-            </button>
+            {filtered.length > 0 && (
+              <p className="cp-count">
+                {disc === 'All'
+                  ? t('careers.showingCount', { shown: n(filtered.length), total: n(paths.length) })
+                  : t('careers.showingCountFiltered', {
+                      shown: n(filtered.length),
+                      total: n(paths.length),
+                      discipline: disciplines.find(item => item.name === disc)?.label ?? disc,
+                    })}
+              </p>
+            )}
           </div>
-        )}
-      </div>
+
+          {selected && (
+            <div className="cp-detail">
+              <h2 className="cp-detail__title">{selected.title}</h2>
+
+              <div className="cp-detail__tags">
+                <span className="tag tag--accent">{selected.industry}</span>
+                <span className="tag tag--tint">
+                  {disciplines.find(item => item.name === selected.discipline)?.label ?? selected.discipline}
+                </span>
+              </div>
+
+              <p className="cp-detail__desc">{selected.desc}</p>
+
+              <p className="eyebrow">{t('careers.requiredSkills')}</p>
+              <div className="cp-skills">
+                {(selected.skills ?? []).map(skill => (
+                  <span key={skill} className="cp-skill">{skill}</span>
+                ))}
+              </div>
+
+              <p className="eyebrow">{t('careers.progression')}</p>
+              <div className="cp-progression scroll-x">
+                {(selected.progression ?? []).map((step, index, steps) => (
+                  <div key={`${step.label}-${index}`} className="cp-step">
+                    {index < steps.length - 1 && <span className="cp-step__line" />}
+                    <span className={`cp-step__dot${step.current ? ' cp-step__dot--on' : ''}`} />
+                    <span className={`cp-step__label${step.current ? ' cp-step__label--on' : ''}`}>
+                      {step.label}
+                    </span>
+                    <span className="cp-step__time">{duration(step.time)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <p className="eyebrow">{t('careers.salaryContext')}</p>
+              <div className="cp-salary">
+                {[
+                  ['careers.entryLevel', selected.salaryEntry],
+                  ['careers.seniorLevel', selected.salarySenior],
+                ].map(([labelKey, amount]) => (
+                  <div key={labelKey} className="cp-salary__card">
+                    <p className="cp-salary__level">{t(labelKey)}</p>
+                    <p className="cp-salary__amount">{n(amount)}</p>
+                    <p className="cp-salary__period">{t('common.perMonth')}</p>
+                  </div>
+                ))}
+              </div>
+
+              <button type="button" className="btn btn--outline cp-detail__cta" onClick={goToResources}>
+                {t('careers.findResources', { title: selected.title })}
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   )
 }

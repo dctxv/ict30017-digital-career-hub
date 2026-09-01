@@ -1,12 +1,16 @@
 /**
  * Module: ChatbotWidget
- * Responsibility: Floating AI career chatbot UI with POST-based SSE streaming.
+ * Responsibility: Floating career chatbot with POST-based SSE streaming.
+ *
+ * Callers elsewhere in the app open this through openChatbot() in chatbotBus.js
+ * — see that file for why it is an event rather than a provider.
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { MessageCircle, X, Send } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
-import { useTranslation } from '../i18n/useTranslation'
-import styles from './ChatbotWidget.module.css'
+import { CHATBOT_OPEN_EVENT } from './chatbotBus'
+import './ChatbotWidget.css'
 
 function parseSseFrame(frame) {
   const dataLines = frame
@@ -27,40 +31,131 @@ function updateAssistantAt(history, index, content) {
   })
 }
 
-export default function ChatbotWidget() {
-  // The toggle already lives in shared context — this used to re-derive the
-  // language by scraping the DOM for '.lang-btn.active' and re-checking on
-  // every click anywhere on the page, which broke the moment the toggle's
-  // markup changed and did unnecessary work on every unrelated click. Reading
-  // it straight from useLanguage() is both correct and simpler.
-  const { lang: language } = useLanguage()
-  const { t } = useTranslation()
+/**
+ * Drains the SSE body, accumulating the assistant's reply and reporting it as
+ * it grows.
+ *
+ * This lives at module scope rather than inside the component on purpose. It
+ * accumulates into a local that it reassigns on every frame, and React's
+ * compiler treats values captured from a component body as immutable — so the
+ * same loop written inline is rejected. Outside a component there is nothing to
+ * memoise and the reassignment is ordinary JavaScript.
+ *
+ * @param {ReadableStream} body
+ * @param {{ onText: (content: string) => void, onError: () => void }} handlers
+ */
+async function streamAssistantReply(body, { onText, onError }) {
+  const reader = body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let assistantContent = ''
 
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+
+      let frameEnd = buffer.indexOf('\n\n')
+      while (frameEnd !== -1) {
+        const frame = buffer.slice(0, frameEnd)
+        buffer = buffer.slice(frameEnd + 2)
+        const payload = parseSseFrame(frame)
+
+        if (payload === '[DONE]') return
+
+        if (payload === '[ERROR]') {
+          onError()
+          return
+        }
+
+        if (payload) {
+          // The very first chunk arrives with the model's leading whitespace
+          // still attached; later ones must keep theirs or words run together.
+          const nextChunk = assistantContent ? payload : payload.replace(/^\s+/, '')
+          if (nextChunk) {
+            assistantContent += nextChunk
+            onText(assistantContent)
+          }
+        }
+
+        frameEnd = buffer.indexOf('\n\n')
+      }
+    }
+  } catch {
+    onError()
+  }
+}
+
+export default function ChatbotWidget() {
+  /*
+   * The language used to be read by querying the navbar for '.lang-btn.active'
+   * and re-read on every document click. It worked, but it coupled the chatbot
+   * to a CSS class in an unrelated component: renaming that class would have
+   * silently reverted every conversation to English. The selection has a
+   * provider, so it is read from there.
+   */
+  const { lang: language, t } = useLanguage()
   const [open, setOpen] = useState(false)
-  const [conversationHistory, setConversationHistory] = useState(() => ([
-    { role: 'assistant', content: t('chatbot.initialMessage') },
-  ]))
+  const [conversationHistory, setConversationHistory] = useState([])
   const [input, setInput] = useState('')
   const [isResponding, setIsResponding] = useState(false)
-  const [error, setError] = useState('')
+  const [errorKey, setErrorKey] = useState('')
   const bottomRef = useRef(null)
+  const inputRef = useRef(null)
+
+  /*
+   * The greeting is rendered rather than stored, so toggling the language
+   * before the first reply re-renders it instead of leaving an English
+   * sentence at the top of a Bangla conversation. Once the user has sent
+   * anything, the transcript is left exactly as it was said.
+   */
+  const greeting = { role: 'assistant', content: t('chatbot.greeting') }
+
+  useEffect(() => {
+    const handler = () => setOpen(true)
+    window.addEventListener(CHATBOT_OPEN_EVENT, handler)
+    return () => window.removeEventListener(CHATBOT_OPEN_EVENT, handler)
+  }, [])
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [conversationHistory, isResponding, open])
 
+  // Opening a panel and leaving focus behind it is the difference between a
+  // control a keyboard user can reach and one they cannot.
+  useEffect(() => {
+    if (open) inputRef.current?.focus()
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (event) => { if (event.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   async function sendMessage() {
     const message = input.trim()
     if (!message || isResponding) return
 
-    const historyBeforeSend = conversationHistory.filter(item => item.content.trim())
+    // State holds the transcript only; the greeting is prepended for display
+    // and for the model, never stored, so it never lands in state twice.
+    const priorHistory = conversationHistory.filter(item => item.content.trim())
     const userMessage = { role: 'user', content: message }
-    const assistantIndex = historyBeforeSend.length + 1
+    const assistantIndex = priorHistory.length + 1
 
-    setConversationHistory([...historyBeforeSend, userMessage, { role: 'assistant', content: '' }])
+    setConversationHistory([...priorHistory, userMessage, { role: 'assistant', content: '' }])
     setInput('')
-    setError('')
+    setErrorKey('')
     setIsResponding(true)
+
+    const fail = (key) => {
+      setConversationHistory([...priorHistory, userMessage])
+      setErrorKey(key)
+      setIsResponding(false)
+    }
 
     let response
     try {
@@ -70,171 +165,109 @@ export default function ChatbotWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message,
-          conversationHistory: historyBeforeSend,
+          conversationHistory: [greeting, ...priorHistory],
           language,
         }),
       })
     } catch {
-      setConversationHistory([...historyBeforeSend, userMessage])
-      setError(t('chatbot.genericError'))
-      setIsResponding(false)
+      fail('chatbot.genericError')
       return
     }
 
-    if (response.status === 401) {
-      setConversationHistory([...historyBeforeSend, userMessage])
-      setError(t('chatbot.genericError'))
-      setIsResponding(false)
-      return
-    }
+    // 429 is the daily allowance, and it needs its own message: telling someone
+    // "something went wrong" when they have simply used today's messages sends
+    // them to retry a request that cannot succeed until tomorrow.
+    if (response.status === 429) { fail('chatbot.limit'); return }
+    if (!response.ok || !response.body) { fail('chatbot.genericError'); return }
 
-    if (response.status === 429) {
-      setConversationHistory([...historyBeforeSend, userMessage])
-      setError(t('chatbot.limitMessage'))
-      setIsResponding(false)
-      return
-    }
-
-    if (!response.ok || !response.body) {
-      setConversationHistory([...historyBeforeSend, userMessage])
-      setError(t('chatbot.genericError'))
-      setIsResponding(false)
-      return
-    }
-
-    const reader = response.body.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
-    let assistantContent = ''
-
-    try {
-      while (true) {
-        const { value, done } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-
-        let frameEnd = buffer.indexOf('\n\n')
-        while (frameEnd !== -1) {
-          const frame = buffer.slice(0, frameEnd)
-          buffer = buffer.slice(frameEnd + 2)
-          const payload = parseSseFrame(frame)
-
-          if (payload === '[DONE]') {
-            setIsResponding(false)
-            return
-          }
-
-          if (payload === '[ERROR]') {
-            setError(t('chatbot.genericError'))
-            setIsResponding(false)
-            return
-          }
-
-          if (payload) {
-            const nextChunk = assistantContent ? payload : payload.replace(/^\s+/, '')
-            if (!nextChunk) {
-              frameEnd = buffer.indexOf('\n\n')
-              continue
-            }
-
-            assistantContent += nextChunk
-            setConversationHistory(history => updateAssistantAt(history, assistantIndex, assistantContent))
-          }
-
-          frameEnd = buffer.indexOf('\n\n')
-        }
-      }
-
-      setIsResponding(false)
-    } catch {
-      setError(t('chatbot.genericError'))
-      setIsResponding(false)
-    }
+    await streamAssistantReply(response.body, {
+      onText: content => setConversationHistory(history => updateAssistantAt(history, assistantIndex, content)),
+      onError: () => setErrorKey('chatbot.genericError'),
+    })
+    setIsResponding(false)
   }
 
   const canSend = input.trim().length > 0 && !isResponding
-  const visibleMessages = conversationHistory.filter(message => message.content.trim().length > 0)
-  const isThinking = isResponding && conversationHistory.at(-1)?.role === 'assistant' && !conversationHistory.at(-1)?.content
+  const visibleMessages = [greeting, ...conversationHistory]
+    .filter(message => message.content.trim().length > 0)
+  const lastMessage = conversationHistory.at(-1)
+  const isThinking = isResponding && lastMessage?.role === 'assistant' && !lastMessage?.content
 
   return (
     <>
       {open && (
-        <section className={styles.widget} aria-label={t('chatbot.title')}>
-          <header className={styles.header}>
-            <div className={styles.headerIdentity}>
-              <div className={styles.avatar} aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                  <path d="M4 5.5A2.5 2.5 0 016.5 3h7A2.5 2.5 0 0116 5.5v5A2.5 2.5 0 0113.5 13H9l-4 3v-3.1A2.5 2.5 0 014 10.5v-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                  <path d="M7 8h.01M10 8h.01M13 8h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </div>
+        <section className="chat" aria-label={t('chatbot.label')}>
+          <header className="chat__header">
+            <div className="chat__identity">
+              <span className="chat__avatar" aria-hidden="true"><MessageCircle size={17} /></span>
               <div>
-                <div className={styles.title}>{t('chatbot.title')}</div>
-                <div className={styles.subtitle}>{language === 'bn' ? t('chatbot.subtitleBangla') : t('chatbot.subtitleEnglish')}</div>
+                <p className="chat__title">{t('chatbot.title')}</p>
+                <p className="chat__lang">
+                  {language === 'bn' ? t('chatbot.langBangla') : t('chatbot.langEnglish')}
+                </p>
               </div>
             </div>
-            <button className={styles.iconButton} type="button" onClick={() => setOpen(false)} aria-label={t('chatbot.closeChat')}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
+            <button
+              type="button"
+              className="chat__close"
+              onClick={() => setOpen(false)}
+              aria-label={t('chatbot.close')}
+            >
+              <X size={16} />
             </button>
           </header>
 
-          <div className={styles.messages}>
+          <div className="chat__messages">
             {visibleMessages.map((message, index) => (
-              <div key={`${message.role}-${index}`} className={`${styles.messageRow} ${styles[message.role]}`}>
-                <div className={styles.bubble}>{message.content}</div>
+              <div key={`${message.role}-${index}`} className={`chat__row chat__row--${message.role}`}>
+                <div className="chat__bubble">{message.content}</div>
               </div>
             ))}
+
             {isThinking && (
-              <div className={`${styles.messageRow} ${styles.assistant}`}>
-                <div className={`${styles.bubble} ${styles.thinking}`}>
-                  <span className={styles.thinkingDot} aria-hidden="true" />
-                  <span className={styles.thinkingDot} aria-hidden="true" />
-                  <span className={styles.thinkingDot} aria-hidden="true" />
+              <div className="chat__row chat__row--assistant">
+                <div className="chat__bubble chat__bubble--thinking">
+                  <span /><span /><span />
                 </div>
               </div>
             )}
+
             <div ref={bottomRef} />
           </div>
 
-          {error && <div className={styles.inlineError}>{error}</div>}
+          {errorKey && <div className="chat__error" role="status">{t(errorKey)}</div>}
 
-          <form className={styles.inputArea} onSubmit={(event) => { event.preventDefault(); sendMessage() }}>
-            <textarea
-              className={styles.input}
-              rows={1}
+          <form
+            className="chat__composer"
+            onSubmit={event => { event.preventDefault(); sendMessage() }}
+          >
+            <input
+              ref={inputRef}
+              className="chat__input"
               placeholder={t('chatbot.placeholder')}
               value={input}
               onChange={event => setInput(event.target.value)}
-              onKeyDown={event => {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                  event.preventDefault()
-                  sendMessage()
-                }
-              }}
               disabled={isResponding}
             />
-            <button className={styles.sendButton} type="submit" disabled={!canSend} aria-label={t('chatbot.sendMessage')}>
-              <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
-                <path d="M15.75 2.25L8.25 9.75M15.75 2.25l-4.5 13.5-3-6-6-3 13.5-4.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+            <button
+              className="chat__send"
+              type="submit"
+              disabled={!canSend}
+              aria-label={t('chatbot.send')}
+            >
+              <Send size={16} />
             </button>
           </form>
         </section>
       )}
 
-      <button className={styles.trigger} type="button" onClick={() => setOpen(value => !value)} aria-label={open ? t('chatbot.closeChatbot') : t('chatbot.openChat')}>
-        {open ? (
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        ) : (
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M4 5.5A2.5 2.5 0 016.5 3h9A2.5 2.5 0 0118 5.5v6A2.5 2.5 0 0115.5 14H9l-5 4v-4.5A2.5 2.5 0 011.5 11V5.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-          </svg>
-        )}
+      <button
+        type="button"
+        className="chat__trigger"
+        onClick={() => setOpen(value => !value)}
+        aria-label={open ? t('chatbot.closeTrigger') : t('chatbot.openTrigger')}
+      >
+        {open ? <X size={20} /> : <MessageCircle size={22} />}
       </button>
     </>
   )

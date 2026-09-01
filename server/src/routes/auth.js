@@ -72,6 +72,20 @@ const ALLOWED_TIERS = ['free', 'premium'];
 const PlanSchema = z.enum(ALLOWED_TIERS);
 const DEFAULT_TIER = 'free';
 
+/*
+ * How the user said they would pay, recorded against the subscription.
+ *
+ * Descriptive only. No gateway is connected, nothing is charged, and the
+ * account number and card details the form collects are never sent to the
+ * server — only the name of the instrument. It is kept because on this market
+ * bKash-versus-card is the most useful signal the project can collect about
+ * whether anyone would actually pay, and `source = 'signup'` throws it away.
+ *
+ * Anything unrecognised is dropped rather than stored, so a crafted request
+ * cannot write arbitrary text into the billing record.
+ */
+const PAYMENT_METHODS = ['bkash', 'nagad', 'card'];
+
 const PASSWORD_MIN_LENGTH = 12;
 const PASSWORD_MAX_LENGTH = 128;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -114,12 +128,83 @@ router.post('/register', registerLimiter, async (req, res) => {
     const password_hash = await bcrypt.hash(password, 12);
     const normalisedEmail = email.trim().toLowerCase();
 
+    /*
+     * Optional profile fields.
+     *
+     * discipline is the one that earns its place immediately: every content
+     * table filters by it, so without it a Computer Science student and an
+     * Accounting student see the same unfiltered 42 resources and 70 career
+     * paths. The rest let an account be recognised as a person rather than a
+     * login.
+     *
+     * All optional, all trimmed to NULL when blank — an empty string would
+     * read as "answered, with nothing", which is not what a skipped field
+     * means.
+     */
+    const optionalText = (value, max) => {
+      if (typeof value !== 'string') return null;
+      const trimmed = value.trim();
+      if (trimmed === '') return null;
+      return trimmed.slice(0, max);
+    };
+
+    const graduationYear = Number.parseInt(req.body.graduation_year, 10);
+    const currentYear = new Date().getFullYear();
+    const validYear =
+      Number.isInteger(graduationYear) &&
+      graduationYear >= 1950 &&
+      graduationYear <= currentYear + 10
+        ? graduationYear
+        : null;
+
+    // preferred_language has existed since the users table was created and has
+    // never been written by anything, so a signed-in user on a new device always
+    // got English regardless of what they had chosen. The client sends its
+    // current selection; anything unrecognised falls back rather than storing a
+    // language the site cannot render.
+    const preferredLanguage = ['en', 'bn'].includes(req.body.preferred_language)
+      ? req.body.preferred_language
+      : 'en';
+
     const result = await pool.query(
-      `INSERT INTO users (full_name, email, password_hash, role, tier)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING user_id, full_name, email, role, tier, preferred_language, created_at`,
-      [full_name.trim(), normalisedEmail, password_hash, 'student', tier]
+      `INSERT INTO users
+         (full_name, email, password_hash, role, tier, preferred_language,
+          discipline, institution, graduation_year, phone)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING user_id, full_name, email, role, tier, preferred_language,
+                 discipline, institution, graduation_year, created_at`,
+      [
+        full_name.trim(), normalisedEmail, password_hash, 'student', tier,
+        preferredLanguage,
+        optionalText(req.body.discipline, 100),
+        optionalText(req.body.institution, 150),
+        validYear,
+        optionalText(req.body.phone, 30),
+      ]
     );
+
+    // Records why this account holds its tier. users.tier stays the value the
+    // application reads; this is the provenance behind it, so a premium account
+    // is a fact with a date rather than a column somebody set.
+    const paymentMethod = PAYMENT_METHODS.includes(req.body.payment_method)
+      ? req.body.payment_method
+      : null;
+
+    await pool.query(
+      `INSERT INTO subscriptions (user_id, tier, status, source, payment_method, note)
+       VALUES ($1, $2, 'active', 'signup', $3, $4)`,
+      [
+        result.rows[0].user_id,
+        tier,
+        tier === 'premium' ? paymentMethod : null,
+        tier === 'premium'
+          ? 'Chosen at registration. No payment gateway is connected, so no payment was taken, no amount is recorded and no expiry is set.'
+          : 'Default tier at registration.',
+      ]
+    ).catch((err) => {
+      // Never fail a registration over its audit trail.
+      console.error('[auth] Could not record signup subscription:', err.message);
+    });
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -150,7 +235,7 @@ router.post('/login', loginLimiter, async (req, res) => {
     const normalisedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
     const result = await pool.query(
       `SELECT user_id, full_name, email, password_hash, role, tier,
-              failed_login_attempts, lockout_until
+              failed_login_attempts, lockout_until, is_active
        FROM users WHERE email = $1`,
       [normalisedEmail]
     );
@@ -162,6 +247,14 @@ router.post('/login', loginLimiter, async (req, res) => {
     }
 
     const user = result.rows[0];
+
+    // A deleted account keeps its row, deactivated and scrubbed, so that audit
+    // records and foreign keys still resolve. It must not be a way back in.
+    // Answered with the same generic error as a wrong password: whether an
+    // address once had an account is not something a stranger gets to learn.
+    if (user.is_active === false) {
+      return res.status(401).json(genericError);
+    }
 
     // Check account lockout — degrade gracefully if columns don't exist yet
     if (user.lockout_until && new Date() < new Date(user.lockout_until)) {
@@ -184,15 +277,21 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     // Successful login — clear the failure counter
     await pool.query(
-      'UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE user_id = $1',
+      `UPDATE users
+          SET failed_login_attempts = 0, lockout_until = NULL, last_login_at = NOW()
+        WHERE user_id = $1`,
       [user.user_id]
     ).catch(() => {});
 
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error('JWT_SECRET is not configured.');
 
+    // email travels in the token so the audit log can record who made an
+    // administrative change without a lookup, and so the record survives the
+    // account being deleted. It is the holder's own address and nothing is
+    // authorised by it — the role claim is what gates access.
     const token = jwt.sign(
-      { id: user.user_id, role: user.role },
+      { id: user.user_id, role: user.role, email: user.email },
       secret,
       { expiresIn: '1h', algorithm: 'HS256' }
     );
@@ -310,12 +409,15 @@ router.post('/reset-password', passwordResetLimiter, async (req, res) => {
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT user_id, full_name, email, role, tier, preferred_language FROM users WHERE user_id = $1',
+      `SELECT user_id, full_name, email, role, tier, preferred_language, is_active
+         FROM users WHERE user_id = $1`,
       [req.user.id]
     );
 
-    if (result.rows.length === 0) {
-      // Valid signature, but the account is gone. Treat as unauthenticated.
+    if (result.rows.length === 0 || result.rows[0].is_active === false) {
+      // Either the row is gone or the account was deleted and deactivated. The
+      // token can still be valid for the rest of its hour, and this is the call
+      // every page load makes to find out whether it means anything.
       return res.status(401).json({ error: 'Session is no longer valid.' });
     }
 

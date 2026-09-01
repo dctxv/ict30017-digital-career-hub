@@ -166,7 +166,24 @@ export function renderContextBlock(context) {
   lines.push(`rendered_pages_available: ${context.renderedPagesAvailable ? 'true' : 'false'}`);
 
   if (lines.length === 1) {
-    lines.unshift('(none supplied - infer every field from the resume and state your inference)');
+    // "state your inference" without saying where sent it into the prose: a
+    // live review opened with "Context inferred: Target Stage = Fresher / Early
+    // Career; Target Sector = Sales & Marketing; Application Channel = Not
+    // specified..." at the top of content_quality.feedback. That is routing
+    // metadata, it is not advice, and the user reading their feedback has no
+    // use for it. Worse, the context selectors are optional, so this is the
+    // default path rather than an edge case — and on a Bangla review the
+    // leaked line is English regardless of the output language.
+    //
+    // The inference is still wanted; it just belongs in the two fields the
+    // schema already has for it, which the results page renders as
+    // "Inferred role" and "Industry".
+    lines.unshift(
+      '(none supplied - infer every field from the resume. Do NOT describe the '
+      + 'inference in any feedback, issue, suggestion or action_item text: it is '
+      + 'routing information, not advice. Report only the role and industry you '
+      + 'inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)'
+    );
   }
 
   return `<APPLICATION_CONTEXT>\n${lines.join('\n')}\n</APPLICATION_CONTEXT>`;

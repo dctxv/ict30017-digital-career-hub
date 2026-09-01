@@ -4,7 +4,28 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>digital-career-hub-new</title>
+    <meta name="color-scheme" content="light dark" />
+    <title>Digital Career Hub</title>
+    <script>
+      // Applies the stored language and theme before React mounts.
+      //
+      // Without the language line the first painted frame is always laid out
+      // with Latin metrics, so a Bangla user sees the page reflow the moment
+      // the provider runs. Without the theme line a dark-theme user gets a
+      // white flash on every load, because the default palette paints first.
+      //
+      // LanguageProvider and ThemeProvider own both attributes from then on.
+      try {
+        if (localStorage.getItem('preferredLanguage') === 'bn') {
+          document.documentElement.lang = 'bn';
+        }
+        var storedTheme = localStorage.getItem('careerhub-theme');
+        if (storedTheme !== 'light' && storedTheme !== 'dark') {
+          storedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', storedTheme);
+      } catch (e) { /* storage unavailable in private browsing */ }
+    </script>
   </head>
   <body>
     <div id="root"></div>

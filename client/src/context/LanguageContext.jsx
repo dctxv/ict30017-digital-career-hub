@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { i18next } from '../i18n/useTranslation'
+import { translate, localiseDigits, localiseDuration, hasTranslation } from '../i18n'
 
 /**
  * Shared language selection.
@@ -11,21 +11,21 @@ import { i18next } from '../i18n/useTranslation'
  * Values are the lowercase codes the API expects ('en' | 'bn'), matching
  * users.preferred_language in the database. The navbar renders them uppercase.
  *
- * This is also the single source of truth i18next is kept in sync with. i18next
- * owns the static UI string lookup (via useTranslation() in i18n/useTranslation.js);
- * this context owns the raw 'en'/'bn' code that non-UI-copy code needs too — the
- * Resources page's ?lang= query, the chatbot's language field, and (once wired up)
- * the resume reviewer's language field. Keeping one selection and pushing it into
- * i18next, rather than reading the language back out of i18next in those places,
- * avoids two sources of truth drifting apart.
+ * The choice is persisted in localStorage, and mirrored into a plain cookie so
+ * the server sees it too. The cookie is what makes API error messages come back
+ * in the selected language: every request to /api carries it automatically, so
+ * no call site has to remember to attach a language header. It holds nothing
+ * private and is deliberately not httpOnly, since the client sets it.
  *
- * The choice is persisted in localStorage. Syncing it to the logged-in user's
- * preferred_language column would need an endpoint that does not exist yet;
- * until then a signed-in user's stored preference is not applied at login.
+ * Syncing the choice to a signed-in user's preferred_language column would need
+ * an endpoint that does not exist yet; until then a signed-in user's stored
+ * preference is not applied at login.
  */
 
 export const SUPPORTED_LANGUAGES = ['en', 'bn']
 const STORAGE_KEY = 'preferredLanguage'
+const COOKIE_KEY = 'lang'
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 const LanguageContext = createContext(null)
 
@@ -48,15 +48,31 @@ export function LanguageProvider({ children }) {
       // Storage can be unavailable in private browsing; the in-memory
       // selection still works for the session.
     }
+    document.cookie = `${COOKIE_KEY}=${lang}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`
     document.documentElement.lang = lang
-    i18next.changeLanguage(lang)
   }, [lang])
 
   const setLang = (next) => {
     if (SUPPORTED_LANGUAGES.includes(next)) setLangState(next)
   }
 
-  const value = useMemo(() => ({ lang, setLang }), [lang])
+  const value = useMemo(() => ({
+    lang,
+    setLang,
+    /** Interface string by key, with {placeholder} substitution. */
+    t: (key, vars) => translate(lang, key, vars),
+    /**
+     * Label for a value the interface does not own — a category or type from
+     * the database, an enum from the model. Translated when a translation
+     * exists, shown exactly as stored when it does not, so a value nobody
+     * anticipated still reads as itself rather than as a dotted key.
+     */
+    tc: (key, value) => (hasTranslation(key) ? translate(lang, key) : value),
+    /** Numerals in the selected script. Chrome only — never user content. */
+    n: (value) => localiseDigits(value, lang),
+    /** A career-path duration like "3–5 yrs", rendered in the selected language. */
+    d: (value) => localiseDuration(value, lang),
+  }), [lang])
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
 }

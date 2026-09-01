@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { streamChatbotResponse } from 'ai-service';
 import { getAllowedOrigins } from '../config/origins.js';
 import sharedPool from '../db.js';
+import { resolveConversation, appendMessage } from '../services/chatHistory.js';
 
 const router = express.Router();
 
@@ -331,6 +332,76 @@ function writeSse(res, payload) {
  * which left FREE_DAILY_CHAT_LIMIT and both chat_message_count columns unused.
  * Guests fall through it and are bounded by chatIpRateLimit instead.
  */
+/**
+ * GET /api/chat/quota
+ *
+ * Reports today's chatbot usage without spending any of it. The account page
+ * renders a meter from this; nothing here decides anything, and the enforcement
+ * stays in enforceDailyTurnLimit above.
+ *
+ * Shaped to match GET /api/resume/quota field for field, because the account
+ * page draws both meters with one component and two endpoints describing the
+ * same idea differently would have put the difference in the component.
+ *
+ * Guests get a null count rather than zero: they have no row to count against,
+ * and zero would claim they have a full allowance waiting.
+ */
+router.get('/quota', attachOptionalUser, async (req, res) => {
+  if (req.user.role === 'guest' || req.user.id === 'guest') {
+    return res.json({
+      authenticated: false,
+      limit: FREE_DAILY_CHAT_LIMIT,
+      used: null,
+      remaining: null,
+      unlimited: false,
+    });
+  }
+
+  try {
+    const pool = await getPgPool();
+    if (!pool) {
+      // The in-memory fallback is per-process and resets on restart, so it can
+      // enforce a limit but cannot honestly report one.
+      return res.status(503).json({ error: 'Could not read your chat allowance.' });
+    }
+
+    const result = await pool.query(
+      `SELECT role,
+              tier,
+              CASE
+                WHEN chat_count_reset_date IS NULL OR chat_count_reset_date < CURRENT_DATE
+                  THEN 0
+                ELSE COALESCE(chat_message_count, 0)
+              END AS used
+         FROM users
+        WHERE user_id = $1`,
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Authentication required.' });
+    }
+
+    const { role, tier, used } = result.rows[0];
+    // Premium is a tier and admin is a role, and both bypass the cap. Reading
+    // only one of them is the bug that silently held premium accounts to the
+    // free limit for as long as enforceDailyTurnLimit tested req.user.role.
+    const unlimited = tier === 'premium' || role === 'admin';
+
+    return res.json({
+      authenticated: true,
+      tier,
+      limit: unlimited ? null : FREE_DAILY_CHAT_LIMIT,
+      used: Number(used),
+      remaining: unlimited ? null : Math.max(0, FREE_DAILY_CHAT_LIMIT - Number(used)),
+      unlimited,
+    });
+  } catch (err) {
+    console.error('[chat] Quota lookup failed:', err.message);
+    return res.status(500).json({ error: 'Could not read your chat allowance.' });
+  }
+});
+
 router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforceDailyTurnLimit, validateChatBody, async (req, res) => {
   const { message, conversationHistory } = req.body;
   const language = req.body.language === 'bn' ? 'bn' : 'en';
@@ -340,6 +411,17 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforc
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders?.();
+
+  // Resolved before streaming starts so the user's message is recorded even if
+  // the reply fails partway. Returns null for guests, whose conversations are
+  // deliberately never stored.
+  const conversationId = await resolveConversation(req.user.id, language);
+  await appendMessage(conversationId, 'user', message);
+
+  // Accumulated as it streams. The assistant turn is written once at the end
+  // rather than per token: a partial row would be a transcript of half a
+  // sentence, and awaiting a write between tokens would stall the stream.
+  let reply = '';
 
   try {
     console.log(`[chat] Streaming response for user ${req.user.id}; language=${language}`);
@@ -352,6 +434,7 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforc
     });
 
     for await (const token of tokenStream) {
+      reply += token;
       writeSse(res, token);
     }
 
@@ -361,6 +444,12 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforc
     writeSse(res, '[ERROR]');
   } finally {
     res.end();
+    // After res.end(): the transcript must never be the reason a reply is slow.
+    // Whatever arrived is worth keeping, including a reply cut short by an
+    // error — that is exactly the case someone will want to look at later.
+    if (reply.trim()) {
+      appendMessage(conversationId, 'assistant', reply).catch(() => {});
+    }
   }
 });
 

@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Compass, ShieldCheck } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
-import { useTranslation } from '../i18n/useTranslation'
+import { useLanguage } from '../context/LanguageContext'
 import './Auth.css'
 
 export default function Login() {
-  const { t } = useTranslation()
   const [show, setShow] = useState(false)
   const [form, setForm] = useState({ email: '', password: '' })
   const [message, setMessage] = useState('')
@@ -14,102 +14,118 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuth()
+  const { t } = useLanguage()
 
   // SessionWatcher redirects here with an explanation when a session expires.
-  const notice = location.state?.message ?? ''
+  // It passes a translation key rather than a sentence, so the notice follows
+  // the language toggle instead of being pinned to the language it lapsed in.
+  const notice = location.state?.messageKey ? t(location.state.messageKey) : ''
 
-  const handleLogin = async () => {
+  const submit = async (event) => {
+    event.preventDefault()
     setMessage('')
+
     if (!form.email || !form.password) {
-      setMessage(t('login.errors.missingFields'))
+      setMessage(t('auth.credentialsRequired'))
       return
     }
+
     try {
       setLoading(true)
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email: form.email, password: form.password }),
+        body: JSON.stringify(form),
       })
       const data = await response.json()
+
       if (!response.ok) {
-        setMessage(data.error || t('login.errors.loginFailed'))
+        setMessage(data.error || t('auth.loginFailed'))
         return
       }
+
       // Records the session in context so the navbar updates immediately,
       // rather than writing localStorage and hoping something reads it back.
       login(data.user)
-      navigate(location.state?.from ?? '/')
+      // Administrators land on the dashboard they signed in to use.
+      navigate(location.state?.from ?? (data.user?.role === 'admin' ? '/admin' : '/'))
     } catch {
-      setMessage(t('login.errors.networkError'))
+      setMessage(t('common.serverUnreachable'))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="page-enter auth-page">
+    <div className="page-enter">
       <Navbar />
-      <div className="auth-bg">
-        <div className="auth-card">
-          <div className="auth-brand">{t('auth.brand')}</div>
-          <h1 className="auth-title">{t('login.title')}</h1>
-          <p className="auth-sub">{t('login.subtitle')}</p>
 
-          {/* Set by SessionWatcher when an expired session redirected here, so
-              the user is told why they landed on the login page. */}
-          {notice && (
-            <p className="auth-sub" role="status" style={{ color: '#b9770e' }}>{notice}</p>
-          )}
-
-          <div className="form-group">
-            <label className="form-label">{t('login.emailLabel')}</label>
-            <input className="form-input" type="email" placeholder="you@example.com"
-              value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+      <div className="auth">
+        <form className="auth__card" onSubmit={submit}>
+          <div className="auth__brand">
+            <span className="auth__mark"><Compass size={16} /></span>
+            <span className="auth__wordmark">{t('common.brand')}</span>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">{t('login.passwordLabel')}</label>
-            <div className="input-row">
-              <input className="form-input" type={show ? 'text' : 'password'} placeholder="••••••••"
-                value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-              <button className="show-btn" onClick={() => setShow(s => !s)}>{show ? t('auth.hide') : t('auth.show')}</button>
-            </div>
-            <div className="forgot-row">
-              <Link to="/forgot-password" className="link-green">{t('login.forgotPassword')}</Link>
-            </div>
+          <h1 className="auth__title">{t('auth.welcomeBack')}</h1>
+          <p className="auth__sub">{t('auth.loginSub')}</p>
+
+          {notice && <p className="notice notice--warn auth__message" role="status">{notice}</p>}
+          {message && <p className="notice notice--error auth__message" role="alert">{message}</p>}
+
+          {/* The label wraps the caption only, never the control and its
+              neighbours. A <label> around the input, the reveal button and the
+              hint makes all three the field's accessible name, so a screen
+              reader announces "Password Show At least 12 characters". */}
+          <div className="field">
+            <label className="field__label" htmlFor="login-email">{t('auth.emailLabel')}</label>
+            <input
+              id="login-email"
+              className="input"
+              type="email"
+              autoComplete="email"
+              placeholder={t('auth.emailPlaceholder')}
+              value={form.email}
+              onChange={event => setForm(f => ({ ...f, email: event.target.value }))}
+            />
           </div>
 
-          {message && <p className="auth-sub" style={{ color: '#c0392b' }}>{message}</p>}
+          <div className="field">
+            <label className="field__label" htmlFor="login-password">{t('auth.passwordLabel')}</label>
+            <span className="auth__password">
+              <input
+                id="login-password"
+                className="input"
+                type={show ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder={t('auth.passwordPlaceholder')}
+                value={form.password}
+                onChange={event => setForm(f => ({ ...f, password: event.target.value }))}
+              />
+              <button type="button" className="auth__reveal" onClick={() => setShow(value => !value)}>
+                {show ? t('common.hide') : t('common.show')}
+              </button>
+            </span>
+          </div>
 
-          <button className="btn-auth" onClick={handleLogin} disabled={loading}>
-            {loading ? t('login.submitting') : t('login.submit')}
+          <p className="auth__forgot">
+            <Link to="/forgot-password">{t('auth.forgotPassword')}</Link>
+          </p>
+
+          <button type="submit" className="btn btn--primary btn--lg btn--full" disabled={loading}>
+            {loading ? t('auth.loggingIn') : t('auth.logIn')}
           </button>
 
-          <div className="auth-divider"><span>{t('login.or')}</span></div>
+          <p className="auth__switch">
+            {t('auth.noAccount')} <Link to="/register">{t('auth.signUp')}</Link>
+          </p>
 
-          <button className="btn-google">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M15.68 8.18c0-.57-.05-1.11-.14-1.64H8v3.1h4.3a3.68 3.68 0 01-1.6 2.42v2h2.58c1.51-1.39 2.4-3.44 2.4-5.88z" fill="#4285F4"/>
-              <path d="M8 16c2.16 0 3.97-.72 5.3-1.94l-2.58-2c-.72.48-1.63.76-2.72.76-2.09 0-3.86-1.41-4.49-3.3H.85v2.07A8 8 0 008 16z" fill="#34A853"/>
-              <path d="M3.51 9.52A4.8 4.8 0 013.26 8c0-.53.09-1.04.25-1.52V4.41H.85A8 8 0 000 8c0 1.29.31 2.51.85 3.59l2.66-2.07z" fill="#FBBC05"/>
-              <path d="M8 3.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 00.85 4.41l2.66 2.07C4.14 4.59 5.91 3.18 8 3.18z" fill="#EA4335"/>
-            </svg>
-            {t('login.continueWithGoogle')}
-          </button>
-
-          <p className="auth-switch">{t('login.noAccount')} <Link to="/register" className="link-green">{t('login.signUp')}</Link></p>
-
-          <div className="auth-secure">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M6 1L2 3v3c0 2.21 1.71 4.28 4 4.77C8.29 10.28 10 8.21 10 6V3L6 1z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
-            </svg>
-            {t('login.secureNotice')}
-          </div>
-        </div>
+          <p className="auth__secure">
+            <ShieldCheck size={13} />
+            {t('auth.encryptionNote')}
+          </p>
+        </form>
       </div>
     </div>
   )

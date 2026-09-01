@@ -45,3 +45,11 @@ export async function apiFetch(url, options = {}, config = {}) {
 
   return response
 }
+
+/**
+ * Translation key, not a sentence. SessionWatcher hands this to the login page
+ * through router state, and the login page renders it through the language
+ * context — so the explanation arrives in whichever language the user had
+ * selected when the session lapsed.
+ */
+export const SESSION_EXPIRED_MESSAGE_KEY = 'common.sessionExpired'

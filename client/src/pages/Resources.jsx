@@ -1,82 +1,87 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Search, ArrowUpRight } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
-import { useTranslation } from '../i18n/useTranslation'
-import { disciplineLabel } from '../utils/disciplineLabels'
+import { fetchList } from '../api/fetchList'
 import './Resources.css'
 
-const categories = ['All', 'Resume Writing', 'Interview Prep', 'Job Search', 'Soft Skills', 'Skill Development']
+const CATEGORIES = ['All', 'Resume Writing', 'Interview Prep', 'Job Search', 'Soft Skills', 'Skill Development']
 
-const categoryLabelKeys = {
-  'All': 'common.all',
-  'Resume Writing': 'resources.categories.resumeWriting',
-  'Interview Prep': 'resources.categories.interviewPrep',
-  'Job Search': 'resources.categories.jobSearch',
-  'Soft Skills': 'resources.categories.softSkills',
-  'Skill Development': 'resources.categories.skillDevelopment',
-}
+const FALLBACK_DISCIPLINES = ['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
 
-const typeColors = {
-  Guide: '#D8F3DC',
-  Article: '#DBEAFE',
-  Video: '#FEF3C7',
-  Course: '#EDE9FE',
-}
-const typeDots = {
-  Guide: '#2D6A4F',
-  Article: '#1D4ED8',
-  Video: '#D97706',
-  Course: '#7C3AED',
-}
+/* How many cards are shown before "load more". The button used to be decorative
+   — it rendered on every list and did nothing, including on a list of six. */
+const PAGE_SIZE = 9
 
 export default function Resources() {
-  const { t } = useTranslation()
-  const { lang } = useLanguage()
+  const { lang, t, tc, n } = useLanguage()
   const [cat, setCat] = useState('All')
   // Seeded from the Career Paths hand-off. Reading it in the initialiser
   // instead of an effect avoids a second render just to apply the filter.
   const [disc, setDisc] = useState(
     () => localStorage.getItem('selectedDiscipline') || 'All disciplines'
   )
-  const [query, setQuery] = useState('')
-  const [disciplines, setDisciplines] = useState(['All disciplines'])
+  // Seeded from a preparation gap. A remediation step names a subject to learn,
+  // and this is where the user lands with that subject already searched for —
+  // read in the initialiser for the same reason the discipline is, so the filter
+  // is applied on the first render rather than after a second one.
+  const [query, setQuery] = useState(
+    () => localStorage.getItem('selectedResourceQuery') || ''
+  )
+  const [visible, setVisible] = useState(PAGE_SIZE)
+
+  // Narrowing the list while page three is showing would leave the user looking
+  // at a short list under a "load more" button, so every filter resets the
+  // window rather than letting it persist across a change of subject.
+  const narrow = (apply) => (value) => { apply(value); setVisible(PAGE_SIZE) }
+  const chooseCategory = narrow(setCat)
+  const chooseDiscipline = narrow(setDisc)
+  const search = narrow(setQuery)
+  // { name, label }: `name` is the English key resources are filtered by,
+  // `label` is what the pill shows. Collapsing the two would make a Bangla
+  // label match no resource row.
+  const [disciplines, setDisciplines] = useState([{ name: 'All disciplines', label: 'All disciplines' }])
   const [resources, setResources] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
-  // Fetch disciplines from API
   useEffect(() => {
-    const fetchDisciplines = async () => {
-      try {
-        const response = await fetch('/api/disciplines')
-        const data = await response.json()
-        const disciplineNames = ['All disciplines', ...data.map(d => d.name)]
-        setDisciplines(disciplineNames)
-      } catch (error) {
-        console.error('Error fetching disciplines:', error)
-        setDisciplines(['All disciplines', 'IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education'])
-      }
-    }
+    let cancelled = false
+    fetchList(`/api/disciplines?lang=${lang}`)
+      .then(data => {
+        if (cancelled) return
+        setDisciplines([
+          { name: 'All disciplines', label: t('common.allDisciplines') },
+          ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
+        ])
+      })
+      .catch(() => {
+        if (cancelled) return
+        setDisciplines([
+          { name: 'All disciplines', label: t('common.allDisciplines') },
+          ...FALLBACK_DISCIPLINES.map(name => ({ name, label: name })),
+        ])
+      })
+    return () => { cancelled = true }
+  }, [lang, t])
 
-    fetchDisciplines()
-  }, [])
-
-  // Fetch resources from API. Refetches when the navbar language changes —
-  // the API resolves title/desc for the requested language and falls back to
-  // English for anything not yet translated.
+  // Refetches when the language changes — the API resolves title and desc for
+  // the requested language and falls back to English per field for anything not
+  // yet translated.
   useEffect(() => {
-    const fetchResources = async () => {
-      try {
-        const response = await fetch(`/api/resources?lang=${lang}`)
-        const data = await response.json()
-        setResources(data)
-      } catch (error) {
-        console.error('Error fetching resources:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchResources()
+    let cancelled = false
+    fetchList(`/api/resources?lang=${lang}`)
+      .then(data => { if (!cancelled) { setResources(data); setLoadError(false) } })
+      .catch(error => {
+        if (cancelled) return
+        // The list is emptied AND the failure is shown. Emptying alone
+        // renders as "no resources found", which is a different claim.
+        console.error('[resources]', error.message)
+        setResources([])
+        setLoadError(true)
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [lang])
 
   // The hand-off keys are one-shot: consumed by the initialiser above, then
@@ -84,83 +89,141 @@ export default function Resources() {
   useEffect(() => {
     localStorage.removeItem('selectedDiscipline')
     localStorage.removeItem('selectedCareer')
+    localStorage.removeItem('selectedResourceQuery')
   }, [])
 
-  const filtered = resources.filter(r => {
+  const filtered = useMemo(() => resources.filter(r => {
     const matchCat = cat === 'All' || r.category === cat
     const matchDisc = disc === 'All disciplines' || r.discipline === disc || r.discipline === 'All disciplines'
-    const matchQ = !query || r.title.toLowerCase().includes(query.toLowerCase())
-    return matchCat && matchDisc && matchQ
-  })
+    // Title and description both. A title-only match was adequate while every
+    // search was typed by hand, and stopped being adequate once a preparation
+    // gap could hand a subject over — "sql" is far likelier to appear in the
+    // blurb than in the heading, and an empty list reads as a broken link
+    // rather than as a narrow search.
+    const needle = query.trim().toLowerCase()
+    const matchQuery = !needle
+      || r.title.toLowerCase().includes(needle)
+      || (r.desc ?? '').toLowerCase().includes(needle)
+    return matchCat && matchDisc && matchQuery
+  }), [resources, cat, disc, query])
 
-  if (loading) {
-    return (
-      <div className="page-enter">
-        <Navbar />
-        <div style={{ textAlign: 'center', padding: '50px' }}>{t('resources.loading')}</div>
-      </div>
-    )
-  }
+  const shown = filtered.slice(0, visible)
+  const labelFor = name => disciplines.find(d => d.name === name)?.label ?? name
 
   return (
     <div className="page-enter">
       <Navbar />
-      <div className="res-header">
-        <div className="res-header-inner">
-          <h1 className="res-title">{t('resources.title')}</h1>
-          <p className="res-sub">{t('resources.subtitle')}</p>
-          <div className="res-search-wrap">
-            <svg className="res-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.4"/>
-              <path d="M11 11L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-            </svg>
-            <input className="res-search" placeholder={t('resources.searchPlaceholder')} value={query} onChange={e => setQuery(e.target.value)} />
-          </div>
-          <div className="filter-row">
-            {categories.map(c => (
-              <button key={c} className={`filter-pill ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>
-                {t(categoryLabelKeys[c] || c)}
-              </button>
-            ))}
-          </div>
-          <div className="filter-row filter-row--sm">
-            {disciplines.map(d => (
-              <button key={d} className={`filter-pill filter-pill--sm ${disc === d ? 'active' : ''}`} onClick={() => setDisc(d)}>
-                {d === 'All disciplines' ? t('common.allDisciplines') : disciplineLabel(d, t)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      <div className="res-content">
-        <div className="res-grid">
-          {filtered.map((r, i) => (
-            <div key={i} className="res-card">
-              <div className="res-card-banner" style={{ background: typeColors[r.type] }}>
-                <span className="res-type-badge" style={{ color: typeDots[r.type] }}>{r.type}</span>
-              </div>
-              <div className="res-card-body">
-                <h3 className="res-card-title">{r.title}</h3>
-                <p className="res-card-desc">{r.desc}</p>
-                <div className="res-card-tags">
-                  <span className="res-tag">{disciplineLabel(r.discipline, t)}</span>
-                  <span className="res-tag">{r.category}</span>
-                </div>
-                <div className="res-card-footer">
-                  <a href={r.url || "#"} className="res-read-more" target="_blank" rel="noopener noreferrer">
-                    {r.type === 'Video' ? t('resources.watch') : t('resources.readMore')}
-                  </a>
-                </div>
-              </div>
+      <section className="page-head">
+        <div className="shell">
+          <h1 className="page-head__title">{t('resources.title')}</h1>
+          <p className="page-head__sub">{t('resources.sub')}</p>
+
+          <div className="res-search">
+            <Search size={17} className="res-search__icon" />
+            <input
+              className="input res-search__input"
+              placeholder={t('resources.searchPlaceholder')}
+              value={query}
+              onChange={event => search(event.target.value)}
+              aria-label={t('resources.searchPlaceholder')}
+            />
+          </div>
+
+          <div className="pill-row res-filters">
+            {CATEGORIES.map(c => (
+              <button
+                key={c}
+                type="button"
+                className={`pill${cat === c ? ' pill--on' : ''}`}
+                onClick={() => chooseCategory(c)}
+              >
+                {c === 'All' ? t('common.all') : tc(`resources.category.${c}`, c)}
+              </button>
+            ))}
+          </div>
+
+          <div className="pill-row">
+            {disciplines.map(d => (
+              <button
+                key={d.name}
+                type="button"
+                className={`pill pill--sm${disc === d.name ? ' pill--on' : ''}`}
+                onClick={() => chooseDiscipline(d.name)}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-body">
+        {loadError && (
+          <p className="notice notice--error" role="alert">{t('common.loadFailed')}</p>
+        )}
+
+        {loading ? (
+          <div className="empty-state">{t('resources.loading')}</div>
+        ) : (
+          <>
+            {!loadError && (
+              <p className="res-count">
+                {t('resources.count', { shown: n(filtered.length), total: n(resources.length) })}
+              </p>
+            )}
+
+            <div className="res-grid">
+              {shown.map(r => (
+                <article key={r.id} className="res-card">
+                  <div className={`res-card__banner res-card__banner--${(r.type || '').toLowerCase()}`}>
+                    <span className="res-card__type">{tc(`resources.type.${r.type}`, r.type)}</span>
+                  </div>
+
+                  <div className="res-card__body">
+                    <h3 className="res-card__title">{r.title}</h3>
+                    <p className="res-card__desc">{r.desc}</p>
+
+                    <div className="res-card__tags">
+                      <span className="tag tag--tint">{labelFor(r.discipline)}</span>
+                      <span className="tag">{tc(`resources.category.${r.category}`, r.category)}</span>
+                    </div>
+
+                    <div className="res-card__footer">
+                      <a
+                        className="res-card__link"
+                        href={r.url || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {r.type === 'Video' ? t('resources.watch') : t('resources.readMore')}
+                        <ArrowUpRight size={14} />
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
-          ))}
-        </div>
-        {filtered.length === 0 && <div className="res-empty">{t('resources.empty')}</div>}
-        <div style={{ textAlign: 'center', marginTop: '40px' }}>
-          <button className="btn-load-more">{t('resources.loadMore')}</button>
-        </div>
-      </div>
+
+            {!loadError && filtered.length === 0 && (
+              <div className="empty-state">{t('resources.empty')}</div>
+            )}
+
+            {/* Only rendered when there is genuinely more to show. */}
+            {visible < filtered.length && (
+              <div className="res-more">
+                <button
+                  type="button"
+                  className="btn btn--outline"
+                  onClick={() => setVisible(count => count + PAGE_SIZE)}
+                >
+                  {t('resources.loadMore')}
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </section>
     </div>
   )
 }

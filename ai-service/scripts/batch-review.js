@@ -7,6 +7,8 @@ import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import { MODELS } from './model-config.js';
 import { buildSystemPrompt } from '../src/services/resumeReviewer.js';
+import { withOutputLanguage } from '../src/prompt/language.js';
+import { checkBanglaOutput, summariseBanglaOutput } from '../src/quality/banglaOutput.js';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
@@ -19,16 +21,20 @@ dotenv.config({ path: path.join(PROJECT_ROOT, 'server/.env') });
 const { values, positionals } = parseArgs({
   args: process.argv.slice(2),
   options: {
-    mode:   { type: 'string', default: 'both' },
-    name:   { type: 'string' },
-    models: { type: 'string' },
+    mode:     { type: 'string', default: 'both' },
+    name:     { type: 'string' },
+    models:   { type: 'string' },
+    // The reason this flag exists: the homepage has promised Bangla AI feedback
+    // since launch and no run has ever measured whether a model can deliver it.
+    // Output lands in a separate folder so an English baseline is not overwritten.
+    language: { type: 'string', default: 'en' },
   },
   allowPositionals: true,
 });
 
 const resumeFile = positionals[0];
 if (!resumeFile) {
-  console.error('Usage: node ai-service/scripts/batch-review.js <resume.txt> [--mode bangladesh|international|both] [--name resume_name] [--models model1,model2]');
+  console.error('Usage: node ai-service/scripts/batch-review.js <resume.txt> [--mode bangladesh|international|both] [--name resume_name] [--models model1,model2] [--language en|bn]');
   process.exit(1);
 }
 
@@ -40,6 +46,7 @@ if (!apiKey) {
 
 const resumePath  = path.resolve(resumeFile);
 const resumeName  = values.name ?? path.basename(resumeFile, path.extname(resumeFile));
+const language = values.language === 'bn' ? 'bn' : 'en';
 const modelFilter = values.models ? values.models.split(',') : null;
 const modelsToRun = modelFilter
   ? MODELS.filter(m => modelFilter.includes(m.folder))
@@ -105,14 +112,68 @@ async function runModel(model, systemPrompt) {
 // ── Write analysis file ───────────────────────────────────────────────────────
 
 async function writeAnalysisFile(model, mode, result) {
-  const dir = path.join(OUTPUT_ROOT, model.folder, mode);
+  // English keeps the existing path so past results stay comparable; Bangla
+  // gets its own folder rather than overwriting them.
+  const dir = path.join(OUTPUT_ROOT, model.folder, language === 'bn' ? `${mode}-bn` : mode);
   await mkdir(dir, { recursive: true });
 
   const filePath = path.join(dir, `${resumeName}.md`);
+
+  /*
+   * On a Bangla run, decide mechanically whether the contract was honoured
+   * before anyone is asked to read the output.
+   *
+   * Two failures matter and neither is reliably caught by eye across dozens of
+   * runs: the model quietly writing English anyway, and the model translating
+   * the fields that must stay English — the CV corrections and the ATS
+   * keywords. The second is the one that looks like success while being worse
+   * than no feedback at all.
+   *
+   * Fluency is still a human judgement. This only ensures a human is asked to
+   * judge output that is at least in the right script and has not corrupted the
+   * parts a candidate pastes into an English CV.
+   */
+  let banglaBlock = [];
+  if (language === 'bn') {
+    let parsed = null;
+    try {
+      parsed = JSON.parse(result.rawContent);
+    } catch {
+      // A model that could not return valid JSON has a bigger problem than
+      // which language it wrote in; the raw output is still written out below.
+    }
+
+    if (parsed) {
+      const check = checkBanglaOutput(parsed);
+      banglaBlock = [
+        '',
+        '## Bangla output check',
+        '',
+        `**${summariseBanglaOutput(check)}**`,
+        '',
+        `- narrative fields in Bangla: ${check.translated}/${check.translatable}`,
+        ...(check.missing.length
+          ? ['- still English:', ...check.missing.map((f) => `  - \`${f}\``)]
+          : []),
+        ...(check.violations.length
+          ? ['', '### Contract violations', '',
+             'These must stay English. Bangla here tells the candidate to paste',
+             'Bangla into an English CV, or breaks keyword matching against real',
+             'job adverts.', '',
+             ...check.violations.map((v) => `- \`${v.field}\` — ${v.value}`)]
+          : []),
+        '',
+        '_Script checks which alphabet each field is written in. Whether the',
+        'Bangla reads well is still a human judgement._',
+      ];
+    }
+  }
+
   const content = [
     '---',
     `resume: ${resumeName}`,
     `mode: ${mode}`,
+    `language: ${language}`,
     `model: ${model.folder}`,
     `date: ${today}`,
     'metadata:',
@@ -125,6 +186,7 @@ async function writeAnalysisFile(model, mode, result) {
     '## Analysis Output',
     '',
     result.rawContent,
+    ...banglaBlock,
   ].join('\n');
 
   await writeFile(filePath, content, 'utf-8');
@@ -189,7 +251,9 @@ async function updateSummary(model, mode, result) {
 async function runMode(mode) {
   console.log(`\n── Mode: ${mode} ${'─'.repeat(50 - mode.length)}`);
 
-  const systemPrompt = buildSystemPrompt(mode);
+  // Composed exactly the way the live route composes it, so a passing run here
+  // means the running product behaves the same way.
+  const systemPrompt = withOutputLanguage(buildSystemPrompt(mode), language);
 
   const settled = await Promise.allSettled(
     modelsToRun.map(async model => {

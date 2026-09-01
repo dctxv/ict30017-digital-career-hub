@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { AUTH_UNAUTHORISED_EVENT } from '../utils/apiClient'
-import { useTranslation } from '../i18n/useTranslation'
+import { AUTH_UNAUTHORISED_EVENT, SESSION_EXPIRED_MESSAGE_KEY } from '../utils/apiClient'
 
 /**
  * Turns any 401 raised through apiFetch into a single, consistent recovery:
@@ -15,7 +14,6 @@ export default function SessionWatcher() {
   const navigate = useNavigate()
   const location = useLocation()
   const { clearSession } = useAuth()
-  const { t } = useTranslation()
 
   useEffect(() => {
     function handleUnauthorised() {
@@ -24,13 +22,13 @@ export default function SessionWatcher() {
       if (location.pathname === '/login') return
       navigate('/login', {
         replace: true,
-        state: { message: t('login.sessionExpired'), from: location.pathname },
+        state: { messageKey: SESSION_EXPIRED_MESSAGE_KEY, from: location.pathname },
       })
     }
 
     window.addEventListener(AUTH_UNAUTHORISED_EVENT, handleUnauthorised)
     return () => window.removeEventListener(AUTH_UNAUTHORISED_EVENT, handleUnauthorised)
-  }, [clearSession, navigate, location.pathname, t])
+  }, [clearSession, navigate, location.pathname])
 
   return null
 }

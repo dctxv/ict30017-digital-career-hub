@@ -4,24 +4,75 @@
  *
  * Reads are public — every content page loads the discipline list to build its
  * filter bar. Writes require an authenticated admin.
+ *
+ * Bilingual contract, and it differs from the other content routes for one
+ * reason worth stating plainly:
+ *
+ *   `name` is NOT translated in place. It is the join key — career_paths,
+ *   resources and alumni all store the English discipline name, and the
+ *   frontend filters by string equality against it. Resolving it to Bangla for
+ *   a bn request would hand the client a filter value that matches no row, and
+ *   every discipline filter on the site would silently return nothing.
+ *
+ *   So `name` always comes back in English and `name_bn` travels beside it.
+ *   The client renders name_bn and keeps filtering on name. Only `description`,
+ *   which nothing joins on, resolves per language with a COALESCE fallback.
  */
 
 import express from 'express';
 import pool from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { recordAudit } from '../services/auditLog.js';
 
 const router = express.Router();
+
+const SUPPORTED_LANGUAGES = ['en', 'bn'];
+
+/** English unless a supported language is explicitly requested. */
+function resolveLang(raw) {
+  return SUPPORTED_LANGUAGES.includes(raw) ? raw : 'en';
+}
+
+// Validated above, so this selects between two fixed literals.
+/**
+ * An untranslated field is NULL, not ''. COALESCE treats '' as present and
+ * would render a blank label in Bangla instead of falling back to English.
+ */
+function nullIfBlank(value) {
+  const trimmed = (value ?? '').trim();
+  return trimmed === '' ? null : trimmed;
+}
+
+// Validated above, so this selects between two fixed literals.
+function descField(lang) {
+  return lang === 'bn' ? 'COALESCE(description_bn, description)' : 'description';
+}
 
 const NAME_MAX = 100;
 const DESCRIPTION_MAX = 500;
 
-function validateDiscipline({ name, description }) {
+function validateDiscipline({ name, description, name_bn, description_bn }) {
   if (typeof name !== 'string' || name.trim().length < 2) {
     return 'Name must be at least 2 characters.';
   }
   if (name.trim().length > NAME_MAX) {
     return `Name must be ${NAME_MAX} characters or fewer.`;
   }
+  // Optional: an untranslated discipline is valid and falls back to English.
+  if (name_bn !== undefined && name_bn !== null && name_bn !== '') {
+    if (typeof name_bn !== 'string') return 'Bangla name must be text.';
+    if (name_bn.trim().length > NAME_MAX) {
+      return `Bangla name must be ${NAME_MAX} characters or fewer.`;
+    }
+  }
+
+  if (description_bn !== undefined && description_bn !== null) {
+    if (typeof description_bn !== 'string') return 'Bangla description must be text.';
+    if (description_bn.length > DESCRIPTION_MAX) {
+      return `Bangla description must be ${DESCRIPTION_MAX} characters or fewer.`;
+    }
+  }
+
   if (description !== undefined && description !== null) {
     if (typeof description !== 'string') {
       return 'Description must be text.';
@@ -42,7 +93,9 @@ function parseId(raw) {
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, description FROM disciplines ORDER BY id'
+      `SELECT id, name, name_bn, ${descField(resolveLang(req.query.lang))} AS description,
+              description AS description_en, description_bn
+         FROM disciplines ORDER BY id`
     );
     return res.json(result.rows);
   } catch (err) {
@@ -60,7 +113,9 @@ router.get('/:id', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id, name, description FROM disciplines WHERE id = $1',
+      `SELECT id, name, name_bn, ${descField(resolveLang(req.query.lang))} AS description,
+              description AS description_en, description_bn
+         FROM disciplines WHERE id = $1`,
       [id]
     );
     if (result.rows.length === 0) {
@@ -84,11 +139,16 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO disciplines (name, description)
-       VALUES ($1, $2)
-       RETURNING id, name, description`,
-      [name.trim(), (description ?? '').trim()]
+      `INSERT INTO disciplines (name, description, name_bn, description_bn)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, name, name_bn, description, description_bn`,
+      [name.trim(), (description ?? '').trim(),
+       nullIfBlank(req.body?.name_bn), nullIfBlank(req.body?.description_bn)]
     );
+    await recordAudit({
+      req, action: 'create', entity: 'discipline',
+      entityId: result.rows[0].id, after: result.rows[0],
+    });
     return res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err.code === '23505') {
@@ -114,16 +174,26 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   const { name, description } = req.body;
 
   try {
+    // Read before writing so the audit row can carry both sides. One extra
+    // query on an action that happens rarely, in exchange for being able to see
+    // what an edit actually changed rather than only what it produced.
+    const existing = await pool.query('SELECT * FROM disciplines WHERE id = $1', [id]);
+
     const result = await pool.query(
       `UPDATE disciplines
-          SET name = $1, description = $2
-        WHERE id = $3
-      RETURNING id, name, description`,
-      [name.trim(), (description ?? '').trim(), id]
+          SET name = $1, description = $2, name_bn = $3, description_bn = $4
+        WHERE id = $5
+      RETURNING id, name, name_bn, description, description_bn`,
+      [name.trim(), (description ?? '').trim(),
+       nullIfBlank(req.body?.name_bn), nullIfBlank(req.body?.description_bn), id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Discipline not found.' });
     }
+    await recordAudit({
+      req, action: 'update', entity: 'discipline',
+      entityId: id, before: existing.rows[0] ?? null, after: result.rows[0],
+    });
     return res.json(result.rows[0]);
   } catch (err) {
     if (err.code === '23505') {
@@ -142,10 +212,16 @@ router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   }
 
   try {
-    const result = await pool.query('DELETE FROM disciplines WHERE id = $1 RETURNING id', [id]);
+    // RETURNING * rather than id: the audit row is the only surviving copy
+    // once this commits, and a snapshot is what makes a delete recoverable.
+    const result = await pool.query('DELETE FROM disciplines WHERE id = $1 RETURNING *', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Discipline not found.' });
     }
+    await recordAudit({
+      req, action: 'delete', entity: 'discipline',
+      entityId: id, before: result.rows[0],
+    });
     return res.json({ message: 'Discipline deleted.' });
   } catch (err) {
     console.error('[disciplines] delete failed:', err.message);

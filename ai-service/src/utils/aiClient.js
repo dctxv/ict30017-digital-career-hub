@@ -12,14 +12,19 @@ let _client = null;
 
 export function getGroqClient() {
   if (!_client) {
-    if (!process.env.OPENROUTER_API_KEY) {
+    if (!process.env.GOOGLE_AI_API_KEY) {
       throw new Error(
-        'OPENROUTER_API_KEY is not set. Add it to your .env file.'
+        'GOOGLE_AI_API_KEY is not set. Add it to server/.env. Create a key at ' +
+        'https://aistudio.google.com/apikey.'
       );
     }
+    // Google AI Studio speaks the OpenAI wire format at this endpoint, so the
+    // `openai` SDK and every existing call site work unchanged. The trailing
+    // slash matters: the SDK appends 'chat/completions' to this path, and
+    // without it the last segment is replaced rather than extended.
     _client = new OpenAI({
-      apiKey: process.env.OPENROUTER_API_KEY,
-      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: process.env.GOOGLE_AI_API_KEY,
+      baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
     });
   }
   return _client;
@@ -32,17 +37,35 @@ export function getGroqClient() {
  * substitution. The previous implementation fell back to 'openai/gpt-4o-mini',
  * which meant an unset AI_MODEL silently shipped a banned model to production.
  *
- * Production models (May 2026 feasibility report, confirmed with the client):
- *   free    -> Gemini 3.1 Flash Lite  (google/gemini-3.1-flash-lite)
- *   premium -> Claude Haiku 4.5       (anthropic/claude-haiku-4.5)
+ * Production model: a single model on both tiers until further notice.
+ *   free    -> Gemini 3.6 Flash  (gemini-3.6-flash)
+ *   premium -> Gemini 3.6 Flash  (gemini-3.6-flash)
  *
- * Live calls to those two are not wired yet — pending client API budget
- * approval. Both tiers currently point at the same working model, so the
- * cutover is a pure env-var change with no code edit.
+ * Model ids here are Google AI Studio ids, which carry no vendor prefix. An
+ * OpenRouter-style 'google/gemini-3.6-flash' is a 404 against this endpoint —
+ * that is the one thing to check first if resolution starts failing.
  *
- * The tier parameter exists so free/premium routing is structurally present.
- * Nothing selects a tier yet: registration ignores the chosen plan, so every
- * caller defaults to 'free'. This is the seam for that work, not the work.
+ * The second thing to check is whether the model still accepts new keys. The
+ * models listing is not authoritative: gemini-2.5-flash was the first value
+ * tried here and is still advertised by /v1beta/openai/models, but returns a
+ * 404 on use — "no longer available to new users" — because Google closed it
+ * to keys created after the fact. A 404 from a chat completion is far more
+ * likely to mean this than a bad key or a wrong URL.
+ *
+ * This supersedes both the GLM-5.2 pair (client decision 2026-08-22, dropped
+ * because GLM is not served by Google AI Studio) and the split proposed in the
+ * May 2026 feasibility report (Gemini 3.1 Flash Lite free / Claude Haiku 4.5
+ * premium, never wired up; the Anthropic half is likewise unavailable here).
+ * The per-tier variables stay separate so reinstating a split — within Google's
+ * catalogue — is a pure env-var change with no code edit.
+ *
+ * The tier parameter is live, not a placeholder. Registration persists the
+ * chosen plan to users.tier, the quota middleware reads it, and resolveTier in
+ * routes/resume.js passes it here — so a premium account genuinely resolves
+ * AI_MODEL_PREMIUM. With both variables currently naming the same model that
+ * makes no observable difference, which is exactly why this comment is worth
+ * keeping accurate: it previously said the opposite, and it is the first thing
+ * anyone reads when asking why a premium account behaves like a free one.
  */
 
 export const TIERS = Object.freeze(['free', 'premium']);
@@ -106,7 +129,7 @@ export function assertModelConfig() {
  *
  * @param {'free'|'premium'} [tier='free'] - defaults to free until the plan
  *   system exists; no caller passes a tier yet.
- * @returns {string} the OpenRouter model id
+ * @returns {string} the Google AI Studio model id
  * @throws {Error} if the tier is unknown, unconfigured, or names a banned model
  */
 export function getModel(tier = DEFAULT_TIER) {

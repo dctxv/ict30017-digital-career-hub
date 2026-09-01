@@ -1,0 +1,995 @@
+/* Preparation — the gap board beside the mock interview.
+   Layout follows the account area: a tab rail and one panel. Everything here is
+   particular to this page; the cards, pills, buttons and fields come from
+   globals.css, and every colour resolves through a token. */
+
+.prep-body {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 28px 24px 72px;
+  display: grid;
+  grid-template-columns: 236px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.prep-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: sticky;
+  top: calc(var(--nav-height) + 16px);
+}
+
+.prep-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 14px;
+  text-align: left;
+  border-radius: var(--radius-md);
+  font-size: 14.5px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--body);
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+}
+
+.prep-tab svg { flex-shrink: 0; color: var(--muted-2); }
+
+.prep-tab:hover { background: var(--hover); }
+
+.prep-tab--on {
+  background: var(--tint);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prep-tab--on svg { color: var(--accent-text); }
+
+/* The open-gap count. Sits at the end of the row rather than beside the label so
+   it does not push the text about as the number changes. */
+.prep-tab__badge {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.prep-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* ── Progress ──────────────────────────────────────────────────────── */
+
+.prep-progress__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.prep-progress__figure {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--heading);
+  letter-spacing: -0.04em;
+}
+
+.prep-progress__percent {
+  font-size: 22px;
+  color: var(--muted-2);
+  margin-left: 2px;
+}
+
+.prep-progress__note {
+  font-size: 12.5px;
+  color: var(--muted-2);
+  margin-top: 6px;
+  max-width: 34ch;
+}
+
+.prep-progress__counts {
+  display: flex;
+  gap: 22px;
+}
+
+.prep-progress__counts dt {
+  font-size: 12px;
+  color: var(--muted-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+}
+
+.prep-progress__counts dd {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.prep-progress__track {
+  height: 8px;
+  background: var(--track);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin: 18px 0;
+}
+
+.prep-progress__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.prep-next {
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+}
+
+.prep-next__label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--accent-text);
+  margin-bottom: 7px;
+}
+
+.prep-next__text {
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.prep-next__meta,
+.prep-gap__tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.prep-next__closeable,
+.prep-gap__closeable {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--muted-2);
+}
+
+.prep-progress__cta { margin-top: 16px; }
+
+/* ── Chips ─────────────────────────────────────────────────────────── */
+
+/* The four categories carry the four different kinds of advice, so they are
+   given four different accents rather than one repeated tag — a board that is
+   mostly evidence gaps should be visibly different from one that is mostly
+   experience gaps before a word of it is read. */
+.prep-chip {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.prep-chip--skill      { background: var(--type-course);  color: var(--dot-course); }
+.prep-chip--credential { background: var(--type-article); color: var(--dot-article); }
+.prep-chip--evidence   { background: var(--type-guide);   color: var(--dot-guide); }
+.prep-chip--experience { background: var(--type-video);   color: var(--dot-video); }
+
+.prep-sev {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+}
+
+.prep-sev::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+.prep-sev--blocking {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
+}
+
+.prep-sev--significant {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+  color: var(--warn-text);
+}
+
+.prep-sev--minor {
+  background: var(--neutral);
+  color: var(--muted);
+}
+
+/* ── Filters ───────────────────────────────────────────────────────── */
+
+.prep-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 22px;
+}
+
+.prep-filters__count {
+  font-size: 13px;
+  color: var(--muted-2);
+  margin-top: 2px;
+}
+
+/* ── Gap cards ─────────────────────────────────────────────────────── */
+
+.prep-gaps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.prep-gap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 22px 24px;
+  animation: fadeUp 0.3s ease both;
+}
+
+/* A closed gap is kept on the board rather than removed, because seeing it
+   closed is the point. It recedes instead. */
+.prep-gap--closed {
+  background: var(--surface-2);
+  border-color: var(--border-accent);
+}
+
+.prep-gap--dismissed { opacity: 0.72; }
+
+.prep-gap__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.prep-gap__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--muted-2);
+}
+
+.prep-gap__state--closed { color: var(--accent-text); font-weight: 600; }
+
+.prep-gap__desc {
+  font-size: 15.5px;
+  color: var(--ink);
+  line-height: 1.65;
+}
+
+.prep-gap__block { margin-top: 16px; }
+
+.prep-gap__block-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted-2);
+  margin-bottom: 9px;
+}
+
+.prep-gap__steps {
+  list-style: decimal;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prep-gap__steps li {
+  font-size: 14.5px;
+  color: var(--body);
+  line-height: 1.6;
+  padding-left: 4px;
+}
+
+.prep-gap__steps li::marker {
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+.prep-gap__effort,
+.prep-gap__alt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--body-2);
+  line-height: 1.55;
+}
+
+.prep-gap__effort svg,
+.prep-gap__alt svg { flex: none; margin-top: 3px; color: var(--muted-2); }
+
+.prep-gap__alt {
+  padding: 12px 14px;
+  background: var(--tint);
+  border-radius: var(--radius-lg);
+  color: var(--ink);
+}
+
+.prep-gap__alt svg { color: var(--accent-text); }
+
+.prep-gap__resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.prep-resource {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 8px 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.prep-resource:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.prep-resource svg { flex: none; color: var(--accent-text); }
+
+.prep-resource__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prep-resource--more { color: var(--body); border-style: dashed; }
+
+.prep-gap__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.prep-gap__meta {
+  font-size: 12.5px;
+  color: var(--muted-2);
+}
+
+.prep-gap__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--muted-2);
+  transition: background var(--transition), color var(--transition);
+}
+
+.prep-gap__action:hover:not(:disabled) { background: var(--hover); color: var(--ink); }
+.prep-gap__action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.prep-gap__dismissed-note,
+.prep-gap__lang-note {
+  font-size: 12.5px;
+  color: var(--muted-2);
+  margin-top: 10px;
+  line-height: 1.55;
+}
+
+/* ── Empty state ───────────────────────────────────────────────────── */
+
+.prep-empty { text-align: center; }
+
+.prep-empty .card__sub { max-width: 56ch; margin: 0 auto 22px; }
+
+.prep-empty__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Interview setup ───────────────────────────────────────────────── */
+
+.prep-drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 18px;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--body);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.prep-drop:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.prep-drop svg { color: var(--accent-text); }
+
+.prep-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+
+.prep-file__icon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: var(--on-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prep-file__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prep-file__remove {
+  flex: none;
+  padding: 7px 11px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-2);
+  transition: background var(--transition), color var(--transition);
+}
+
+.prep-file__remove:hover { background: var(--hover); color: var(--danger-text); }
+
+.prep-file-error { margin-top: 10px; }
+
+/* ── Tier panel ────────────────────────────────────────────────────── */
+
+/* States what each input gains, never what its absence costs. A user who has
+   supplied nothing is at a real tier, not at a failure. */
+.prep-tier {
+  display: flex;
+  gap: 16px;
+  padding: 18px 20px;
+  margin-top: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+}
+
+.prep-tier__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 5px;
+}
+
+.prep-tier__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-pill);
+  background: var(--track);
+  border: 1px solid var(--border-strong);
+}
+
+.prep-tier__dot--on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.prep-tier__title {
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.prep-tier__body {
+  font-size: 13.5px;
+  color: var(--body-2);
+  line-height: 1.6;
+  margin-top: 4px;
+}
+
+.prep-tier__nudge {
+  font-size: 13.5px;
+  color: var(--accent-text);
+  font-weight: 600;
+  line-height: 1.55;
+  margin-top: 8px;
+}
+
+.prep-tier__gaps {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--body-2);
+  margin-top: 8px;
+}
+
+.prep-tier__gaps svg { color: var(--accent-text); flex: none; }
+
+.prep-start-error { margin-top: 18px; }
+
+.prep-start,
+.prep-submit {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.prep-submit { margin-top: 4px; }
+
+.prep-quota {
+  font-size: 13.5px;
+  color: var(--muted-2);
+}
+
+.prep-explain__list {
+  list-style: decimal;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.prep-explain__list li {
+  font-size: 14.5px;
+  color: var(--body);
+  line-height: 1.6;
+  padding-left: 4px;
+}
+
+.prep-explain__list li::marker { color: var(--accent-text); font-weight: 700; }
+
+.prep-explain__note {
+  font-size: 13px;
+  color: var(--muted-2);
+  margin-top: 16px;
+  line-height: 1.6;
+}
+
+/* ── Questions ─────────────────────────────────────────────────────── */
+
+.prep-run__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.prep-run__head .card__sub { margin-bottom: 0; }
+
+.prep-run__count {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-text);
+  padding: 7px 14px;
+  background: var(--tint);
+  border-radius: var(--radius-pill);
+}
+
+.prep-q { animation: fadeUp 0.3s ease both; }
+
+.prep-q__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.prep-q__number {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.prep-kind {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--neutral);
+  color: var(--muted);
+}
+
+.prep-kind--behavioural   { background: var(--type-article); color: var(--dot-article); }
+.prep-kind--role_specific { background: var(--type-guide);   color: var(--dot-guide); }
+.prep-kind--gap_targeted  { background: var(--type-course);  color: var(--dot-course); }
+
+/* The link back to the plan. This is the question that proves the interview and
+   the resume review are one feature rather than two, so it is labelled. */
+.prep-q__gap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.prep-q__score {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.prep-q__score--low  { background: var(--danger-bg); color: var(--danger-text); }
+.prep-q__score--mid  { background: var(--warn-bg);   color: var(--warn-text); }
+.prep-q__score--high { background: var(--accent-soft); color: var(--accent-text); }
+
+.prep-q__text {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+}
+
+.prep-q__why {
+  font-size: 13.5px;
+  color: var(--muted-2);
+  line-height: 1.6;
+  margin-top: 7px;
+}
+
+.prep-q__answer { margin-top: 14px; }
+
+.prep-q__verdict {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--body-2);
+  margin-top: 8px;
+}
+
+.prep-q__block { margin-top: 16px; }
+
+.prep-q__block-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted-2);
+  margin-bottom: 8px;
+}
+
+.prep-q__block-title--good { color: var(--accent-text); }
+.prep-q__block-title--warn { color: var(--warn-text); }
+
+.prep-q__list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.prep-q__list li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 14.5px;
+  color: var(--body);
+  line-height: 1.6;
+}
+
+.prep-q__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--muted-3);
+}
+
+.prep-q__item--good::before { background: var(--accent); }
+.prep-q__item--warn::before { background: var(--warn-text); }
+
+.prep-q__stronger {
+  margin-top: 16px;
+  padding: 13px 15px;
+  background: var(--tint);
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  color: var(--body);
+  line-height: 1.6;
+}
+
+.prep-q__stronger-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent-text);
+  margin-bottom: 5px;
+}
+
+/* ── Results ───────────────────────────────────────────────────────── */
+
+.prep-score {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.prep-score__figure {
+  flex: none;
+  text-align: center;
+}
+
+.prep-score__number {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.prep-score__number--low  { color: var(--danger-text); }
+.prep-score__number--mid  { color: var(--warn-text); }
+.prep-score__number--high { color: var(--accent-text); }
+
+.prep-score__denom {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--muted-2);
+}
+
+.prep-score__band {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.prep-score__band--low  { background: var(--danger-bg); color: var(--danger-text); }
+.prep-score__band--mid  { background: var(--warn-bg);   color: var(--warn-text); }
+.prep-score__band--high { background: var(--accent-soft); color: var(--accent-text); }
+
+.prep-score__text { flex: 1; min-width: 240px; }
+
+.prep-score__summary {
+  font-size: 15px;
+  color: var(--body);
+  line-height: 1.7;
+  margin-top: 6px;
+}
+
+.prep-nudge { align-items: center; }
+
+.prep-nudge svg { flex: none; }
+
+.prep-found {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.prep-found__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  background: var(--hover);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+}
+
+.prep-found__text {
+  flex: 1;
+  min-width: 180px;
+  font-size: 14.5px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+.prep-results__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 20px 22px;
+}
+
+/* ── History ───────────────────────────────────────────────────────── */
+
+.prep-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prep-history__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--hover);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+}
+
+.prep-history__icon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--tint);
+  color: var(--accent-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prep-history__text { flex: 1; min-width: 150px; }
+
+.prep-history__role {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.prep-history__meta {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted-2);
+  margin-top: 2px;
+}
+
+.prep-history__score {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.prep-history__score--low  { color: var(--danger-text); }
+.prep-history__score--mid  { color: var(--warn-text); }
+.prep-history__score--high { color: var(--accent-text); }
+
+.prep-history__pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  font-size: 12.5px;
+  color: var(--muted-2);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .prep-body {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 20px 20px 56px;
+  }
+
+  /* The rail becomes a scrolling strip above the panel, as it does on the
+     account page. Sticking it there would cost a third of a phone screen. */
+  .prep-rail {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .prep-rail::-webkit-scrollbar { display: none; }
+  .prep-tab { width: auto; }
+  .prep-tab__badge { margin-left: 2px; }
+}
+
+@media (max-width: 560px) {
+  .prep-progress__figure { font-size: 36px; }
+  .prep-progress__counts { gap: 16px; }
+  .prep-score__number { font-size: 44px; }
+  .prep-start .btn,
+  .prep-submit .btn { width: 100%; }
+  .prep-gap { padding: 18px 18px; }
+}

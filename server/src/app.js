@@ -9,6 +9,8 @@ import { fileURLToPath } from 'url';
 import pool from './db.js';
 import { getAllowedOrigins } from './config/origins.js';
 import { assertModelConfig } from 'ai-service';
+import { localiseResponses } from './i18n/index.js';
+import { checkContentSchema } from './schemaCheck.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -33,6 +35,11 @@ app.use(express.json());
 // routes/auth.js issues the JWT as an httpOnly cookie; without this the auth
 // middleware cannot read it and every guarded endpoint would reject.
 app.use(cookieParser());
+// Translates the `error` and `message` fields of every JSON response into the
+// caller's language. Registered after cookieParser, because that is where the
+// language preference arrives, and before the routers and the error handler so
+// that both are covered without either knowing about it.
+app.use(localiseResponses);
 
 // Ensure uploads/ exists at startup
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -58,6 +65,8 @@ import disciplineRoutes from './routes/disciplines.js';
 import careerPathsRoutes from './routes/careerPaths.js';
 import resourcesRoutes from './routes/resources.js';
 import alumniRoutes from './routes/alumni.js';
+import usersRouter from './routes/users.js';
+import preparationRouter from './routes/preparation.js';
 
 app.use('/api/resume', resumeRouter);
 app.use('/api/auth', authRouter);
@@ -66,6 +75,12 @@ app.use('/api/disciplines', disciplineRoutes);
 app.use('/api/career-paths', careerPathsRoutes);
 app.use('/api/resources', resourcesRoutes);
 app.use('/api/alumni', alumniRoutes);
+// Everything an account holder can do to their own account. Scoped to the
+// session throughout: no route here takes a user id from the caller.
+app.use('/api/users', usersRouter);
+// The gap board and the mock interview. Signed-in only throughout: a gap
+// belongs to a person across analyses, and a guest has nothing to attach one to.
+app.use('/api/preparation', preparationRouter);
 
 // Error handler
 app.use((err, req, res, next) => {
@@ -82,6 +97,10 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  // Reported after the port is up, so a schema warning cannot stop the server
+  // from starting. It names the migration to run rather than leaving the cause
+  // to be inferred from a per-request column error.
+  checkContentSchema(pool).catch(() => { /* already reported */ });
 });
 
 export default app;

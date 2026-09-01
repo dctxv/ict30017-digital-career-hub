@@ -9,6 +9,11 @@
  * These checks are an addition, not a replacement. The server still validates
  * magic bytes and enforces its own size limit, and it remains the authority.
  * Everything here exists to fail fast and explain, before any bytes are sent.
+ *
+ * Failures return a translation key and its substitutions rather than a
+ * sentence. This module has no access to the language context, and returning
+ * English here would have left the one message a user sees most often as the
+ * only untranslated string on an otherwise translated page.
  */
 
 /** Matches the server's multer limit. */
@@ -41,11 +46,11 @@ function formatSize(bytes) {
 
 /**
  * @param {File} file
- * @returns {{ ok: true } | { ok: false, reason: 'type'|'size'|'empty', message: string }}
+ * @returns {{ ok: true } | { ok: false, reason: 'type'|'size'|'empty', messageKey: string, messageVars?: object }}
  */
 export function validateResumeFile(file) {
   if (!file) {
-    return { ok: false, reason: 'empty', message: 'No file selected. Choose a PDF or DOCX resume.' }
+    return { ok: false, reason: 'empty', messageKey: 'file.none' }
   }
 
   const extension = extensionOf(file.name)
@@ -54,7 +59,7 @@ export function validateResumeFile(file) {
     return {
       ok: false,
       reason: 'type',
-      message: 'That file type is not supported. Upload a PDF or DOCX file.',
+      messageKey: 'file.unsupportedType',
     }
   }
 
@@ -63,7 +68,7 @@ export function validateResumeFile(file) {
     return {
       ok: false,
       reason: 'type',
-      message: 'That file type is not supported. Upload a PDF or DOCX file.',
+      messageKey: 'file.unsupportedType',
     }
   }
 
@@ -71,7 +76,7 @@ export function validateResumeFile(file) {
     return {
       ok: false,
       reason: 'empty',
-      message: 'That file is empty. Choose a resume with content in it.',
+      messageKey: 'file.empty',
     }
   }
 
@@ -79,7 +84,8 @@ export function validateResumeFile(file) {
     return {
       ok: false,
       reason: 'size',
-      message: `That file is ${formatSize(file.size)}. Resumes must be 3 MB or smaller.`,
+      messageKey: 'file.tooLarge',
+      messageVars: { size: formatSize(file.size) },
     }
   }
 
