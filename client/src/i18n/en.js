@@ -125,6 +125,8 @@ export default {
   'alumni.title': 'Alumni Network',
   'alumni.sub': 'Connect with the journeys of Bangladeshi graduates who have built successful careers across different industries.',
   'alumni.empty': 'No alumni found for this discipline.',
+  'alumni.linkedin': 'LinkedIn',
+  'alumni.email': 'Email',
 
   /* ── Resources ───────────────────────────────────────────────── */
   'resources.loading': 'Loading resources...',
@@ -458,6 +460,10 @@ export default {
   'admin.alum.industry': 'Industry',
   'admin.alum.initials': 'Initials (for avatar)',
   'admin.alum.bio': 'Bio',
+  'admin.alum.email': 'Email (optional)',
+  'admin.alum.linkedin': 'LinkedIn URL (optional)',
+  'admin.alum.contact': 'Contact',
+  'admin.alum.noContact': 'None',
   'admin.alum.consent': 'This graduate has given consent for their profile to be used',
   'admin.alum.publish': 'Publish this profile on the public alumni page',
   'admin.alum.consentRequired': 'Consent must be recorded before a profile can be published.',

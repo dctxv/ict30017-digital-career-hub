@@ -133,6 +133,8 @@ export default {
   'alumni.title': 'অ্যালামনাই নেটওয়ার্ক',
   'alumni.sub': 'বিভিন্ন ইন্ডাস্ট্রিতে সফল ক্যারিয়ার গড়া বাংলাদেশি গ্র্যাজুয়েটদের যাত্রার সাথে পরিচিত হন।',
   'alumni.empty': 'এই বিষয়ে কোনো অ্যালামনাই পাওয়া যায়নি।',
+  'alumni.linkedin': 'লিংকডইন',
+  'alumni.email': 'ইমেইল',
 
   /* ── Resources ───────────────────────────────────────────────── */
   'resources.loading': 'রিসোর্স লোড হচ্ছে...',
@@ -466,6 +468,10 @@ export default {
   'admin.alum.industry': 'ইন্ডাস্ট্রি',
   'admin.alum.initials': 'আদ্যক্ষর (অ্যাভাটারের জন্য)',
   'admin.alum.bio': 'পরিচিতি',
+  'admin.alum.email': 'ইমেইল (ঐচ্ছিক)',
+  'admin.alum.linkedin': 'লিংকডইন URL (ঐচ্ছিক)',
+  'admin.alum.contact': 'যোগাযোগ',
+  'admin.alum.noContact': 'নেই',
   'admin.alum.consent': 'এই গ্র্যাজুয়েট তার প্রোফাইল ব্যবহারের সম্মতি দিয়েছেন',
   'admin.alum.publish': 'এই প্রোফাইলটি পাবলিক অ্যালামনাই পেজে প্রকাশ করুন',
   'admin.alum.consentRequired': 'প্রোফাইল প্রকাশ করার আগে সম্মতি নথিভুক্ত করতে হবে।',

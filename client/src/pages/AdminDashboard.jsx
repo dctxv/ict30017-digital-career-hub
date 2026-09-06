@@ -26,6 +26,7 @@ const emptyAlumni = {
   full_name: '', institution: '', discipline: '', graduation_year: '',
   current_role: '', industry: '', bio: '', image_initials: '',
   bio_bn: '', industry_bn: '',
+  email: '', linkedin_url: '',
   consent_given: false, is_published: false,
 }
 
@@ -596,6 +597,16 @@ export default function AdminDashboard() {
                       <input className="form-input" value={alumniForm.image_initials} onChange={(e) => setAlumniForm({ ...alumniForm, image_initials: e.target.value })} placeholder="SR" />
                     </div>
                   </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">{t('admin.alum.email')}</label>
+                      <input className="form-input" type="email" value={alumniForm.email} onChange={(e) => setAlumniForm({ ...alumniForm, email: e.target.value })} placeholder="graduate@example.com" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t('admin.alum.linkedin')}</label>
+                      <input className="form-input" type="url" value={alumniForm.linkedin_url} onChange={(e) => setAlumniForm({ ...alumniForm, linkedin_url: e.target.value })} placeholder="https://www.linkedin.com/in/name" />
+                    </div>
+                  </div>
                   <div className="form-group">
                     <label className="form-label">{t('admin.alum.bio')}</label>
                     <textarea className="form-textarea" value={alumniForm.bio} onChange={(e) => setAlumniForm({ ...alumniForm, bio: e.target.value })} rows="3" required />
@@ -642,7 +653,7 @@ export default function AdminDashboard() {
                 <h2>{t('admin.alum.existing', { count: n(alumni.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.table.institution')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.role')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.status')}</th><th>{t('admin.table.actions')}</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.table.institution')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.role')}</th><th>{t('admin.alum.contact')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.status')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {alumni.map(a => (
@@ -652,10 +663,11 @@ export default function AdminDashboard() {
                         <td>{a.institution}</td>
                         <td>{a.discipline}</td>
                         <td>{a.current_role}</td>
+                        <td>{[a.email, a.linkedin_url].filter(Boolean).length || t('admin.alum.noContact')}</td>
                         <td>{translatedCell(a.bio_bn, a.industry_bn)}</td>
                         <td>{a.is_published ? t('admin.alum.published') : <span className="admin-untranslated">{t('admin.alum.draft')}</span>}</td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingAlumniId(a.id); setAlumniForm({ full_name: a.full_name, institution: a.institution, discipline: a.discipline, graduation_year: a.graduation_year ?? '', current_role: a.current_role, industry: a.industry, bio: a.bio, image_initials: a.image_initials || '', bio_bn: a.bio_bn ?? '', industry_bn: a.industry_bn ?? '', consent_given: a.consent_given === true, is_published: a.is_published === true }) }}>{t('common.edit')}</button>
+                          <button className="btn-edit" onClick={() => { setEditingAlumniId(a.id); setAlumniForm({ full_name: a.full_name, institution: a.institution, discipline: a.discipline, graduation_year: a.graduation_year ?? '', current_role: a.current_role, industry: a.industry, bio: a.bio, image_initials: a.image_initials || '', bio_bn: a.bio_bn ?? '', industry_bn: a.industry_bn ?? '', email: a.email ?? '', linkedin_url: a.linkedin_url ?? '', consent_given: a.consent_given === true, is_published: a.is_published === true }) }}>{t('common.edit')}</button>
                           <button className="btn-delete" onClick={() => remove(`/api/alumni/${a.id}`, 'admin.alum.confirmDelete', fetchAlumni, 'admin.label.alumniProfile')}>{t('common.delete')}</button>
                         </td>
                       </tr>

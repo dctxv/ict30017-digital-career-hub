@@ -16,6 +16,7 @@ import express from 'express';
 import pool from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { recordAudit } from '../services/auditLog.js';
+import { optionalText, validateAlumniContacts } from '../utils/alumniContacts.js';
 
 const router = express.Router();
 
@@ -46,7 +47,8 @@ function publicFields(lang) {
   const industry = lang === 'bn' ? 'COALESCE(industry_bn, industry)' : 'industry';
   return `
   id, full_name, institution, discipline, graduation_year,
-  "current_role", ${industry} AS industry, ${bio} AS bio, image_initials
+  "current_role", ${industry} AS industry, ${bio} AS bio, image_initials,
+  email, linkedin_url
 `;
 }
 
@@ -62,7 +64,7 @@ const PUBLIC_FIELDS = publicFields('en');
 const ADMIN_FIELDS = `
   id, full_name, institution, discipline, graduation_year,
   "current_role", industry, bio, image_initials,
-  bio_bn, industry_bn,
+  bio_bn, industry_bn, email, linkedin_url,
   consent_given, is_published
 `;
 
@@ -78,6 +80,7 @@ function validateAlumni(body) {
     full_name, institution, discipline, graduation_year,
     current_role, industry, bio, image_initials,
     bio_bn, industry_bn,
+    email, linkedin_url,
     consent_given, is_published,
   } = body;
 
@@ -140,6 +143,9 @@ function validateAlumni(body) {
     return 'A profile cannot be published without recorded consent.';
   }
 
+  const contactError = validateAlumniContacts({ email, linkedin_url });
+  if (contactError) return contactError;
+
   return null;
 }
 
@@ -175,6 +181,8 @@ function toParams(body) {
     initials === '' ? null : initials,
     nullIfBlank(body.bio_bn),
     nullIfBlank(body.industry_bn),
+    optionalText(body.email),
+    optionalText(body.linkedin_url),
     body.consent_given === true,
     body.is_published === true,
   ];
@@ -260,8 +268,8 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       `INSERT INTO alumni
          (full_name, institution, discipline, graduation_year, "current_role",
           industry, bio, image_initials, bio_bn, industry_bn,
-          consent_given, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          email, linkedin_url, consent_given, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        RETURNING ${ADMIN_FIELDS}`,
       toParams(req.body)
     );
@@ -298,9 +306,9 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       `UPDATE alumni
           SET full_name = $1, institution = $2, discipline = $3, graduation_year = $4,
               "current_role" = $5, industry = $6, bio = $7, image_initials = $8,
-              bio_bn = $9, industry_bn = $10,
-              consent_given = $11, is_published = $12
-        WHERE id = $13
+              bio_bn = $9, industry_bn = $10, email = $11, linkedin_url = $12,
+              consent_given = $13, is_published = $14
+        WHERE id = $15
       RETURNING ${ADMIN_FIELDS}`,
       [...toParams(req.body), id]
     );

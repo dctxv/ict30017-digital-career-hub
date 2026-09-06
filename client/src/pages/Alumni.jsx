@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ExternalLink, Mail } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import { fetchList } from '../api/fetchList'
@@ -114,6 +115,23 @@ export default function Alumni() {
                   </div>
 
                   <p className="alumni-card__bio">{person.bio}</p>
+
+                  {(person.linkedin_url || person.email) && (
+                    <div className="alumni-card__contacts">
+                      {person.linkedin_url && (
+                        <a href={person.linkedin_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink size={16} aria-hidden="true" />
+                          {t('alumni.linkedin')}
+                        </a>
+                      )}
+                      {person.email && (
+                        <a href={`mailto:${person.email}`}>
+                          <Mail size={16} aria-hidden="true" />
+                          {t('alumni.email')}
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </article>
             ))}
