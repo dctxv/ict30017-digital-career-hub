@@ -588,6 +588,18 @@
 
 .prep-tier__gaps svg { color: var(--accent-text); flex: none; }
 
+/* The profile line sits under the gap line and wraps on narrow screens, so
+   the icon aligns to the first line rather than the middle of two. */
+.prep-tier__profile { align-items: flex-start; line-height: 1.5; }
+.prep-tier__profile svg { margin-top: 3px; }
+
+.prep-tier__link {
+  color: var(--accent-text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .prep-start-error { margin-top: 18px; }
 
 .prep-start,

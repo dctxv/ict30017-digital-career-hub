@@ -1,0 +1,46 @@
+Dhaka Softworks Ltd.
+Junior Software Engineer (Web)
+
+Vacancy: 03
+Job Location: Banani, Dhaka
+Employment Status: Full-time
+Salary: BDT 35,000 - 45,000 (based on interview)
+Application Deadline: 30 September 2026
+
+Job Context
+Dhaka Softworks builds web applications for clients in Bangladesh, Singapore
+and the UK. We are hiring junior engineers to join a product team that
+maintains a React and Node.js based logistics platform used by 40+ transport
+companies.
+
+Job Responsibilities
+- Develop and maintain features in a React frontend and a Node.js (Express) backend
+- Write and consume REST APIs and work with PostgreSQL databases
+- Write unit tests and take part in code reviews
+- Fix bugs reported by the QA team and by clients within agreed timelines
+- Take part in daily stand-ups and sprint planning with the team lead
+- Communicate progress clearly to the team, in English where the client is overseas
+
+Educational Requirements
+- B.Sc. in Computer Science and Engineering or a related discipline from a reputed university
+- Minimum CGPA 3.00
+
+Experience Requirements
+- 0 to 1 year. Fresh graduates with strong project work are encouraged to apply.
+
+Additional Requirements
+- Solid understanding of JavaScript (ES6+), HTML and CSS
+- Working knowledge of React and Node.js
+- Comfortable with Git and GitHub workflows (branches, pull requests)
+- Familiarity with SQL; experience with PostgreSQL is a plus
+- Understanding of basic data structures and algorithms
+- Ability to write clear English in tickets, commit messages and client emails
+- Bonus: experience with Docker, TypeScript or any cloud platform
+
+Compensation and Other Benefits
+- Two festival bonuses, lunch facilities, weekly two holidays
+- Annual performance bonus and learning allowance
+
+Read Before Apply
+Please attach a link to your GitHub profile or a portfolio of projects. Shortlisted
+candidates will be asked to complete a short take-home coding task before the interview.

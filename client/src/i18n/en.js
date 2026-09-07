@@ -787,6 +787,10 @@ export default {
   'prep.tier3Body': 'Your resume against this advertisement, so the questions and the gap analysis are a real comparison rather than an estimate.',
   'prep.tier3Short': 'Resume and job ad',
   'prep.willTargetGap': 'One question will target a gap already on your plan. You have {count} open.',
+  'prep.profileUsed': 'Your profile is used too: {details}.',
+  'prep.profileMissing': 'Add your discipline, institution and graduation year to your profile and the questions will be pitched at your stage.',
+  'prep.profileLink': 'Open my profile',
+  'prep.rolePrefilled': 'Filled in from your last interview. Change it if you are preparing for something else.',
 
   'prep.setupTitle': 'Set up your interview',
   'prep.setupSub': 'Everything below is optional. The more you add, the closer the questions get to the job you are actually applying for.',

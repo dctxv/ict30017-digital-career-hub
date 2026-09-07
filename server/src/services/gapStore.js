@@ -199,7 +199,75 @@ const GENERIC_TERMS = new Set([
   'practice', 'course', 'tutorial', 'training', 'learning', 'learn', 'using',
   'with', 'your', 'the', 'and', 'for', 'how', 'what', 'advanced', 'beginner',
   'beginners', 'professional', 'modern', 'complete', 'essential', 'overview',
+  // Every row in this library is about Bangladesh, its graduates and its job
+  // market, so these words pick out nothing. "credit assessment memorandum
+  // structure bangladesh bank" linked to "Where to find business jobs in
+  // Bangladesh" on the last-but-one word alone.
+  'bangladesh', 'bangladeshi', 'graduate', 'graduates', 'fresh', 'job', 'jobs',
+  'career', 'careers', 'roles', 'role', 'every', 'need', 'needs', 'should',
+  'know', 'find', 'where', 'write', 'prepare', 'preparation', 'structure',
 ]);
+
+/**
+ * Whether a term appears in a title as the start of a word.
+ *
+ * Substring matching was the first version, and it linked a unit-testing gap
+ * to "Engineering job opportunities in government and private sectors" and
+ * "Freelancing and remote work opportunities for arts graduates" — on the
+ * "unit" inside "opportunities". Anchoring to the start of a word keeps the
+ * plural and inflected hits that made substring matching attractive ("bank"
+ * still finds "banks" and "banking") and loses the ones inside other words.
+ */
+function startsAWord(text, term) {
+  let from = 0;
+  while (from <= text.length) {
+    const at = text.indexOf(term, from);
+    if (at === -1) return false;
+    if (at === 0 || !/[a-z0-9]/.test(text[at - 1])) return true;
+    from = at + 1;
+  }
+  return false;
+}
+
+/**
+ * Scores the library against one resource query, best first.
+ *
+ * Pure, so it can be tested without a database: rows carry the lowercased
+ * title and category the SQL in attachResources selects. A title hit is worth
+ * two, a category hit one, and two points are needed, so a category alone
+ * never qualifies — "Skill Development" would otherwise match every skill
+ * gap in the product.
+ *
+ * @param {string} query the model's resource_query
+ * @param {Array<{match_title: string, match_category: string}>} rows
+ * @returns {Array<object>} at most three rows, or none when nothing qualifies
+ */
+export function matchResources(query, rows) {
+  const text = String(query ?? '').trim().toLowerCase();
+  if (text.length < 3) return [];
+
+  const terms = text
+    .split(/\s+/)
+    .filter((term) => term.length >= 3 && !GENERIC_TERMS.has(term));
+
+  // Nothing but generic vocabulary. Better to show no link than to match on
+  // the words every row in the library shares.
+  if (terms.length === 0) return [];
+
+  return rows
+    .map((row) => ({
+      row,
+      score: terms.reduce((total, term) => (
+        total
+        + (startsAWord(row.match_title, term) ? 2 : 0)
+        + (startsAWord(row.match_category, term) ? 1 : 0)
+      ), 0),
+    }))
+    .filter((entry) => entry.score >= 2)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(({ row }) => row);
+}
 
 /**
  * Attaches real resource links to a set of gaps.
@@ -251,34 +319,11 @@ export async function attachResources(gaps, lang = 'en') {
     return gaps.map((gap) => ({ ...gap, resources: [] }));
   }
 
-  return gaps.map((gap) => {
-    const query = String(gap.remediation?.resource_query ?? '').trim().toLowerCase();
-    if (query.length < 3) return { ...gap, resources: [] };
-
-    const terms = query
-      .split(/\s+/)
-      .filter((term) => term.length >= 3 && !GENERIC_TERMS.has(term));
-
-    // Nothing but generic vocabulary. Better to show no link than to match on
-    // the words every row in the library shares.
-    if (terms.length === 0) return { ...gap, resources: [] };
-
-    const scored = rows
-      .map((row) => ({
-        row,
-        score: terms.reduce((total, term) => (
-          total
-          + (row.match_title.includes(term) ? 2 : 0)
-          + (row.match_category.includes(term) ? 1 : 0)
-        ), 0),
-      }))
-      .filter((entry) => entry.score >= 2)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3)
-      .map(({ row }) => ({ id: row.id, title: row.title, type: row.type, url: row.url }));
-
-    return { ...gap, resources: scored };
-  });
+  return gaps.map((gap) => ({
+    ...gap,
+    resources: matchResources(gap.remediation?.resource_query, rows)
+      .map((row) => ({ id: row.id, title: row.title, type: row.type, url: row.url })),
+  }));
 }
 
 /** Every gap held for one user, worst and most recent first. */

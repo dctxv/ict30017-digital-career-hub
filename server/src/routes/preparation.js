@@ -107,6 +107,34 @@ function readJobAd(value) {
   return typeof value === 'string' && value.trim() ? value.trim().slice(0, JOB_AD_MAX_CHARS) : null;
 }
 
+/**
+ * The profile facts an interview may use about the person.
+ *
+ * The account page collects a discipline, an institution and a graduation
+ * year, and until this was read the interview knew none of it: a final-year
+ * student and a graduate of three years typing the same role got the same five
+ * questions. These are the user's own statements about themselves, which is
+ * what makes them usable at tier 1 where nothing else about the candidate is.
+ *
+ * Null when all three are blank, so the prompt composer leaves the profile
+ * guidance out rather than announcing a profile above an empty block.
+ */
+async function readCandidateProfile(userId) {
+  const result = await pool.query(
+    'SELECT discipline, institution, graduation_year FROM users WHERE user_id = $1',
+    [userId]
+  );
+  const row = result.rows[0];
+  if (!row) return null;
+
+  const profile = {
+    discipline: row.discipline ?? null,
+    institution: row.institution ?? null,
+    graduationYear: row.graduation_year ?? null,
+  };
+  return Object.values(profile).some((value) => value !== null && value !== '') ? profile : null;
+}
+
 /** Maps an ai-service failure code onto the status the client expects. */
 function statusForCode(code) {
   // AI_BUSY is the provider throttling us, and 429 here is indistinguishable at
@@ -251,7 +279,10 @@ router.post(
       // five questions aim at a real, previously identified weakness, which is
       // the thing that proves the two features are connected rather than sitting
       // beside each other.
-      const knownGaps = await readOpenGapsForPrompt(req.user.id);
+      const [knownGaps, profile] = await Promise.all([
+        readOpenGapsForPrompt(req.user.id),
+        readCandidateProfile(req.user.id),
+      ]);
 
       const result = await generateInterviewQuestions({
         targetRole,
@@ -259,6 +290,7 @@ router.post(
         resumeText,
         jobAd,
         knownGaps,
+        profile,
         language,
         tier: res.locals.interviewQuota?.tier === 'premium' ? 'premium' : 'free',
       });
@@ -301,6 +333,7 @@ router.post(
         role: result.inferredRole || targetRole,
         focus: result.focus,
         questions: safeQuestions,
+        profileUsed: profile !== null,
         createdAt: inserted.rows[0].created_at,
       });
     } catch (err) {
@@ -379,6 +412,10 @@ router.post('/interviews/:id/answers', preparationRateLimit, async (req, res) =>
 
     const language = req.body?.language === 'bn' ? 'bn' : (interview.language ?? resolveLanguage(req));
 
+    // Read again rather than stored with the interview: the same three fields
+    // the questions were written against, as they stand now.
+    const profile = await readCandidateProfile(req.user.id);
+
     const result = await evaluateInterview({
       questions,
       answers,
@@ -386,6 +423,7 @@ router.post('/interviews/:id/answers', preparationRateLimit, async (req, res) =>
       targetRole: interview.target_role,
       candidateStage: interview.candidate_stage,
       jobAd: interview.job_ad_text,
+      profile,
       language,
       tier: interview.tier === 'premium' ? 'premium' : 'free',
     });

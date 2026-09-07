@@ -98,6 +98,14 @@ export function stripUnevidencedClaims(text) {
     /\byour\s+(?:resume|cv|profile)\s+(?:shows|suggests|indicates|mentions|lists|says)\b[^.?!]*[.,;]\s*/gi,
     /\b(?:with|during)\s+your\s+(?:time|work|role|experience)\s+at\s+[^,.?!]+[,.]\s*/gi,
     /\byour\s+background\s+(?:in|as|with)\b[^.?!]*[.,;]\s*/gi,
+    // The same three shapes in Bangla, which a Bangla interview reaches for
+    // just as readily: "আপনার অভিজ্ঞতার ভিত্তিতে, ..." (based on your
+    // experience), "আপনার রিজিউমে অনুযায়ী ..." (according to your resume) and
+    // "আপনার সিভিতে দেখা যাচ্ছে যে ..." (your CV shows that). The danda (।)
+    // bounds a clause the way a full stop does in English.
+    /আপনার\s+(?:পূর্ববর্তী\s+|আগের\s+|পূর্ব\s+)?(?:অভিজ্ঞতা|রিজিউমে|রিজিউম|রেজুমে|সিভি|ব্যাকগ্রাউন্ড|প্রোফাইল|কর্মজীবন|পটভূমি)(?:র|য়|টি|টির)?\s+(?:ভিত্তিতে|অনুযায়ী|অনুসারে|বিবেচনায়|মতে|থেকে\s+দেখা\s+যায়|থেকে|দেখে)[^,।?!]{0,80},\s*/g,
+    /আপনার\s+(?:পূর্ববর্তী\s+|আগের\s+|পূর্ব\s+)?(?:অভিজ্ঞতা|রিজিউমে|রিজিউম|রেজুমে|সিভি|ব্যাকগ্রাউন্ড|প্রোফাইল|কর্মজীবন|পটভূমি)(?:র|য়|টি|টির)?\s+(?:ভিত্তিতে|অনুযায়ী|অনুসারে|বিবেচনায়|মতে)\s*/g,
+    /আপনার\s+(?:রিজিউমে|রিজিউম|রেজুমে|সিভি|প্রোফাইল)(?:তে|য়|র)?\s+(?:দেখা\s+যা(?:য়|চ্ছে)|উল্লেখ\s+(?:আছে|করা\s+হয়েছে|রয়েছে)|বলা\s+হয়েছে)\s*(?:যে\s*)?[^।?!]*[।,;]\s*/g,
   ];
 
   let next = original;
@@ -117,6 +125,36 @@ export function stripUnevidencedClaims(text) {
   }
 
   return { text: next, changed };
+}
+
+/**
+ * Renders the profile facts as a delimited block for either prompt.
+ *
+ * Three fields, all optional, because the profile page makes all three
+ * optional. Returns null rather than an empty block when none is set, so the
+ * prompt composer can leave the profile guidance out entirely — a block that
+ * says "a profile was supplied" above nothing would be an instruction to use
+ * facts that do not exist.
+ *
+ * @param {{discipline?: string|null, institution?: string|null, graduationYear?: number|string|null}} [profile]
+ * @returns {string|null}
+ */
+export function renderProfileBlock(profile) {
+  if (!profile || typeof profile !== 'object') return null;
+
+  const lines = [];
+  const text = (value, max) => (typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null);
+
+  const discipline = text(profile.discipline, 100);
+  const institution = text(profile.institution, 150);
+  const year = Number.parseInt(profile.graduationYear, 10);
+
+  if (discipline) lines.push(`Discipline: ${discipline}`);
+  if (institution) lines.push(`Institution: ${institution}`);
+  if (Number.isInteger(year) && year > 1950 && year < 2100) lines.push(`Graduation year: ${year}`);
+
+  if (lines.length === 0) return null;
+  return `<CANDIDATE_PROFILE>\n${lines.join('\n')}\n</CANDIDATE_PROFILE>`;
 }
 
 /** Applies the tier-1 guarantee across a generated question set. */
@@ -197,6 +235,7 @@ function reconcileQuestionMix(questions, knownGapKeys) {
  * @param {string} [input.resumeText] sanitised resume text; never stored anywhere
  * @param {string} [input.jobAd]
  * @param {Array<object>} [input.knownGaps] open gaps already on file for this user
+ * @param {object} [input.profile] discipline, institution and graduation year from the account
  * @param {'en'|'bn'} [input.language]
  * @param {'free'|'premium'} [input.tier]
  * @returns {Promise<{ok: true, tier: number, questions: Array<object>, inferredRole: string,
@@ -209,16 +248,20 @@ export async function generateInterviewQuestions({
   resumeText,
   jobAd,
   knownGaps = [],
+  profile = null,
   language = 'en',
   tier = 'free',
 } = {}) {
   const hasResume = typeof resumeText === 'string' && resumeText.trim().length > 0;
   const hasJobAd = typeof jobAd === 'string' && jobAd.trim().length > 0;
   const gapBlock = renderGapBlock(knownGaps);
+  const profileBlock = renderProfileBlock(profile);
   const level = resolveTier({ hasResume, hasJobAd });
 
   const systemPrompt = withInterviewLanguage(
-    buildQuestionPrompt({ tier: level, hasJobAd, hasGaps: Boolean(gapBlock) }),
+    buildQuestionPrompt({
+      tier: level, hasJobAd, hasGaps: Boolean(gapBlock), hasProfile: Boolean(profileBlock),
+    }),
     language,
   );
 
@@ -226,6 +269,7 @@ export async function generateInterviewQuestions({
   const role = typeof targetRole === 'string' ? targetRole.slice(0, ROLE_MAX_CHARS).trim() : '';
   if (role) parts.push(`Target role: ${role}`);
   if (candidateStage && candidateStage !== 'unknown') parts.push(`Career stage: ${candidateStage}`);
+  if (profileBlock) parts.push(profileBlock);
   if (hasResume) parts.push(`<RESUME>\n${resumeText}\n</RESUME>`);
   if (hasJobAd) parts.push(`<JOB_ADVERTISEMENT>\n${jobAd.slice(0, JOB_AD_MAX_CHARS)}\n</JOB_ADVERTISEMENT>`);
   if (gapBlock) parts.push(gapBlock);
@@ -288,6 +332,7 @@ export async function generateInterviewQuestions({
  * @param {string} [input.targetRole]
  * @param {string} [input.candidateStage]
  * @param {string} [input.jobAd]
+ * @param {object} [input.profile] the same profile facts the questions were written against
  * @param {'en'|'bn'} [input.language]
  * @param {'free'|'premium'} [input.tier]
  * @returns {Promise<{ok: true, evaluation: object, gaps: Array<object>, model: string}
@@ -300,6 +345,7 @@ export async function evaluateInterview({
   targetRole,
   candidateStage,
   jobAd,
+  profile = null,
   language = 'en',
   tier = 'free',
 } = {}) {
@@ -324,12 +370,17 @@ export async function evaluateInterview({
     })
     .join('\n\n');
 
-  const systemPrompt = withInterviewLanguage(buildEvaluationPrompt({ tier: tierLevel }), language);
+  const profileBlock = renderProfileBlock(profile);
+  const systemPrompt = withInterviewLanguage(
+    buildEvaluationPrompt({ tier: tierLevel, hasProfile: Boolean(profileBlock) }),
+    language,
+  );
 
   const parts = [];
   const role = typeof targetRole === 'string' ? targetRole.slice(0, ROLE_MAX_CHARS).trim() : '';
   if (role) parts.push(`Target role: ${role}`);
   if (candidateStage && candidateStage !== 'unknown') parts.push(`Career stage: ${candidateStage}`);
+  if (profileBlock) parts.push(profileBlock);
   parts.push(`<TRANSCRIPT>\n${transcript}\n</TRANSCRIPT>`);
   if (typeof jobAd === 'string' && jobAd.trim()) {
     parts.push(`<JOB_ADVERTISEMENT>\n${jobAd.slice(0, JOB_AD_MAX_CHARS)}\n</JOB_ADVERTISEMENT>`);

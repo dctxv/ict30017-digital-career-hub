@@ -22,12 +22,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Target, MessageSquareText, History, ChevronDown, CheckCircle2, Circle, EyeOff,
   RotateCcw, Sparkles, UploadCloud, FileCheck2, ArrowUpRight, ArrowRight,
-  BookOpen, Clock, Undo2, FileText,
+  BookOpen, Clock, Undo2, FileText, User,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import { CANDIDATE_STAGE_OPTIONS } from '../utils/reviewContext'
 import { validateResumeFile, ACCEPTED_EXTENSIONS } from '../utils/resumeFile'
+import { fetchProfile } from '../api/account'
 import {
   fetchGaps, fetchGapSummary, setGapStatus, fetchInterviewQuota,
   startInterview, submitInterviewAnswers, fetchInterviews, fetchInterview,
@@ -46,6 +47,50 @@ const STATUSES = ['open', 'closed', 'dismissed']
 /** Longest advertisement the server accepts. Mirrored so the counter is honest. */
 const JOB_AD_MAX = 4000
 const ANSWER_MAX = 2500
+
+/*
+ * The profile fields the interview reads. The server pitches the questions at
+ * these, so the setup panel says which of them it holds; null when the profile
+ * has none of them, which is the state a fresh account is in.
+ */
+function profileFacts(profile) {
+  if (!profile) return null
+  const facts = {
+    discipline: profile.discipline || null,
+    institution: profile.institution || null,
+    graduation_year: profile.graduation_year || null,
+  }
+  return Object.values(facts).some(Boolean) ? facts : null
+}
+
+/*
+ * A default for the stage selector, from the graduation year alone. Only a
+ * default: the user can still pick anything, and "Not sure" stays available.
+ * A year in the future is a student; a year or less ago is a fresher, which is
+ * how the job market here uses the word.
+ */
+/*
+ * The effort line is rendered as "Roughly {effort}", and the model likes to
+ * begin the value with the same word — "roughly 1 week" came back and read
+ * "Roughly roughly 1 week". The hedge is the label's job, so a leading one on
+ * the value goes, in either language.
+ */
+function trimEffort(effort) {
+  return String(effort ?? '')
+    .replace(/^(?:roughly|about|around|approximately|approx\.?|আনুমানিক|প্রায়)\s+/i, '')
+    .trim()
+}
+
+function stageFromGraduationYear(year) {
+  const graduated = Number.parseInt(year, 10)
+  if (!Number.isInteger(graduated)) return null
+  const yearsSince = new Date().getFullYear() - graduated
+  if (yearsSince < 0) return 'student'
+  if (yearsSince <= 1) return 'fresher'
+  if (yearsSince <= 4) return 'early_career'
+  if (yearsSince <= 9) return 'experienced'
+  return 'senior'
+}
 
 /* ── Small pieces ────────────────────────────────────────────────────── */
 
@@ -189,7 +234,7 @@ function GapCard({ gap, onDismiss, onRestore, busy }) {
       {gap.remediation?.effort && gap.status !== 'closed' && (
         <p className="prep-gap__effort">
           <Clock size={13} />
-          {t('prep.effort', { effort: gap.remediation.effort })}
+          {t('prep.effort', { effort: trimEffort(gap.remediation.effort) })}
         </p>
       )}
 
@@ -385,9 +430,17 @@ function PlanTab({ gaps, summary, loading, error, onDismiss, onRestore, busyId, 
  * resume is missing" carry the same information, and only one of them tells
  * somebody off before they have started.
  */
-function TierPanel({ hasResume, hasJobAd, openGapCount }) {
+function TierPanel({ hasResume, hasJobAd, openGapCount, profile }) {
   const { t, n } = useLanguage()
   const level = !hasResume ? 1 : hasJobAd ? 3 : 2
+
+  // What the interview knows from the account, in the order the profile page
+  // asks for it. The year goes through n() so it reads in Bengali digits.
+  const details = profile
+    ? [profile.discipline, profile.institution, profile.graduation_year && n(profile.graduation_year)]
+      .filter(Boolean)
+      .join(' · ')
+    : ''
 
   return (
     <div className="prep-tier">
@@ -406,15 +459,39 @@ function TierPanel({ hasResume, hasJobAd, openGapCount }) {
             {t('prep.willTargetGap', { count: n(openGapCount) })}
           </p>
         )}
+        {/* Said either way. With a profile the user sees what will be assumed
+            about them; without one they learn there is something to fill in,
+            with the link to do it — the questions are pitched at the stage
+            the profile implies, and an empty profile means a generic pitch. */}
+        <p className="prep-tier__gaps prep-tier__profile">
+          <User size={13} />
+          {profile ? (
+            <span>{t('prep.profileUsed', { details })}</span>
+          ) : (
+            <span>
+              {t('prep.profileMissing')}{' '}
+              <Link to="/profile" className="prep-tier__link">{t('prep.profileLink')}</Link>
+            </span>
+          )}
+        </p>
       </div>
     </div>
   )
 }
 
-function InterviewSetup({ quota, openGapCount, onStart, starting, error }) {
+function InterviewSetup({ quota, openGapCount, onStart, starting, error, profile, lastRole }) {
   const { t, n } = useLanguage()
-  const [role, setRole] = useState('')
-  const [stage, setStage] = useState('unknown')
+  /*
+   * Both fields start from what the account already knows and become the
+   * user's own value the moment they touch them. Held as "null until typed"
+   * rather than copied into state on mount, because the profile and the
+   * interview history arrive after the panel has rendered and a copy taken
+   * at mount would have been taken from nothing.
+   */
+  const [roleInput, setRoleInput] = useState(null)
+  const [stageInput, setStageInput] = useState(null)
+  const role = roleInput ?? lastRole ?? ''
+  const stage = stageInput ?? stageFromGraduationYear(profile?.graduation_year) ?? 'unknown'
   const [jobAd, setJobAd] = useState('')
   const [file, setFile] = useState(null)
   const [fileError, setFileError] = useState(null)
@@ -460,8 +537,11 @@ function InterviewSetup({ quota, openGapCount, onStart, starting, error }) {
               className="input"
               placeholder={t('prep.rolePlaceholder')}
               value={role}
-              onChange={event => setRole(event.target.value)}
+              onChange={event => setRoleInput(event.target.value)}
             />
+            {roleInput === null && lastRole && (
+              <span className="field__hint">{t('prep.rolePrefilled')}</span>
+            )}
           </div>
 
           <div className="field">
@@ -471,7 +551,7 @@ function InterviewSetup({ quota, openGapCount, onStart, starting, error }) {
                 id="prep-stage"
                 className="select"
                 value={stage}
-                onChange={event => setStage(event.target.value)}
+                onChange={event => setStageInput(event.target.value)}
               >
                 {CANDIDATE_STAGE_OPTIONS.map(option => (
                   <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
@@ -546,7 +626,12 @@ function InterviewSetup({ quota, openGapCount, onStart, starting, error }) {
           </span>
         </div>
 
-        <TierPanel hasResume={Boolean(file)} hasJobAd={jobAd.trim().length > 0} openGapCount={openGapCount} />
+        <TierPanel
+          hasResume={Boolean(file)}
+          hasJobAd={jobAd.trim().length > 0}
+          openGapCount={openGapCount}
+          profile={profile}
+        />
 
         {error && <p className="notice notice--error prep-start-error" role="alert">{error}</p>}
 
@@ -867,6 +952,7 @@ export default function Preparation() {
   const [busyGapId, setBusyGapId] = useState(null)
 
   const [quota, setQuota] = useState(null)
+  const [profile, setProfile] = useState(null)
   const [interviews, setInterviews] = useState([])
   const [historyLoading, setHistoryLoading] = useState(true)
   const [openingId, setOpeningId] = useState(null)
@@ -905,6 +991,10 @@ export default function Preparation() {
 
   useEffect(() => {
     fetchInterviewQuota().then(setQuota).catch(() => {})
+    // The three fields the server reads for the interview, so the setup panel
+    // can say what will be assumed. A failed read leaves the panel saying the
+    // profile is empty, which is the safe wording.
+    fetchProfile().then(data => setProfile(profileFacts(data))).catch(() => {})
     fetchInterviews()
       .then(rows => setInterviews(Array.isArray(rows) ? rows : []))
       .catch(() => setInterviews([]))
@@ -912,6 +1002,9 @@ export default function Preparation() {
   }, [])
 
   const openGapCount = gaps.filter(gap => gap.status === 'open').length
+  // What they were preparing for last time, as the starting value for the
+  // role field. Newest first, so the first row with a role is the latest.
+  const lastRole = interviews.find(row => row.target_role)?.target_role ?? ''
 
   const changeStatus = async (gap, status) => {
     setBusyGapId(gap.gap_id)
@@ -1072,6 +1165,8 @@ export default function Preparation() {
               onStart={begin}
               starting={starting}
               error={interviewError}
+              profile={profile}
+              lastRole={lastRole}
             />
           )}
 
