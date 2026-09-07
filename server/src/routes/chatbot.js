@@ -6,7 +6,7 @@
 import crypto from 'crypto';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { streamChatbotResponse } from 'ai-service';
+import { streamChatbotResponse, classifyAiError, formatAiErrorLog } from 'ai-service';
 import { getAllowedOrigins } from '../config/origins.js';
 import sharedPool from '../db.js';
 import { resolveConversation, appendMessage } from '../services/chatHistory.js';
@@ -440,8 +440,14 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforc
 
     writeSse(res, '[DONE]');
   } catch (err) {
-    console.error('[chat] Chatbot stream failed:', err.message);
-    writeSse(res, '[ERROR]');
+    // The widget shows one generic sentence whatever happened, so the log line
+    // is where the cause has to be legible: a rejected key, a model closed to
+    // this key and a spent daily quota each name their own fix here.
+    const classified = classifyAiError(err);
+    console.error(formatAiErrorLog('chatbot', classified));
+    // The code rides in the frame so the widget can tell a configuration
+    // problem, which retrying will not fix, from a transient one.
+    writeSse(res, `[ERROR:${classified.code}]`);
   } finally {
     res.end();
     // After res.end(): the transcript must never be the reason a reply is slow.

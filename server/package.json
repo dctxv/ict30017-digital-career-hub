@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
+    "check": "node scripts/check-setup.js",
     "migrate": "node scripts/migrate.js",
     "compare-models": "node scripts/compare-models.js",
     "test": "node --test \"src/**/*.test.js\""

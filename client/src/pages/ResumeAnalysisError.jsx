@@ -41,7 +41,20 @@ function describeFailure(code) {
       // names the exact allowance, so it is preferred over the generic copy.
       return { titleKey: 'reviewError.rateLimitTitle', bodyKey: 'reviewError.rateLimitBody', preferServerMessage: true }
     case 'HTTP_503':
+    case 'AI_UNAVAILABLE':
       return { titleKey: 'reviewError.aiBusyTitle', bodyKey: 'reviewError.aiBusyBody', preferServerMessage: true }
+    // The rest of the provider-failure vocabulary from ai-service. None of
+    // these is fixed by trying again, and the copy says so: the first three
+    // are the server's configuration, the fourth is the day's allowance.
+    case 'AI_AUTH':
+    case 'AI_MODEL':
+    case 'AI_BAD_REQUEST':
+    case 'HTTP_502':
+      return { titleKey: 'reviewError.aiConfigTitle', bodyKey: 'reviewError.aiConfigBody', preferServerMessage: true }
+    case 'AI_QUOTA':
+      return { titleKey: 'reviewError.aiQuotaTitle', bodyKey: 'reviewError.aiQuotaBody', preferServerMessage: true }
+    case 'AI_UNREACHABLE':
+      return { titleKey: 'reviewError.aiUnreachableTitle', bodyKey: 'reviewError.aiUnreachableBody', preferServerMessage: true }
     case 'UNREADABLE':
       return { titleKey: 'reviewError.unreadableTitle', bodyKey: 'reviewError.unreadableBody' }
     default:

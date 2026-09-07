@@ -7,6 +7,7 @@ import { sanitiseResumeText } from '../utils/sanitise.js';
 import { resolveLanguage, translateMessage } from '../i18n/index.js';
 import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
 import { analyzeResume, analyzeResumeStream, getModel, extractGapsFromReview } from 'ai-service';
+import { statusForAiErrorCode, isAiErrorCode } from '../utils/aiStatus.js';
 import { reconcileGaps } from '../services/gapStore.js';
 import pool from  '../db.js'; 
 import { optionalAuth, requireAuth, requireActiveAccount } from '../middleware/auth.js';
@@ -14,6 +15,7 @@ import { attachReviewContext } from '../middleware/reviewContext.js';
 import {
   enforceDailyReviewLimit,
   readReviewQuota,
+  refundReview,
   FREE_DAILY_REVIEW_LIMIT,
 } from '../middleware/reviewQuota.js';
 
@@ -191,6 +193,16 @@ function resolveReviewContext(res) {
   return res.locals.reviewContext ?? {};
 }
 
+/*
+ * Gives a claimed review back when the analysis did not happen. A no-op for
+ * guests and unlimited accounts, which never claimed one.
+ */
+async function refundIfClaimed(req, res, reason) {
+  if (res.locals.reviewQuota?.claimed === true) {
+    await refundReview(req.user.id, reason);
+  }
+}
+
 function isIdentified(req) {
   return Boolean(req.user) && req.user.id !== 'guest' && req.user.role !== 'guest';
 }
@@ -299,12 +311,17 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
       context: resolveReviewContext(res),
     });
 
-    // 503, not 429: the upstream model provider is throttling us, and 429 here
-    // is indistinguishable at the client from the caller's own allowance being
-    // spent — which is what made this surface as a review-limit message.
-    if (feedback.code === 'AI_BUSY') {
-      console.log(`[quota] decision=reject user=${req.user?.id ?? 'guest'} reason=provider_throttled tier=${resolveTier(res)} status=503`);
-      return res.status(503).json({ error: feedback.error });
+    // A provider failure comes back as a code, already logged by ai-service
+    // with the fix. Never 429: that is indistinguishable at the client from the
+    // caller's own allowance being spent, which is what once made a throttled
+    // provider surface as a review-limit message.
+    if (isAiErrorCode(feedback.code)) {
+      const status = statusForAiErrorCode(feedback.code);
+      console.log(`[quota] decision=reject user=${req.user?.id ?? 'guest'} reason=${feedback.code} tier=${resolveTier(res)} status=${status}`);
+      // The user got nothing, so the slot goes back. Without this a
+      // misconfigured server spent all three daily reviews in a minute.
+      await refundIfClaimed(req, res, feedback.code);
+      return res.status(status).json({ error: feedback.error, code: feedback.code });
     }
 
     // Step 4 — Strip any candidate PII the model echoed back, before the
@@ -349,7 +366,8 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
     return undefined;
 
   } catch (err) {
-    console.error('[resume] Error during analysis:', err);
+    console.error('[resume] Error during analysis:', err.message);
+    await refundIfClaimed(req, res, 'analysis_failed');
     return res.status(500).json({
       error: 'An error occurred during resume analysis.',
     });
@@ -374,7 +392,11 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
  * Frames:
  *   data: {"t":"<token piece>"}\n\n
  *   data: {"done":true,"feedback":{...validated object...}}\n\n
- *   data: {"error":"AI_BUSY"|"INTERNAL","message":"..."}\n\n
+ *   data: {"error":"<AI_* code>"|"INTERNAL","message":"..."}\n\n
+ *
+ * The AI_* codes are the provider-failure vocabulary in ai-service
+ * (utils/aiErrors.js): AI_AUTH, AI_MODEL, AI_QUOTA, AI_BUSY, AI_UNAVAILABLE,
+ * AI_UNREACHABLE, AI_BAD_REQUEST, AI_ERROR.
  */
 // Same ordering as /analyze: the file must be accepted before quota is claimed.
 router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('resume'), attachReviewContext, enforceDailyReviewLimit, async (req, res) => {
@@ -430,14 +452,16 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
       context: resolveReviewContext(res),
     });
 
-    if (feedback?.code === 'AI_BUSY') {
+    if (isAiErrorCode(feedback?.code)) {
       // Same shape as the [quota] lines so one grep covers the whole chain.
-      // This is the provider refusing us, not the caller running out.
-      console.log(`[quota] decision=reject user=${req.user?.id ?? 'guest'} reason=provider_throttled tier=${resolveTier(res)} status=503`);
+      // This is the provider refusing us, not the caller running out. The
+      // code travels in the frame so the error screen can name the cause.
+      console.log(`[quota] decision=reject user=${req.user?.id ?? 'guest'} reason=${feedback.code} tier=${resolveTier(res)} status=${statusForAiErrorCode(feedback.code)}`);
       // SSE frames bypass res.json, so the localising middleware never sees
       // them. These two sites translate explicitly for that reason.
-      writeFrame({ error: 'AI_BUSY', message: translateMessage(feedback.error, language) });
+      writeFrame({ error: feedback.code, message: translateMessage(feedback.error, language) });
       res.end();
+      await refundIfClaimed(req, res, feedback.code);
       return;
     }
 
@@ -477,13 +501,18 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
     });
 
   } catch (err) {
-    console.error('[resume-stream] Error during analysis:', err);
+    // Provider failures never reach here any more — ai-service returns them
+    // as codes — so whatever lands in this block is ours: a file that would
+    // not parse, a database write, a bug. The message is enough to find it;
+    // the full object was forty lines of SDK internals.
+    console.error('[resume-stream] Error during analysis:', err.message);
     if (res.headersSent) {
       writeFrame({ error: 'INTERNAL', message: translateMessage('Analysis failed.', resolveLanguage(req)) });
       res.end();
     } else {
       res.status(500).json({ error: 'Analysis failed.' });
     }
+    await refundIfClaimed(req, res, 'analysis_failed');
 
   } finally {
     if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {

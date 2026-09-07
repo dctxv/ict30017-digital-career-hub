@@ -42,7 +42,7 @@ function updateAssistantAt(history, index, content) {
  * memoise and the reassignment is ordinary JavaScript.
  *
  * @param {ReadableStream} body
- * @param {{ onText: (content: string) => void, onError: () => void }} handlers
+ * @param {{ onText: (content: string) => void, onError: (code: string|null) => void }} handlers
  */
 async function streamAssistantReply(body, { onText, onError }) {
   const reader = body.getReader()
@@ -65,8 +65,11 @@ async function streamAssistantReply(body, { onText, onError }) {
 
         if (payload === '[DONE]') return
 
-        if (payload === '[ERROR]') {
-          onError()
+        // The server names the cause after the colon (see the AI_* codes in
+        // ai-service/src/utils/aiErrors.js). The bare form is kept so an older
+        // server still ends the stream cleanly.
+        if (payload === '[ERROR]' || payload.startsWith('[ERROR:')) {
+          onError(payload.slice(7, -1) || null)
           return
         }
 
@@ -84,7 +87,30 @@ async function streamAssistantReply(body, { onText, onError }) {
       }
     }
   } catch {
-    onError()
+    onError(null)
+  }
+}
+
+/*
+ * Which sentence to show for a failed reply.
+ *
+ * A configuration problem — a rejected key, a model this key cannot use, the
+ * day's provider allowance spent — is not fixed by pressing send again, and
+ * "something went wrong, please try again" sends the user to do exactly that.
+ * Those get their own copy; everything else stays generic.
+ */
+function errorKeyForCode(code) {
+  switch (code) {
+    case 'AI_AUTH':
+    case 'AI_MODEL':
+    case 'AI_BAD_REQUEST':
+      return 'chatbot.configError'
+    case 'AI_QUOTA':
+      return 'chatbot.quotaError'
+    case 'AI_UNREACHABLE':
+      return 'chatbot.unreachableError'
+    default:
+      return 'chatbot.genericError'
   }
 }
 
@@ -182,7 +208,7 @@ export default function ChatbotWidget() {
 
     await streamAssistantReply(response.body, {
       onText: content => setConversationHistory(history => updateAssistantAt(history, assistantIndex, content)),
-      onError: () => setErrorKey('chatbot.genericError'),
+      onError: code => setErrorKey(errorKeyForCode(code)),
     })
     setIsResponding(false)
   }

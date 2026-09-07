@@ -45,6 +45,7 @@ import { sanitiseResumeText } from '../utils/sanitise.js';
 import { redactPiiDeepWithFindings } from '../utils/piiRedactor.js';
 import { requireAuth, requireActiveAccount } from '../middleware/auth.js';
 import { resolveLanguage } from '../i18n/index.js';
+import { statusForAiErrorCode, isAiErrorCode } from '../utils/aiStatus.js';
 import {
   enforceDailyInterviewLimit,
   readInterviewQuota,
@@ -109,10 +110,12 @@ function readJobAd(value) {
 
 /** Maps an ai-service failure code onto the status the client expects. */
 function statusForCode(code) {
-  // AI_BUSY is the provider throttling us, and 429 here is indistinguishable at
-  // the client from the caller's own allowance being spent — which is exactly
-  // what once told a premium account it had reached a limit it does not have.
-  return code === 'AI_BUSY' ? 503 : 502;
+  // Provider failures carry an AI_* code and map through the shared table —
+  // never to 429, which is indistinguishable at the client from the caller's
+  // own allowance being spent and once told a premium account it had reached
+  // a limit it does not have. UNREADABLE and INVALID mean the provider
+  // answered and the answer was unusable, which is a bad gateway.
+  return isAiErrorCode(code) ? statusForAiErrorCode(code) : 502;
 }
 
 /* ── GET /api/preparation/gaps ─────────────────────────────────────── */
@@ -267,7 +270,7 @@ router.post(
         // The user paid an interview for nothing. Give it back before telling
         // them it failed — otherwise the allowance quietly funds our outages.
         if (claimed) await refundInterview(req.user.id);
-        return res.status(statusForCode(result.code)).json({ error: result.error });
+        return res.status(statusForCode(result.code)).json({ error: result.error, code: result.code });
       }
 
       // The questions can quote the resume, and two models in the May 2026
@@ -398,7 +401,7 @@ router.post('/interviews/:id/answers', preparationRateLimit, async (req, res) =>
         'UPDATE mock_interviews SET answers = $2 WHERE interview_id = $1',
         [id, JSON.stringify(answers)]
       );
-      return res.status(statusForCode(result.code)).json({ error: result.error });
+      return res.status(statusForCode(result.code)).json({ error: result.error, code: result.code });
     }
 
     const { value: safeEvaluation } = redactPiiDeepWithFindings(result.evaluation);

@@ -76,6 +76,25 @@ export const BANGLA_MESSAGES = {
   'Analysis failed.': 'বিশ্লেষণ সম্পন্ন করা যায়নি।',
   'The AI service is busy right now. Please try again in a minute.':
     'AI সেবাটি এই মুহূর্তে ব্যস্ত। এক মিনিট পরে আবার চেষ্টা করুন।',
+  // The rest of the provider-failure vocabulary (ai-service/src/utils/aiErrors.js).
+  'The AI service rejected this server\'s API key. The site administrator needs to check the configuration.':
+    'AI সেবাটি এই সার্ভারের API key গ্রহণ করেনি। সাইট অ্যাডমিনিস্ট্রেটরকে কনফিগারেশন যাচাই করতে হবে।',
+  'The AI model this server is configured to use is not available. The site administrator needs to check the configuration.':
+    'এই সার্ভারের জন্য নির্ধারিত AI মডেলটি পাওয়া যাচ্ছে না। সাইট অ্যাডমিনিস্ট্রেটরকে কনফিগারেশন যাচাই করতে হবে।',
+  'The AI service\'s daily allowance for this server has been used up. Please try again tomorrow.':
+    'এই সার্ভারের জন্য AI সেবার দৈনিক বরাদ্দ শেষ হয়ে গেছে। আগামীকাল আবার চেষ্টা করুন।',
+  'The AI service is temporarily unavailable. Please try again in a few minutes.':
+    'AI সেবাটি সাময়িকভাবে বন্ধ আছে। কয়েক মিনিট পরে আবার চেষ্টা করুন।',
+  'The AI service could not be reached. Please check the connection and try again.':
+    'AI সেবার সাথে সংযোগ করা যায়নি। ইন্টারনেট সংযোগ যাচাই করে আবার চেষ্টা করুন।',
+  'The AI service refused the request. The site administrator needs to check the server log.':
+    'AI সেবাটি অনুরোধটি প্রত্যাখ্যান করেছে। সাইট অ্যাডমিনিস্ট্রেটরকে সার্ভার লগ দেখতে হবে।',
+  'The AI service returned an unexpected error. Please try again.':
+    'AI সেবা থেকে একটি অপ্রত্যাশিত ত্রুটি এসেছে। আবার চেষ্টা করুন।',
+  'AI returned an unreadable response. Please try again.':
+    'AI থেকে পাঠযোগ্য উত্তর আসেনি। আবার চেষ্টা করুন।',
+  'The AI returned an unexpected response format. Please try again.':
+    'AI অপ্রত্যাশিত ফরম্যাটে উত্তর দিয়েছে। আবার চেষ্টা করুন।',
   'Could not read your review allowance.': 'আপনার রিভিউ কোটা পড়া যায়নি।',
   'Could not verify your review allowance.': 'আপনার রিভিউ কোটা যাচাই করা যায়নি।',
 
