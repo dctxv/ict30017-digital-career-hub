@@ -29,11 +29,11 @@ test('a signed in user uploads a real resume and sees real AI feedback', async (
   await page.locator('input[type="file"]').setInputFiles({
     name: 'BD_Resume_Test_01.pdf', mimeType: 'application/pdf', buffer: PDF,
   })
-  await expect(page.locator('.drop-zone__error')).toHaveCount(0)
+  await expect(page.locator('.rr-file-error')).toHaveCount(0)
 
   // The counter is bound to the server, so it must show the real allowance.
   // It renders only once a file has been accepted.
-  await expect(page.locator('.free-notice')).toContainText(/3 of 3|remaining today/i)
+  await expect(page.locator('.rr-quota')).toContainText(/3 of 3|remaining today/i)
   await page.getByRole('button', { name: /analyse my resume/i }).click()
 
   // Real analysis, so allow generous time.

@@ -75,8 +75,13 @@ test('an admin sees the Admin navigation entry and can reach the dashboard', asy
   await page.getByPlaceholder('you@example.com').fill(email)
   await page.locator('input[type="password"]').first().fill(PASSWORD)
   await page.getByRole('button', { name: /^log in$/i }).click()
-  await expect(page).toHaveURL(/\/$/, { timeout: 10000 })
+  // Login.jsx sends an admin straight to the dashboard and everyone else to
+  // "/", so this lands on /admin rather than the home page.
+  await expect(page).toHaveURL(/\/admin/, { timeout: 10000 })
 
+  // The navigation entry is the thing under test, so look for it from a page
+  // that is not already the dashboard.
+  await page.goto('/')
   const adminLink = page.getByRole('link', { name: /^admin$/i }).first()
   await expect(adminLink).toBeVisible()
 

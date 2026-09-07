@@ -345,6 +345,26 @@ html:not([data-theme='dark']) .nav__theme-icon--moon {
   gap: 2px;
 }
 
+.nav__panel-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* The panel only ever renders below 1100px, which is exactly where the rule
+   further down hides .nav__profile-name in the bar. Scoped back on here: the
+   reason to hide it there is horizontal room in a single row, and this is a
+   column with space for it. */
+.nav__panel-user .nav__profile-name {
+  display: block;
+  min-width: 0;
+  white-space: nowrap;
+}
+
 /* ── Responsive ────────────────────────────────────────────────────── */
 
 @media (min-width: 1101px) {

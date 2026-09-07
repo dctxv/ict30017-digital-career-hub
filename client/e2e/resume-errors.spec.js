@@ -12,7 +12,7 @@ test.use({ viewport: { width: 1280, height: 900 } })
 
 async function openUpload(page) {
   await page.goto('/resume-review')
-  await expect(page.locator('.drop-zone')).toBeVisible()
+  await expect(page.locator('.drop')).toBeVisible()
 }
 
 test.describe('H6 client side file validation', () => {
@@ -27,9 +27,11 @@ test.describe('H6 client side file validation', () => {
       name: 'resume.txt', mimeType: 'text/plain', buffer: Buffer.from('plain text resume'),
     })
 
-    await expect(page.locator('.drop-zone__error')).toContainText(/not supported/i)
-    // Never offered the analyse action, and nothing was sent.
-    await expect(page.getByRole('button', { name: /analyse my resume/i })).toHaveCount(0)
+    await expect(page.locator('.rr-file-error')).toContainText(/not supported/i)
+    // Never offered the analyse action, and nothing was sent. The rebuilt
+    // upload panel keeps the button mounted and disables it while no valid file
+    // is held, rather than unmounting it as the previous one did.
+    await expect(page.getByRole('button', { name: /analyse my resume/i })).toBeDisabled()
     expect(uploadAttempted, 'no request should have been made').toBeFalsy()
   })
 
@@ -45,8 +47,8 @@ test.describe('H6 client side file validation', () => {
       name: 'huge.pdf', mimeType: 'application/pdf', buffer: oversized,
     })
 
-    await expect(page.locator('.drop-zone__error')).toContainText(/3 MB or smaller/i)
-    await expect(page.getByRole('button', { name: /analyse my resume/i })).toHaveCount(0)
+    await expect(page.locator('.rr-file-error')).toContainText(/3 MB or smaller/i)
+    await expect(page.getByRole('button', { name: /analyse my resume/i })).toBeDisabled()
     expect(uploadAttempted).toBeFalsy()
   })
 
@@ -56,7 +58,7 @@ test.describe('H6 client side file validation', () => {
       name: 'good.pdf', mimeType: 'application/pdf', buffer: MIN_PDF,
     })
 
-    await expect(page.locator('.drop-zone__error')).toHaveCount(0)
+    await expect(page.locator('.rr-file-error')).toHaveCount(0)
     await expect(page.getByRole('button', { name: /analyse my resume/i })).toBeVisible()
   })
 })
@@ -102,7 +104,7 @@ test.describe('H4 / H5 a failed analysis is recoverable', () => {
     await expect(page.locator('.rr-error')).toBeVisible({ timeout: 15000 })
 
     await page.getByRole('button', { name: /upload new resume/i }).click()
-    await expect(page.locator('.drop-zone')).toBeVisible()
+    await expect(page.locator('.drop')).toBeVisible()
     await expect(page.locator('.rr-error')).toHaveCount(0)
   })
 })
@@ -114,11 +116,11 @@ test.describe('L4 the review counter comes from the server', () => {
       name: 'good.pdf', mimeType: 'application/pdf', buffer: MIN_PDF,
     })
 
-    const notice = page.locator('.free-notice')
+    const notice = page.locator('.rr-quota')
     await expect(notice).toBeVisible()
     // The old copy said "3 reviews remaining this month" and linked to /register.
     await expect(notice).not.toContainText(/this month/i)
     await expect(notice).toContainText(/per day|remaining today/i)
-    await expect(page.locator('.free-notice__upgrade')).toHaveCount(0)
+    await expect(page.locator('.rr-quota__upgrade')).toHaveCount(0)
   })
 })

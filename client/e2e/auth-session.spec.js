@@ -44,7 +44,7 @@ test.describe('C1 / C3 signed in navbar at desktop width', () => {
 
     for (const path of SIGNED_IN_PAGES) {
       await page.goto(path)
-      await expect(page.locator('.navbar-user').first(), `signed-in name on ${path}`).toContainText('E2E Tester')
+      await expect(page.locator('.nav__profile-name').first(), `signed-in name on ${path}`).toContainText('E2E Tester')
       await expect(page.getByRole('button', { name: /log out/i }).first(), `logout control on ${path}`).toBeVisible()
       await expect(page.getByRole('link', { name: /^log in$/i })).toHaveCount(0)
       await expect(page.getByRole('link', { name: /^sign up$/i })).toHaveCount(0)
@@ -52,7 +52,7 @@ test.describe('C1 / C3 signed in navbar at desktop width', () => {
 
     // Persists across a reload rather than only living in memory.
     await page.reload()
-    await expect(page.locator('.navbar-user').first()).toContainText('E2E Tester')
+    await expect(page.locator('.nav__profile-name').first()).toContainText('E2E Tester')
   })
 
   test('logout reverts the navbar and clears the session', async ({ page }) => {
@@ -61,7 +61,7 @@ test.describe('C1 / C3 signed in navbar at desktop width', () => {
     await page.getByRole('button', { name: /log out/i }).first().click()
 
     await expect(page.getByRole('link', { name: /^log in$/i }).first()).toBeVisible()
-    await expect(page.locator('.navbar-user')).toHaveCount(0)
+    await expect(page.locator('.nav__profile-name')).toHaveCount(0)
 
     // localStorage cleared, and the server no longer recognises the cookie.
     expect(await page.evaluate(() => localStorage.getItem('user'))).toBeNull()
@@ -84,17 +84,17 @@ test.describe('C4 authentication is reachable at 390x844', () => {
   test('signed out: login and signup live inside the mobile menu', async ({ page }) => {
     await page.goto('/')
 
-    const hamburger = page.locator('.hamburger')
+    const hamburger = page.locator('.nav__menu-btn')
     await expect(hamburger).toBeVisible()
     await expect(hamburger).toHaveAttribute('aria-expanded', 'false')
 
     // Closed menu: the auth actions are not reachable.
-    await expect(page.locator('.navbar-mobile-auth').first()).not.toBeVisible()
+    await expect(page.locator('.nav__panel-auth').first()).not.toBeVisible()
 
     await hamburger.click()
     await expect(hamburger).toHaveAttribute('aria-expanded', 'true')
 
-    const mobileAuth = page.locator('.navbar-mobile-auth').first()
+    const mobileAuth = page.locator('.nav__panel-auth').first()
     await expect(mobileAuth).toBeVisible()
     await expect(mobileAuth.getByRole('link', { name: /^log in$/i })).toBeVisible()
     await expect(mobileAuth.getByRole('link', { name: /^sign up$/i })).toBeVisible()
@@ -105,10 +105,10 @@ test.describe('C4 authentication is reachable at 390x844', () => {
 
     for (const path of SIGNED_IN_PAGES) {
       await page.goto(path)
-      await page.locator('.hamburger').click()
-      const mobileAuth = page.locator('.navbar-mobile-auth').first()
+      await page.locator('.nav__menu-btn').click()
+      const mobileAuth = page.locator('.nav__panel-auth').first()
       await expect(mobileAuth, `mobile auth block on ${path}`).toBeVisible()
-      await expect(mobileAuth.locator('.navbar-user')).toContainText('E2E Tester')
+      await expect(mobileAuth.locator('.nav__profile-name')).toContainText('E2E Tester')
       await expect(mobileAuth.getByRole('button', { name: /log out/i })).toBeVisible()
     }
   })
@@ -116,11 +116,17 @@ test.describe('C4 authentication is reachable at 390x844', () => {
   test('signed in: logout works from the mobile menu', async ({ page }) => {
     await registerAndLogin(page)
     await page.goto('/')
-    await page.locator('.hamburger').click()
-    await page.locator('.navbar-mobile-auth').first().getByRole('button', { name: /log out/i }).click()
+    await page.locator('.nav__menu-btn').click()
+    await page.locator('.nav__panel-auth').first().getByRole('button', { name: /log out/i }).click()
 
-    await page.locator('.hamburger').click()
-    const mobileAuth = page.locator('.navbar-mobile-auth').first()
+    // Logging out does not close the panel — the navbar is outside the router's
+    // Routes, so navigating home leaves its open state intact. Reopen only if
+    // it actually closed; an unconditional click would toggle it shut.
+    const menuButton = page.locator('.nav__menu-btn')
+    if (await menuButton.getAttribute('aria-expanded') === 'false') {
+      await menuButton.click()
+    }
+    const mobileAuth = page.locator('.nav__panel-auth').first()
     await expect(mobileAuth.getByRole('link', { name: /^log in$/i })).toBeVisible()
   })
 

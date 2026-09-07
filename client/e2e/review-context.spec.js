@@ -66,11 +66,11 @@ test('the market toggle and the employer selector stay consistent', async ({ pag
 
   // Choosing the multinational employer flips the toggle to international.
   await employer.selectOption('multinational')
-  await expect(intlBtn).toHaveClass(/market-mode-btn--active/)
+  await expect(intlBtn).toHaveClass(/rr-choice--on/)
 
   // Choosing a local employer flips it back.
   await employer.selectOption('local_traditional')
-  await expect(bdBtn).toHaveClass(/market-mode-btn--active/)
+  await expect(bdBtn).toHaveClass(/rr-choice--on/)
 
   // Clicking the international toggle promotes the employer to multinational,
   // so the pair can never contradict each other.
