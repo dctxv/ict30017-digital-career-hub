@@ -8,7 +8,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
 import { getAllowedOrigins } from './config/origins.js';
-import { assertModelConfig } from 'ai-service';
+import { assertModelConfig, getModel } from 'ai-service';
 import { localiseResponses } from './i18n/index.js';
 import { checkContentSchema } from './schemaCheck.js';
 
@@ -47,13 +47,25 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Basic health check — returns no user data
+// Health check — returns no user data.
+//
+// `ok` is the database, because that is the only dependency a request can
+// check without spending anything. The AI block reports what the server is
+// configured to call, not whether the call works: a real completion costs a
+// request against the daily allowance, so that check lives in
+// `npm run check` (scripts/check-setup.js) rather than on an endpoint the
+// frontend could hit on every load. The key itself is never returned; only
+// whether one is set.
 app.get('/api/health', async (req, res) => {
+  const ai = {
+    keyConfigured: Boolean(process.env.GOOGLE_AI_API_KEY),
+    models: { free: getModel('free'), premium: getModel('premium') },
+  };
   try {
     await pool.query('SELECT 1');
-    res.json({ ok: true });
-  } catch {
-    res.status(503).json({ ok: false });
+    res.json({ ok: true, database: 'connected', ai });
+  } catch (err) {
+    res.status(503).json({ ok: false, database: 'unreachable', error: err.message, ai });
   }
 });
 

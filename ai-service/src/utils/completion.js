@@ -20,10 +20,14 @@
 
 import { getGroqClient, getModel } from './aiClient.js';
 import { parseAIJSON } from './aiJson.js';
+import { classifyAiError, formatAiErrorLog } from './aiErrors.js';
 
 /**
  * @typedef {{ok: true, data: object, model: string, raw: string}} CompletionOk
- * @typedef {{ok: false, code: 'AI_BUSY'|'UNREADABLE'|'INVALID', error: string, issues?: unknown}} CompletionFailure
+ * @typedef {{ok: false, code: string, error: string, issues?: unknown}} CompletionFailure
+ *   `code` is one of the AI_* codes in utils/aiErrors.js for a provider
+ *   failure, or UNREADABLE / INVALID when the provider answered and the answer
+ *   could not be used.
  */
 
 /**
@@ -64,15 +68,12 @@ export async function requestJson({
     raw = response.choices[0]?.message?.content;
     if (!raw) throw new Error('AI returned an empty response.');
   } catch (err) {
-    if (err?.status === 429 || err?.message?.includes('429')) {
-      console.warn(`[${label}] Provider throttled the request.`);
-      return {
-        ok: false,
-        code: 'AI_BUSY',
-        error: 'The AI service is busy right now. Please try again in a minute.',
-      };
-    }
-    throw err;
+    // Every provider failure is classified rather than rethrown: the caller
+    // gets a code it can map to a status and the log gets one line that says
+    // what to fix, instead of an SDK stack trace and a generic 500.
+    const classified = classifyAiError(err);
+    console.error(formatAiErrorLog(label, classified));
+    return { ok: false, code: classified.code, error: classified.error };
   }
 
   // The same line the reviewer logs, for the same reason: whether the response

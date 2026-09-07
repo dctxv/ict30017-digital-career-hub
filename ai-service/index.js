@@ -1,6 +1,10 @@
 export { analyzeResume, analyzeResumeStream } from './src/services/resumeReviewer.js';
 export { streamChatbotResponse } from './src/services/chatbot.js';
-export { assertModelConfig, getModel, TIERS } from './src/utils/aiClient.js';
+export { assertModelConfig, getModel, TIERS, getGroqClient, unwrapProviderErrors } from './src/utils/aiClient.js';
+
+// Provider failure vocabulary. The server maps these codes to HTTP statuses
+// and the client's error screen keys its copy off the same names.
+export { classifyAiError, formatAiErrorLog, messageForAiErrorCode, AI_ERROR_CODES } from './src/utils/aiErrors.js';
 
 // Review context vocabulary. The server validates incoming context against
 // these before it reaches the prompt composer.

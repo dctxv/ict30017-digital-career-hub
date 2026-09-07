@@ -1,5 +1,6 @@
 import { getGroqClient, getModel } from '../utils/aiClient.js';
 import { parseAIJSON } from '../utils/aiJson.js';
+import { classifyAiError, formatAiErrorLog } from '../utils/aiErrors.js';
 import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
 import { buildSystemPrompt } from '../prompt/index.js';
 import { normaliseContext, renderContextBlock } from '../prompt/context.js';
@@ -394,15 +395,17 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
       language, systemPrompt, userMessage, model, head: rawContent.slice(0, 600),
     });
   } catch (err) {
-    // A 429 here is the model provider throttling us, not the caller spending
-    // their allowance. The code used to be RATE_LIMIT, which the error screen
-    // reasonably read as a quota rejection and titled "You have reached your
-    // review limit" — so an upstream hiccup told a premium account, which has
-    // no limit at all, that it had hit one. AI_BUSY keeps the two apart.
-    if (err?.status === 429 || err?.message?.includes('429')) {
-      return { error: 'The AI service is busy right now. Please try again in a minute.', code: 'AI_BUSY' };
-    }
-    throw err;
+    // A provider failure is returned as a code, never thrown. A 429 here is the
+    // model provider throttling us, not the caller spending their allowance —
+    // the code used to be RATE_LIMIT, which the error screen read as a quota
+    // rejection and told a premium account, which has no limit at all, that it
+    // had hit one. The classifier keeps that apart from a rejected key, a
+    // model closed to this key, a spent daily quota and an unreachable
+    // network, each of which the server maps to its own response. Anything
+    // thrown from here would be a bug in this code, not in the provider.
+    const classified = classifyAiError(err);
+    console.error(formatAiErrorLog('AI-stream', classified));
+    return { error: classified.error, code: classified.code };
   }
 
   const inputEstimate = Math.round(buildSystemPrompt(context).length / 4);
@@ -463,14 +466,10 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
       throw new Error('AI returned an empty response.');
     }
   } catch (err) {
-    // As above: the provider is throttling, the caller is not out of reviews.
-    if (err?.status === 429 || err?.message?.includes('429')) {
-      return {
-        error: 'The AI service is busy right now. Please try again in a minute.',
-        code: 'AI_BUSY',
-      };
-    }
-    throw err;
+    // As in analyzeResumeStream: classified and returned, never thrown.
+    const classified = classifyAiError(err);
+    console.error(formatAiErrorLog('AI', classified));
+    return { error: classified.error, code: classified.code };
   }
 
   const inputEstimate = Math.round(buildSystemPrompt(context).length / 4);
