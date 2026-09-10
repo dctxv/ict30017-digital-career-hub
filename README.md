@@ -9,12 +9,12 @@ Swinburne ICT30017 capstone, project P83.
 
 ## Team
 
-- Isar Ujoodah
 - Ian Rashmika
 - Darius Tan (AI lead)
 - Sineth Munasinghe
 - Shalitha Senadeerage
 - Pubuditha Hettiarachchi
+- Manuth Mindiya Gamage
 
 ---
 
