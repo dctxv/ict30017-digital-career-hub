@@ -518,7 +518,7 @@ export default {
   'auth.continue': 'Continue',
   'auth.backStep': 'Back',
   'auth.stepOf': 'Step {step}/{total}',
-  'auth.passwordHint': 'At least {min} characters.',
+  'auth.passwordHint': 'At least {min} characters, including an uppercase letter, a lowercase letter, a number and a symbol.',
   'auth.passwordTooShort': 'Password must be at least {min} characters.',
   'auth.createdPleaseLogIn': 'Your account was created, but signing you in failed. Please log in.',
   'auth.choosePlanTitle': 'Choose your plan',

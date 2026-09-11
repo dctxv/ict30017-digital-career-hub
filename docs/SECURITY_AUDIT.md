@@ -45,7 +45,7 @@ And get back plain-text passwords. They then try those on Gmail, Facebook, bank 
 
 **How we fixed it:**
 Installed `bcryptjs` and updated `auth.js` to hash every password at cost factor 12 before storing. A bcrypt hash like `$2b$12$...` is mathematically irreversible — even we cannot recover the original. At the same time I added server-side input validation (also fixes H-1, L-1, L-2, L-3):
-- Minimum 12 characters, maximum 128 characters on password
+- Minimum 12 characters, maximum 128 characters on password (since extended — see H-1)
 - Email validated with regex and normalised to lowercase
 - `role` hardcoded to `'student'` — cannot be injected from the request body
 - Full name length capped at 100 characters
@@ -162,6 +162,16 @@ Any attacker with a common-password wordlist runs them against accounts in a loo
 
 **How we fixed it:**
 Server-side enforcement added during the C-1 fix: minimum 12 characters, maximum 128 characters. Both rules fire on the server regardless of what the client sends.
+
+**Follow-up — the length-only rule was not enough:**
+Length alone let `aaaaaaaaaaaa` through: twelve characters, and refused by nothing. The rules were also written out three separate times — in `register` and `reset-password` in `auth.js`, and again as bare literals in the change-password handler in `users.js` — so the three doors into an account could drift apart without any test noticing.
+
+All three now call one module, `server/src/utils/password.js`, which keeps the same 12–128 bound and adds:
+- At least one uppercase letter, one lowercase letter, one number and one symbol
+- Rejection of a short list of common passwords that would otherwise satisfy those rules
+- Rejection of a password containing the user's own name or email local part (registration only, since that is the only handler that knows both while the password is being chosen)
+
+Optionally, and off by default behind `HIBP_ENABLED`, the chosen password is also checked against Have I Been Pwned's breach corpus (`server/src/utils/hibp.js`). The lookup is k-anonymous — only the first five characters of the SHA-1 hash are sent, so the password never leaves the server — and it fails open, so an outage at HIBP cannot block registration. It ships off because the check puts a third-party call on the registration path and this project is demonstrated on machines whose network access cannot be assumed.
 
 ---
 

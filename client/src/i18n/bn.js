@@ -526,7 +526,7 @@ export default {
   'auth.continue': 'পরবর্তী ধাপ',
   'auth.backStep': 'পেছনে',
   'auth.stepOf': 'ধাপ {step}/{total}',
-  'auth.passwordHint': 'কমপক্ষে {min}টি অক্ষর দিন।',
+  'auth.passwordHint': 'কমপক্ষে {min}টি অক্ষর, সেই সঙ্গে অন্তত একটি বড় হাতের ইংরেজি অক্ষর, একটি ছোট হাতের ইংরেজি অক্ষর, একটি সংখ্যা ও একটি চিহ্ন দিন।',
   'auth.passwordTooShort': 'পাসওয়ার্ড কমপক্ষে {min}টি অক্ষরের হতে হবে।',
   'auth.createdPleaseLogIn': 'অ্যাকাউন্ট তৈরি হয়েছে, তবে স্বয়ংক্রিয়ভাবে লগ ইন করানো যায়নি। অনুগ্রহ করে লগ ইন করুন।',
   'auth.choosePlanTitle': 'আপনার প্ল্যান বেছে নিন',

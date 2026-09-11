@@ -6,6 +6,8 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { validatePasswordPolicy } from '../utils/password.js';
+import { checkPasswordBreach, BREACHED_PASSWORD_MESSAGE } from '../utils/hibp.js';
 
 const router = express.Router();
 
@@ -86,8 +88,12 @@ const DEFAULT_TIER = 'free';
  */
 const PAYMENT_METHODS = ['bkash', 'nagad', 'card'];
 
-const PASSWORD_MIN_LENGTH = 12;
-const PASSWORD_MAX_LENGTH = 128;
+/*
+ * The length bounds and the composition rules both live in utils/password.js
+ * now. They were declared here and again in routes/users.js, and written out a
+ * third time as bare literals in reset-password below, which is how the three
+ * doors into an account came to enforce three slightly different policies.
+ */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.post('/register', registerLimiter, async (req, res) => {
@@ -102,16 +108,24 @@ router.post('/register', registerLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Invalid email address.' });
     }
 
-    if (typeof password !== 'string' || password.length < PASSWORD_MIN_LENGTH) {
-      return res.status(400).json({ error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters.` });
-    }
-
-    if (password.length > PASSWORD_MAX_LENGTH) {
-      return res.status(400).json({ error: 'Password is too long.' });
-    }
-
     if (typeof full_name !== 'string' || full_name.trim().length < 2 || full_name.length > 100) {
       return res.status(400).json({ error: 'Full name must be between 2 and 100 characters.' });
+    }
+
+    /*
+     * Registration is the one place that knows both the name and the email as
+     * the user is choosing the password, so it is the only place that can
+     * refuse a password built out of them. The name check runs after the name
+     * itself has been validated, so a rejected name is reported as a name
+     * problem rather than as a confusing complaint about the password.
+     *
+     * Only the first failure is sent: i18n localises `error` by exact match, so
+     * a concatenation of several sentences would reach a Bangla reader in
+     * English.
+     */
+    const policy = validatePasswordPolicy(password, { email, fullName: full_name });
+    if (!policy.valid) {
+      return res.status(400).json({ error: policy.errors[0] });
     }
 
     // An omitted plan means free. Anything present but outside the allowed set
@@ -124,6 +138,16 @@ router.post('/register', registerLimiter, async (req, res) => {
       });
     }
     const tier = planResult.data;
+
+    /*
+     * The corpus check runs last because it is the only rule that leaves the
+     * process. Everything cheap and local has already had its say, so a
+     * password with an obvious problem never costs a network round trip. It is
+     * a no-op unless HIBP_ENABLED is set, and fails open when it is.
+     */
+    if ((await checkPasswordBreach(password)).breached) {
+      return res.status(400).json({ error: BREACHED_PASSWORD_MESSAGE });
+    }
 
     const password_hash = await bcrypt.hash(password, 12);
     const normalisedEmail = email.trim().toLowerCase();
@@ -358,12 +382,19 @@ router.post('/reset-password', passwordResetLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Email, token, and new password are required.' });
     }
 
-    if (typeof newPassword !== 'string' || newPassword.length < 12) {
-      return res.status(400).json({ error: 'Password must be at least 12 characters.' });
+    /*
+     * The email is in hand here, so the new password can be refused for
+     * containing it. The name is not loaded — the row is fetched by email a few
+     * lines down, and fetching it earlier just to feed this check would answer
+     * "does this address have an account" before the token has been verified.
+     */
+    const policy = validatePasswordPolicy(newPassword, { email });
+    if (!policy.valid) {
+      return res.status(400).json({ error: policy.errors[0] });
     }
 
-    if (newPassword.length > 128) {
-      return res.status(400).json({ error: 'Password is too long.' });
+    if ((await checkPasswordBreach(newPassword)).breached) {
+      return res.status(400).json({ error: BREACHED_PASSWORD_MESSAGE });
     }
 
     const normalisedEmail = email.trim().toLowerCase();

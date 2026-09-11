@@ -45,6 +45,19 @@ export const BANGLA_MESSAGES = {
   'User registered successfully': 'ব্যবহারকারী সফলভাবে নিবন্ধিত হয়েছে',
   'Logged out successfully.': 'সফলভাবে লগ আউট হয়েছে।',
 
+  /* ── Password policy (utils/password.js) ─────────────────── */
+  'Password is required.': 'পাসওয়ার্ড দিতে হবে।',
+  'Password must include a lowercase letter.': 'পাসওয়ার্ডে অন্তত একটি ছোট হাতের ইংরেজি অক্ষর থাকতে হবে।',
+  'Password must include an uppercase letter.': 'পাসওয়ার্ডে অন্তত একটি বড় হাতের ইংরেজি অক্ষর থাকতে হবে।',
+  'Password must include a number.': 'পাসওয়ার্ডে অন্তত একটি সংখ্যা থাকতে হবে।',
+  'Password must include a symbol.': 'পাসওয়ার্ডে অন্তত একটি চিহ্ন থাকতে হবে।',
+  'This password is too common. Please choose a less predictable one.':
+    'এই পাসওয়ার্ডটি খুব প্রচলিত। সহজে অনুমান করা যায় না এমন একটি বেছে নিন।',
+  'Password must not contain your email address.': 'পাসওয়ার্ডে আপনার ইমেইল ঠিকানা থাকা যাবে না।',
+  'Password must not contain your name.': 'পাসওয়ার্ডে আপনার নাম থাকা যাবে না।',
+  'This password has appeared in a known data breach. Please choose a different one.':
+    'এই পাসওয়ার্ডটি পরিচিত একটি ডেটা ফাঁসের তালিকায় পাওয়া গেছে। অন্য একটি পাসওয়ার্ড বেছে নিন।',
+
   /* ── Password reset ──────────────────────────────────────── */
   'Email, token, and new password are required.': 'ইমেইল, টোকেন ও নতুন পাসওয়ার্ড দিতে হবে।',
   'Reset link is invalid or has expired.': 'রিসেট লিংকটি সঠিক নয় অথবা এর মেয়াদ শেষ হয়ে গেছে।',

@@ -1,0 +1,19 @@
+{
+  "_comment": [
+    "nodemon's default watch is the whole working directory, which here is",
+    "server/. That directory also holds uploads/, where multer writes the",
+    "resume a user has just submitted. So every upload touched a watched file,",
+    "nodemon restarted the API mid-request, and the review that triggered the",
+    "restart died with a dropped connection — the harder to spot because it",
+    "only happens on the one path that writes to disk.",
+    "",
+    "Watching src/ alone fixes that: uploads/, migrations/ and scripts/ all sit",
+    "outside it, and none of them is code the running server reloads anyway.",
+    "The delay coalesces the burst of change events an editor emits when it",
+    "saves, so one save is one restart."
+  ],
+  "watch": ["src"],
+  "ext": "js,mjs,cjs,json",
+  "ignore": ["**/*.test.js"],
+  "delay": 500
+}

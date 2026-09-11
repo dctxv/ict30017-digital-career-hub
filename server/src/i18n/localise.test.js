@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { resolveLanguage, translateMessage, localiseResponses } from './index.js';
+import { validatePasswordPolicy, PASSWORD_MAX_LENGTH } from '../utils/password.js';
 
 /**
  * Fake response that records what actually reached res.json, so the tests
@@ -97,4 +98,49 @@ test('localiseResponses', async (t) => {
     assert.equal(sent.error, 'RATE_LIMIT');
     assert.equal(sent.message, 'বিশ্লেষণ সম্পন্ন করা যায়নি।');
   });
+});
+
+/**
+ * The password policy produces sentences that no route holds a copy of, so
+ * nothing else would notice if one were added without a Bangla counterpart.
+ * The failure is invisible in English — the message still reaches the user,
+ * just in the wrong language — so it is pinned here.
+ *
+ * The candidates below are chosen to trip one rule each; between them they
+ * produce every message the policy can emit.
+ */
+test('every password policy message has a Bangla translation', async (t) => {
+  const candidates = [
+    [undefined, {}],
+    ['Ab1!', {}],
+    [`Ab1!${'e'.repeat(PASSWORD_MAX_LENGTH)}`, {}],
+    ['STR0NGPASSW0RD!', {}],
+    ['str0ngpassw0rd!', {}],
+    ['StrongPassword!', {}],
+    ['Str0ngPassw0rd1', {}],
+    ['Password1234', {}],
+    ['Sineth!12345', { email: 'sineth@example.com' }],
+    ['Rahman!12345', { fullName: 'Ian Rahman' }],
+  ];
+
+  const messages = new Set();
+  for (const [password, details] of candidates) {
+    for (const message of validatePasswordPolicy(password, details).errors) {
+      messages.add(message);
+    }
+  }
+
+  // A guard on the guard: if the policy stopped rejecting these the loop below
+  // would pass by having nothing to check.
+  assert.ok(messages.size >= 10, `expected the candidates to trip most rules, got ${messages.size}`);
+
+  for (const message of messages) {
+    await t.test(message, () => {
+      assert.notEqual(
+        translateMessage(message, 'bn'),
+        message,
+        `"${message}" has no entry in BANGLA_MESSAGES or BANGLA_PATTERNS`,
+      );
+    });
+  }
 });

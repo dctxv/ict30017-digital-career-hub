@@ -250,7 +250,10 @@ servers running. `live-happy-path.spec.js` makes a real model call.
 ## 4. Using the site for the first time
 
 **Register an account** at http://localhost:5173/register. Passwords must be
-at least 12 characters. Pick Free or Premium — no payment is taken either way;
+at least 12 characters and include an uppercase letter, a lowercase letter, a
+number and a symbol; they cannot contain your own name or email address, and a
+short list of very common passwords is refused. The full rule set is
+`server/src/utils/password.js`. Pick Free or Premium — no payment is taken either way;
 Premium only lifts the daily limits. Registration signs you in and opens your
 profile.
 

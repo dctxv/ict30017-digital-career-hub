@@ -21,6 +21,8 @@ import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import pool from '../db.js';
 import { requireAuth, requireActiveAccount } from '../middleware/auth.js';
+import { validatePasswordPolicy } from '../utils/password.js';
+import { checkPasswordBreach, BREACHED_PASSWORD_MESSAGE } from '../utils/hibp.js';
 
 const router = express.Router();
 
@@ -32,8 +34,7 @@ const router = express.Router();
  */
 router.use(requireAuth, requireActiveAccount);
 
-const PASSWORD_MIN_LENGTH = 12;
-const PASSWORD_MAX_LENGTH = 128;
+/* The password policy lives in utils/password.js; see the note in routes/auth.js. */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUPPORTED_LANGUAGES = ['en', 'bn'];
 
@@ -224,11 +225,18 @@ router.patch('/me', reauthLimiter, async (req, res) => {
 router.post('/me/password', reauthLimiter, async (req, res) => {
   const { currentPassword, newPassword } = req.body ?? {};
 
-  if (typeof newPassword !== 'string' || newPassword.length < PASSWORD_MIN_LENGTH) {
-    return res.status(400).json({ error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters.` });
-  }
-  if (newPassword.length > PASSWORD_MAX_LENGTH) {
-    return res.status(400).json({ error: 'Password is too long.' });
+  /*
+   * Checked before the current password is verified, as it was before: a new
+   * password that breaks the policy is refused whether or not the old one was
+   * right, and rejecting it first avoids a bcrypt comparison that cannot lead
+   * anywhere. The user's own details are not passed — this handler has their id
+   * but not their name or email, and loading the row to feed a guessability
+   * check would be a query for the sake of one rule. Registration, which does
+   * hold both, is where that rule bites.
+   */
+  const policy = validatePasswordPolicy(newPassword);
+  if (!policy.valid) {
+    return res.status(400).json({ error: policy.errors[0] });
   }
 
   try {
@@ -239,6 +247,16 @@ router.post('/me/password', reauthLimiter, async (req, res) => {
 
     if (currentPassword === newPassword) {
       return res.status(400).json({ error: 'The new password must be different from the current one.' });
+    }
+
+    /*
+     * Deliberately after the current password has been confirmed, unlike the
+     * local rules above. This one makes an outbound request, and there is no
+     * reason to let a caller who cannot prove the account is theirs drive
+     * lookups against a third party. A no-op unless HIBP_ENABLED is set.
+     */
+    if ((await checkPasswordBreach(newPassword)).breached) {
+      return res.status(400).json({ error: BREACHED_PASSWORD_MESSAGE });
     }
 
     const hash = await bcrypt.hash(newPassword, 12);
