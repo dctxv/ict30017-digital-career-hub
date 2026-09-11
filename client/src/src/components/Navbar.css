@@ -1,0 +1,399 @@
+/* Site navigation.
+   Breakpoints here are driven by what actually stops fitting: the link row is
+   dropped for a panel at 1100px, and the inline sign-in pair is dropped at
+   600px because the three controls beside it are the ones that must survive. */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: var(--nav-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.nav__inner {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ── Brand ─────────────────────────────────────────────────────────── */
+
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
+  white-space: nowrap;
+}
+
+.nav__mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--on-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.nav__wordmark {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.035em;
+}
+
+/* ── Links ─────────────────────────────────────────────────────────── */
+
+.nav__links {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.nav__links::-webkit-scrollbar { display: none; }
+
+.nav__link {
+  display: block;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 14.5px;
+  color: var(--body);
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+}
+
+.nav__link:hover { background: var(--hover); color: var(--ink); }
+
+.nav__link--on {
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--tint);
+}
+
+/* ── Controls ──────────────────────────────────────────────────────── */
+
+.nav__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  margin-left: auto;
+}
+
+.nav__icon-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.nav__icon-btn:hover {
+  border-color: var(--accent);
+  background: var(--hover);
+}
+
+.nav__menu-btn { display: none; }
+
+/* Sun and moon are stacked and cross-faded, so the swap reads as one control
+   changing state rather than two controls replacing each other. */
+.nav__theme-icons {
+  position: relative;
+  display: block;
+  width: 17px;
+  height: 17px;
+}
+
+.nav__theme-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.26s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html:not([data-theme='dark']) .nav__theme-icon--moon {
+  opacity: 0;
+  transform: rotate(-80deg) scale(0.5);
+}
+
+[data-theme='dark'] .nav__theme-icon--sun {
+  opacity: 0;
+  transform: rotate(80deg) scale(0.5);
+}
+
+/* ── Language switch ───────────────────────────────────────────────── */
+
+.lang-switch {
+  position: relative;
+  display: flex;
+  flex: none;
+  padding: 3px;
+  background: var(--track);
+  border-radius: var(--radius-pill);
+}
+
+.lang-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 48px;
+  height: calc(100% - 6px);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+  pointer-events: none;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lang-switch__thumb--bn { left: 51px; }
+
+.lang-switch__btn {
+  position: relative;
+  z-index: 1;
+  width: 48px;
+  padding: 6px 0;
+  text-align: center;
+  line-height: 1.2;
+  font-size: 12.5px;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-pill);
+  color: var(--muted);
+  transition: color 0.22s ease;
+}
+
+.lang-switch__btn--on { color: var(--ink); }
+
+/* ── Session ───────────────────────────────────────────────────────── */
+
+.nav__session {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.nav__profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 5px 12px 5px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  max-width: 190px;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.nav__profile:hover { background: var(--hover); }
+
+.nav__profile--on {
+  border-color: var(--accent);
+  background: var(--tint);
+}
+
+.nav__profile-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav__avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.nav__signout {
+  padding: 9px 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  color: var(--muted-2);
+  transition: background var(--transition), color var(--transition);
+}
+
+.nav__signout:hover:not(:disabled) { background: var(--hover); color: var(--ink); }
+.nav__signout:disabled { cursor: not-allowed; opacity: 0.6; }
+
+.nav-auth {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  white-space: nowrap;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+
+.nav-auth--quiet {
+  min-width: 96px;
+  padding: 9px 14px;
+  color: var(--body);
+}
+
+.nav-auth--quiet:hover { background: var(--hover); color: var(--ink); }
+
+.nav-auth--solid {
+  min-width: 112px;
+  padding: 9px 18px;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.nav-auth--solid:hover { background: var(--primary-hover); color: var(--on-primary); }
+
+/* ── Collapsible panel ─────────────────────────────────────────────── */
+
+.nav__panel {
+  position: absolute;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  padding: 10px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: fadeUp 0.18s ease both;
+}
+
+.nav__panel-link {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  color: var(--body);
+  text-align: left;
+  transition: background var(--transition), color var(--transition);
+}
+
+.nav__panel-link:hover { background: var(--hover); color: var(--ink); }
+
+.nav__panel-link--on {
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--tint);
+}
+
+.nav__panel-link--button {
+  font-family: inherit;
+  border: none;
+  background: none;
+}
+
+.nav__panel-link--solid {
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+  text-align: center;
+}
+
+.nav__panel-link--solid:hover { background: var(--primary-hover); color: var(--on-primary); }
+
+.nav__panel-rule {
+  display: block;
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+.nav__panel-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav__panel-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* The panel only ever renders below 1100px, which is exactly where the rule
+   further down hides .nav__profile-name in the bar. Scoped back on here: the
+   reason to hide it there is horizontal room in a single row, and this is a
+   column with space for it. */
+.nav__panel-user .nav__profile-name {
+  display: block;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+@media (min-width: 1101px) {
+  .nav__links { display: flex; }
+}
+
+@media (max-width: 1100px) {
+  .nav__menu-btn { display: flex; }
+  .nav__profile-name { display: none; }
+  .nav__profile { padding: 5px; }
+}
+
+@media (min-width: 601px) {
+  /* Log in / Sign up are still in the bar at this width, so repeating them in
+     the panel would be two routes to the same place three inches apart. The
+     signed-in block stays: Profile has no inline equivalent once the name is
+     hidden at 1100px. */
+  .nav__panel-auth--guest { display: none; }
+}
+
+@media (max-width: 600px) {
+  .nav__session--guest { display: none; }
+  .nav__signout { display: none; }
+  .nav__inner { padding: 0 16px; gap: 12px; }
+  .nav__wordmark { font-size: 16px; }
+}
+
+@media (max-width: 400px) {
+  .lang-switch__btn { width: 40px; }
+  .lang-switch__thumb { width: 40px; }
+  .lang-switch__thumb--bn { left: 43px; }
+}

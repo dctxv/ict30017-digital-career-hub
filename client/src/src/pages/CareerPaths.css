@@ -1,0 +1,257 @@
+/* Career path explorer: a list of paths beside the detail for the selected one. */
+
+.cp-filters { margin-top: 22px; }
+
+.cp-body {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 24px 72px;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+/* ── List ──────────────────────────────────────────────────────────── */
+
+.cp-list {
+  padding: 26px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: sticky;
+  top: calc(var(--nav-height) + 16px);
+  max-height: calc(100vh - var(--nav-height) - 32px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.cp-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--radius-lg);
+  font-family: inherit;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.cp-item:hover { background: var(--hover); }
+
+.cp-item--on {
+  border-color: var(--border-accent);
+  background: var(--surface-2);
+}
+
+.cp-item__text { min-width: 0; }
+
+.cp-item__title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--body);
+}
+
+.cp-item--on .cp-item__title { color: var(--ink); }
+
+.cp-item__industry {
+  display: block;
+  font-size: 13px;
+  color: var(--muted-2);
+  margin-top: 2px;
+}
+
+.cp-item__arrow {
+  flex-shrink: 0;
+  color: var(--muted-3);
+}
+
+.cp-item--on .cp-item__arrow { color: var(--accent); }
+
+.cp-count {
+  font-size: 13px;
+  color: var(--muted-2);
+  padding: 12px 14px 0;
+}
+
+/* ── Detail ────────────────────────────────────────────────────────── */
+
+.cp-detail { padding: 26px 0 0; min-width: 0; }
+
+.cp-detail__title {
+  font-size: 28px;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+
+.cp-detail__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.cp-detail__tags .tag {
+  font-size: 12.5px;
+  padding: 5px 12px;
+}
+
+.cp-detail__desc {
+  font-size: 16px;
+  color: var(--body);
+  line-height: 1.7;
+  margin-bottom: 30px;
+  max-width: 70ch;
+}
+
+.cp-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
+.cp-skill {
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 7px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border-accent);
+  color: var(--ink);
+  border-radius: var(--radius-pill);
+}
+
+/* ── Progression ───────────────────────────────────────────────────── */
+
+.cp-progression {
+  display: flex;
+  margin-bottom: 34px;
+  padding-bottom: 6px;
+}
+
+.cp-step {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+/* Drawn from the dot's centre to the next dot's centre, so the track reads as
+   one continuous line rather than a row of separate segments. */
+.cp-step__line {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  right: -50%;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+
+.cp-step__dot {
+  width: 13px;
+  height: 13px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+  background: var(--border-strong);
+}
+
+.cp-step__dot--on {
+  background: var(--accent);
+  box-shadow: 0 0 0 5px var(--accent-soft);
+}
+
+.cp-step__label {
+  font-size: 13.5px;
+  line-height: 1.4;
+  padding: 0 6px;
+  color: var(--body-2);
+  font-weight: 500;
+}
+
+.cp-step__label--on {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.cp-step__time {
+  font-size: 12.5px;
+  color: var(--muted-2);
+  margin-top: 3px;
+}
+
+/* ── Salary ────────────────────────────────────────────────────────── */
+
+.cp-salary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  max-width: 560px;
+  margin-bottom: 30px;
+}
+
+.cp-salary__card {
+  background: var(--surface-2);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+
+.cp-salary__level {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
+  margin-bottom: 8px;
+}
+
+.cp-salary__amount {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin-bottom: 3px;
+}
+
+.cp-salary__period {
+  font-size: 12.5px;
+  color: var(--body-2);
+}
+
+.cp-detail__cta { color: var(--ink); border-color: var(--accent); }
+.cp-detail__cta:hover { background: var(--tint); }
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .cp-body {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 0 20px 56px;
+  }
+
+  /* Sticking a list that is now the full width above the detail would pin half
+     the viewport to navigation the user has already finished with. */
+  .cp-list {
+    position: static;
+    max-height: none;
+    padding-bottom: 8px;
+  }
+
+  .cp-detail__title { font-size: 24px; }
+  .cp-salary { grid-template-columns: 1fr; }
+}
