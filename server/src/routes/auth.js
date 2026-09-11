@@ -6,6 +6,11 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { isPwned } from '../utils/hibp.js';
+import { sendPasswordResetEmail, sendVerificationEmail, sendOtpEmail } from '../services/emailService.js';
+import { logEvent } from '../utils/audit.js';
+import { validatePasswordPolicy } from '../utils/password.js';
+import passport from 'passport';
 
 const router = express.Router();
 
@@ -110,6 +115,24 @@ router.post('/register', registerLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Password is too long.' });
     }
 
+    // HIBP breach check — fail-open: a timeout or API error skips the check
+    // rather than blocking registration. The count is informational here;
+    // a count > 0 is a warning, not a hard block (NIST SP 800-63B recommendation).
+    const breachCount = await isPwned(password);
+    if (breachCount > 0) {
+      return res.status(400).json({
+        error: `This password has appeared in ${breachCount.toLocaleString()} data breach(es). Please choose a different password.`,
+        code: 'PASSWORD_BREACHED',
+        count: breachCount,
+      });
+    }
+
+    // Password policy: complexity, common passwords, name/email inclusion.
+    const policyResult = validatePasswordPolicy(password, { email: email.trim().toLowerCase(), fullName: full_name });
+    if (!policyResult.valid) {
+      return res.status(400).json({ error: policyResult.errors[0], code: 'PASSWORD_POLICY' });
+    }
+
     if (typeof full_name !== 'string' || full_name.trim().length < 2 || full_name.length > 100) {
       return res.status(400).json({ error: 'Full name must be between 2 and 100 characters.' });
     }
@@ -206,9 +229,31 @@ router.post('/register', registerLimiter, async (req, res) => {
       console.error('[auth] Could not record signup subscription:', err.message);
     });
 
+    // Generate and store an email verification token.
+    const newUser = result.rows[0];
+    const rawVerifyToken = crypto.randomBytes(32).toString('hex');
+    const verifyTokenHash = await bcrypt.hash(rawVerifyToken, 10);
+    const verifyExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    await pool.query(
+      'UPDATE users SET verification_token_hash = $1, verification_token_expiry = $2 WHERE user_id = $3',
+      [verifyTokenHash, verifyExpiry, newUser.user_id]
+    ).catch((err) => {
+      console.error('[auth] Could not store verification token:', err.message);
+    });
+
+    // Send the verification email (fail-open: a broken SMTP config does not abort registration).
+    const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+    const verifyUrl = `${clientOrigin}/verify-email?token=${rawVerifyToken}&email=${encodeURIComponent(normalisedEmail)}`;
+    sendVerificationEmail(normalisedEmail, full_name.trim(), verifyUrl).catch((err) => {
+      console.error('[auth] Could not send verification email:', err.message);
+    });
+
+    // Audit log for registration.
+    logEvent(pool, { userId: newUser.user_id, eventType: 'register', email: normalisedEmail, req });
+
     res.status(201).json({
       message: 'User registered successfully',
-      user: result.rows[0],
+      user: newUser,
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -235,7 +280,7 @@ router.post('/login', loginLimiter, async (req, res) => {
     const normalisedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
     const result = await pool.query(
       `SELECT user_id, full_name, email, password_hash, role, tier,
-              failed_login_attempts, lockout_until, is_active
+              failed_login_attempts, lockout_until, is_active, email_verified
        FROM users WHERE email = $1`,
       [normalisedEmail]
     );
@@ -256,6 +301,16 @@ router.post('/login', loginLimiter, async (req, res) => {
       return res.status(401).json(genericError);
     }
 
+    // Block login until email is verified. email_verified may be null for
+    // accounts created before the column was added — those are grandfathered in
+    // so existing users are not locked out.
+    if (user.email_verified === false) {
+      return res.status(403).json({
+        error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+        code: 'EMAIL_NOT_VERIFIED',
+      });
+    }
+
     // Check account lockout — degrade gracefully if columns don't exist yet
     if (user.lockout_until && new Date() < new Date(user.lockout_until)) {
       return res.status(429).json({ error: 'Account temporarily locked due to too many failed attempts. Try again later.' });
@@ -272,37 +327,142 @@ router.post('/login', loginLimiter, async (req, res) => {
         'UPDATE users SET failed_login_attempts = $1, lockout_until = $2 WHERE user_id = $3',
         [attempts, lockout, user.user_id]
       ).catch(() => {}); // Degrade gracefully if columns missing
+      logEvent(pool, { eventType: 'login_failed_bad_password', email: normalisedEmail, req });
       return res.status(401).json(genericError);
     }
 
-    // Successful login — clear the failure counter
+    // Clear the failure counter on correct password.
     await pool.query(
-      `UPDATE users
-          SET failed_login_attempts = 0, lockout_until = NULL, last_login_at = NOW()
-        WHERE user_id = $1`,
+      'UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE user_id = $1',
       [user.user_id]
     ).catch(() => {});
 
-    const secret = process.env.JWT_SECRET;
-    if (!secret) throw new Error('JWT_SECRET is not configured.');
+    // --- Two-factor: send OTP, do not issue JWT yet ---
+    const otpCode = String(Math.floor(100000 + Math.random() * 900000)); // 6-digit
+    const otpHash = await bcrypt.hash(otpCode, 10);
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // email travels in the token so the audit log can record who made an
-    // administrative change without a lookup, and so the record survives the
-    // account being deleted. It is the holder's own address and nothing is
-    // authorised by it — the role claim is what gates access.
-    const token = jwt.sign(
-      { id: user.user_id, role: user.role, email: user.email },
-      secret,
-      { expiresIn: '1h', algorithm: 'HS256' }
+    await pool.query(
+      'UPDATE users SET otp_code_hash = $1, otp_expiry = $2, otp_attempts = 0 WHERE user_id = $3',
+      [otpHash, otpExpiry, user.user_id]
+    ).catch((err) => {
+      console.error('[auth] Could not store OTP:', err.message);
+    });
+
+    sendOtpEmail(user.email, user.full_name, otpCode).catch((err) => {
+      console.error('[auth] Could not send OTP email:', err.message);
+      // In dev with no SMTP, log it so manual testing still works.
+    });
+
+    logEvent(pool, { userId: user.user_id, eventType: 'otp_sent', email: user.email, req });
+
+    return res.json({ twoFactorRequired: true, email: user.email });
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.status(500).json({ error: 'Login failed.' });
+  }
+});
+
+// Helper shared by /verify-otp and the OAuth callback to issue the JWT cookie.
+function issueJwt(res, user) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET is not configured.');
+  const token = jwt.sign(
+    { id: user.user_id, role: user.role, email: user.email },
+    secret,
+    { expiresIn: '1h', algorithm: 'HS256' }
+  );
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    maxAge: 60 * 60 * 1000,
+  });
+}
+
+const otpLimiter = makeAuthLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  message: 'Too many OTP attempts. Please try again in 15 minutes.',
+});
+
+router.post('/verify-otp', otpLimiter, async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Email and OTP code are required.' });
+    }
+
+    const normalisedEmail = email.trim().toLowerCase();
+    const result = await pool.query(
+      `SELECT user_id, full_name, email, role, tier,
+              otp_code_hash, otp_expiry, otp_attempts
+       FROM users WHERE email = $1`,
+      [normalisedEmail]
     );
 
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 1000,
-    });
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid or expired code.' });
+    }
+
+    const user = result.rows[0];
+    const MAX_OTP_ATTEMPTS = 5;
+
+    if (!user.otp_code_hash || !user.otp_expiry) {
+      return res.status(401).json({ error: 'No pending verification. Please log in again.' });
+    }
+
+    if (new Date() > new Date(user.otp_expiry)) {
+      return res.status(401).json({ error: 'Code has expired. Please log in again to get a new one.' });
+    }
+
+    if ((user.otp_attempts || 0) >= MAX_OTP_ATTEMPTS) {
+      return res.status(429).json({ error: 'Too many incorrect attempts. Please log in again.' });
+    }
+
+    const valid = await bcrypt.compare(String(otp).trim(), user.otp_code_hash);
+    if (!valid) {
+      await pool.query(
+        'UPDATE users SET otp_attempts = otp_attempts + 1 WHERE user_id = $1',
+        [user.user_id]
+      ).catch(() => {});
+      logEvent(pool, { userId: user.user_id, eventType: 'otp_failed', email: user.email, req });
+      return res.status(401).json({ error: 'Incorrect code. Please try again.' });
+    }
+
+    // Valid — clear OTP fields, record login, issue JWT.
+    await pool.query(
+      `UPDATE users
+          SET otp_code_hash = NULL, otp_expiry = NULL, otp_attempts = 0,
+              last_login_at = NOW(), last_login_ip = $2
+        WHERE user_id = $1`,
+      [user.user_id, req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? req.socket.remoteAddress]
+    ).catch(() => {});
+
+    pool.query(
+      `INSERT INTO login_events (user_id, email, event_type, ip_address, user_agent)
+       VALUES ($1, $2, 'login_success', $3, $4)`,
+      [user.user_id, user.email,
+       req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? req.socket.remoteAddress,
+       req.headers['user-agent'] ?? null]
+    ).catch(() => {});
+
+    logEvent(pool, { userId: user.user_id, eventType: 'login_success', email: user.email, req });
+
+    // Record session in user_sessions so Security & Sessions page shows active logins
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? req.socket.remoteAddress;
+    const sessionHash = crypto.createHash('sha256')
+      .update(crypto.randomBytes(32))
+      .digest('hex');
+    pool.query(
+      `INSERT INTO user_sessions (session_id_hash, user_id, expires_at, ip_address, user_agent)
+       VALUES ($1, $2, NOW() + INTERVAL '1 hour', $3, $4)
+       ON CONFLICT DO NOTHING`,
+      [sessionHash, user.user_id, clientIp, req.headers['user-agent'] ?? null]
+    ).catch(() => {});
+
+    issueJwt(res, user);
 
     return res.json({
       user: {
@@ -314,8 +474,8 @@ router.post('/login', loginLimiter, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({ error: 'Login failed.' });
+    console.error('Verify-OTP error:', error);
+    return res.status(500).json({ error: 'Verification failed.' });
   }
 });
 
@@ -338,10 +498,10 @@ router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
       [tokenHash, expiry, normalisedEmail]
     );
 
-    // TODO: send rawToken via email. For now log it only in development.
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`[auth] Password reset token for ${normalisedEmail}: ${rawToken}`);
-    }
+    // Send the reset link by email.
+    const origin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+    const resetUrl = `${origin}/reset-password?token=${rawToken}&email=${encodeURIComponent(normalisedEmail)}`;
+    await sendPasswordResetEmail(normalisedEmail, resetUrl);
 
     return res.json(GENERIC_RESPONSE);
   } catch (error) {
@@ -367,6 +527,12 @@ router.post('/reset-password', passwordResetLimiter, async (req, res) => {
     }
 
     const normalisedEmail = email.trim().toLowerCase();
+
+    // Password policy check for reset-password.
+    const resetPolicyResult = validatePasswordPolicy(newPassword, { email: normalisedEmail });
+    if (!resetPolicyResult.valid) {
+      return res.status(400).json({ error: resetPolicyResult.errors[0], code: 'PASSWORD_POLICY' });
+    }
     const result = await pool.query(
       'SELECT user_id, reset_token_hash, reset_token_expiry FROM users WHERE email = $1',
       [normalisedEmail]
@@ -442,7 +608,239 @@ router.post('/logout', (req, res) => {
   res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'strict' });
   res.clearCookie('jwt', { httpOnly: true, secure: true, sameSite: 'strict' });
   res.clearCookie('access_token', { httpOnly: true, secure: true, sameSite: 'strict' });
+  res.clearCookie('reauth_token', { httpOnly: true, secure: true, sameSite: 'strict' });
   res.json({ message: 'Logged out successfully.' });
+});
+
+/*
+ * POST /reauth — confirm the current password and issue a short-lived
+ * re-authentication token.
+ *
+ * The re-auth token (5 minutes) is placed in an httpOnly cookie named
+ * `reauth_token`. Routes protected by requireReAuth middleware read that
+ * cookie and refuse the request if it is absent or expired.
+ *
+ * This follows the OWASP recommendation to re-authenticate before sensitive
+ * account operations (email change, account deletion) so an unattended
+ * still-signed-in browser cannot be exploited.
+ */
+const reauthLimiter = makeAuthLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  message: 'Too many re-authentication attempts. Please try again in 15 minutes.',
+});
+
+router.post('/reauth', requireAuth, reauthLimiter, async (req, res) => {
+  const { password } = req.body ?? {};
+
+  if (typeof password !== 'string' || password.length === 0) {
+    return res.status(400).json({ error: 'Password is required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT password_hash FROM users WHERE user_id = $1',
+      [req.user.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Session is no longer valid.' });
+    }
+
+    const valid = await bcrypt.compare(password, result.rows[0].password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: 'That password is not correct.' });
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error('JWT_SECRET is not configured.');
+
+    const reauthToken = jwt.sign(
+      { sub: req.user.id, purpose: 'reauth' },
+      secret,
+      { expiresIn: '5m', algorithm: 'HS256' }
+    );
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('reauth_token', reauthToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 5 * 60 * 1000,
+    });
+
+    return res.json({ message: 'Re-authentication successful.' });
+  } catch (err) {
+    console.error('[auth] Reauth failed:', err.message);
+    return res.status(500).json({ error: 'Re-authentication failed.' });
+  }
+});
+
+// ── Google OAuth ──────────────────────────────────────────────────────────────
+
+/*
+ * GET /google — redirect the browser to Google's consent screen.
+ * The client links directly to this URL; no AJAX involved.
+ */
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+/*
+ * GET /google/callback — Google redirects here after the user consents.
+ *
+ * On success: issue the same JWT cookie the password login issues, then
+ * redirect back to the client. On failure: redirect to /login with an error
+ * flag the client can display.
+ */
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/login?error=google_failed' }),
+  (req, res) => {
+    try {
+      const secret = process.env.JWT_SECRET;
+      if (!secret) throw new Error('JWT_SECRET is not configured.');
+
+      const user = req.user;
+      const token = jwt.sign(
+        { id: user.user_id, email: user.email, role: user.role },
+        secret,
+        { expiresIn: '1h', algorithm: 'HS256' }
+      );
+
+      const isProduction = process.env.NODE_ENV === 'production';
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'strict' : 'lax',
+        maxAge: 60 * 60 * 1000, // 1 hour
+      });
+
+      const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+      res.redirect(`${clientOrigin}/auth/callback`);
+    } catch (err) {
+      console.error('[auth] Google callback error:', err.message);
+      const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+      res.redirect(`${clientOrigin}/login?error=google_failed`);
+    }
+  }
+);
+
+// POST /verify-email — confirm the email verification token sent at registration.
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { token, email } = req.body ?? {};
+    if (!token || !email) {
+      return res.status(400).json({ error: 'Token and email are required.' });
+    }
+    const normalisedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    const result = await pool.query(
+      'SELECT user_id, verification_token_hash, verification_token_expiry FROM users WHERE email = $1',
+      [normalisedEmail]
+    );
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Verification link is invalid or has expired.' });
+    }
+    const user = result.rows[0];
+    if (!user.verification_token_hash || !user.verification_token_expiry) {
+      return res.status(400).json({ error: 'Verification link is invalid or has expired.' });
+    }
+    if (new Date() > new Date(user.verification_token_expiry)) {
+      return res.status(400).json({ error: 'Verification link has expired. Please register again.' });
+    }
+    const tokenValid = await bcrypt.compare(token, user.verification_token_hash);
+    if (!tokenValid) {
+      return res.status(400).json({ error: 'Verification link is invalid or has expired.' });
+    }
+    await pool.query(
+      'UPDATE users SET email_verified = TRUE, verification_token_hash = NULL, verification_token_expiry = NULL WHERE user_id = $1',
+      [user.user_id]
+    );
+    return res.json({ message: 'Email verified successfully. You can now log in.' });
+  } catch (err) {
+    console.error('[auth] Email verification error:', err.message);
+    return res.status(500).json({ error: 'Email verification failed.' });
+  }
+});
+
+// GET /sessions — list active sessions for the current user.
+router.get('/sessions', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT session_id_hash AS id, created_at, last_seen_at, expires_at, ip_address, user_agent
+         FROM user_sessions
+        WHERE user_id = $1
+          AND revoked_at IS NULL
+          AND expires_at > NOW()
+        ORDER BY last_seen_at DESC`,
+      [req.user.id]
+    );
+    return res.json({ sessions: result.rows });
+  } catch (err) {
+    if (err.code === '42P01') {
+      return res.json({ sessions: [] });
+    }
+    console.error('[auth] Sessions list error:', err.message);
+    return res.status(500).json({ error: 'Could not load sessions.' });
+  }
+});
+
+// DELETE /sessions/:id — revoke a specific session by session_id_hash.
+router.delete('/sessions/:id', requireAuth, async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE user_sessions SET revoked_at = NOW()
+        WHERE session_id_hash = $1 AND user_id = $2`,
+      [req.params.id, req.user.id]
+    );
+    return res.json({ message: 'Session revoked.' });
+  } catch (err) {
+    console.error('[auth] Session revoke error:', err.message);
+    return res.status(500).json({ error: 'Could not revoke session.' });
+  }
+});
+
+// POST /sessions/revoke/:id — revoke a specific session (matches client apiPost calls).
+router.post('/sessions/revoke/:id', requireAuth, async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE user_sessions SET revoked_at = NOW()
+        WHERE session_id_hash = $1 AND user_id = $2`,
+      [req.params.id, req.user.id]
+    );
+    return res.json({ message: 'Session revoked.' });
+  } catch (err) {
+    console.error('[auth] Session revoke error:', err.message);
+    return res.status(500).json({ error: 'Could not revoke session.' });
+  }
+});
+
+// DELETE /sessions — revoke all sessions except the current one.
+router.delete('/sessions', requireAuth, async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE user_sessions SET revoked_at = NOW()
+        WHERE user_id = $1 AND revoked_at IS NULL`,
+      [req.user.id]
+    );
+    return res.json({ message: 'All sessions revoked.' });
+  } catch (err) {
+    console.error('[auth] Revoke all sessions error:', err.message);
+    return res.status(500).json({ error: 'Could not revoke sessions.' });
+  }
+});
+
+// POST /sessions/revoke-all — revoke all sessions (matches client apiPost calls).
+router.post('/sessions/revoke-all', requireAuth, async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE user_sessions SET revoked_at = NOW()
+        WHERE user_id = $1 AND revoked_at IS NULL`,
+      [req.user.id]
+    );
+    return res.json({ message: 'All sessions revoked.' });
+  } catch (err) {
+    console.error('[auth] Revoke all sessions error:', err.message);
+    return res.status(500).json({ error: 'Could not revoke sessions.' });
+  }
 });
 
 export default router;

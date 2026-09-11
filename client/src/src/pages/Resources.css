@@ -1,0 +1,137 @@
+/* Career resources. */
+
+.res-search {
+  position: relative;
+  max-width: 520px;
+  margin: 24px 0 18px;
+}
+
+.res-search__icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  margin-top: -8px;
+  color: var(--muted-2);
+  pointer-events: none;
+}
+
+.res-search__input { padding-left: 44px; }
+
+.res-filters { margin-bottom: 10px; }
+
+.res-count {
+  font-size: 13.5px;
+  color: var(--muted-2);
+  margin-bottom: 18px;
+}
+
+.res-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.res-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.res-card:hover {
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+/* The banner colour is the resource type. It is the only thing distinguishing a
+   video from a guide at a glance, so it carries the label rather than sitting
+   behind one. */
+.res-card__banner {
+  height: 64px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 22px 12px;
+  background: var(--tint);
+}
+
+.res-card__banner--guide { background: var(--type-guide); }
+.res-card__banner--article { background: var(--type-article); }
+.res-card__banner--video { background: var(--type-video); }
+.res-card__banner--course { background: var(--type-course); }
+
+.res-card__type {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--accent-text);
+}
+
+.res-card__banner--guide .res-card__type { color: var(--dot-guide); }
+.res-card__banner--article .res-card__type { color: var(--dot-article); }
+.res-card__banner--video .res-card__type { color: var(--dot-video); }
+.res-card__banner--course .res-card__type { color: var(--dot-course); }
+
+.res-card__body {
+  padding: 20px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.res-card__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.res-card__desc {
+  font-size: 14.5px;
+  color: var(--body-2);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.res-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+/* Pushed to the bottom so the call to action sits on the same line across a row
+   of cards whose descriptions differ in length. */
+.res-card__footer {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.res-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.res-card__link:hover { color: var(--accent); }
+
+.res-more {
+  text-align: center;
+  margin-top: 36px;
+}
+
+@media (max-width: 980px) {
+  .res-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .res-grid { grid-template-columns: 1fr; }
+}

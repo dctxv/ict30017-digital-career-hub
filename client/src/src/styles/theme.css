@@ -1,0 +1,314 @@
+/**
+ * Design tokens.
+ *
+ * Every colour, shadow and radius the interface uses is declared here once, in
+ * both themes, and referenced by variable everywhere else. Nothing downstream
+ * hardcodes a hex value — that is what makes a theme switch a single attribute
+ * change on <html> rather than a sweep through every stylesheet.
+ *
+ * The palette is deliberately not a light palette with a dark override bolted
+ * on. Each theme names the same roles (surface, tint, border-accent, ...) and
+ * gives them values that work in that theme, so a component asks for the role
+ * it means and gets a sensible answer in both.
+ *
+ * Fonts: Plus Jakarta Sans carries headings and figures, DM Sans carries body
+ * text, and Noto Sans Bengali sits behind both so Bangla never falls through to
+ * whatever the operating system happens to have installed. The Bengali face is
+ * listed after the Latin ones, so Latin text is unaffected and only Bengali
+ * codepoints reach it.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap');
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --bg: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-2: #F7FBF8;
+  --tint: #F0FAF2;
+  --neutral: #F4F5F4;
+  --hover: #F5F7F5;
+  --track: #F0F1F0;
+
+  /* Lines */
+  --border: #EAEBEA;
+  --border-strong: #DDE2DE;
+  --border-accent: #DCEFE2;
+  --border-accent-hover: #BFE3CB;
+  --border-soft: #E7EFE9;
+  --rule: #F1F2F1;
+
+  /* Brand */
+  --primary: #1B4332;
+  --primary-hover: #2D6A4F;
+  --primary-disabled: #8FAF9E;
+  --accent: #40916C;
+  --accent-soft: #D8F3DC;
+  --accent-text: #2D6A4F;
+
+  /* Text */
+  --heading: #17402E;
+  --ink: #1B4332;
+  --body: #4E5B54;
+  --body-2: #5C6660;
+  --muted: #6B7280;
+  --muted-2: #8A928C;
+  --muted-3: #C9CFCB;
+
+  /* On brand */
+  --on-primary: #FFFFFF;
+  --on-primary-soft: #D8F3DC;
+  --on-primary-dim: #A8DEBB;
+
+  /* States */
+  --warn-bg: #FFFBEB;
+  --warn-border: #FDE68A;
+  --warn-text: #92400E;
+  --danger-bg: #FEF2F2;
+  --danger-border: #FECACA;
+  --danger-text: #B42318;
+
+  /* Chrome */
+  --nav-bg: rgba(255, 255, 255, 0.92);
+  --grad-a: #DFF1E6;
+  --grad-b: #F4FBF6;
+  --overlay: rgba(17, 24, 39, 0.55);
+  --shadow-card: 0 8px 24px rgba(17, 24, 39, 0.07);
+  --shadow-lift: 0 8px 24px rgba(27, 67, 50, 0.09);
+  --shadow-modal: 0 24px 60px rgba(17, 24, 39, 0.22);
+
+  /* Resource type accents */
+  --type-guide: #D8F3DC;
+  --type-article: #DBEAFE;
+  --type-video: #FEF3C7;
+  --type-course: #EDE9FE;
+  --dot-guide: #2D6A4F;
+  --dot-article: #1D4ED8;
+  --dot-video: #D97706;
+  --dot-course: #7C3AED;
+
+  /* Shape */
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+
+  /* Type */
+  --font-display: 'Plus Jakarta Sans', 'Noto Sans Bengali', system-ui, sans-serif;
+  --font-body: 'DM Sans', 'Noto Sans Bengali', system-ui, sans-serif;
+
+  --transition: 0.18s ease;
+  --nav-height: 64px;
+  --page-width: 1180px;
+  --content-width: 1120px;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0E1512;
+  --surface: #16211C;
+  --surface-2: #1A2620;
+  --tint: #142019;
+  --neutral: #1F2A25;
+  --hover: #1E2A24;
+  --track: #202B26;
+
+  --border: #26332C;
+  --border-strong: #2F3D36;
+  --border-accent: #2A4436;
+  --border-accent-hover: #3E7154;
+  --border-soft: #223029;
+  --rule: #222D28;
+
+  --primary: #2D6A4F;
+  --primary-hover: #40916C;
+  --primary-disabled: #2C4438;
+  --accent: #52A97F;
+  --accent-soft: #1D3A2C;
+  --accent-text: #7FCCA3;
+
+  --heading: #E9F4EC;
+  --ink: #D6E7DC;
+  --body: #A6B5AC;
+  --body-2: #9CAAA2;
+  --muted: #8A9891;
+  --muted-2: #7C8A83;
+  --muted-3: #4A564F;
+
+  --on-primary: #F4FBF6;
+  --on-primary-soft: #C7E8D2;
+  --on-primary-dim: #9DCDB0;
+
+  --warn-bg: #2A2213;
+  --warn-border: #5B4A1F;
+  --warn-text: #E8B96B;
+  --danger-bg: #2C1616;
+  --danger-border: #5A2626;
+  --danger-text: #F0A29A;
+
+  --nav-bg: rgba(14, 21, 18, 0.9);
+  --grad-a: #15241C;
+  --grad-b: #101A15;
+  --overlay: rgba(0, 0, 0, 0.66);
+  --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.5);
+  --shadow-lift: 0 10px 28px rgba(0, 0, 0, 0.55);
+  --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.62);
+
+  --type-guide: #1D3A2C;
+  --type-article: #16263D;
+  --type-video: #33240E;
+  --type-course: #241C3B;
+  --dot-guide: #7FCCA3;
+  --dot-article: #93B4FF;
+  --dot-video: #F0B45E;
+  --dot-course: #B79BF5;
+}
+
+/* ── Base ──────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--body);
+  background: var(--bg);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--transition);
+}
+
+/* Bengali conjuncts and vowel signs extend well above and below the baseline,
+   so Latin leading crowds them. This and the heading rule below are the whole
+   Bangla type adjustment; the layout is otherwise identical in both languages. */
+[lang='bn'] {
+  line-height: 1.85;
+}
+
+[lang='bn'] h1,
+[lang='bn'] h2,
+[lang='bn'] h3 {
+  line-height: 1.45;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  color: var(--heading);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted-2);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+ul {
+  list-style: none;
+}
+
+/* Focus is never removed, only replaced. Keyboard users are the ones who need
+   it and the default outline disappears against the dark theme. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Animation ─────────────────────────────────────────────────────── */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes dotPulse {
+  0%, 60%, 100% { opacity: 0.25; }
+  30%           { opacity: 1; }
+}
+
+@keyframes growX {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes growY {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(320%); }
+}
+
+.page-enter {
+  animation: fadeUp 0.3s ease both;
+}
+
+/* Motion is decoration here — every animation in this file is an entrance or a
+   progress hint, so removing them costs nothing but comfort. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
