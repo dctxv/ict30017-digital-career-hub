@@ -15,16 +15,23 @@
  *   chosen by ?lang=en|bn (default en), falling back to English per field via
  *   COALESCE so an untranslated row shows English rather than an empty card.
  *
- *   title, skills and progression have no Bangla column by design. They are the
- *   terms a user carries to a job advert — "Financial Analyst", "Excel",
- *   "AutoCAD" — and a Bangladeshi job seeker writes and searches for them in
- *   English. See server/migrations/add_bilingual_content.sql.
+ *   title, skills and progression originally had no Bangla column by design —
+ *   they were treated as the terms a user carries to a job advert and left in
+ *   English (see server/migrations/add_bilingual_content.sql for that original
+ *   reasoning). That was overridden by an explicit project decision to run the
+ *   site strictly in Bangla: title_bn, skills_bn and progression_bn now exist
+ *   (server/migrations/add_full_bilingual_content.sql) and resolve the same way
+ *   as description/industry. Software, platform and certification product
+ *   names (Excel, PostgreSQL, React, AWS, AutoCAD, CFA, GMP, ...) are still
+ *   kept in Latin script inside the translated skill lists — those are brand
+ *   names, not vocabulary.
  *
  *   Admin writes always read back English, since the dashboard edits the
- *   canonical row rather than a rendering of it. They accept desc_bn and
- *   industry_bn so the dashboard can maintain the translation; an empty string
- *   is stored as NULL, which is what the COALESCE fallback reads as
- *   "not translated yet".
+ *   canonical row rather than a rendering of it. They accept desc_bn,
+ *   industry_bn, title_bn, skills_bn and progression_bn so the dashboard can
+ *   maintain the translation; an empty string (or, for the JSON fields, a
+ *   missing value) is stored as NULL, which is what the COALESCE fallback
+ *   reads as "not translated yet".
  */
 
 import express from 'express';
@@ -45,18 +52,24 @@ const SUPPORTED_LANGUAGES = ['en', 'bn'];
 function selectFields(lang) {
   const desc = lang === 'bn' ? 'COALESCE(description_bn, description)' : 'description';
   const industry = lang === 'bn' ? 'COALESCE(industry_bn, industry)' : 'industry';
+  const title = lang === 'bn' ? 'COALESCE(title_bn, title)' : 'title';
+  const skills = lang === 'bn' ? 'COALESCE(skills_bn, skills)' : 'skills';
+  const progression = lang === 'bn' ? 'COALESCE(progression_bn, progression)' : 'progression';
   return `
   id,
-  title,
+  ${title} AS title,
   ${industry} AS industry,
   discipline,
   ${desc}   AS "desc",
-  skills,
-  progression,
+  ${skills} AS skills,
+  ${progression} AS progression,
   salary_entry  AS "salaryEntry",
   salary_senior AS "salarySenior",
   description_bn,
-  industry_bn
+  industry_bn,
+  title_bn,
+  skills_bn,
+  progression_bn
 `;
 }
 
@@ -74,10 +87,17 @@ function parseId(raw) {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
+/** Shared shape check for both `progression` and `progression_bn`. */
+function progressionWellFormed(progression) {
+  return progression.every(
+    (p) => p && typeof p === 'object' && !Array.isArray(p) && typeof p.label === 'string'
+  );
+}
+
 function validateCareerPath(body) {
   const {
     title, industry, discipline, desc, skills, progression, salaryEntry, salarySenior,
-    desc_bn, industry_bn,
+    desc_bn, industry_bn, title_bn, skills_bn, progression_bn,
   } = body;
 
   if (typeof title !== 'string' || title.trim().length < 2) {
@@ -99,6 +119,7 @@ function validateCareerPath(body) {
     ['Senior salary', salarySenior],
     ['Bangla description', desc_bn],
     ['Bangla industry', industry_bn],
+    ['Bangla title', title_bn],
   ]) {
     if (value !== undefined && value !== null) {
       if (typeof value !== 'string') return `${label} must be text.`;
@@ -112,13 +133,24 @@ function validateCareerPath(body) {
     if (!skills.every((s) => typeof s === 'string')) return 'Each skill must be text.';
   }
 
+  if (skills_bn !== undefined && skills_bn !== null) {
+    if (!Array.isArray(skills_bn)) return 'Bangla skills must be a list.';
+    if (skills_bn.length > LIST_MAX) return `Bangla skills may contain at most ${LIST_MAX} entries.`;
+    if (!skills_bn.every((s) => typeof s === 'string')) return 'Each Bangla skill must be text.';
+  }
+
   if (progression !== undefined && progression !== null) {
     if (!Array.isArray(progression)) return 'Progression must be a list.';
     if (progression.length > LIST_MAX) return `Progression may contain at most ${LIST_MAX} steps.`;
-    const wellFormed = progression.every(
-      (p) => p && typeof p === 'object' && !Array.isArray(p) && typeof p.label === 'string'
-    );
-    if (!wellFormed) return 'Each progression step must have a label.';
+    if (!progressionWellFormed(progression)) return 'Each progression step must have a label.';
+  }
+
+  if (progression_bn !== undefined && progression_bn !== null) {
+    if (!Array.isArray(progression_bn)) return 'Bangla progression must be a list.';
+    if (progression_bn.length > LIST_MAX) {
+      return `Bangla progression may contain at most ${LIST_MAX} steps.`;
+    }
+    if (!progressionWellFormed(progression_bn)) return 'Each Bangla progression step must have a label.';
   }
 
   return null;
@@ -137,6 +169,11 @@ function nullIfBlank(value) {
   return trimmed === '' ? null : trimmed;
 }
 
+/** Same "empty means not translated yet" rule as nullIfBlank, for the JSON columns. */
+function jsonOrNull(value) {
+  return value === undefined || value === null ? null : JSON.stringify(value);
+}
+
 // Normalises a validated body into the positional values the queries expect.
 function toParams(body) {
   return [
@@ -150,6 +187,9 @@ function toParams(body) {
     (body.salarySenior ?? '').trim(),
     nullIfBlank(body.desc_bn),
     nullIfBlank(body.industry_bn),
+    nullIfBlank(body.title_bn),
+    jsonOrNull(body.skills_bn),
+    jsonOrNull(body.progression_bn),
   ];
 }
 
@@ -208,8 +248,8 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     const result = await pool.query(
       `INSERT INTO career_paths
          (title, industry, discipline, description, skills, progression, salary_entry, salary_senior,
-          description_bn, industry_bn)
-       VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9, $10)
+          description_bn, industry_bn, title_bn, skills_bn, progression_bn)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9, $10, $11, $12::jsonb, $13::jsonb)
        RETURNING ${SELECT_FIELDS}`,
       toParams(req.body)
     );
@@ -247,8 +287,9 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
           SET title = $1, industry = $2, discipline = $3, description = $4,
               skills = $5::jsonb, progression = $6::jsonb,
               salary_entry = $7, salary_senior = $8,
-              description_bn = $9, industry_bn = $10
-        WHERE id = $11
+              description_bn = $9, industry_bn = $10,
+              title_bn = $11, skills_bn = $12::jsonb, progression_bn = $13::jsonb
+        WHERE id = $14
       RETURNING ${SELECT_FIELDS}`,
       [...toParams(req.body), id]
     );

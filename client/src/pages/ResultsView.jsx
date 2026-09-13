@@ -141,7 +141,7 @@ function ContentBody({ section }) {
 }
 
 function LanguageBody({ section }) {
-  const { t } = useLanguage()
+  const { t, tc } = useLanguage()
   const issues = Array.isArray(section.issues) ? section.issues.filter(item => item?.original) : []
 
   return (
@@ -154,7 +154,13 @@ function LanguageBody({ section }) {
           <div className="rv-rewrites">
             {issues.map((item, index) => (
               <div key={index} className="rv-rewrite">
-                <span className="rv-rewrite__type">{item.type}</span>
+                {/* Same pattern as the ATS priority label below: the model's
+                    "type" stays a fixed English token (GRAMMAR, CLARITY, ...)
+                    in the JSON contract (see outputContract.js) so it's a
+                    reliable key, and only the rendered label is translated. */}
+                <span className="rv-rewrite__type">
+                  {tc(`results.grammarType.${(item.type || '').toUpperCase()}`, item.type)}
+                </span>
                 <span className="rv-rewrite__before">{item.original}</span>
                 <span className="rv-rewrite__after">{item.corrected}</span>
               </div>

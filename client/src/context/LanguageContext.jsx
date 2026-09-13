@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { translate, localiseDigits, localiseDuration, hasTranslation } from '../i18n'
+import { i18next } from '../i18n/useTranslation'
 
 /**
  * Shared language selection.
@@ -50,6 +51,13 @@ export function LanguageProvider({ children }) {
     }
     document.cookie = `${COOKIE_KEY}=${lang}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`
     document.documentElement.lang = lang
+    // i18next drives the older react-i18next call sites (useTranslation.js) —
+    // this is the one selection this context owns, mirrored onto that
+    // instance so i18n.language never drifts from it. Without this, pages
+    // built against useTranslation()'s i18n.language (e.g. ResumeReview.jsx)
+    // would silently stay on i18next's own default regardless of what the
+    // user picked here.
+    i18next.changeLanguage(lang)
   }, [lang])
 
   const setLang = (next) => {
