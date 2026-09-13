@@ -523,6 +523,26 @@ the `DB_*` variables and leave `DATABASE_URL` unset. For a hosted database set
 ignored. Hosted databases almost always need `DB_SSL=true` (or `no-verify`);
 the failure without it reads as a generic connection error.
 
+**A shared, already-seeded Supabase instance exists**, so a reviewer can see
+real content and log in without installing PostgreSQL or running migrations at
+all. To use it instead of a local database, set these two in `server/.env`:
+
+```dotenv
+DATABASE_URL=postgresql://postgres.cqkcpqeeqrdmghbukqog:Digital_Pass.root@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+DB_SSL=no-verify
+```
+
+Then start the server as in Step 7 — no `npm run migrate` needed, the schema
+and content are already there. Two accounts are ready to sign in with:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | resumetest@example.com | ResumeTest@123! |
+| Student | shalithatest@example.com | TestPass123! |
+
+Migrations against this shared database still follow the one-person rule
+below; coordinate in the team channel before running one against it.
+
 `npm run migrate` applies `server/migrations/*.sql` in the order listed in
 `server/scripts/migrationOrder.js` and records each in `schema_migrations`,
 so a second run is a no-op. That ledger is also what protects
