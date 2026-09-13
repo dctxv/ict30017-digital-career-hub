@@ -27,8 +27,10 @@ import {
   GAP_SEVERITY_WEIGHT,
 } from '../src/config/preparationConstants.js';
 import { normaliseGapList, renderGapBlock } from '../src/services/gapEngine.js';
-import { stripUnevidencedClaims, resolveTier } from '../src/services/mockInterview.js';
-import { buildQuestionPrompt, buildEvaluationPrompt, TIER_1_CONSTRAINT } from '../src/prompt/interview.js';
+import { stripUnevidencedClaims, resolveTier, renderProfileBlock } from '../src/services/mockInterview.js';
+import {
+  buildQuestionPrompt, buildEvaluationPrompt, TIER_1_CONSTRAINT, PROFILE_BLOCK,
+} from '../src/prompt/interview.js';
 
 describe('normaliseGapKey', () => {
   it('leaves a well-formed key alone', () => {
@@ -184,6 +186,46 @@ describe('stripUnevidencedClaims', () => {
   it('tolerates a missing value', () => {
     assert.deepEqual(stripUnevidencedClaims(undefined), { text: '', changed: false });
   });
+
+  it('catches the same claims written in Bangla', () => {
+    const cases = [
+      'আপনার অভিজ্ঞতার ভিত্তিতে, একটি দেরি হওয়া শিপমেন্ট আপনি কীভাবে সামলাবেন?',
+      'আপনার রিজিউমে অনুযায়ী আপনি ব্যাংকিংয়ে কাজ করেছেন। এই পদে কেন আসতে চান?',
+      'আপনার সিভিতে দেখা যাচ্ছে যে আপনি একটি দল পরিচালনা করেছেন। একটি উদাহরণ দিন।',
+    ];
+    for (const input of cases) {
+      const { text, changed } = stripUnevidencedClaims(input);
+      assert.equal(changed, true, `not caught: ${input}`);
+      assert.doesNotMatch(text, /আপনার (অভিজ্ঞতা|রিজিউমে|সিভি)/, `claim survived: ${text}`);
+      assert.ok(text.length > 0, 'a question must remain');
+    }
+  });
+
+  it('leaves a Bangla question about the role alone', () => {
+    const clean = 'দুটি জরুরি কাজের মধ্যে আপনি কীভাবে অগ্রাধিকার ঠিক করেন?';
+    assert.deepEqual(stripUnevidencedClaims(clean), { text: clean, changed: false });
+  });
+});
+
+describe('renderProfileBlock', () => {
+  it('returns null when the profile holds nothing, rather than an empty block', () => {
+    assert.equal(renderProfileBlock(null), null);
+    assert.equal(renderProfileBlock({}), null);
+    assert.equal(renderProfileBlock({ discipline: '  ', institution: null, graduationYear: null }), null);
+  });
+
+  it('renders whichever of the three fields are set', () => {
+    const block = renderProfileBlock({ discipline: 'Finance', graduationYear: '2024' });
+    assert.match(block, /<CANDIDATE_PROFILE>/);
+    assert.match(block, /Discipline: Finance/);
+    assert.match(block, /Graduation year: 2024/);
+    assert.doesNotMatch(block, /Institution/);
+  });
+
+  it('drops a graduation year that cannot be one', () => {
+    assert.equal(renderProfileBlock({ graduationYear: 'soon' }), null);
+    assert.equal(renderProfileBlock({ graduationYear: 1800 }), null);
+  });
 });
 
 describe('interview prompts', () => {
@@ -206,6 +248,22 @@ describe('interview prompts', () => {
     const full = buildQuestionPrompt({ tier: 3, hasJobAd: true, hasGaps: true });
     assert.match(full, /JOB ADVERTISEMENT WAS SUPPLIED/);
     assert.match(full, /KNOWN GAPS WERE SUPPLIED/);
+  });
+
+  it('describes the profile only when one was supplied, in both calls', () => {
+    assert.ok(!buildQuestionPrompt({ tier: 1 }).includes(PROFILE_BLOCK));
+    assert.ok(!buildEvaluationPrompt({ tier: 1 }).includes(PROFILE_BLOCK));
+    assert.ok(buildQuestionPrompt({ tier: 1, hasProfile: true }).includes(PROFILE_BLOCK));
+    assert.ok(buildEvaluationPrompt({ tier: 3, hasProfile: true }).includes(PROFILE_BLOCK));
+  });
+
+  it('keeps the no-resume rule in force alongside the profile', () => {
+    // The profile is facts about study. The constraint against inventing
+    // work history has to survive it, or "graduated 2022" becomes "your three
+    // years in the industry".
+    const prompt = buildQuestionPrompt({ tier: 1, hasProfile: true });
+    assert.ok(prompt.includes(TIER_1_CONSTRAINT));
+    assert.match(prompt, /NOT evidence of\nany job/);
   });
 
   it('never asks the model for a URL', () => {

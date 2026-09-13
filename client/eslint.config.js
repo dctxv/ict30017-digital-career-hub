@@ -27,6 +27,15 @@ export default defineConfig([
     },
   },
   {
+    // The Playwright specs and the Vite config run under Node, not in the
+    // browser: Buffer and process are real there. Without this every lint run
+    // reported eight no-undef errors that were not errors.
+    files: ['e2e/**/*.js', 'vite.config.js', 'playwright.config.js'],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node },
+    },
+  },
+  {
     // Context modules deliberately co-locate the provider component with its
     // consumer hook, trading fast-refresh precision in these two files for a
     // single import site per context. LanguageContext established the pattern

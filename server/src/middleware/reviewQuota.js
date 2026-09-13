@@ -134,6 +134,36 @@ async function claimReview(userId) {
 }
 
 /**
+ * Gives back a review that was claimed and then not delivered.
+ *
+ * The claim is made before the model is called, so a rejected API key, a
+ * throttled provider or an unreadable response used to cost the user one of
+ * their three daily reviews for nothing — on a misconfigured server, all three
+ * inside a minute, and the fourth attempt after the fix was refused as over
+ * quota. Same shape as refundInterview, for the same reason.
+ *
+ * Only decrements today's counter, so a claim from yesterday is never touched.
+ * A failed refund is logged and swallowed: the user is already being told the
+ * analysis failed, and a second error would not help them.
+ *
+ * @param {string|number} userId
+ * @param {string} reason recorded in the [quota] line
+ */
+export async function refundReview(userId, reason = 'analysis_failed') {
+  try {
+    await pool.query(
+      `UPDATE users
+          SET resume_review_count = GREATEST(0, COALESCE(resume_review_count, 0) - 1)
+        WHERE user_id = $1 AND resume_review_reset_date = CURRENT_DATE`,
+      [userId]
+    );
+    console.log(`[quota] decision=refund user=${userId} reason=${reason}`);
+  } catch (err) {
+    console.error('[resume] Could not refund the claimed review:', err.message);
+  }
+}
+
+/**
  * One log line per decision, in a fixed shape.
  *
  * A resume review can be refused by three different things — this middleware,
@@ -220,6 +250,9 @@ export async function enforceDailyReviewLimit(req, res, next) {
       ...quota,
       used: claim.used,
       remaining: Math.max(0, FREE_DAILY_REVIEW_LIMIT - claim.used),
+      // Tells the route a slot was actually taken, so it knows whether there
+      // is anything to give back if the analysis fails.
+      claimed: true,
     };
 
     return next();

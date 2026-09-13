@@ -77,13 +77,32 @@ ask. Do not import a Silicon Valley interview loop.`;
  * guarantees.
  */
 const TIER_1_CONSTRAINT = `NO RESUME WAS SUPPLIED
-You know NOTHING about this candidate beyond the role and career stage above.
+You know NOTHING about this candidate beyond the role, the career stage and,
+where one is supplied, the CANDIDATE_PROFILE block.
 You MUST NOT state, imply or assume anything about their history, employers,
 projects, skills or achievements. Never write "your background", "your
 experience", "your resume shows", "given your work at" or any equivalent.
 Ask what a candidate FOR THIS ROLE should be asked, and mark the answers they
 give. Address them in the second person about the ROLE, never about a past you
 have not been shown.`;
+
+/**
+ * The profile facts, and what they are not.
+ *
+ * Discipline, institution and graduation year come from the candidate's own
+ * account rather than from a document, so they are the one thing a tier-1
+ * interview is allowed to know about the person. They change the pitch — a
+ * final-year student and a graduate of three years should not get the same
+ * five questions — but they say nothing about work, and the block says so
+ * before the model can turn "graduated 2022" into "your three years in the
+ * industry".
+ */
+const PROFILE_BLOCK = `A CANDIDATE PROFILE WAS SUPPLIED
+The discipline, institution and graduation year in the CANDIDATE_PROFILE block
+come from the candidate's own account and may be used. Pitch the questions at
+the level that stage implies, and ask what an interviewer would ask someone
+from that discipline. They are facts about study only: they are NOT evidence of
+any job, project, skill or achievement, so never build one on top of them.`;
 
 /**
  * Question generation.
@@ -157,10 +176,10 @@ question is evidence of nothing on its own — do not raise a gap from a blank.`
 /**
  * Builds the question-generation system prompt.
  *
- * @param {{tier: number, hasResume: boolean, hasJobAd: boolean, hasGaps: boolean}} input
+ * @param {{tier: number, hasJobAd: boolean, hasGaps: boolean, hasProfile: boolean}} input
  * @returns {string}
  */
-export function buildQuestionPrompt({ tier = 1, hasJobAd = false, hasGaps = false } = {}) {
+export function buildQuestionPrompt({ tier = 1, hasJobAd = false, hasGaps = false, hasProfile = false } = {}) {
   const parts = [INTERVIEW_CORE_BLOCK];
 
   if (tier === 1) {
@@ -174,6 +193,8 @@ export function buildQuestionPrompt({ tier = 1, hasJobAd = false, hasGaps = fals
       + 'them — an unlisted skill is unevidenced, not missing from their life.'
     );
   }
+
+  if (hasProfile) parts.push(PROFILE_BLOCK);
 
   if (hasJobAd) {
     parts.push(
@@ -206,10 +227,10 @@ export function buildQuestionPrompt({ tier = 1, hasJobAd = false, hasGaps = fals
  * during question generation: by this point the candidate has written five
  * answers, and the temptation to read a career into them is much stronger.
  *
- * @param {{tier: number}} input
+ * @param {{tier: number, hasProfile: boolean}} input
  * @returns {string}
  */
-export function buildEvaluationPrompt({ tier = 1 } = {}) {
+export function buildEvaluationPrompt({ tier = 1, hasProfile = false } = {}) {
   const parts = [INTERVIEW_CORE_BLOCK];
 
   if (tier === 1) {
@@ -220,6 +241,8 @@ export function buildEvaluationPrompt({ tier = 1 } = {}) {
       + 'answer may be short by choice rather than truncated.'
     );
   }
+
+  if (hasProfile) parts.push(PROFILE_BLOCK);
 
   parts.push(EVALUATION_CONTRACT_BLOCK);
   return parts.join(RULE).trim();
@@ -270,4 +293,4 @@ export function interviewLanguageReminder(language) {
     + 'and the enum values in English exactly as specified above.';
 }
 
-export { INTERVIEW_CORE_BLOCK, TIER_1_CONSTRAINT };
+export { INTERVIEW_CORE_BLOCK, TIER_1_CONSTRAINT, PROFILE_BLOCK };

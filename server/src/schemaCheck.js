@@ -51,6 +51,8 @@ const REQUIRED_COLUMNS = [
   ['career_paths', 'industry_bn'],
   ['alumni', 'bio_bn'],
   ['alumni', 'industry_bn'],
+  ['alumni', 'email'],
+  ['alumni', 'linkedin_url'],
   ['users', 'discipline'],
   ['users', 'last_login_at'],
   ['users', 'updated_at'],

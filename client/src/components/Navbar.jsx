@@ -191,6 +191,15 @@ export default function Navbar() {
           {isAuthenticated ? (
             <div className="nav__panel-auth">
               <span className="nav__panel-rule" />
+              {/* Who the session belongs to. The bar carries this in
+                  .nav__session, but .nav__profile-name is hidden from 1100px
+                  down and .nav__signout from 600px, so without it here the
+                  panel offers a Log out control while never saying whose
+                  session is being ended. */}
+              <span className="nav__panel-user">
+                <span className="nav__avatar">{initials}</span>
+                <span className="nav__profile-name">{displayName}</span>
+              </span>
               <NavLink to="/profile" className="nav__panel-link">{t('nav.profile')}</NavLink>
               <button
                 type="button"

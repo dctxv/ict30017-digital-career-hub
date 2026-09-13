@@ -1,0 +1,101 @@
+MD. SAKIB HASAN
+House 12, Road 7, Block C, Mirpur-11, Dhaka-1216
+Mobile: 01715-882341
+Email: sakib.hasan.cse@gmail.com
+GitHub: github.com/sakibhasan-dev
+
+
+CAREER OBJECTIVE
+
+A fresh Computer Science graduate seeking an entry-level software engineering
+position where I can apply my knowledge of web development and grow as a
+professional developer in a reputed software company.
+
+
+EDUCATIONAL QUALIFICATION
+
+Bachelor of Science (B.Sc.) in Computer Science and Engineering
+BRAC University, Dhaka
+Session: 2021-2025
+Result: CGPA 3.41/4.00
+
+Higher Secondary Certificate (H.S.C)
+Dhaka College, Dhaka
+Group: Science
+Year of Passing: 2020
+GPA: 5.00/5.00
+
+Secondary School Certificate (S.S.C)
+Monipur High School, Mirpur, Dhaka
+Group: Science
+Year of Passing: 2018
+GPA: 5.00/5.00
+
+
+ACADEMIC PROJECTS
+
+Campus Meal Ordering System (Final Year Project)
+  - Built a web application for ordering food from campus canteens using
+    React on the frontend and Node.js with Express on the backend
+  - Designed the MySQL database with 9 tables and wrote the REST API
+  - Worked in a team of three; I was responsible for the backend and
+    deployment on a free hosting service
+  - Supervisor grade: A
+
+Library Management System (Course Project, CSE 370 Database Systems)
+  - Desktop application in Java with a MySQL database
+  - Implemented book issue and return, fine calculation and overdue reports
+
+Weather Dashboard (Personal Project)
+  - Single-page app in vanilla JavaScript that calls a public weather API
+  - Hosted on GitHub Pages
+
+
+INTERNSHIP
+
+Software Engineering Intern
+Techno Solutions Ltd., Banani, Dhaka
+Duration: June 2024 - August 2024 (3 months)
+  - Fixed bugs in an existing PHP based inventory system
+  - Wrote unit tests for a small part of the codebase
+  - Attended daily stand-up meetings and used Git for version control
+
+
+TECHNICAL SKILLS
+
+Programming Languages : JavaScript, Java, Python, C
+Web                   : HTML, CSS, React, Node.js, Express
+Database              : MySQL, basic MongoDB
+Tools                 : Git, GitHub, VS Code, Postman
+
+
+EXTRA-CURRICULAR ACTIVITIES
+
+  - Member, BRAC University Computer Club (2022-2025)
+  - Volunteer, Intra-University Programming Contest 2024
+  - Participated in two hackathons (no prize)
+
+
+LANGUAGE PROFICIENCY
+
+Bangla  : Native
+English : Fluent in reading and writing, moderate in speaking
+
+
+PERSONAL INFORMATION
+
+Date of Birth   : 15 March 2002
+Father's Name   : Md. Abul Hasan
+Mother's Name   : Rokeya Begum
+Nationality     : Bangladeshi by birth
+Religion        : Islam
+Marital Status  : Single
+NID No.         : 5512345678901
+
+
+REFERENCE
+
+Dr. Farhana Rahman
+Assistant Professor, Department of CSE
+BRAC University
+Email: farhana.rahman@bracu.ac.bd

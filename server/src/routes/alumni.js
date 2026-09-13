@@ -16,6 +16,7 @@ import express from 'express';
 import pool from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { recordAudit } from '../services/auditLog.js';
+import { optionalText, validateAlumniContacts } from '../utils/alumniContacts.js';
 
 const router = express.Router();
 
@@ -53,7 +54,8 @@ function publicFields(lang) {
   const currentRole = lang === 'bn' ? 'COALESCE(current_role_bn, "current_role")' : '"current_role"';
   return `
   id, ${fullName} AS full_name, ${institution} AS institution, discipline, graduation_year,
-  ${currentRole} AS "current_role", ${industry} AS industry, ${bio} AS bio, image_initials
+  ${currentRole} AS "current_role", ${industry} AS industry, ${bio} AS bio, image_initials,
+  email, linkedin_url
 `;
 }
 
@@ -70,6 +72,7 @@ const ADMIN_FIELDS = `
   id, full_name, institution, discipline, graduation_year,
   "current_role", industry, bio, image_initials,
   bio_bn, industry_bn, full_name_bn, institution_bn, current_role_bn,
+  email, linkedin_url,
   consent_given, is_published
 `;
 
@@ -85,6 +88,7 @@ function validateAlumni(body) {
     full_name, institution, discipline, graduation_year,
     current_role, industry, bio, image_initials,
     bio_bn, industry_bn, full_name_bn, institution_bn, current_role_bn,
+    email, linkedin_url,
     consent_given, is_published,
   } = body;
 
@@ -150,6 +154,9 @@ function validateAlumni(body) {
     return 'A profile cannot be published without recorded consent.';
   }
 
+  const contactError = validateAlumniContacts({ email, linkedin_url });
+  if (contactError) return contactError;
+
   return null;
 }
 
@@ -188,6 +195,8 @@ function toParams(body) {
     nullIfBlank(body.full_name_bn),
     nullIfBlank(body.institution_bn),
     nullIfBlank(body.current_role_bn),
+    optionalText(body.email),
+    optionalText(body.linkedin_url),
     body.consent_given === true,
     body.is_published === true,
   ];
@@ -274,8 +283,8 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
          (full_name, institution, discipline, graduation_year, "current_role",
           industry, bio, image_initials, bio_bn, industry_bn,
           full_name_bn, institution_bn, current_role_bn,
-          consent_given, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+          email, linkedin_url, consent_given, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
        RETURNING ${ADMIN_FIELDS}`,
       toParams(req.body)
     );
@@ -314,8 +323,9 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
               "current_role" = $5, industry = $6, bio = $7, image_initials = $8,
               bio_bn = $9, industry_bn = $10,
               full_name_bn = $11, institution_bn = $12, current_role_bn = $13,
-              consent_given = $14, is_published = $15
-        WHERE id = $16
+              email = $14, linkedin_url = $15,
+              consent_given = $16, is_published = $17
+        WHERE id = $18
       RETURNING ${ADMIN_FIELDS}`,
       [...toParams(req.body), id]
     );

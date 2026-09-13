@@ -10,6 +10,50 @@ dotenv.config({ path: path.resolve(__dirname, '../../../server/.env') });
 
 let _client = null;
 
+/**
+ * Google wraps its error body in a JSON array — `[{ "error": {...} }]` — and
+ * the openai SDK reads `body.error`, which an array does not have. Every
+ * provider failure therefore surfaced as "400 status code (no body)" with the
+ * actual reason ("Please pass a valid API key", "model not found") discarded
+ * before anything could read it. This unwraps the first element on error
+ * responses only; successful responses pass through untouched.
+ *
+ * Exported so the setup check and the model comparison harness can build a
+ * client that fails with the same readable message the app does.
+ *
+ * @param {typeof fetch} [baseFetch]
+ * @returns {typeof fetch}
+ */
+export function unwrapProviderErrors(baseFetch = fetch) {
+  return async (url, init) => {
+    const response = await baseFetch(url, init);
+    if (response.ok) return response;
+
+    const text = await response.text();
+    let body = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed) && parsed[0] && typeof parsed[0] === 'object') {
+        body = JSON.stringify(parsed[0]);
+      }
+    } catch {
+      // Not JSON: hand it on as it is so the SDK reports the raw text.
+    }
+
+    // The body has already been decoded, so the encoding and length headers
+    // describe bytes that no longer exist and must not travel with it.
+    const headers = new Headers(response.headers);
+    headers.delete('content-encoding');
+    headers.delete('content-length');
+
+    return new Response(body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  };
+}
+
 export function getGroqClient() {
   if (!_client) {
     if (!process.env.GOOGLE_AI_API_KEY) {
@@ -25,6 +69,12 @@ export function getGroqClient() {
     _client = new OpenAI({
       apiKey: process.env.GOOGLE_AI_API_KEY,
       baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+      fetch: unwrapProviderErrors(),
+      // Every call site classifies the failure and answers the user itself, so
+      // the SDK's own retries only make a rejected key take three times as
+      // long to report. Genuinely transient failures return a retryable code
+      // and the user is told to try again.
+      maxRetries: 1,
     });
   }
   return _client;

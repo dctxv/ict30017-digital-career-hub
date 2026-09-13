@@ -31,40 +31,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from '../src/db.js';
+import { MIGRATION_ORDER as ORDER } from './migrationOrder.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.join(__dirname, '../migrations');
-
-/**
- * Order matters and is not alphabetical: content tables must exist before they
- * are seeded, and the bilingual columns before the Bangla that fills them. This
- * list is the authority — the README mirrors it, and mirrored it wrongly before
- * (add_resume_review_tracking.sql was missing entirely, so the review quota
- * columns were never created on a machine set up from the documentation).
- */
-const ORDER = [
-  'create_users_table.sql',
-  'add_login_attempt_tracking.sql',
-  'add_password_reset_tokens.sql',
-  'add_chat_turn_tracking.sql',
-  'add_resume_review_tracking.sql',
-  'add_user_tier.sql',
-  'create_content_tables.sql',
-  'seed_content_data.sql',
-  'add_bilingual_content.sql',
-  'seed_bangla_content.sql',
-  'add_user_profile_fields.sql',
-  'create_review_history_tables.sql',
-  'create_chat_history_tables.sql',
-  'create_subscriptions_table.sql',
-  'create_audit_log_table.sql',
-  'add_subscription_payment_method.sql',
-  'add_subscription_upgrade_source.sql',
-  'create_preparation_tables.sql',
-  'add_full_bilingual_content.sql',
-  'seed_full_bangla_content.sql',
-  'retranslate_alumni_bios.sql',
-];
 
 async function ensureLedger() {
   await pool.query(`
