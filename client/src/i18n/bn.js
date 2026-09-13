@@ -18,7 +18,7 @@
 
 export default {
   /* ── Shared ──────────────────────────────────────────────────── */
-  'common.brand': 'Digital Career Hub',
+  'common.brand': 'ডিজিটাল ক্যারিয়ার হাব',
   'common.cancel': 'বাতিল',
   'common.edit': 'সম্পাদনা',
   'common.delete': 'মুছুন',
@@ -209,6 +209,7 @@ export default {
   'review.quotaExhausted': 'ফ্রি প্ল্যান — আজ আর কোনো রিজিউমে রিভিউ বাকি নেই। আগামীকাল আপনার কোটা আবার শুরু হবে।',
   'review.quotaRemainingOne': 'ফ্রি প্ল্যান — আজ {limit}টির মধ্যে {remaining}টি রিজিউমে রিভিউ বাকি',
   'review.quotaRemainingMany': 'ফ্রি প্ল্যান — আজ {limit}টির মধ্যে {remaining}টি রিজিউমে রিভিউ বাকি',
+  'review.streamStoppedEarly': 'বিশ্লেষণটি সময়ের আগে থেমে গেছে।',
 
   'review.coversLabel': 'বিশ্লেষণে যা যা থাকে',
   'review.coversContent': 'কনটেন্টের মান',
@@ -289,6 +290,12 @@ export default {
   'results.priority.high': 'উচ্চ',
   'results.priority.medium': 'মাঝারি',
   'results.priority.low': 'নিম্ন',
+  'results.grammarType.GRAMMAR': 'ব্যাকরণ',
+  'results.grammarType.CLARITY': 'স্পষ্টতা',
+  'results.grammarType.SPELLING': 'বানান',
+  'results.grammarType.TENSE': 'কাল (Tense)',
+  'results.grammarType.CAPITALISATION': 'বড় হাতের অক্ষর',
+  'results.grammarType.VERB_STRENGTH': 'ক্রিয়াপদের শক্তি',
 
   'results.docxTitle': 'Word ডকুমেন্ট',
   'results.docxBody': '.docx ফাইলের PDF প্রিভিউ পাওয়া যায় না। ডান পাশের প্যানেলে AI ফিডব্যাক দেখুন।',
@@ -343,6 +350,12 @@ export default {
   'chatbot.send': 'বার্তা পাঠান',
   'chatbot.openTrigger': 'ক্যারিয়ার চ্যাটবট খুলুন',
   'chatbot.closeTrigger': 'ক্যারিয়ার চ্যাটবট বন্ধ করুন',
+
+  /* ── Language prompt dialog ──────────────────────────────────── */
+  'langPrompt.resumeTitle': 'আপনার রিভিউয়ের ভাষা বেছে নিন',
+  'langPrompt.resumeSub': 'আপনার AI ফিডব্যাক এই ভাষাতেই লেখা হবে। পরে নেভবার থেকে ইন্টারফেসের ভাষা বদলাতে পারবেন, তবে রিভিউটি নিজে আর নতুন করে অনুবাদ হবে না।',
+  'langPrompt.chatTitle': 'কোন ভাষায় চ্যাট করতে চান তা বেছে নিন',
+  'langPrompt.chatSub': 'এই কথোপকথনে সহকারী এই ভাষাতেই উত্তর দেবে।',
 
   /* ── Review context selectors ────────────────────────────────── */
   'context.unknown': 'নিশ্চিত নই',
@@ -404,8 +417,15 @@ export default {
   'admin.disc.descriptionBn': 'বিবরণ (বাংলা)',
   'admin.path.descriptionBn': 'বিবরণ (বাংলা)',
   'admin.path.industryBn': 'ইন্ডাস্ট্রি (বাংলা)',
+  'admin.path.titleBn': 'শিরোনাম (বাংলা)',
+  'admin.path.skillsBn': 'দক্ষতা (বাংলা, কমা দিয়ে আলাদা করুন)',
+  'admin.path.progressionBn': 'অগ্রগতি (বাংলা, JSON ফরম্যাট)',
+  'admin.path.progressionBnInvalid': 'বাংলা অগ্রগতি অবশ্যই বৈধ JSON হতে হবে, যেমন [{"label":"জুনিয়র","time":"0-1 yr"}]।',
   'admin.alum.bioBn': 'পরিচিতি (বাংলা)',
   'admin.alum.industryBn': 'ইন্ডাস্ট্রি (বাংলা)',
+  'admin.alum.fullNameBn': 'পূর্ণ নাম (বাংলা)',
+  'admin.alum.institutionBn': 'প্রতিষ্ঠান (বাংলা)',
+  'admin.alum.currentRoleBn': 'বর্তমান পদ (বাংলা)',
   'admin.disc.editHeading': 'বিষয় সম্পাদনা',
   'admin.disc.addHeading': 'নতুন বিষয় যোগ করুন',
   'admin.disc.name': 'নাম',

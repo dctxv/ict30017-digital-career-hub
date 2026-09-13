@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import { MessageCircle, X, Send } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { CHATBOT_OPEN_EVENT } from './chatbotBus'
+import LanguagePromptDialog from './LanguagePromptDialog'
 import './ChatbotWidget.css'
 
 function parseSseFrame(frame) {
@@ -122,8 +123,17 @@ export default function ChatbotWidget() {
    * silently reverted every conversation to English. The selection has a
    * provider, so it is read from there.
    */
-  const { lang: language, t } = useLanguage()
+  const { lang: language, setLang, t } = useLanguage()
   const [open, setOpen] = useState(false)
+  // Gates the panel behind an explicit language choice the first time it's
+  // opened, rather than trusting the navbar toggle was already set the way
+  // the user wants this conversation to read — every message sends whatever
+  // `language` currently is (see sendMessage() below and chatbot.js's
+  // BANGLA_DIRECTIVE), so asking once up front removes the chance of the
+  // first few replies coming back in the wrong language. Stays true for the
+  // rest of this mount once answered, so closing and reopening the widget
+  // mid-conversation doesn't ask again.
+  const [langConfirmed, setLangConfirmed] = useState(false)
   const [conversationHistory, setConversationHistory] = useState([])
   const [input, setInput] = useState('')
   const [isResponding, setIsResponding] = useState(false)
@@ -150,10 +160,13 @@ export default function ChatbotWidget() {
   }, [conversationHistory, isResponding, open])
 
   // Opening a panel and leaving focus behind it is the difference between a
-  // control a keyboard user can reach and one they cannot.
+  // control a keyboard user can reach and one they cannot. The composer only
+  // mounts once the language prompt has been answered, so this also has to
+  // re-run when langConfirmed flips — otherwise the input the user actually
+  // sees never receives focus, since it didn't exist yet when `open` changed.
   useEffect(() => {
-    if (open) inputRef.current?.focus()
-  }, [open])
+    if (open && langConfirmed) inputRef.current?.focus()
+  }, [open, langConfirmed])
 
   useEffect(() => {
     if (!open) return undefined
@@ -221,7 +234,16 @@ export default function ChatbotWidget() {
 
   return (
     <>
-      {open && (
+      {open && !langConfirmed && (
+        <LanguagePromptDialog
+          titleKey="langPrompt.chatTitle"
+          subKey="langPrompt.chatSub"
+          onSelect={(chosen) => { setLang(chosen); setLangConfirmed(true) }}
+          onCancel={() => setOpen(false)}
+        />
+      )}
+
+      {open && langConfirmed && (
         <section className="chat" aria-label={t('chatbot.label')}>
           <header className="chat__header">
             <div className="chat__identity">

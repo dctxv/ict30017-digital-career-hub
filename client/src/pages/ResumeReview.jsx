@@ -1,10 +1,31 @@
-import { useEffect, useRef, useState } from 'react'
-import {
-  UploadCloud, FileCheck2, Sparkles, CheckCircle2, Eye, ChevronDown, ChevronUp,
-} from 'lucide-react'
+/*
+ * ResumeReview.jsx
+ *
+ * CHANGES:
+ * 1. uploadedFile / setUploadedFile — new useState hook that stores the raw File
+ *    object selected by the user. Set inside analyse() at the same point the
+ *    file is resolved (alongside setFilename), so it is always the file that
+ *    was actually sent to the backend. Cleared to null in showSample() because
+ *    sample mode has no real file. Passed to ResultsView so PDFPanel can derive
+ *    a blob URL from it directly without requiring a backend file URL.
+ * 2. Localisation — all static UI copy (labels, buttons, hints) goes through
+ *    useLanguage()'s t(). The sample review ("View sample") is static demo
+ *    copy written into this file, not real AI output, so it IS translated —
+ *    SAMPLE_EN / SAMPLE_BN below, chosen from the selected language at render
+ *    so flipping the toggle while viewing it swaps the text.
+ *    Real AI-generated feedback (an actual analysed resume) is translated too:
+ *    analyse() passes the selected language to streamResumeReview(), which
+ *    forwards it to POST /api/resume/analyze-stream as `language`. The backend
+ *    (ai-service/src/prompt/language.js) instructs the model to write the
+ *    narrative fields in Bangla while keeping scores, enum values and the
+ *    language_grammar original/corrected quote pairs in English — see that
+ *    file for why. This was "on hold" until this change wired the frontend
+ *    call site to actually send the language it already had.
+ */
+import { useState, useRef, useEffect } from 'react'
+import { CheckCircle2 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import ResumeAnalysisError from './ResumeAnalysisError'
-import ResultsView from './ResultsView'
 import { validateResumeFile, ACCEPTED_EXTENSIONS } from '../utils/resumeFile'
 import { apiFetch } from '../utils/apiClient'
 import {
@@ -16,26 +37,154 @@ import {
 } from '../utils/reviewContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { sampleReview } from '../data/sampleReview'
 import { streamResumeReview } from '../api/reviewResume'
+import ResultsView from './ResultsView'
+import LanguagePromptDialog from '../components/LanguagePromptDialog'
 import './ResumeReview.css'
 
-const CONTEXT_FIELDS = [
-  ['applicationChannel', 'review.contextChannel', APPLICATION_CHANNEL_OPTIONS],
-  ['employerType', 'review.contextEmployer', EMPLOYER_TYPE_OPTIONS],
-  ['candidateStage', 'review.contextStage', CANDIDATE_STAGE_OPTIONS],
-  ['targetSector', 'review.contextSector', TARGET_SECTOR_OPTIONS],
-]
+/* ── Hardcoded sample data ───────────────────────────────────────── */
+/* This is static demo copy authored for this file, not real AI output, so
+ * unlike actual resume feedback it IS translated. SAMPLE_EN / SAMPLE_BN carry
+ * identical structure; the component below picks whichever matches the
+ * selected language and re-picks it if the user switches language
+ * while the sample is on screen. */
+const SAMPLE_EN = {
+  overall_score: 52,
+  formatting: {
+    score: 61,
+    feedback: 'The resume has a clear section structure and readable layout. However, several legacy Bangladeshi conventions are present that would limit performance in modern ATS systems used by multinationals.',
+    issues: [
+      { section: 'Contact header', issue: 'Missing LinkedIn URL', suggestion: 'Add your LinkedIn profile URL (e.g. linkedin.com/in/yourname) — Bangladeshi MNC recruiters increasingly verify digital footprints before shortlisting.' },
+      { section: 'Skills', issue: '"Computer Knowledge" heading is outdated', suggestion: 'Rename to "Technical Skills" — modern recruiters and ATS systems expect this standard heading.' },
+      { section: 'Footer', issue: 'Declaration section adds no value', suggestion: 'Remove the declaration section entirely to reclaim space for skills or achievements.' },
+    ],
+  },
+  content_quality: {
+    score: 48,
+    feedback: 'The educational background is solid but the experience section critically lacks quantified achievements. Recruiters will not shortlist without specific outcomes using the CAR method.',
+    strengths: [
+      'Educational background shows relevant qualification (Diploma in Power Technology)',
+      'Training section includes practical hands-on skills aligned to the electrical sector',
+    ],
+    weaknesses: [
+      'Experience section lists topic areas only — no actual job roles, employers, dates, or outcomes',
+      'Career objective is generic ("seeking a challenging position in a dynamic environment") — replace with a targeted professional summary naming the power sector and your key qualifications',
+      'Training entries missing date ranges — show "Jan 2023 – Mar 2023", not just "3 months"',
+    ],
+  },
+  language_grammar: {
+    score: 61,
+    feedback: 'Generally readable, but weak verb choices and vague descriptors reduce professional impact. British English should be standardised throughout.',
+    issues: [
+      { original: 'Responsible for handling electrical maintenance', corrected: 'Spearheaded electrical maintenance operations for a 12-unit residential complex', type: 'Weak action verb' },
+      { original: 'Good command in English', corrected: 'Professional working proficiency in English (IELTS 6.5)', type: 'Vague language descriptor' },
+      { original: 'organization (used alongside "organisation")', corrected: 'organisation — standardise to British English throughout', type: 'British/American English mix' },
+    ],
+  },
+  action_items: [
+    'Experience section: Add at least 2 real job roles with employer, date range, and 2–3 CAR-method bullet points each — this is the single biggest gap recruiters will flag.',
+    'Training section: Add start–end dates to all entries (e.g. "Jan 2023 – Mar 2023") — dates show WHEN you trained, not just how long.',
+    'Career objective: Replace with a 2-sentence professional summary targeting a specific sector (power, electrical, or renewable energy) and naming your strongest qualification.',
+    'Skills section: Research 5 current job ads in your target sector and mirror their exact keyword language — ATS systems score heavily on keyword match.',
+  ],
+  ats_analysis: {
+    inferred_role: 'Electrical Engineer',
+    inferred_industry: 'Power & Energy',
+    keyword_hits: ['Electrical Wiring', 'Power Systems', 'Industrial Attachment', 'AutoCAD', 'Circuit Design'],
+    keyword_gaps: ['PLC Programming', 'SCADA', 'Load Flow Analysis', 'IEEE Standards', 'Energy Audit'],
+    heading_risks: [
+      { original: 'Computer Knowledge', issue: 'Non-standard heading — many ATS systems will fail to map this to a recognised section', recommended: 'Technical Skills' },
+    ],
+    ats_tips: [
+      'Add "PLC Programming" and "SCADA" explicitly to the Technical Skills section — these are high-frequency keywords in Bangladeshi power sector job ads.',
+      'Replace the "Computer Knowledge" heading with "Technical Skills" — ATS parsers at multinationals use this as the standard identifier.',
+      'Include the CGPA denominator for all academic entries (e.g. "3.72/4.00") — missing denominators cause ATS misreads on the dual 4.00/5.00 Bangladesh scale.',
+    ],
+    standard: 'international/multinational ATS',
+    ats_score: 44,
+  },
+  job_match: null,
+}
 
-const COVERAGE = ['Content', 'Language', 'Format', 'Ats']
+const SAMPLE_BN = {
+  overall_score: 52,
+  formatting: {
+    score: 61,
+    feedback: 'জীবনবৃত্তান্তে স্পষ্ট বিভাগ কাঠামো ও সুপাঠ্য লেআউট রয়েছে। তবে বেশ কিছু পুরনো বাংলাদেশি রীতি রয়ে গেছে, যা বহুজাতিক প্রতিষ্ঠানগুলোর ব্যবহৃত আধুনিক ATS সিস্টেমে কর্মক্ষমতা সীমিত করবে।',
+    issues: [
+      { section: 'যোগাযোগ শিরোনাম', issue: 'LinkedIn URL অনুপস্থিত', suggestion: 'আপনার LinkedIn প্রোফাইলের URL যোগ করুন (যেমন: linkedin.com/in/yourname) — বাংলাদেশি বহুজাতিক প্রতিষ্ঠানের নিয়োগকর্তারা শর্টলিস্ট করার আগে ক্রমবর্ধমানভাবে ডিজিটাল উপস্থিতি যাচাই করছেন।' },
+      { section: 'দক্ষতা', issue: '"Computer Knowledge" শিরোনামটি পুরনো', suggestion: '"Technical Skills"-এ পরিবর্তন করুন — আধুনিক নিয়োগকর্তা ও ATS সিস্টেম এই প্রমিত শিরোনাম আশা করে।' },
+      { section: 'ফুটার', issue: 'ঘোষণা বিভাগ কোনো মূল্য যোগ করে না', suggestion: 'দক্ষতা বা অর্জনের জন্য জায়গা পুনরুদ্ধার করতে ঘোষণা বিভাগটি সম্পূর্ণভাবে সরিয়ে ফেলুন।' },
+    ],
+  },
+  content_quality: {
+    score: 48,
+    feedback: 'শিক্ষাগত যোগ্যতা শক্তিশালী, তবে অভিজ্ঞতা বিভাগে পরিমাপযোগ্য অর্জনের গুরুতর ঘাটতি রয়েছে। CAR পদ্ধতি ব্যবহার করে নির্দিষ্ট ফলাফল ছাড়া নিয়োগকর্তারা শর্টলিস্ট করবেন না।',
+    strengths: [
+      'শিক্ষাগত পটভূমি প্রাসঙ্গিক যোগ্যতা দেখায় (পাওয়ার টেকনোলজিতে ডিপ্লোমা)',
+      'প্রশিক্ষণ বিভাগে বৈদ্যুতিক খাতের সাথে সামঞ্জস্যপূর্ণ বাস্তব হাতে-কলমে দক্ষতা অন্তর্ভুক্ত রয়েছে',
+    ],
+    weaknesses: [
+      'অভিজ্ঞতা বিভাগে শুধু বিষয়ক্ষেত্র তালিকাভুক্ত করা হয়েছে — প্রকৃত চাকরির পদ, নিয়োগকর্তা, তারিখ বা ফলাফল নেই',
+      'ক্যারিয়ার লক্ষ্য সাধারণ মানের ("একটি গতিশীল পরিবেশে চ্যালেঞ্জিং পদ খুঁজছি") — পাওয়ার সেক্টর ও আপনার মূল যোগ্যতার নাম উল্লেখ করে একটি লক্ষ্যভিত্তিক পেশাদার সারাংশ দিয়ে প্রতিস্থাপন করুন',
+      'প্রশিক্ষণ এন্ট্রিতে তারিখের পরিসীমা নেই — "3 months" না লিখে "Jan 2023 – Mar 2023" এভাবে দেখান',
+    ],
+  },
+  language_grammar: {
+    score: 61,
+    feedback: 'সাধারণভাবে সুপাঠ্য, তবে দুর্বল ক্রিয়াপদ নির্বাচন ও অস্পষ্ট বর্ণনা পেশাদার প্রভাব কমিয়ে দেয়। পুরো জীবনবৃত্তান্তে ব্রিটিশ ইংরেজি প্রমিত করা উচিত।',
+    issues: [
+      { original: 'Responsible for handling electrical maintenance', corrected: 'Spearheaded electrical maintenance operations for a 12-unit residential complex', type: 'দুর্বল ক্রিয়াপদ' },
+      { original: 'Good command in English', corrected: 'Professional working proficiency in English (IELTS 6.5)', type: 'অস্পষ্ট ভাষা বর্ণনা' },
+      { original: 'organization (used alongside "organisation")', corrected: 'organisation — standardise to British English throughout', type: 'ব্রিটিশ/আমেরিকান ইংরেজির মিশ্রণ' },
+    ],
+  },
+  action_items: [
+    'অভিজ্ঞতা বিভাগ: নিয়োগকর্তা, তারিখের পরিসীমা এবং প্রতিটিতে ২–৩টি CAR-পদ্ধতির বুলেট পয়েন্টসহ অন্তত ২টি প্রকৃত চাকরির পদ যোগ করুন — এটিই নিয়োগকর্তাদের চিহ্নিত করা সবচেয়ে বড় ঘাটতি।',
+    'প্রশিক্ষণ বিভাগ: সব এন্ট্রিতে শুরু–শেষের তারিখ যোগ করুন (যেমন: "Jan 2023 – Mar 2023") — তারিখ দেখায় আপনি কখন প্রশিক্ষণ নিয়েছেন, শুধু কতদিন তা নয়।',
+    'ক্যারিয়ার লক্ষ্য: একটি নির্দিষ্ট খাত (পাওয়ার, বৈদ্যুতিক বা নবায়নযোগ্য জ্বালানি) লক্ষ্য করে এবং আপনার সবচেয়ে শক্তিশালী যোগ্যতার নাম উল্লেখ করে ২-বাক্যের একটি পেশাদার সারাংশ দিয়ে প্রতিস্থাপন করুন।',
+    'দক্ষতা বিভাগ: আপনার লক্ষ্য খাতে ৫টি বর্তমান চাকরির বিজ্ঞাপন পর্যালোচনা করুন এবং তাদের ঠিক কীওয়ার্ড ভাষা অনুসরণ করুন — ATS সিস্টেম কীওয়ার্ড মিলের উপর ব্যাপকভাবে স্কোর করে।',
+  ],
+  ats_analysis: {
+    inferred_role: 'ইলেকট্রিক্যাল ইঞ্জিনিয়ার',
+    inferred_industry: 'পাওয়ার ও জ্বালানি',
+    keyword_hits: ['ইলেকট্রিক্যাল ওয়্যারিং', 'পাওয়ার সিস্টেম', 'ইন্ডাস্ট্রিয়াল অ্যাটাচমেন্ট', 'AutoCAD', 'সার্কিট ডিজাইন'],
+    keyword_gaps: ['PLC প্রোগ্রামিং', 'SCADA', 'লোড ফ্লো বিশ্লেষণ', 'IEEE মানদণ্ড', 'এনার্জি অডিট'],
+    heading_risks: [
+      { original: 'Computer Knowledge', issue: 'অপ্রচলিত শিরোনাম — অনেক ATS সিস্টেম এটিকে একটি স্বীকৃত বিভাগের সাথে ম্যাপ করতে ব্যর্থ হবে', recommended: 'Technical Skills' },
+    ],
+    ats_tips: [
+      '"PLC Programming" ও "SCADA" স্পষ্টভাবে Technical Skills বিভাগে যোগ করুন — এগুলো বাংলাদেশের পাওয়ার সেক্টরের চাকরির বিজ্ঞাপনে উচ্চ-ফ্রিকোয়েন্সি কীওয়ার্ড।',
+      '"Computer Knowledge" শিরোনামটি "Technical Skills" দিয়ে প্রতিস্থাপন করুন — বহুজাতিক প্রতিষ্ঠানের ATS পার্সার এটিকে প্রমিত শনাক্তকারী হিসেবে ব্যবহার করে।',
+      'সব শিক্ষাগত এন্ট্রিতে CGPA-র হর অন্তর্ভুক্ত করুন (যেমন: "3.72/4.00") — হর অনুপস্থিত থাকলে বাংলাদেশের দ্বৈত 4.00/5.00 স্কেলে ATS ভুল পাঠ করতে পারে।',
+    ],
+    standard: 'আন্তর্জাতিক/বহুজাতিক ATS',
+    ats_score: 44,
+  },
+  job_match: null,
+}
 
+/* ── FileIcon ────────────────────────────────────────────────────── */
+function FileIcon({ size = 36 }) {
+  return (
+    <svg width={size} height={size * 1.2} viewBox="0 0 30 36">
+      <rect x="1" y="1" width="21" height="33" rx="3" fill="none" stroke="var(--green-700)" strokeWidth="1.8" />
+      <path d="M21 1 L28 8 L21 8 Z" fill="var(--green-700)" opacity=".2" />
+      <path d="M21 1 L21 8 L28 8" fill="none" stroke="var(--green-700)" strokeWidth="1.8" />
+      <line x1="6" y1="18" x2="17" y2="18" stroke="var(--green-700)" strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="6" y1="24" x2="13" y2="24" stroke="var(--green-700)" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/* ── UploadView ──────────────────────────────────────────────────── */
 /*
  * Reads the caller's real remaining allowance.
  *
  * Three different numbers previously described one limit: static "3 reviews
  * remaining this month" text here, "3 resume reviews per day" on the register
  * page, and 5 per hour per IP in the server. The server is now the only
- * authority and this hook renders whatever it reports. Enforcement stays in
+ * authority, and this hook renders whatever it reports. Enforcement stays in
  * backend middleware; nothing here decides anything.
  */
 function useReviewQuota() {
@@ -44,7 +193,7 @@ function useReviewQuota() {
   useEffect(() => {
     let cancelled = false
     apiFetch('/api/resume/quota')
-      .then(response => (response.ok ? response.json() : null))
+      .then(r => (r.ok ? r.json() : null))
       .then(data => { if (!cancelled) setQuota(data) })
       .catch(() => { /* the label falls back to the generic plan text */ })
     return () => { cancelled = true }
@@ -53,12 +202,6 @@ function useReviewQuota() {
   return quota
 }
 
-/*
- * Takes the language helpers rather than reaching for the context itself, so it
- * stays a pure function of its arguments and can be reasoned about in isolation.
- * English distinguishes one review from several; Bangla does not, and the two
- * keys resolve to the same sentence there.
- */
 function describeQuota(quota, isAuthenticated, t, n) {
   if (!quota) return t('review.quotaFallback')
   if (quota.unlimited) return t('review.quotaUnlimited')
@@ -66,29 +209,23 @@ function describeQuota(quota, isAuthenticated, t, n) {
     return t('review.quotaAnonymous', { limit: n(quota.limit) })
   }
   if (quota.remaining === 0) return t('review.quotaExhausted')
+
+  // Two keys rather than a plural rule: English needs "review" vs "reviews" and
+  // the dictionary has no plural machinery, while Bangla draws no such
+  // distinction and uses the same sentence for both. n() renders the figures in
+  // the selected script, so a Bengali sentence does not carry ASCII digits.
   const key = quota.remaining === 1 ? 'review.quotaRemainingOne' : 'review.quotaRemainingMany'
   return t(key, { remaining: n(quota.remaining), limit: n(quota.limit) })
 }
 
-function formatSize(bytes) {
-  if (!bytes) return null
-  const mb = bytes / (1024 * 1024)
-  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`
-}
-
-/* ── Upload ──────────────────────────────────────────────────────────── */
-
-function UploadView({
-  file, setFile, jobRole, setJobRole, jobAd, setJobAd,
-  marketMode, setMarketMode, reviewContext, setReviewContext,
-  onAnalyse, onSample,
-}) {
-  const [dragging, setDragging] = useState(false)
-  const [enhanceOpen, setEnhanceOpen] = useState(false)
-  const [fileError, setFileError] = useState(null)
-  const inputRef = useRef(null)
-  const { isAuthenticated } = useAuth()
+function UploadView({ file, setFile, jobRole, setJobRole, jobAd, setJobAd, marketMode, setMarketMode, reviewContext, setReviewContext, onAnalyse, onSample }) {
   const { t, n } = useLanguage()
+  const [drag, setDrag] = useState(false)
+  const [enhanceOpen, setEnhanceOpen] = useState(false)
+  const inputRef = useRef()
+
+  const [fileError, setFileError] = useState('')
+  const { isAuthenticated } = useAuth()
   const quota = useReviewQuota()
 
   // The coarse market toggle and the precise employer selector answer the same
@@ -111,272 +248,264 @@ function UploadView({
       else if (value !== 'unknown') setMarketMode('bangladesh')
     }
   }
+  const quotaLabel = describeQuota(quota, isAuthenticated, t, n)
 
   // Runs for both the picker and the drop zone. accept=".pdf,.docx" only
   // filters the dialog, so a dropped .txt reached the server before this.
-  const pick = (candidate) => {
-    if (!candidate) return
-    const check = validateResumeFile(candidate)
+  const pick = f => {
+    if (!f) return
+    const check = validateResumeFile(f)
     if (!check.ok) {
-      // Held as a key plus its substitutions, not as a rendered sentence, so an
-      // error already on screen re-renders in the new language if the user
-      // toggles rather than freezing in the language it was raised in.
-      setFileError({ key: check.messageKey, vars: check.messageVars })
+      setFileError(check.message)
       setFile(null)
       return
     }
-    setFileError(null)
-    setFile(candidate)
+    setFileError('')
+    setFile(f)
   }
+  const handleDrop = e => { e.preventDefault(); setDrag(false); pick(e.dataTransfer.files[0]) }
 
-  const clearFile = () => {
-    setFile(null)
-    setFileError(null)
-    if (inputRef.current) inputRef.current.value = ''
-  }
+  const contextFields = [
+    ['applicationChannel', t('review.contextChannel'), APPLICATION_CHANNEL_OPTIONS],
+    ['employerType', t('review.contextEmployer'), EMPLOYER_TYPE_OPTIONS],
+    ['candidateStage', t('review.contextStage'), CANDIDATE_STAGE_OPTIONS],
+    ['targetSector', t('review.contextSector'), TARGET_SECTOR_OPTIONS],
+  ]
+
+  const coverageItems = [
+    [t('review.coversContent'), t('review.coversContentDesc')],
+    [t('review.coversLanguage'), t('review.coversLanguageDesc')],
+    [t('review.coversFormat'), t('review.coversFormatDesc')],
+    [t('review.coversAts'), t('review.coversAtsDesc')],
+  ]
 
   return (
     <>
-      <section className="page-head">
-        <div className="shell rr-head">
-          <h1 className="page-head__title">{t('review.title')}</h1>
+      <section className="page-head rr-head">
+        <div className="shell">
+          <h1 className="page-head__title">{t('nav.resumeReview')}</h1>
           <p className="page-head__sub">{t('review.sub')}</p>
         </div>
       </section>
 
-      <section className="rr-upload">
-        <div className="rr-upload__main">
-          <input
-            ref={inputRef}
-            type="file"
-            accept={ACCEPTED_EXTENSIONS.join(',')}
-            className="visually-hidden"
-            onChange={event => pick(event.target.files?.[0])}
-          />
-
-          {/* One control, two states. A separate "remove" button beside a filled
-              drop zone reads as a second upload target; the zone itself becomes
-              the way back once it holds something. */}
-          <div
-            className={`drop${file ? ' drop--filled' : ''}${dragging ? ' drop--dragging' : ''}`}
-            onDragOver={event => { event.preventDefault(); setDragging(true) }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={event => {
-              event.preventDefault()
-              setDragging(false)
-              pick(event.dataTransfer.files?.[0])
-            }}
-          >
-            {file ? (
-              <div className="drop__file">
-                <span className="drop__file-icon"><FileCheck2 size={21} /></span>
-                <span className="drop__file-text">
-                  <span className="drop__file-name">{file.name}</span>
-                  <span className="drop__file-meta">{formatSize(file.size)} · {file.name.split('.').pop().toUpperCase()}</span>
-                </span>
-                <button type="button" className="drop__remove" onClick={clearFile}>
-                  {t('review.remove')}
-                </button>
-              </div>
-            ) : (
-              <button type="button" className="drop__empty" onClick={() => inputRef.current?.click()}>
-                <span className="drop__icon"><UploadCloud size={24} /></span>
-                <span className="drop__title">{t('review.dropTitle')}</span>
-                <span className="drop__hint">{t('review.dropHint')}</span>
-                <span className="drop__browse">{t('review.browse')}</span>
+      <div className="page-body rr-body">
+        <div className="rr-main">
+          {!file ? (
+            <div
+              className={`drop-zone${drag ? ' drop-zone--active' : ''}`}
+              onDragOver={e => { e.preventDefault(); setDrag(true) }}
+              onDragLeave={() => setDrag(false)}
+              onDrop={handleDrop}
+              onClick={() => inputRef.current.click()}
+            >
+              <div className="drop-zone__icon"><FileIcon size={40} /></div>
+              <div className="drop-zone__title">{t('review.dropTitle')}</div>
+              <div className="drop-zone__hint">{t('review.dropHint')}</div>
+              <button
+                className="btn btn-outline"
+                onClick={e => { e.stopPropagation(); inputRef.current.click() }}
+              >
+                {t('review.browse')}
               </button>
-            )}
-          </div>
-
+              <input
+                ref={inputRef}
+                type="file"
+                accept={ACCEPTED_EXTENSIONS.join(',')}
+                style={{ display: 'none' }}
+                onChange={e => pick(e.target.files[0])}
+              />
+            </div>
+          ) : (
+            <div className="file-pill-row">
+              <span className="file-pill">
+                <svg width="12" height="15" viewBox="0 0 12 15">
+                  <rect x="1" y="1" width="8" height="12" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M7.5 1v3.5h3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                </svg>
+                {file.name}
+              </span>
+              <button className="btn btn-ghost btn-sm" onClick={() => setFile(null)}>{t('review.remove')}</button>
+            </div>
+          )}
           {fileError && (
-            <p className="notice notice--error rr-file-error" role="alert">
-              {t(fileError.key, fileError.vars)}
-            </p>
+            <p className="drop-zone__error" role="alert">{fileError}</p>
           )}
 
-          <div className="card rr-card">
-            <p className="card__title">{t('review.marketTitle')}</p>
-            <div className="rr-choices">
-              {[
-                ['bangladesh', 'review.marketLocal', 'review.marketLocalDesc'],
-                ['international', 'review.marketInternational', 'review.marketInternationalDesc'],
-              ].map(([mode, labelKey, descKey]) => (
-                <button
-                  key={mode}
-                  type="button"
-                  className={`rr-choice${marketMode === mode ? ' rr-choice--on' : ''}`}
-                  onClick={() => chooseMarket(mode)}
-                  aria-pressed={marketMode === mode}
-                >
-                  <span className="rr-choice__radio" />
-                  <span className="rr-choice__text">
-                    <span className="rr-choice__label">{t(labelKey)}</span>
-                    <span className="rr-choice__desc">{t(descKey)}</span>
+          {/* Visible whether or not a file has been chosen yet, rather than
+              appearing only after upload — filling these in first and then
+              dropping the file last works just as well, and gating them
+              behind the file hid the whole form from anyone still deciding
+              what to upload. */}
+          <div className="market-mode-card">
+            <div className="market-mode-title">{t('review.marketTitle')}</div>
+            <div className="market-mode-options">
+              <button
+                type="button"
+                className={`market-mode-btn ${marketMode === 'bangladesh' ? 'market-mode-btn--active' : ''}`}
+                onClick={() => chooseMarket('bangladesh')}
+              >
+                <span className="market-mode-btn__radio" />
+                <span className="market-mode-btn__text">
+                  <span className="market-mode-btn-label">{t('review.marketLocal')}</span>
+                  <span className="market-mode-btn-desc">
+                    {t('review.marketLocalDesc')}
                   </span>
-                </button>
-              ))}
+                </span>
+              </button>
+              <button
+                type="button"
+                className={`market-mode-btn ${marketMode === 'international' ? 'market-mode-btn--active' : ''}`}
+                onClick={() => chooseMarket('international')}
+              >
+                <span className="market-mode-btn__radio" />
+                <span className="market-mode-btn__text">
+                  <span className="market-mode-btn-label">{t('review.marketInternational')}</span>
+                  <span className="market-mode-btn-desc">
+                    {t('review.marketInternationalDesc')}
+                  </span>
+                </span>
+              </button>
             </div>
           </div>
 
           {/* Routes the reviewer's rules. Every field is optional: left alone,
               the server infers it and reports what it inferred. */}
-          <div className="card rr-card">
-            <p className="card__title">{t('review.contextTitle')}</p>
-            <p className="card__sub">{t('review.contextHint')}</p>
-            <div className="field-grid">
-              {CONTEXT_FIELDS.map(([key, labelKey, options]) => (
-                <div className="field" key={key}>
-                  <label className="field__label" htmlFor={`ctx-${key}`}>{t(labelKey)}</label>
-                  <span className="select-wrap">
-                    <select
-                      id={`ctx-${key}`}
-                      className="select"
-                      value={reviewContext[key]}
-                      onChange={event => chooseContext(key, event.target.value)}
-                    >
-                      {options.map(option => (
-                        <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
-                      ))}
-                    </select>
-                    <ChevronDown size={16} className="select-wrap__chevron" />
-                  </span>
+          <div className="context-card">
+            <div className="context-card__title">{t('review.contextTitle')}</div>
+            <p className="context-card__hint">
+              {t('review.contextHint')}
+            </p>
+            <div className="context-card__grid">
+              {contextFields.map(([key, label, options]) => (
+                <div className="form-group" key={key}>
+                  <label className="form-label" htmlFor={`ctx-${key}`}>{label}</label>
+                  <select
+                    id={`ctx-${key}`}
+                    className="form-input"
+                    value={reviewContext[key]}
+                    onChange={e => chooseContext(key, e.target.value)}
+                  >
+                    {options.map(o => (
+                      <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
+                    ))}
+                  </select>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="card rr-card rr-enhance">
-            <button
-              type="button"
-              className="rr-enhance__trigger"
-              onClick={() => setEnhanceOpen(open => !open)}
-              aria-expanded={enhanceOpen}
-            >
-              <Sparkles size={16} />
-              <span className="rr-enhance__label">{t('review.enhanceLabel')}</span>
-              <span className="rr-enhance__hint">{t('review.enhanceHint')}</span>
-              {enhanceOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-
+          <div className="enhance-card">
+            <div className="enhance-card__trigger" onClick={() => setEnhanceOpen(o => !o)}>
+              <span className="enhance-card__star">✦</span>
+              <span className="enhance-card__label">{t('review.enhanceLabel')}</span>
+              <span className="enhance-card__hint">{t('review.enhanceHint')}</span>
+              <span className="enhance-card__chevron">{enhanceOpen ? '▴' : '▾'}</span>
+            </div>
             {enhanceOpen && (
-              <div className="rr-enhance__fields">
-                <div className="field">
-                  <label className="field__label" htmlFor="rr-job-role">
-                    {t('review.jobRoleLabel')} <span className="optional">{t('common.optional')}</span>
-                  </label>
-                  <input id="rr-job-role"
-                    className="input"
+              <div className="enhance-card__fields">
+                <div className="form-group">
+                  <label className="form-label">{t('review.jobRoleLabel')} <span className="optional">{t('common.optional')}</span></label>
+                  <input
+                    className="form-input"
                     placeholder={t('review.jobRolePlaceholder')}
                     value={jobRole}
-                    onChange={event => setJobRole(event.target.value)}
+                    onChange={e => setJobRole(e.target.value)}
                   />
                 </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="rr-job-ad">
-                    {t('review.jobAdLabel')} <span className="optional">{t('review.jobAdOptional')}</span>
-                  </label>
-                  <textarea id="rr-job-ad"
-                    className="textarea"
+                <div className="form-group">
+                  <label className="form-label">{t('review.jobAdLabel')} <span className="optional">{t('review.jobAdOptional')}</span></label>
+                  <textarea
+                    className="form-textarea"
                     rows={4}
                     placeholder={t('review.jobAdPlaceholder')}
                     value={jobAd}
-                    onChange={event => setJobAd(event.target.value)}
+                    onChange={e => setJobAd(e.target.value)}
                   />
                 </div>
               </div>
             )}
           </div>
 
-          <div className="rr-submit">
-            <button
-              type="button"
-              className="btn btn--primary btn--lg"
-              onClick={onAnalyse}
-              disabled={!file}
-            >
+          <div className="upload-actions">
+            <button className="btn btn-primary btn-full" onClick={onAnalyse} disabled={!file}>
               {t('review.analyse')}
-              <Sparkles size={17} />
             </button>
-            <span className="rr-quota">{describeQuota(quota, isAuthenticated, t, n)}</span>
+            <div className="free-notice">
+              <span>⚠</span>
+              <span>{quotaLabel}</span>
+            </div>
           </div>
         </div>
 
-        <aside className="rr-aside">
-          <div className="card card--tinted">
-            <p className="eyebrow">{t('review.coversLabel')}</p>
-            <div className="rr-covers">
-              {COVERAGE.map(name => (
-                <div className="rr-cover" key={name}>
-                  <CheckCircle2 size={18} className="rr-cover__tick" />
-                  <div>
-                    <p className="rr-cover__title">{t(`review.covers${name}`)}</p>
-                    <p className="rr-cover__desc">{t(`review.covers${name}Desc`)}</p>
+        <aside className="rr-sidebar">
+          <div className="val-card">
+            <div className="val-section__label">{t('review.coversLabel')}</div>
+            <ul className="val-list">
+              {coverageItems.map(([title, desc]) => (
+                <li key={title} className="val-item">
+                  <CheckCircle2 size={18} className="val-item__icon" />
+                  <div className="val-item__text">
+                    <div className="val-item__title">{title}</div>
+                    <div className="val-item__desc">{desc}</div>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
 
-          <div className="card">
-            <p className="card__title">{t('review.sampleTitle')}</p>
-            <p className="rr-sample__sub">{t('review.sampleSub')}</p>
-            <button type="button" className="btn btn--outline btn--sm" onClick={onSample}>
+          <div className="sample-card">
+            <span className="sample-card__icon">👁</span>
+            <div className="sample-card__title">{t('review.sampleTitle')}</div>
+            <div className="sample-card__sub">{t('review.sampleSub')}</div>
+            <button type="button" className="sample-card__link" onClick={onSample}>
               {t('review.sampleButton')}
-              <Eye size={15} />
             </button>
           </div>
         </aside>
-      </section>
+      </div>
     </>
   )
 }
 
-/* ── Analysing ───────────────────────────────────────────────────────── */
-
-/*
- * The step list is a progress hint, not a report: the server streams one JSON
- * object and does not announce which section it is writing. Steps advance on a
- * timer that stops at the last one rather than looping, so it never claims to
- * have finished something the response has not delivered.
- */
+/* ── AnalysingView ───────────────────────────────────────────────── */
 function AnalysingView({ filename }) {
   const { t } = useLanguage()
-  const [step, setStep] = useState(0)
-
-  useEffect(() => {
-    const timer = setInterval(() => setStep(current => Math.min(current + 1, 3)), 1600)
-    return () => clearInterval(timer)
-  }, [])
-
+  const msgs = [
+    t('review.analysingStep1'),
+    t('review.analysingStep2'),
+    t('review.analysingStep3'),
+    t('review.analysingStep4'),
+  ]
   return (
     <div className="rr-analysing">
-      <span className="spinner spinner--lg" />
-      <h1 className="rr-analysing__title">{t('review.analysingTitle')}</h1>
-      <p className="rr-analysing__file">{filename}</p>
-
-      <div className="rr-analysing__steps">
-        {[1, 2, 3, 4].map((number, index) => {
-          const done = step > index
-          const active = step === index
-          return (
-            <div className="rr-step" key={number}>
-              <span className={`rr-step__dot${done ? ' rr-step__dot--done' : active ? ' rr-step__dot--on' : ''}`} />
-              <span className={`rr-step__label${done || active ? ' rr-step__label--on' : ''}`}>
-                {t(`review.analysingStep${number}`)}
-              </span>
-            </div>
-          )
-        })}
-        <div className="rr-analysing__bar"><span /></div>
+      <div className="analysing-spinner">
+        <svg width="72" height="72" className="analysing-spinner__svg">
+          <circle cx="36" cy="36" r="28" fill="none" stroke="var(--green-200)" strokeWidth="5" />
+          <circle cx="36" cy="36" r="28" fill="none" stroke="var(--green-700)" strokeWidth="5" strokeDasharray="44 132" strokeLinecap="round" />
+        </svg>
+        <span className="analysing-spinner__emoji">🔍</span>
+      </div>
+      <div className="analysing-text">
+        <div className="analysing-text__title">{t('review.analysingTitle')}</div>
+        <div className="analysing-text__file">{filename}</div>
+      </div>
+      <div className="analysing-dots">
+        <span className="ldot" /><span className="ldot" /><span className="ldot" />
+      </div>
+      <div className="analysing-steps">
+        {msgs.map((m, i) => (
+          <div key={i} className="analysing-step" style={{ animationDelay: `${i * 0.5}s` }}>
+            <span className="analysing-step__dot" />{m}
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
-/* ── Page ────────────────────────────────────────────────────────────── */
-
+/* ── Main page ───────────────────────────────────────────────────── */
 export default function ResumeReview() {
-  const { lang } = useLanguage()
+  const { t, lang, setLang } = useLanguage()
   const [view, setView] = useState('upload')
   const [file, setFile] = useState(null)
   const [uploadedFile, setUploadedFile] = useState(null)
@@ -392,30 +521,41 @@ export default function ResumeReview() {
   const [filename, setFilename] = useState('')
   const [isSample, setIsSample] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  // Holds the file an Analyse/Re-analyse click wants to submit while the
+  // language prompt below is open. `undefined` means the dialog is closed;
+  // `null` means "use whatever's in the `file` state" (a plain re-analyse).
+  const [pendingAnalyseFile, setPendingAnalyseFile] = useState(undefined)
 
-  async function analyse(fileArg) {
-    const target = fileArg instanceof File ? fileArg : file
-    if (!target) return
-
+  async function analyse(fileArg, languageOverride) {
+    const f = (fileArg instanceof File) ? fileArg : file
+    if (!f) return
     setIsLoading(true)
     setFeedback(null)
     setStreamError(null)
     setAnalysisError(null)
     setIsSample(false)
-    setFilename(target.name)
-    setUploadedFile(target)
+    setFilename(f.name)
+    setUploadedFile(f)
     setView('analysing')
-    window.scrollTo({ top: 0 })
 
-    await streamResumeReview(target, {
+    await streamResumeReview(f, {
       jobRole: jobRole || undefined,
       jobAd: jobAd || undefined,
       marketMode,
       reviewContext,
-      // The narrative feedback is generated in the selected language. Toggling
-      // mid-review does not rewrite what is already on screen; the next run
-      // comes back in the new language.
-      language: lang,
+      // The backend already writes the narrative feedback in this language
+      // (ai-service/src/prompt/language.js) — it just needs to be told which
+      // one. Scores, enums and the language_grammar quote/correction pairs
+      // stay in English regardless; that split is enforced in the prompt, not
+      // here.
+      //
+      // languageOverride comes straight from the language-prompt dialog the
+      // user just answered, rather than `lang`: setLang() schedules a state
+      // update, so reading `lang` here — in the same tick as the dialog's
+      // onSelect — would still see the previous language. Falling back to
+      // `lang` covers handleReanalyse(), which never shows the dialog when
+      // re-running with the language already established.
+      language: languageOverride ?? lang,
       onPartial: (partial) => {
         setFeedback(partial)
         setView('results')
@@ -425,19 +565,17 @@ export default function ResumeReview() {
         setView('results')
         setIsLoading(false)
       },
-      onError: (code, message) => {
+      onError: (code, msg) => {
         setIsLoading(false)
         // Feedback already on screen means the stream died partway: keep the
         // results and annotate them. Nothing on screen is a total failure and
         // must never route to the results shell with null feedback.
         setFeedback(current => {
           if (current) {
-            // Truthiness is all this carries: ResultsView renders its own
-            // translated banner rather than the server's wording.
-            setStreamError(true)
+            setStreamError(msg || t('review.streamStoppedEarly'))
             setView('results')
           } else {
-            setAnalysisError({ code, message })
+            setAnalysisError({ code, message: msg })
             setView('error')
           }
           return current
@@ -446,22 +584,54 @@ export default function ResumeReview() {
     })
   }
 
+  // Gate the first Analyse click behind an explicit language choice, rather
+  // than trusting that the navbar toggle was already set correctly — the
+  // mix-up this exists to prevent (an analysis coming back in English right
+  // after the user meant to switch to বাংলা) came from that toggle being
+  // easy to forget, not from anything wrong in the translation plumbing.
+  function requestAnalyse(fileArg) {
+    setPendingAnalyseFile(fileArg instanceof File ? fileArg : null)
+  }
+
+  function confirmAnalyseLanguage(chosenLang) {
+    const fileArg = pendingAnalyseFile
+    setPendingAnalyseFile(undefined)
+    setLang(chosenLang)
+    analyse(fileArg, chosenLang)
+  }
+
+  function cancelAnalyseLanguage() {
+    setPendingAnalyseFile(undefined)
+  }
+
   function showSample() {
-    setFeedback(sampleReview(lang))
     setFilename('Sample_Resume.pdf')
     setUploadedFile(null)
     setIsSample(true)
     setIsLoading(false)
     setStreamError(null)
-    setView('results')
-    window.scrollTo({ top: 0 })
+    setView('analysing')
+    setTimeout(() => setView('results'), 1400)
   }
+
+  /*
+   * Which sample to show is decided at render rather than stored.
+   *
+   * It was previously written into `feedback` in two places — once when the
+   * sample opened, and again from an effect watching the language, so that
+   * flipping the EN/BN toggle mid-view did not leave stale-language text on
+   * screen. That second write is a setState in an effect body, which React
+   * flags as a cascading render, and it kept two sources of truth for one
+   * value. The sample is static in both languages, so it is a pure function of
+   * the language and belongs in the render path. Real analysed feedback still
+   * comes from `feedback` and is untouched.
+   */
+  const displayedFeedback = isSample ? (lang === 'bn' ? SAMPLE_BN : SAMPLE_EN) : feedback
 
   function handleReanalyse() {
     setAnalysisError(null)
     if (isSample) { setView('upload'); return }
-    if (file) analyse()
-    else setView('upload')
+    if (file) analyse(); else setView('upload')
   }
 
   function handleUploadNew() {
@@ -471,13 +641,16 @@ export default function ResumeReview() {
     setFile(null)
     setUploadedFile(null)
     setView('upload')
-    window.scrollTo({ top: 0 })
+  }
+
+  function handleNewFile(f) {
+    setFile(f)
+    setView('upload')
   }
 
   return (
-    <div className="page-enter rr">
+    <div className="rr-page">
       <Navbar />
-
       {view === 'upload' && (
         <UploadView
           file={file}
@@ -490,13 +663,11 @@ export default function ResumeReview() {
           setMarketMode={setMarketMode}
           reviewContext={reviewContext}
           setReviewContext={setReviewContext}
-          onAnalyse={analyse}
+          onAnalyse={requestAnalyse}
           onSample={showSample}
         />
       )}
-
       {view === 'analysing' && <AnalysingView filename={filename} />}
-
       {view === 'error' && (
         <ResumeAnalysisError
           code={analysisError?.code}
@@ -506,23 +677,29 @@ export default function ResumeReview() {
           onUploadNew={handleUploadNew}
         />
       )}
-
       {view === 'results' && (
         <ResultsView
           filename={filename}
           isSample={isSample}
-          feedback={feedback}
+          feedback={displayedFeedback}
           isLoading={isLoading}
           streamError={streamError}
-          marketMode={marketMode}
           jobRole={jobRole}
           setJobRole={setJobRole}
           jobAd={jobAd}
           setJobAd={setJobAd}
           onReanalyse={handleReanalyse}
-          onUploadNew={handleUploadNew}
-          onNewFile={(next) => { setFile(next); analyse(next) }}
+          onUploadNew={() => setView('upload')}
+          onNewFile={handleNewFile}
           uploadedFile={uploadedFile}
+        />
+      )}
+      {pendingAnalyseFile !== undefined && (
+        <LanguagePromptDialog
+          titleKey="langPrompt.resumeTitle"
+          subKey="langPrompt.resumeSub"
+          onSelect={confirmAnalyseLanguage}
+          onCancel={cancelAnalyseLanguage}
         />
       )}
     </div>

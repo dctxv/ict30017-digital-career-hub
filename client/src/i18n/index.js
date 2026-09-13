@@ -92,13 +92,20 @@ export function localiseDigits(value, lang) {
  * These live inside the progression JSONB as "0–1 yr", "3–5 yrs", "8+ yrs" —
  * 18 distinct values across the 70 seeded paths, all matching one of two
  * shapes. They were the last English left on a fully translated Bangla page,
- * and they have none of the reasons the job titles beside them stay English:
- * a duration is not a term anyone searches a job board for.
+ * and they have none of the reasons the job titles beside them once stayed
+ * English: a duration is not a term anyone searches a job board for.
  *
- * Handled by pattern rather than by a progression_bn column, because the
- * grammar is small and regular and a column would mean translating 340 step
- * labels to reach 18 distinct strings. Bangla draws no singular/plural
- * distinction here, so "yr" and "yrs" both become বছর.
+ * Handled by pattern rather than by a column, because the grammar is small and
+ * regular and a column would mean translating 340 step labels to reach 18
+ * distinct strings. Bangla draws no singular/plural distinction here, so "yr"
+ * and "yrs" both become বছর.
+ *
+ * A progression_bn column has since been added
+ * (server/migrations/add_full_bilingual_content.sql) and the API now serves it
+ * for ?lang=bn, so on a translated row this function sees Bangla text, matches
+ * neither pattern and passes it through. The two are complements: the column
+ * wins where a row has been translated, and this still covers every row that
+ * has not.
  *
  * Anything that does not match is returned untouched — an admin can type
  * whatever they like into the progression JSON, and a guess is worse than the

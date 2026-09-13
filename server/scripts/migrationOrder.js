@@ -34,4 +34,7 @@ export const MIGRATION_ORDER = Object.freeze([
   'add_subscription_payment_method.sql',
   'add_subscription_upgrade_source.sql',
   'create_preparation_tables.sql',
+  'add_full_bilingual_content.sql',
+  'seed_full_bangla_content.sql',
+  'retranslate_alumni_bios.sql',
 ]);

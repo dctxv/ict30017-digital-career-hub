@@ -9,6 +9,7 @@
     "dev": "nodemon src/app.js",
     "check": "node scripts/check-setup.js",
     "migrate": "node scripts/migrate.js",
+    "migrate:reset": "node scripts/reset-migration.js",
     "compare-models": "node scripts/compare-models.js",
     "test": "node --test \"src/**/*.test.js\""
   },

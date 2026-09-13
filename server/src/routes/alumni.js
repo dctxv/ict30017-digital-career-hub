@@ -35,9 +35,13 @@ const SUPPORTED_LANGUAGES = ['en', 'bn'];
  * flat `bio` and `industry` the alumni page renders, falling back to English
  * per field via COALESCE so an untranslated profile still shows its story.
  *
- * full_name, institution and current_role have no Bangla column on purpose. A
- * person's name is not translated, and neither is the employer on their badge
- * or the job title they hold.
+ * full_name, institution and current_role originally had no Bangla column on
+ * the theory that a person's name isn't translated, and neither is the
+ * employer on their badge or the job title they hold. That was overridden by
+ * an explicit project decision to run the site strictly in Bangla, converting
+ * proper nouns to Bangla script too: full_name_bn, institution_bn and
+ * current_role_bn now exist (server/migrations/add_full_bilingual_content.sql)
+ * and resolve the same way as bio/industry.
  *
  * `lang` is validated before it reaches here, so this picks between two fixed
  * literals rather than interpolating anything a caller supplied.
@@ -45,9 +49,12 @@ const SUPPORTED_LANGUAGES = ['en', 'bn'];
 function publicFields(lang) {
   const bio = lang === 'bn' ? 'COALESCE(bio_bn, bio)' : 'bio';
   const industry = lang === 'bn' ? 'COALESCE(industry_bn, industry)' : 'industry';
+  const fullName = lang === 'bn' ? 'COALESCE(full_name_bn, full_name)' : 'full_name';
+  const institution = lang === 'bn' ? 'COALESCE(institution_bn, institution)' : 'institution';
+  const currentRole = lang === 'bn' ? 'COALESCE(current_role_bn, "current_role")' : '"current_role"';
   return `
-  id, full_name, institution, discipline, graduation_year,
-  "current_role", ${industry} AS industry, ${bio} AS bio, image_initials,
+  id, ${fullName} AS full_name, ${institution} AS institution, discipline, graduation_year,
+  ${currentRole} AS "current_role", ${industry} AS industry, ${bio} AS bio, image_initials,
   email, linkedin_url
 `;
 }
@@ -64,7 +71,8 @@ const PUBLIC_FIELDS = publicFields('en');
 const ADMIN_FIELDS = `
   id, full_name, institution, discipline, graduation_year,
   "current_role", industry, bio, image_initials,
-  bio_bn, industry_bn, email, linkedin_url,
+  bio_bn, industry_bn, full_name_bn, institution_bn, current_role_bn,
+  email, linkedin_url,
   consent_given, is_published
 `;
 
@@ -79,7 +87,7 @@ function validateAlumni(body) {
   const {
     full_name, institution, discipline, graduation_year,
     current_role, industry, bio, image_initials,
-    bio_bn, industry_bn,
+    bio_bn, industry_bn, full_name_bn, institution_bn, current_role_bn,
     email, linkedin_url,
     consent_given, is_published,
   } = body;
@@ -101,6 +109,9 @@ function validateAlumni(body) {
     ['Current role', current_role],
     ['Industry', industry],
     ['Bangla industry', industry_bn],
+    ['Bangla full name', full_name_bn],
+    ['Bangla institution', institution_bn],
+    ['Bangla current role', current_role_bn],
   ]) {
     if (value !== undefined && value !== null) {
       if (typeof value !== 'string') return `${label} must be text.`;
@@ -181,6 +192,9 @@ function toParams(body) {
     initials === '' ? null : initials,
     nullIfBlank(body.bio_bn),
     nullIfBlank(body.industry_bn),
+    nullIfBlank(body.full_name_bn),
+    nullIfBlank(body.institution_bn),
+    nullIfBlank(body.current_role_bn),
     optionalText(body.email),
     optionalText(body.linkedin_url),
     body.consent_given === true,
@@ -268,8 +282,9 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       `INSERT INTO alumni
          (full_name, institution, discipline, graduation_year, "current_role",
           industry, bio, image_initials, bio_bn, industry_bn,
+          full_name_bn, institution_bn, current_role_bn,
           email, linkedin_url, consent_given, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
        RETURNING ${ADMIN_FIELDS}`,
       toParams(req.body)
     );
@@ -306,9 +321,11 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       `UPDATE alumni
           SET full_name = $1, institution = $2, discipline = $3, graduation_year = $4,
               "current_role" = $5, industry = $6, bio = $7, image_initials = $8,
-              bio_bn = $9, industry_bn = $10, email = $11, linkedin_url = $12,
-              consent_given = $13, is_published = $14
-        WHERE id = $15
+              bio_bn = $9, industry_bn = $10,
+              full_name_bn = $11, institution_bn = $12, current_role_bn = $13,
+              email = $14, linkedin_url = $15,
+              consent_given = $16, is_published = $17
+        WHERE id = $18
       RETURNING ${ADMIN_FIELDS}`,
       [...toParams(req.body), id]
     );
