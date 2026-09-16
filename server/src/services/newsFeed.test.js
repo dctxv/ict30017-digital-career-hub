@@ -66,7 +66,21 @@ test('news feed serves stale cached articles when refresh fails', async () => {
   assert.equal(stale.articles.length, 1);
 });
 
-test('news feed refuses to call provider without a configured key', async () => {
+test('news feed returns safe fallbacks without a configured key', async () => {
   const feed = createNewsFeed({ getApiKey: () => '' });
-  await assert.rejects(feed.getArticles(), /not configured/);
+  const result = await feed.getArticles();
+
+  assert.equal(result.stale, true);
+  assert.ok(result.articles.length >= 3);
+  assert.ok(result.articles.every((article) => article.url.startsWith('https://')));
+});
+
+test('news feed returns fallbacks when searches find no articles', async () => {
+  const feed = createNewsFeed({
+    getApiKey: () => 'test-key',
+    fetchImpl: async () => ({ ok: true, json: async () => ({ news: [] }) }),
+  });
+  const result = await feed.getArticles();
+
+  assert.ok(result.articles.length >= 3);
 });

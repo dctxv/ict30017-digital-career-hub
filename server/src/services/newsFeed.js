@@ -3,6 +3,33 @@ const CACHE_TTL_MS = 60 * 60 * 1000;
 const MAX_ARTICLES = 6;
 const SEARCH_TERMS = ['career', 'education', 'technology'];
 
+export const FALLBACK_ARTICLES = Object.freeze([
+  {
+    id: 'fallback-wef-jobs-skills',
+    title: 'Explore global jobs and skills insights',
+    description: 'Read current analysis about changing careers, workplace skills and the future of employment.',
+    url: 'https://www.weforum.org/stories/jobs-and-skills/',
+    source: 'weforum.org',
+    published: null,
+  },
+  {
+    id: 'fallback-ilo-skills',
+    title: 'Develop skills for lifelong employment',
+    description: 'Explore practical guidance on skills development, employability and lifelong learning.',
+    url: 'https://www.ilo.org/topics-and-sectors/skills-and-lifelong-learning',
+    source: 'ilo.org',
+    published: null,
+  },
+  {
+    id: 'fallback-microsoft-learn',
+    title: 'Build digital skills for your career',
+    description: 'Use free learning paths to strengthen technical and professional skills for modern roles.',
+    url: 'https://learn.microsoft.com/training/',
+    source: 'learn.microsoft.com',
+    published: null,
+  },
+]);
+
 function safeHttpUrl(raw) {
   try {
     const parsed = new URL(raw);
@@ -88,7 +115,8 @@ export function createNewsFeed({
       throw new Error('All Currents API searches failed.');
     }
 
-    return normaliseArticles(successful);
+    const articles = normaliseArticles(successful);
+    return articles.length > 0 ? articles : FALLBACK_ARTICLES;
   }
 
   async function getArticles() {
@@ -103,9 +131,9 @@ export function createNewsFeed({
           cache = { articles, fetchedAt: now() };
           return { articles, cached: false, stale: false };
         })
-        .catch((error) => {
+        .catch(() => {
           if (cache) return { articles: cache.articles, cached: true, stale: true };
-          throw error;
+          return { articles: FALLBACK_ARTICLES, cached: true, stale: true };
         })
         .finally(() => {
           inFlight = null;
