@@ -40,7 +40,7 @@ test('news feed caches provider responses for one hour', async () => {
   const first = await feed.getArticles();
   const second = await feed.getArticles();
 
-  assert.equal(requests, 1);
+  assert.equal(requests, 3);
   assert.equal(first.cached, false);
   assert.equal(second.cached, true);
 });

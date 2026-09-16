@@ -1,7 +1,7 @@
 const CURRENTS_ENDPOINT = 'https://api.currentsapi.services/v1/search';
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const MAX_ARTICLES = 6;
-const SEARCH_TERMS = 'Bangladesh career jobs education skills technology';
+const SEARCH_TERMS = ['career', 'education', 'technology'];
 
 function safeHttpUrl(raw) {
   try {
@@ -14,6 +14,8 @@ function safeHttpUrl(raw) {
 
 export function normaliseArticles(news) {
   if (!Array.isArray(news)) return [];
+
+  const seenUrls = new Set();
 
   return news
     .map((item) => {
@@ -35,7 +37,11 @@ export function normaliseArticles(news) {
         published,
       };
     })
-    .filter(Boolean)
+    .filter((article) => {
+      if (!article || seenUrls.has(article.url)) return false;
+      seenUrls.add(article.url);
+      return true;
+    })
     .slice(0, MAX_ARTICLES);
 }
 
@@ -53,27 +59,36 @@ export function createNewsFeed({
       throw new Error('CURRENTS_API_KEY is not configured.');
     }
 
-    const params = new URLSearchParams({
-      keywords: SEARCH_TERMS,
-      language: 'en',
-      country: 'BD',
-    });
+    // Separate broad searches are more reliable than one restrictive
+    // multi-keyword/country query. Three requests per cache refresh is still
+    // only 72 requests/day at most, below the 250-request free allowance.
+    const results = await Promise.allSettled(SEARCH_TERMS.map(async (keywords) => {
+      const params = new URLSearchParams({ keywords, language: 'en' });
+      const response = await fetchImpl(`${CURRENTS_ENDPOINT}?${params}`, {
+        headers: { Authorization: apiKey },
+        signal: AbortSignal.timeout(8000),
+      });
 
-    const response = await fetchImpl(`${CURRENTS_ENDPOINT}?${params}`, {
-      headers: { Authorization: apiKey },
-      signal: AbortSignal.timeout(8000),
-    });
+      if (!response.ok) {
+        throw new Error(`Currents API returned ${response.status}.`);
+      }
 
-    if (!response.ok) {
-      throw new Error(`Currents API returned ${response.status}.`);
+      const body = await response.json();
+      if (!Array.isArray(body.news)) {
+        throw new Error('Currents API returned an invalid response.');
+      }
+      return body.news;
+    }));
+
+    const successful = results
+      .filter((result) => result.status === 'fulfilled')
+      .flatMap((result) => result.value);
+
+    if (successful.length === 0 && results.every((result) => result.status === 'rejected')) {
+      throw new Error('All Currents API searches failed.');
     }
 
-    const body = await response.json();
-    if (!Array.isArray(body.news)) {
-      throw new Error('Currents API returned an invalid response.');
-    }
-
-    return normaliseArticles(body.news);
+    return normaliseArticles(successful);
   }
 
   async function getArticles() {
