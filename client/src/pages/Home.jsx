@@ -54,8 +54,6 @@ export default function Home() {
 
   useEffect(() => {
     const controller = new AbortController()
-    setNewsStatus('loading')
-
     fetch('/api/news', { signal: controller.signal })
       .then(async response => {
         if (!response.ok) throw new Error('News is unavailable')
@@ -177,7 +175,7 @@ export default function Home() {
           {newsStatus === 'error' && (
             <div className="news__status news__status--error" role="alert">
               <span>{t('home.news.error')}</span>
-              <button type="button" className="btn btn--outline" onClick={() => setNewsReload(value => value + 1)}>
+              <button type="button" className="btn btn--outline" onClick={() => { setNewsStatus('loading'); setNewsReload(value => value + 1) }}>
                 <RefreshCw size={15} /> {t('home.news.retry')}
               </button>
             </div>
