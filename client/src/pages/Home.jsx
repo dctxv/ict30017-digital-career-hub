@@ -54,7 +54,7 @@ export default function Home() {
 
   useEffect(() => {
     const controller = new AbortController()
-    fetch('/api/news', { signal: controller.signal })
+    fetch('/api/news?v=2', { signal: controller.signal, cache: 'no-store' })
       .then(async response => {
         if (!response.ok) throw new Error('News is unavailable')
         return response.json()

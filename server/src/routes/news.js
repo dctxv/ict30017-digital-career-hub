@@ -9,7 +9,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const result = await newsFeed.getArticles();
-    res.set('Cache-Control', 'public, max-age=300');
+    res.set('Cache-Control', 'no-store');
     return res.json({ ...result, provider: 'Currents' });
   } catch (error) {
     console.error('[news] feed failed:', error.message);
