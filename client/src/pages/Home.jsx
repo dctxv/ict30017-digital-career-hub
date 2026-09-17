@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Sparkles, ArrowRight, ShieldCheck, Clock,
   FileText, Languages, BookOpen, Route, MessageCircle, Users,
+  ExternalLink, Newspaper, RefreshCw,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
@@ -34,8 +36,39 @@ function Tile({ className, to, onClick, children }) {
   return <button type="button" className={className} onClick={onClick}>{children}</button>
 }
 
+function formatNewsDate(value, lang) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-AU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
+
 export default function Home() {
   const { lang, setLang, t } = useLanguage()
+  const [articles, setArticles] = useState([])
+  const [newsStatus, setNewsStatus] = useState('loading')
+  const [newsReload, setNewsReload] = useState(0)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/news?v=2', { signal: controller.signal, cache: 'no-store' })
+      .then(async response => {
+        if (!response.ok) throw new Error('News is unavailable')
+        return response.json()
+      })
+      .then(data => {
+        setArticles(Array.isArray(data.articles) ? data.articles : [])
+        setNewsStatus('ready')
+      })
+      .catch(error => {
+        if (error.name !== 'AbortError') setNewsStatus('error')
+      })
+
+    return () => controller.abort()
+  }, [newsReload])
 
   const actions = {
     toggleLanguage: () => setLang(lang === 'en' ? 'bn' : 'en'),
@@ -124,6 +157,54 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <section className="news" aria-labelledby="news-title">
+        <div className="news__inner">
+          <p className="features__label">{t('home.news.label')}</p>
+          <div className="news__heading">
+            <div>
+              <h2 id="news-title">{t('home.news.title')}</h2>
+              <p>{t('home.news.subtitle')}</p>
+            </div>
+            <Newspaper size={25} aria-hidden="true" />
+          </div>
+
+          {newsStatus === 'loading' && (
+            <p className="news__status" role="status">{t('home.news.loading')}</p>
+          )}
+
+          {newsStatus === 'error' && (
+            <div className="news__status news__status--error" role="alert">
+              <span>{t('home.news.error')}</span>
+              <button type="button" className="btn btn--outline" onClick={() => { setNewsStatus('loading'); setNewsReload(value => value + 1) }}>
+                <RefreshCw size={15} /> {t('home.news.retry')}
+              </button>
+            </div>
+          )}
+
+          {newsStatus === 'ready' && articles.length === 0 && (
+            <p className="news__status">{t('home.news.empty')}</p>
+          )}
+
+          {articles.length > 0 && (
+            <div className="news__grid">
+              {articles.map(article => (
+                <article className="news-card" key={article.id}>
+                  <div className="news-card__meta">
+                    <span>{article.source}</span>
+                    {article.published && <time dateTime={article.published}>{formatNewsDate(article.published, lang)}</time>}
+                  </div>
+                  <h3>{article.title}</h3>
+                  {article.description && <p>{article.description}</p>}
+                  <a href={article.url} target="_blank" rel="noopener noreferrer">
+                    {t('home.news.readMore')} <ExternalLink size={14} />
+                  </a>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
     </div>
   )
 }
