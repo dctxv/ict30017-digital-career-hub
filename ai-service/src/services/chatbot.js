@@ -133,7 +133,7 @@ export function buildChatMessages(conversationHistory, newUserMessage, language 
   ];
 }
 
-export async function* streamChatbotResponse(conversationHistory, newUserMessage, { userId, tier = 'free', language = 'en' } = {}) {
+export async function* streamChatbotResponse(conversationHistory, newUserMessage, { userId, tier = 'free', language = 'en', identity } = {}) {
   if (!newUserMessage || !String(newUserMessage).trim()) {
     throw new Error('Chat message cannot be empty.');
   }
@@ -151,6 +151,10 @@ export async function* streamChatbotResponse(conversationHistory, newUserMessage
     model,
     temperature: 0.4,
     stream: true,
+    // sanitiseChatInput above already strips BD mobiles and NID numbers, but it
+    // knows nothing about names, emails, addresses or non-BD numbers — and
+    // users paste whole CVs into this box. The chokepoint covers the rest.
+    maskContext: { label: 'chatbot', ...(identity ?? {}) },
     messages,
   });
 

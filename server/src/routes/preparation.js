@@ -43,6 +43,7 @@ import upload from '../middleware/upload.js';
 import { extractText } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
 import { redactPiiDeepWithFindings } from '../utils/piiRedactor.js';
+import { readAccountIdentity } from '../utils/accountIdentity.js';
 import { requireAuth, requireActiveAccount } from '../middleware/auth.js';
 import { resolveLanguage } from '../i18n/index.js';
 import { statusForAiErrorCode, isAiErrorCode } from '../utils/aiStatus.js';
@@ -282,9 +283,11 @@ router.post(
       // five questions aim at a real, previously identified weakness, which is
       // the thing that proves the two features are connected rather than sitting
       // beside each other.
-      const [knownGaps, profile] = await Promise.all([
+      const [knownGaps, profile, identity] = await Promise.all([
         readOpenGapsForPrompt(req.user.id),
         readCandidateProfile(req.user.id),
+        // The known strings the outbound mask uses on top of its patterns.
+        readAccountIdentity(req.user.id),
       ]);
 
       const result = await generateInterviewQuestions({
@@ -296,6 +299,7 @@ router.post(
         profile,
         language,
         tier: res.locals.interviewQuota?.tier === 'premium' ? 'premium' : 'free',
+        identity,
       });
 
       if (!result.ok) {
@@ -417,7 +421,10 @@ router.post('/interviews/:id/answers', preparationRateLimit, async (req, res) =>
 
     // Read again rather than stored with the interview: the same three fields
     // the questions were written against, as they stand now.
-    const profile = await readCandidateProfile(req.user.id);
+    const [profile, identity] = await Promise.all([
+      readCandidateProfile(req.user.id),
+      readAccountIdentity(req.user.id),
+    ]);
 
     const result = await evaluateInterview({
       questions,
@@ -429,6 +436,7 @@ router.post('/interviews/:id/answers', preparationRateLimit, async (req, res) =>
       profile,
       language,
       tier: interview.tier === 'premium' ? 'premium' : 'free',
+      identity,
     });
 
     if (!result.ok) {

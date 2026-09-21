@@ -54,6 +54,8 @@ import { normaliseContext } from 'ai-service/src/prompt/context.js';
 import { withOutputLanguage } from 'ai-service/src/prompt/language.js';
 import { ReviewResponseSchema } from 'ai-service/src/schemas/resumeSchema.js';
 import { checkBanglaOutput } from 'ai-service/src/quality/banglaOutput.js';
+import { withOutboundMasking } from 'ai-service/src/utils/aiClient.js';
+import { inferNameFromHeader } from 'ai-service/src/utils/piiMask.js';
 import {
   AI_COMPLETION_PARAMS,
   resolveProtectedHeadings,
@@ -206,18 +208,22 @@ function clientFor(provider) {
   if (provider === 'google') {
     const apiKey = process.env.GOOGLE_AI_API_KEY;
     if (!apiKey) throw new Error('GOOGLE_AI_API_KEY is not set in server/.env');
-    clients.google = new OpenAI({
+    // Wrapped like the production client. This harness builds its own clients
+    // rather than calling getGroqClient, so without this it would be the one
+    // path that sends resume fixtures to a provider unmasked — and it sends
+    // them to TWO providers, one of which production never touches.
+    clients.google = withOutboundMasking(new OpenAI({
       apiKey,
       // The trailing slash matters: the SDK appends 'chat/completions' to this
       // path, and without it the last segment is replaced rather than extended.
       baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    });
+    }));
     return clients.google;
   }
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error('OPENROUTER_API_KEY is not set in server/.env');
-  clients.openrouter = new OpenAI({
+  clients.openrouter = withOutboundMasking(new OpenAI({
     apiKey,
     // COMPARE_BASE_URL lets the harness be smoke-tested against a local stub
     // that speaks the OpenAI wire format, so the run/scoring/report path can be
@@ -227,7 +233,7 @@ function clientFor(provider) {
       'HTTP-Referer': 'https://digital-career-hub.local',
       'X-Title': 'ICT30017 Digital Career Hub',
     },
-  });
+  }));
   return clients.openrouter;
 }
 
@@ -328,6 +334,12 @@ async function runOne({ candidate, route, contextKey, language, resumeText }) {
   const response = await clientFor(route.provider).chat.completions.create({
     model: route.modelId,
     ...AI_COMPLETION_PARAMS,
+    // The fixtures are real resumes, so the header is parsed for a name the
+    // same way the live review path does it.
+    maskContext: {
+      label: `compare:${candidate.key}`,
+      extraNames: [inferNameFromHeader(resumeText)].filter(Boolean),
+    },
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessage },
@@ -429,6 +441,8 @@ async function verifyModels() {
       await clientFor(route.provider).chat.completions.create({
         model: route.modelId,
         max_tokens: 1,
+        // A reachability probe, not a review: no user content to mask.
+        maskContext: 'none',
         messages: [{ role: 'user', content: 'ok' }],
       });
       console.log(`  OK    ${candidate.key.padEnd(24)} ${route.provider}: ${route.modelId}`);

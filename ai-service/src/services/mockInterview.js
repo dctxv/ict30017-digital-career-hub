@@ -26,6 +26,7 @@
  */
 
 import { requestJson } from '../utils/completion.js';
+import { inferNameFromHeader } from '../utils/piiMask.js';
 import {
   InterviewQuestionsSchema,
   InterviewEvaluationSchema,
@@ -251,6 +252,7 @@ export async function generateInterviewQuestions({
   profile = null,
   language = 'en',
   tier = 'free',
+  identity,
 } = {}) {
   const hasResume = typeof resumeText === 'string' && resumeText.trim().length > 0;
   const hasJobAd = typeof jobAd === 'string' && jobAd.trim().length > 0;
@@ -286,6 +288,15 @@ export async function generateInterviewQuestions({
     tier,
     params: INTERVIEW_COMPLETION_PARAMS,
     language,
+    // The resume goes into this payload verbatim, so the header is parsed for a
+    // name alongside the account's own.
+    maskContext: {
+      ...(identity ?? {}),
+      extraNames: [
+        ...(identity?.extraNames ?? []),
+        hasResume ? inferNameFromHeader(resumeText) : null,
+      ].filter(Boolean),
+    },
   });
 
   if (!result.ok) return result;
@@ -348,6 +359,7 @@ export async function evaluateInterview({
   profile = null,
   language = 'en',
   tier = 'free',
+  identity,
 } = {}) {
   if (questions.length === 0) {
     throw new Error('An interview cannot be evaluated without its questions.');
@@ -397,6 +409,9 @@ export async function evaluateInterview({
     tier,
     params: INTERVIEW_COMPLETION_PARAMS,
     language,
+    // Candidates introduce themselves in their answers — "My name is ..., I
+    // worked at ..." — so the transcript is masked on the same terms as a CV.
+    maskContext: { ...(identity ?? {}) },
   });
 
   if (!result.ok) return result;

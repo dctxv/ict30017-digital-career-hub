@@ -41,6 +41,9 @@ import { classifyAiError, formatAiErrorLog } from './aiErrors.js';
  * @param {'free'|'premium'} [input.tier]
  * @param {object} [input.params] completion parameters
  * @param {string} [input.language] recorded in the log line only
+ * @param {object|'none'} input.maskContext the account holder's identity, used to
+ *   mask PII out of the payload before it leaves. Required: the client throws
+ *   without it, by design. See ai-service/src/utils/piiMask.js.
  * @returns {Promise<CompletionOk|CompletionFailure>}
  */
 export async function requestJson({
@@ -51,6 +54,7 @@ export async function requestJson({
   tier = 'free',
   params = {},
   language = 'en',
+  maskContext,
 }) {
   const client = getGroqClient();
   const model = getModel(tier);
@@ -60,6 +64,11 @@ export async function requestJson({
     const response = await client.chat.completions.create({
       model,
       ...params,
+      // Not optional and not defaulted: an absent maskContext throws in the
+      // client rather than sending the payload unmasked.
+      maskContext: maskContext && maskContext !== 'none'
+        ? { label, ...maskContext }
+        : maskContext,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },

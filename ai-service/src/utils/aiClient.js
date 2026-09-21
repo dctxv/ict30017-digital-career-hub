@@ -2,6 +2,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
+import { maskMessages, formatMaskFindings } from './piiMask.js';
 
 // Single source of truth: server/.env. Resolved relative to this file so it
 // works regardless of the CWD the ai-service is invoked from.
@@ -54,6 +55,113 @@ export function unwrapProviderErrors(baseFetch = fetch) {
   };
 }
 
+/* ── Outbound PII masking chokepoint ───────────────────────────────────────
+ *
+ * Every request to the provider passes through the wrapper below, which masks
+ * candidate PII out of `messages` before the call is made. It lives here, on
+ * the client, rather than in each feature, for one reason: a guarantee that
+ * depends on four call sites remembering to apply it is not a guarantee. The
+ * fifth call site is written by someone who has never read this file.
+ *
+ * So the rule is inverted. A request without masking context does not quietly
+ * send unmasked text — it THROWS, before anything leaves the process. A new AI
+ * feature that forgets fails loudly on its first run, in development, instead
+ * of shipping a leak nobody notices. `maskContext: 'none'` is the explicit
+ * opt-out for a payload with no user content in it at all, and saying so is a
+ * deliberate act that shows up in review.
+ *
+ * The wrapper is a proxy over the SDK's own object, so streaming, parameters,
+ * error unwrapping and every other SDK behaviour are untouched — the only
+ * thing that changes is the content of `messages`.
+ */
+
+/** Thrown when a completion is attempted with no masking decision recorded. */
+export class MissingMaskContextError extends Error {
+  constructor() {
+    super(
+      'An AI request was attempted without a PII masking context. Every outbound '
+      + 'payload must go through the mask: pass `maskContext` to '
+      + 'chat.completions.create() with the account holder\'s identity '
+      + '({ fullName, email, phone, extraNames }), or the string \'none\' if the '
+      + 'payload provably contains no user content. See ai-service/src/utils/piiMask.js.'
+    );
+    this.name = 'MissingMaskContextError';
+    this.code = 'MASK_CONTEXT_MISSING';
+  }
+}
+
+/**
+ * Wraps a client so chat.completions.create masks its messages first.
+ *
+ * Exported for the tests, which exercise the enforcement without a network or
+ * an API key.
+ *
+ * @param {object} client an OpenAI-shape client
+ * @returns {object} the same client with a masking chat.completions.create
+ */
+export function withOutboundMasking(client) {
+  const createOriginal = client.chat.completions.create.bind(client.chat.completions);
+
+  const create = async (body, options) => {
+    const { maskContext, ...request } = body ?? {};
+
+    if (maskContext === undefined || maskContext === null) {
+      throw new MissingMaskContextError();
+    }
+
+    // The explicit opt-out. Recorded in the log line so an audit can see which
+    // calls claimed to carry no user content.
+    if (maskContext === 'none') {
+      console.log('[pii-mask] label=none masked=skipped reason=declared-no-user-content');
+      return createOriginal(request, options);
+    }
+
+    // A body with no messages array is malformed for this endpoint. It is
+    // passed through untouched rather than replaced with an empty array, so
+    // the SDK raises its own error about the real problem instead of this
+    // layer silently sending an empty conversation.
+    if (!Array.isArray(request.messages)) {
+      return createOriginal(request, options);
+    }
+
+    const { messages, findings } = maskMessages(request.messages, maskContext);
+
+    // The ONLY logging of an outbound payload anywhere in this service, and it
+    // emits rule names and counts — never a matched value, and never the
+    // payload itself. Anything that wants to see what was sent sees this.
+    console.log(
+      `[pii-mask] label=${maskContext.label ?? 'unlabelled'}`
+      + ` messages=${messages.length} masked=${formatMaskFindings(findings)}`
+    );
+
+    return createOriginal({ ...request, messages }, options);
+  };
+
+  /*
+   * Proxied rather than copied. An object spread would keep the SDK client's
+   * own enumerable properties but drop its prototype, and the `create` above
+   * returns a plain promise where the SDK returns an APIPromise carrying
+   * .withResponse() and .asResponse(). No call site uses either today, and a
+   * wrapper that quietly removes part of the SDK's surface is a trap for the
+   * one that does. Proxying leaves everything except the one method reachable
+   * and unchanged.
+   */
+  const completionsProxy = new Proxy(client.chat.completions, {
+    get: (target, prop, receiver) =>
+      (prop === 'create' ? create : Reflect.get(target, prop, receiver)),
+  });
+
+  const chatProxy = new Proxy(client.chat, {
+    get: (target, prop, receiver) =>
+      (prop === 'completions' ? completionsProxy : Reflect.get(target, prop, receiver)),
+  });
+
+  return new Proxy(client, {
+    get: (target, prop, receiver) =>
+      (prop === 'chat' ? chatProxy : Reflect.get(target, prop, receiver)),
+  });
+}
+
 export function getGroqClient() {
   if (!_client) {
     if (!process.env.GOOGLE_AI_API_KEY) {
@@ -66,7 +174,7 @@ export function getGroqClient() {
     // `openai` SDK and every existing call site work unchanged. The trailing
     // slash matters: the SDK appends 'chat/completions' to this path, and
     // without it the last segment is replaced rather than extended.
-    _client = new OpenAI({
+    const raw = new OpenAI({
       apiKey: process.env.GOOGLE_AI_API_KEY,
       baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
       fetch: unwrapProviderErrors(),
@@ -76,6 +184,10 @@ export function getGroqClient() {
       // and the user is told to try again.
       maxRetries: 1,
     });
+
+    // No call site ever receives the unwrapped client. This is what makes the
+    // mask non-optional rather than merely available.
+    _client = withOutboundMasking(raw);
   }
   return _client;
 }

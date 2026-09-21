@@ -183,6 +183,7 @@ export async function extractGapsFromReview(feedback, {
   candidateStage,
   language = 'en',
   tier = 'free',
+  identity,
 } = {}) {
   const findings = renderReviewBlock(feedback);
   if (!findings) {
@@ -242,6 +243,11 @@ export async function extractGapsFromReview(feedback, {
     tier,
     params: GAP_COMPLETION_PARAMS,
     language,
+    // The findings block is derived from the review, which the output redactor
+    // has already been over. Masked again anyway: this is a separate payload to
+    // a third party, and defence that depends on an upstream step having run is
+    // the kind that stops working when someone reorders the pipeline.
+    maskContext: { ...(identity ?? {}) },
   });
 
   if (!result.ok) return result;

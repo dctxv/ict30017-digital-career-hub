@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { streamChatbotResponse, classifyAiError, formatAiErrorLog } from 'ai-service';
+import { readAccountIdentity } from '../utils/accountIdentity.js';
 import { getAllowedOrigins } from '../config/origins.js';
 import sharedPool from '../db.js';
 import { resolveConversation, appendMessage } from '../services/chatHistory.js';
@@ -425,8 +426,13 @@ router.post('/', chatIpRateLimit, validateCsrfOrigin, attachOptionalUser, enforc
 
   try {
     console.log(`[chat] Streaming response for user ${req.user.id}; language=${language}`);
+    // Users paste CV text into the chat box, so the same known strings the
+    // resume path masks with apply here.
+    const identity = await readAccountIdentity(req.user.id);
+
     const tokenStream = streamChatbotResponse(conversationHistory, message, {
       userId: req.user.id,
+      identity,
       // Resolved from the database by enforceDailyTurnLimit. Premium accounts
       // route to AI_MODEL_PREMIUM; guests and free accounts use the free model.
       tier: req.user.tier ?? 'free',

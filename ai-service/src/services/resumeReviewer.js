@@ -1,4 +1,5 @@
 import { getGroqClient, getModel } from '../utils/aiClient.js';
+import { inferNameFromHeader } from '../utils/piiMask.js';
 import { parseAIJSON } from '../utils/aiJson.js';
 import { classifyAiError, formatAiErrorLog } from '../utils/aiErrors.js';
 import { ReviewResponseSchema } from '../schemas/resumeSchema.js';
@@ -349,9 +350,28 @@ function logLanguageDecision(label, { language, systemPrompt, userMessage, model
   }
 }
 
+/**
+ * Assembles the masking context for a review.
+ *
+ * The account's stored name is the reliable half; the CV header is the other.
+ * A guest reviews without an account, and plenty of logged-in users have a
+ * display name that is not the name on their CV — so the header is parsed for
+ * a second known string and both are masked. Neither is trusted to be present.
+ *
+ * @param {string} label
+ * @param {string} resumeText
+ * @param {import('../utils/piiMask.js').MaskIdentity} [identity]
+ * @returns {object}
+ */
+function buildMaskContext(label, resumeText, identity) {
+  const headerName = inferNameFromHeader(resumeText);
+  const extraNames = [...(identity?.extraNames ?? []), headerName].filter(Boolean);
+  return { label, ...(identity ?? {}), extraNames };
+}
+
 /* ── Streaming export ── */
 
-export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd, marketMode = 'bangladesh', tier = 'free', language = 'en', context: reviewContext } = {}) {
+export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd, marketMode = 'bangladesh', tier = 'free', language = 'en', context: reviewContext, identity } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -372,6 +392,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
       model,
       ...AI_COMPLETION_PARAMS,
       stream: true,
+      maskContext: buildMaskContext('AI-stream', resumeText, identity),
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },
@@ -434,7 +455,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
 
 /* ── One-shot export ── */
 
-export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = 'bangladesh', tier = 'free', language = 'en', context: reviewContext } = {}) {
+export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = 'bangladesh', tier = 'free', language = 'en', context: reviewContext, identity } = {}) {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new Error('Resume text cannot be empty.');
   }
@@ -454,6 +475,7 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
     const response = await client.chat.completions.create({
       model,
       ...AI_COMPLETION_PARAMS,
+      maskContext: buildMaskContext('AI', resumeText, identity),
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },

@@ -6,6 +6,7 @@ import { extractText } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
 import { resolveLanguage, translateMessage } from '../i18n/index.js';
 import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
+import { readAccountIdentity } from '../utils/accountIdentity.js';
 import { analyzeResume, analyzeResumeStream, getModel, extractGapsFromReview } from 'ai-service';
 import { statusForAiErrorCode, isAiErrorCode } from '../utils/aiStatus.js';
 import { reconcileGaps } from '../services/gapStore.js';
@@ -112,7 +113,7 @@ async function saveReviewToDb({ userId, filename, jobAd, feedback, model, tier, 
  * swallowed: the user has already received their review, and there is no longer
  * a response to fail.
  */
-function extractGapsInBackground({ userId, feedback, jobAd, jobRole, context, language, tier }) {
+function extractGapsInBackground({ userId, feedback, jobAd, jobRole, context, language, tier, identity }) {
   if (!userId || userId === 'guest') return;
 
   Promise.resolve()
@@ -122,6 +123,7 @@ function extractGapsInBackground({ userId, feedback, jobAd, jobRole, context, la
       candidateStage: context?.candidateStage,
       language,
       tier,
+      identity,
     }))
     .then((result) => {
       if (!result.ok) {
@@ -304,11 +306,16 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
     // Bound rather than inlined: the same value is recorded against the saved
     // review, so it has to be readable further down this handler.
     const language = req.body?.language === 'bn' ? 'bn' : resolveLanguage(req);
+    // The known strings the outbound mask uses on top of its patterns. Read
+    // per request rather than carried in the token, and null for a guest.
+    const identity = await readAccountIdentity(req.user?.id);
+
     const feedback = await analyzeResume(cleanText, {
       jobRole, jobAd, marketMode,
       language,
       tier: resolveTier(res),
       context: resolveReviewContext(res),
+      identity,
     });
 
     // A provider failure comes back as a code, already logged by ai-service
@@ -361,6 +368,7 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
       context: resolveReviewContext(res),
       language,
       tier: resolveTier(res),
+      identity,
     });
 
     return undefined;
@@ -439,7 +447,10 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
     // final — redacting each token in isolation would emit both halves intact.
     const streamRedactor = createStreamRedactor();
 
+    const identity = await readAccountIdentity(req.user?.id);
+
     const feedback = await analyzeResumeStream(cleanText, {
+      identity,
       onToken: (t) => {
         const safe = streamRedactor.push(t);
         if (safe) writeFrame({ t: safe });
@@ -498,6 +509,7 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
       context: resolveReviewContext(res),
       language,
       tier: resolveTier(res),
+      identity,
     });
 
   } catch (err) {

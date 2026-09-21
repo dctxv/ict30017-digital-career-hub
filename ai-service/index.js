@@ -1,6 +1,18 @@
 export { analyzeResume, analyzeResumeStream } from './src/services/resumeReviewer.js';
 export { streamChatbotResponse } from './src/services/chatbot.js';
-export { assertModelConfig, getModel, TIERS, getGroqClient, unwrapProviderErrors } from './src/utils/aiClient.js';
+export {
+  assertModelConfig, getModel, TIERS, getGroqClient, unwrapProviderErrors,
+  // The outbound PII masking chokepoint. Exported so a harness that builds its
+  // own client can be held to the same guarantee as the server.
+  withOutboundMasking, MissingMaskContextError,
+} from './src/utils/aiClient.js';
+
+// Outbound PII masking. Every payload leaving for the provider goes through
+// this; the server needs inferNameFromHeader on the paths where a CV is read.
+export {
+  maskPii, inspectMaskedPii, maskPiiDeep, maskMessages,
+  inferNameFromHeader, formatMaskFindings, MASK,
+} from './src/utils/piiMask.js';
 
 // Provider failure vocabulary. The server maps these codes to HTTP statuses
 // and the client's error screen keys its copy off the same names.

@@ -9,6 +9,8 @@ import { MODELS } from './model-config.js';
 import { buildSystemPrompt } from '../src/services/resumeReviewer.js';
 import { withOutputLanguage } from '../src/prompt/language.js';
 import { checkBanglaOutput, summariseBanglaOutput } from '../src/quality/banglaOutput.js';
+import { withOutboundMasking } from '../src/utils/aiClient.js';
+import { inferNameFromHeader } from '../src/utils/piiMask.js';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
@@ -61,14 +63,18 @@ const today      = new Date().toISOString().split('T')[0];
 
 // ── OpenRouter client ─────────────────────────────────────────────────────────
 
-const client = new OpenAI({
+// Wrapped like the production client. This harness reads real resume fixtures
+// off disk and posts them to OpenRouter, which is the furthest a candidate's
+// details travel anywhere in the project — so it is the last place that should
+// be exempt from the mask.
+const client = withOutboundMasking(new OpenAI({
   apiKey,
   baseURL: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
     'HTTP-Referer': 'https://digital-career-hub.local',
     'X-Title':      'ICT30017 Digital Career Hub',
   },
-});
+}));
 
 // ── Per-model call ────────────────────────────────────────────────────────────
 
@@ -79,6 +85,10 @@ async function runModel(model, systemPrompt) {
     model:       model.openrouterId,
     temperature: 0.1,
     max_tokens:  16000,
+    maskContext: {
+      label: `batch:${model.folder}`,
+      extraNames: [inferNameFromHeader(resumeText)].filter(Boolean),
+    },
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user',   content: `Please review the following resume:\n\n${resumeText}` },

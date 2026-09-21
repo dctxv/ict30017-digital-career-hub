@@ -248,6 +248,10 @@ if (flags['no-ai']) {
         model,
         max_tokens: 8,
         temperature: 0,
+        // A fixed probe string with no user content in it. The opt-out is
+        // stated explicitly because the client refuses to send anything that
+        // has not made a masking decision.
+        maskContext: 'none',
         messages: [{ role: 'user', content: 'Reply with the single word OK.' }],
       });
       const text = response.choices?.[0]?.message?.content?.trim() ?? '';
