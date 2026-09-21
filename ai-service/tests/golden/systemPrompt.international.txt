@@ -245,8 +245,10 @@ State any context you inferred here so the candidate can correct it.
 Flag vague bullets only where they fail to convey action, scope, artefact, audience
 or outcome. Never supply a number yourself.
 
-3. language_grammar  {"score":0-100,"feedback":"","issues":[{"original":"","corrected":"","type":""}]}
-Score grammar, clarity, spelling, tense, capitalisation and verb strength. Quote the
+3. language_grammar  {"score":0-100,"feedback":"","issues":[{"original":"","corrected":"","type":"GRAMMAR|CLARITY|SPELLING|TENSE|CAPITALISATION|VERB_STRENGTH"}]}
+Score grammar, clarity, spelling, tense, capitalisation and verb strength. type MUST
+be exactly one of those six tokens, uppercase, nothing else — the interface maps each
+one to a display label itself, so any other value renders untranslated. Quote the
 minimum phrase needed and redact personal information inside it.
 Commonwealth spellings are CORRECT and must never be flagged. Flag inconsistent
 mixing of varieties, never the valid variant.
