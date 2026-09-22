@@ -702,6 +702,9 @@
 .prep-kind--behavioural   { background: var(--type-article); color: var(--dot-article); }
 .prep-kind--role_specific { background: var(--type-guide);   color: var(--dot-guide); }
 .prep-kind--gap_targeted  { background: var(--type-course);  color: var(--dot-course); }
+/* Live mode only. A reactive question, shown on the results screen beside the
+   planned ones it was asked among. */
+.prep-kind--follow_up     { background: var(--type-video);   color: var(--dot-video); }
 
 /* The link back to the plan. This is the question that proves the interview and
    the resume review are one feature rather than two, so it is labelled. */
@@ -973,6 +976,81 @@
   color: var(--muted-2);
 }
 
+/* ── Mode picker ───────────────────────────────────────────────────── */
+
+/* Two cards rather than a segmented control. The difference between the modes
+   is not a label — it is how the interview is conducted — and a one-word
+   toggle would have people picking "Live" without knowing they were about to
+   be asked to speak. */
+.prep-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.prep-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 13px 15px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.prep-mode:hover { border-color: var(--border-strong); }
+
+.prep-mode--on {
+  border-color: var(--accent);
+  background: var(--tint);
+}
+
+.prep-mode__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink);
+}
+
+.prep-mode--on .prep-mode__head { color: var(--accent-text); }
+
+.prep-mode__name {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.prep-mode__badge {
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.prep-mode__hint {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* How long an answer took, on the results screen. Tabular figures so a column
+   of them lines up. */
+.prep-q__took {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-2);
+}
+
 /* ── Responsive ────────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
@@ -1003,5 +1081,6 @@
   .prep-score__number { font-size: 44px; }
   .prep-start .btn,
   .prep-submit .btn { width: 100%; }
+  .prep-modes { grid-template-columns: 1fr; }
   .prep-gap { padding: 18px 18px; }
 }

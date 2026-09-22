@@ -71,18 +71,48 @@ export function fetchInterviewQuota() {
  * Starts an interview. Everything is optional: with nothing supplied the
  * questions are generic for the role, which is a real tier and not a failure.
  *
+ * `mode` picks written or live. It is a hint, not an instruction — the server
+ * decides, and forces written for a Bangla interview because dictation here is
+ * English only. The response says which mode the interview actually runs in,
+ * and that is the one to believe.
+ *
  * @param {{targetRole?: string, candidateStage?: string, jobAd?: string,
- *          resumeFile?: File, language?: string}} input
+ *          resumeFile?: File, language?: string, mode?: 'written'|'live'}} input
  */
-export function startInterview({ targetRole, candidateStage, jobAd, resumeFile, language }) {
+export function startInterview({ targetRole, candidateStage, jobAd, resumeFile, language, mode }) {
   const form = new FormData()
   if (resumeFile) form.append('resume', resumeFile)
   if (targetRole) form.append('targetRole', targetRole)
   if (candidateStage) form.append('candidateStage', candidateStage)
   if (jobAd) form.append('jobAd', jobAd)
   if (language) form.append('language', language)
+  if (mode) form.append('mode', mode)
 
   return request('/api/preparation/interviews', { method: 'POST', body: form })
+}
+
+/**
+ * The live mode's between-questions call: save what has been answered so far,
+ * and find out whether the interviewer wants to follow up on the last answer.
+ *
+ * Called on every turn of a live interview, including for accounts that will
+ * never get a follow-up, because the saving half matters on its own — a live
+ * interview is answered over several minutes and a closed tab used to take
+ * every answer with it.
+ *
+ * It resolves rather than throws when no question is coming, which is the
+ * normal case. The candidate is mid-interview with the next planned question
+ * already written, so there is nothing to interrupt them with.
+ *
+ * @param {number} interviewId
+ * @param {{afterIndex: number, answers: Array<object>, language?: string}} input
+ * @returns {Promise<{question: object|null, reason: string, followUpsRemaining: number}>}
+ */
+export function requestNextQuestion(interviewId, { afterIndex, answers, language }) {
+  return request(`/api/preparation/interviews/${interviewId}/next`, {
+    method: 'POST',
+    body: JSON.stringify({ afterIndex, answers, language }),
+  })
 }
 
 /**
@@ -91,6 +121,10 @@ export function startInterview({ targetRole, candidateStage, jobAd, resumeFile, 
  * The questions are not sent back. The server holds the ones it wrote, and
  * marking someone against five questions the client supplied would be marking
  * them against questions nobody asked.
+ *
+ * A live interview's answers carry `seconds` and `source` alongside the text.
+ * A written one sends neither, and the row it writes is identical to the ones
+ * written before live mode existed.
  */
 export function submitInterviewAnswers(interviewId, answers, language) {
   return request(`/api/preparation/interviews/${interviewId}/answers`, {
