@@ -608,6 +608,7 @@ mobile number. The registration and upgrade screens both say so.
 | `GET /api/preparation/summary` | The severity-weighted progress figure and what to do next |
 | `PATCH /api/preparation/gaps/:id` | Dismiss a gap, or bring a dismissed one back |
 | `POST /api/preparation/interviews` | Write five questions. Optional resume upload and job advertisement |
+| `POST /api/preparation/interviews/:id/next` | Live mode: save the answers so far, and maybe ask a follow-up |
 | `POST /api/preparation/interviews/:id/answers` | Assess the transcript and update the board |
 | `GET /api/preparation/interviews`, `/interviews/:id` | Past interviews, and one in full |
 | `GET /api/preparation/quota` | Remaining mock interviews today |
@@ -628,9 +629,69 @@ analysis from the same source no longer finds it, and can be dismissed by the
 user. Dismissed leaves the progress figure entirely rather than counting
 towards it, so nobody improves their score by disagreeing with the analysis.
 
-**Not in this version, and deliberately:** voice or video, live coding,
-real-time follow-up questioning, and anything needing a maintained skills
-taxonomy or a curated role dataset.
+#### Two modes: written and live
+
+The interview runs one of two ways, chosen on the setup panel.
+
+**Written** is the original: five questions on one page, typed, submitted
+together. Unchanged.
+
+**Live** delivers one question at a time, large and alone on the screen, with
+a running clock and no way back. The answer can be dictated: recognition is
+the browser's own Web Speech API, so no audio is recorded, none is uploaded,
+and no speech service is paid for. What it transcribes lands in an ordinary
+editable box, because recognition makes mistakes and the candidate is marked
+on that text.
+
+They are two presentations of ONE interview. The same call writes the
+questions, the same call marks them, and the same gaps reach the same board.
+The evaluation differs in exactly two ways: the transcript carries how long
+each answer took and whether it was spoken, and the prompt gains one block
+telling the model not to mark down transcription noise — missing punctuation,
+run-on sentences, homophones, a mangled employer name. The rubric itself does
+not move, or a score would mean something different in each mode and the
+history on the profile page would stop being comparable.
+
+**Browser support.** Chrome, Edge and Opera implement Web Speech recognition.
+Firefox does not, and Safari's support is not reliable enough to claim. Those
+browsers get the same one-question-at-a-time interview and type their answers;
+nothing about the questions or the marking changes. The page says which of the
+three reasons applies — no engine, no HTTPS, or permission refused — because
+the remedy differs and a single "speech is unavailable" would send everyone to
+the wrong one.
+
+**Microphone access needs HTTPS.** A secure context is required, and
+`localhost` counts as one — which is the trap: dictation works all through
+development and then silently fails the first time the site is opened over
+plain `http` from another machine or a phone. **This has not been verified on
+a deployed site, because there is no deployment yet.** Whoever deploys it must
+serve the app over HTTPS and confirm the microphone prompt appears; the page
+will say "Speech to text needs a secure (HTTPS) connection" rather than fail
+silently if it does not.
+
+**English only.** Dictation is fixed to `en-US`, agreed with the client:
+Bengali speech models are a paid API this project has no budget for. The live
+mode is therefore not offered at all while the interface is in Bangla, and the
+server forces written for a Bangla interview regardless of what is sent.
+
+**Follow-up questions are premium.** A live interview can ask up to two
+questions that react to what was just said. Each costs a model call, so a free
+account's interview still costs exactly the two calls it always did — free
+accounts get the whole live interview, just without the reactive questions. A
+follow-up is grounded in the interview's own spine, the role, the
+advertisement and the answers so far, never in the CV: that was parsed in
+memory and deleted, and nothing in the system can read it again.
+
+**Testing it.** The automated coverage is in `client/e2e/live-interview.spec.js`
+(the engine is stubbed — headless browsers have no microphone) and
+`ai-service/tests/liveInterview.test.js`. The parts that need a real browser
+and a real voice are in `docs/qa/live_interview_manual_test.md`, which must be
+run by hand against Chrome, Edge and Firefox before release.
+
+**Not in this version, and deliberately:** video, live coding, text to speech
+(the questions and feedback are written, and nothing is read aloud), Bangla
+dictation, and anything needing a maintained skills taxonomy or a curated role
+dataset.
 
 **Open questions for the client:** whether gap history should be visible to
 admins or to the user only; whether a dismissal should be permanent (it is
