@@ -31,8 +31,16 @@ export {
 // Preparation: the mock interview, and the gap engine both it and the resume
 // review feed. Two entry points rather than three, because preparation is the
 // shared output layer of the other two features and not a third one.
-export { generateInterviewQuestions, evaluateInterview, resolveTier as resolveInterviewTier }
-  from './src/services/mockInterview.js';
+export {
+  generateInterviewQuestions,
+  evaluateInterview,
+  resolveTier as resolveInterviewTier,
+  // Live mode: the one extra call, and the ordering both it and the evaluation
+  // depend on once an interview can carry a follow-up.
+  generateFollowUpQuestion,
+  orderQuestions,
+  formatDuration,
+} from './src/services/mockInterview.js';
 export { extractGapsFromReview, normaliseGapList } from './src/services/gapEngine.js';
 
 // Gap vocabulary. The server validates stored gaps against these, and the
@@ -46,6 +54,9 @@ export {
   GAP_SEVERITY_WEIGHT,
   GAP_CAP,
   INTERVIEW_QUESTION_COUNT,
+  INTERVIEW_MODES,
+  INTERVIEW_LIVE_QUESTION_KINDS,
+  LIVE_FOLLOW_UP_CAP,
   JOB_AD_MAX_CHARS,
   ANSWER_MAX_CHARS,
   ROLE_MAX_CHARS,

@@ -172,6 +172,67 @@ export const GAP_COMPLETION_PARAMS = Object.freeze({
   max_tokens: 3072,
 });
 
+/* ── Live interview ─────────────────────────────────────────────────────── */
+
+/**
+ * The two ways an interview can be conducted.
+ *
+ * 'written' is the original: all five questions on one page, typed, submitted
+ * together. 'live' delivers them one at a time and lets the candidate dictate
+ * the answer with the browser's own speech recognition.
+ *
+ * They are two presentations of ONE interview, not two features. Both generate
+ * questions through generateInterviewQuestions, both are marked by
+ * evaluateInterview, and both feed the same gap board. The mode is stored so a
+ * score stays interpretable — answering out loud under a running clock is a
+ * different exercise from typing five answers at leisure, and a low score in
+ * one is not the same finding as a low score in the other.
+ */
+export const INTERVIEW_MODES = Object.freeze(['written', 'live']);
+
+/**
+ * The extra kind a live interview can produce.
+ *
+ * Deliberately a SEPARATE list rather than a fourth entry in
+ * INTERVIEW_QUESTION_KINDS. The upfront generator is validated against that
+ * list and must never return a follow-up — a follow-up is by definition a
+ * reaction to an answer that did not exist when the five were written. Keeping
+ * the vocabularies apart is what stops the written mode's schema, its mix
+ * reconciliation and its prompt from ever seeing this value.
+ */
+export const INTERVIEW_LIVE_QUESTION_KINDS = Object.freeze([
+  ...INTERVIEW_QUESTION_KINDS,
+  'follow_up',
+]);
+
+/**
+ * Most follow-up questions one live interview may spend, and why there is a cap
+ * at all.
+ *
+ * The client asked for questions that react to what the candidate just said.
+ * Done without a bound that is a turn-by-turn interview, which is the twelve-
+ * call design this feature was built to avoid. Two probes puts the ceiling at
+ * four model calls and seven questions: enough for the interview to visibly
+ * listen, short enough that it still ends.
+ *
+ * Follow-ups are premium-only, so a free account's interview costs exactly the
+ * two calls it always did. That is the whole reason the cap could be set this
+ * high without moving the free tier's daily allowance.
+ */
+export const LIVE_FOLLOW_UP_CAP = 2;
+
+/**
+ * Completion parameters for a follow-up.
+ *
+ * One question and one sentence of rationale, so the ceiling is a fraction of
+ * the other two calls. Same temperature as the question generator: a probe that
+ * reads like the five it sits among.
+ */
+export const FOLLOW_UP_COMPLETION_PARAMS = Object.freeze({
+  temperature: 0.4,
+  max_tokens: 512,
+});
+
 /* ── Key normalisation ──────────────────────────────────────────────────── */
 
 /**
