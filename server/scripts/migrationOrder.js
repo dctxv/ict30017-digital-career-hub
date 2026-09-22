@@ -37,4 +37,5 @@ export const MIGRATION_ORDER = Object.freeze([
   'add_full_bilingual_content.sql',
   'seed_full_bangla_content.sql',
   'retranslate_alumni_bios.sql',
+  'add_interview_live_mode.sql',
 ]);
