@@ -1,0 +1,401 @@
+/* LiveInterview — the mock interview conducted one question at a time.
+
+   Every colour resolves through a token, so light and dark come for free and
+   the file never names a hex value. The cards, buttons, textarea and chips are
+   the ones in globals.css; what is here is specific to a single question
+   holding the screen on its own.
+
+   The layout is deliberately narrow and centred. This is the one screen in the
+   product with exactly one thing to read, and giving the question the width of
+   a full card would make it scan like a paragraph rather than land like a
+   question. */
+
+.live,
+.live-intro {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ── Intro ─────────────────────────────────────────────────────────── */
+
+.live-intro__list {
+  margin: 18px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 9px;
+  color: var(--body);
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+
+.live-intro__privacy,
+.live-intro__followups {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.live-intro__privacy svg,
+.live-intro__followups svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+.live-intro__followups--off svg { color: var(--muted-2); }
+
+.live-intro__go {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+/* ── Progress ──────────────────────────────────────────────────────── */
+
+.live__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.live__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* Tabular figures so the seconds ticking over do not shift the layout a
+     pixel left and right once a second for the length of the interview. */
+  font-variant-numeric: tabular-nums;
+  color: var(--body-2);
+}
+
+.live__track {
+  height: 4px;
+  margin: 10px 0 20px;
+  border-radius: var(--radius-pill);
+  background: var(--track);
+  overflow: hidden;
+}
+
+.live__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width var(--transition);
+}
+
+/* ── The question ──────────────────────────────────────────────────── */
+
+.live__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.live__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.live__chip--follow {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.live__question {
+  margin: 18px 0 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.38;
+  letter-spacing: -0.01em;
+  /* Balanced wrapping keeps a two-line question from leaving one word alone on
+     the second line, which is the difference between a question and a label.
+     Unsupported browsers fall back to normal wrapping and lose nothing. */
+  text-wrap: balance;
+  color: var(--heading);
+}
+
+.live__follow-note,
+.live__why {
+  margin: 10px auto 0;
+  max-width: 54ch;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.live__follow-note {
+  font-size: 13px;
+  color: var(--accent-text);
+}
+
+/* ── Microphone ────────────────────────────────────────────────────── */
+
+.live__mic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 26px 0 18px;
+}
+
+.live__mic-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-pill);
+  background: var(--tint);
+  color: var(--accent-text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.live__mic-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--border-accent-hover);
+}
+
+.live__mic-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.live__mic-btn--on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.live__mic-btn--on:hover:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: var(--on-primary);
+}
+
+.live__listening {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-text);
+}
+
+.live__pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+
+/* Somebody who asked for less motion still needs to know the microphone is
+   open, so the dot stays and only the animation goes. */
+@media (prefers-reduced-motion: reduce) {
+  .live__pulse { animation: none; }
+  .live__fill { transition: none; }
+}
+
+/* ── Notices ───────────────────────────────────────────────────────── */
+
+.live-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  text-align: left;
+}
+
+.live-notice__icon {
+  flex: none;
+  display: inline-flex;
+  margin-top: 1px;
+  color: var(--muted);
+}
+
+.live-notice__title {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.live-notice__body {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--body);
+}
+
+.live__speech-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 10px 13px;
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius-md);
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.live__speech-warn svg { flex: none; margin-top: 2px; }
+
+/* ── Answer ────────────────────────────────────────────────────────── */
+
+.live__answer-label {
+  display: block;
+  margin-bottom: 7px;
+}
+
+.live__answer {
+  width: 100%;
+  /* Comfortably above the 44px touch target on a phone even at one row, and
+     tall enough that a STAR answer does not scroll while it is being read
+     back for mistakes. */
+  min-height: 150px;
+  resize: vertical;
+}
+
+.live__interim {
+  margin: 9px 0 0;
+  padding: 9px 13px;
+  border-left: 2px solid var(--border-accent-hover);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--tint);
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.live__hint {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted-2);
+}
+
+/* ── Footer ────────────────────────────────────────────────────────── */
+
+.live__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.live__warn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--warn-text);
+}
+
+.live__warn svg { flex: none; }
+
+.live__warn--quiet {
+  color: var(--muted-2);
+  font-size: 12.5px;
+}
+
+.live__next { align-self: flex-end; }
+
+.live__confirm {
+  padding: 16px;
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  background: var(--tint);
+}
+
+.live__confirm-text {
+  margin: 0 0 14px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.live__confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+/* Tablet. The question loses a little size so a long one still fits above the
+   fold beside the answer box. */
+@media (max-width: 900px) {
+  .live__question { font-size: 23px; }
+  .live__answer { min-height: 140px; }
+}
+
+/* Phone. The question is still the largest thing on the screen, and every
+   action becomes full width — a half-width Next button on a phone is a
+   deliberate aim in the middle of an interview. */
+@media (max-width: 560px) {
+  .live__question {
+    margin-top: 14px;
+    font-size: 20px;
+    text-align: left;
+  }
+
+  .live__tags,
+  .live__mic { align-items: flex-start; }
+  .live__tags { justify-content: flex-start; }
+
+  .live__follow-note,
+  .live__why { text-align: left; }
+
+  .live__mic-btn { width: 100%; justify-content: center; }
+  .live__next { align-self: stretch; }
+  .live__confirm-actions .btn { width: 100%; }
+  .live-intro__go .btn { width: 100%; }
+  .live__answer { min-height: 170px; }
+}

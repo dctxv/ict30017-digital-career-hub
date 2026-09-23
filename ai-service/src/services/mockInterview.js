@@ -7,9 +7,27 @@
  * A turn-by-turn implementation is twelve calls or more and would exhaust the
  * free-tier daily cap during a single client demonstration; one call for the
  * questions and one for the transcript produces the same thing the user sees for
- * roughly six times the headroom. Text in and text out — voice was ruled out on
- * the call, because bilingual delivery would need Bengali speech models, a
- * separate API and a budget that does not exist.
+ * roughly six times the headroom.
+ *
+ * TWO MODES, ONE INTERVIEW
+ *
+ * The written mode is the original: five questions on a page, typed, submitted
+ * together. The live mode delivers them one at a time and lets the candidate
+ * dictate with the browser's own speech recognition — no speech API is called
+ * from here, and none is paid for, which is what made it possible at all. Voice
+ * was ruled out on the original call because BILINGUAL delivery needed Bengali
+ * speech models nobody could fund; English-only recognition in the browser is a
+ * different proposition and is what the client agreed to.
+ *
+ * The modes differ in presentation and in nothing else. Both generate through
+ * generateInterviewQuestions, both are marked by evaluateInterview against the
+ * same rubric, and both emit gaps to the same board. A score has to mean the
+ * same thing in either or the history is not comparable, which is why the live
+ * mode adds ONE prompt block about transcription noise and changes no rule.
+ *
+ * generateFollowUpQuestion is the live mode's only extra call, and it is
+ * premium-only and capped, so a free account's interview still costs exactly
+ * the two calls it always did.
  *
  * THE INTERVIEW RUNS STANDALONE
  *
@@ -30,10 +48,12 @@ import { inferNameFromHeader } from '../utils/piiMask.js';
 import {
   InterviewQuestionsSchema,
   InterviewEvaluationSchema,
+  InterviewFollowUpSchema,
 } from '../schemas/preparationSchema.js';
 import {
   buildQuestionPrompt,
   buildEvaluationPrompt,
+  buildFollowUpPrompt,
   withInterviewLanguage,
   interviewLanguageReminder,
 } from '../prompt/interview.js';
@@ -41,6 +61,7 @@ import { normaliseGapList, renderGapBlock } from './gapEngine.js';
 import {
   INTERVIEW_QUESTION_COUNT,
   INTERVIEW_COMPLETION_PARAMS,
+  FOLLOW_UP_COMPLETION_PARAMS,
   INTERVIEW_MIX,
   JOB_AD_MAX_CHARS,
   ANSWER_MAX_CHARS,
@@ -329,6 +350,288 @@ export async function generateInterviewQuestions({
   };
 }
 
+/* ── Live interview ─────────────────────────────────────────────────────── */
+
+/**
+ * The order an interview's questions were actually asked in.
+ *
+ * A written interview is five questions numbered 1 to 5, and its array is
+ * already in that order — sorting by index is what this has always done and it
+ * still does.
+ *
+ * A live interview can carry follow-ups, and for those the index is an identity
+ * and not a position. Question 6 was asked immediately after question 2, not
+ * after question 5, so ordering it numerically would hand the evaluator a
+ * transcript in an order the conversation never had — a probe about answer 2
+ * arriving at the end, detached from the answer it was probing. Those are
+ * stored in the order they were asked, so the array IS the order.
+ *
+ * Branching on the presence of a follow-up rather than on a mode flag keeps the
+ * written path provably untouched: with no follow-up in the set this is the
+ * sort it always was, whoever calls it.
+ *
+ * @param {Array<object>} questions
+ * @returns {Array<object>}
+ */
+export function orderQuestions(questions = []) {
+  const list = Array.isArray(questions) ? questions.slice() : [];
+  const hasFollowUps = list.some((item) => item?.kind === 'follow_up');
+  return hasFollowUps ? list : list.sort((a, b) => Number(a?.index) - Number(b?.index));
+}
+
+/**
+ * Renders a duration for the transcript.
+ *
+ * Seconds under a minute, minutes and seconds above it. Written for a reader
+ * rather than as a raw number, because the model is being asked to judge
+ * whether an answer rambled and "3m 40s" carries that where "220" does not.
+ *
+ * @param {number|null|undefined} seconds
+ * @returns {string|null}
+ */
+export function formatDuration(seconds) {
+  // Checked before Number(), which turns null and '' into 0. A written
+  // interview times nothing, so its entries have no `seconds` at all, and a
+  // zero would annotate every one of its answers as having taken no time —
+  // a fact about the candidate that nobody measured.
+  if (seconds === null || seconds === undefined || seconds === '') return null;
+  const total = Number(seconds);
+  if (!Number.isFinite(total) || total < 0) return null;
+  const whole = Math.round(total);
+  if (whole < 60) return `${whole}s`;
+  return `${Math.floor(whole / 60)}m ${String(whole % 60).padStart(2, '0')}s`;
+}
+
+/**
+ * Renders the transcript the evaluator marks.
+ *
+ * Extracted from evaluateInterview so the guarantee that matters most about
+ * live mode is testable without a model call: a written interview's transcript
+ * must be byte-for-byte what it was before live mode existed. Every score
+ * already in the database was produced from that exact string, and a silent
+ * drift would make the history incomparable without anything ever failing.
+ *
+ * So the annotation is built from what is actually known. A written answer
+ * carries no source and no duration, produces no parenthesis, and renders as
+ * `A1: ...` exactly as it always has.
+ *
+ * @param {object} input
+ * @param {Array<object>} input.questions
+ * @param {Array<{index: number, answer: string, seconds?: number, source?: string}>} input.answers
+ * @param {'written'|'live'} [input.mode]
+ * @returns {string}
+ */
+export function buildTranscript({ questions = [], answers = [], mode = 'written' } = {}) {
+  const spoken = mode === 'live';
+  const byIndex = new Map((answers ?? []).map((entry) => [Number(entry?.index), entry]));
+
+  return orderQuestions(questions)
+    .map((question) => {
+      const entry = byIndex.get(Number(question.index));
+      const answer = String(entry?.answer ?? '').slice(0, ANSWER_MAX_CHARS).trim();
+
+      // A follow-up says which answer it reacted to. Without it the model reads
+      // a sixth question that appeared from nowhere and marks it as if it had
+      // been planned, rather than as the probe it was.
+      const label = question.kind === 'follow_up' && question.after_index
+        ? `${question.kind} to Q${question.after_index}`
+        : question.kind;
+
+      // The annotation exists only where there is something true to put in it.
+      // An empty parenthesis on a written answer would be noise, and a timing
+      // on an answer nobody timed would be a fact we do not have.
+      // Everything in it is gated on the MODE, not on whether a field happens
+      // to be present. A written interview whose request carried a stray
+      // duration must still render the string it always rendered — the mode is
+      // read from the database and cannot be set by a caller, and this is what
+      // makes that guarantee hold rather than merely be intended.
+      const notes = [];
+      if (spoken) {
+        if (entry?.source === 'speech') notes.push('spoken');
+        if (entry?.source === 'typed') notes.push('typed');
+        const duration = formatDuration(entry?.seconds);
+        if (duration) notes.push(`took ${duration}`);
+      }
+      const annotation = notes.length > 0 ? ` (${notes.join(', ')})` : '';
+
+      return [
+        `Q${question.index} [${label}]: ${question.question}`,
+        // Said explicitly rather than left as an empty line. A blank answer and
+        // a missing one look identical in a transcript, and the prompt has a
+        // different rule for each.
+        `A${question.index}${annotation}: ${answer || '(the candidate left this blank)'}`,
+      ].join('\n');
+    })
+    .join('\n\n');
+}
+
+/**
+ * Asks one follow-up question, or declines to.
+ *
+ * The live mode's third call, and the only one in this feature that reacts to
+ * something the candidate said. Capped and premium-only; the caller enforces
+ * both, because the allowance lives in the database and not here.
+ *
+ * WHAT IT IS GROUNDED IN
+ *
+ * Not the CV. The CV was parsed in memory and deleted when the questions were
+ * written (SPR-10, FR-13) and no part of this system can read it again. What
+ * the probe gets is the interview's own spine — questions written against that
+ * CV by the first call — plus the role, the advertisement, the profile and
+ * everything the candidate has said so far. That is enough to stay specific,
+ * and the tier constraint in the prompt is what stops it filling the rest in
+ * with invention.
+ *
+ * Declining is a success, not a failure. `question` comes back null and the
+ * caller moves on to the next planned question, having spent one small call to
+ * establish that the answer did not need probing.
+ *
+ * @param {object} input
+ * @param {Array<object>} input.questions the spine, in the order asked
+ * @param {Array<{index: number, answer: string}>} input.answers everything answered so far
+ * @param {number} input.currentIndex the question just answered
+ * @param {number} input.nextIndex the index to give a follow-up if one is asked
+ * @param {number} [input.tierLevel]
+ * @param {string} [input.targetRole]
+ * @param {string} [input.candidateStage]
+ * @param {string} [input.jobAd]
+ * @param {object} [input.profile]
+ * @param {'en'|'bn'} [input.language]
+ * @param {'free'|'premium'} [input.tier]
+ * @param {object} [input.identity]
+ * @returns {Promise<{ok: true, question: object|null, model: string}
+ *                  |{ok: false, code: string, error: string}>}
+ */
+export async function generateFollowUpQuestion({
+  questions = [],
+  answers = [],
+  currentIndex,
+  nextIndex,
+  tierLevel = 1,
+  targetRole,
+  candidateStage,
+  jobAd,
+  profile = null,
+  language = 'en',
+  tier = 'free',
+  identity,
+} = {}) {
+  const ordered = orderQuestions(questions);
+  const current = ordered.find((item) => Number(item?.index) === Number(currentIndex));
+  if (!current) {
+    throw new Error('A follow-up needs the question it is following up on.');
+  }
+
+  const byIndex = new Map(answers.map((entry) => [Number(entry?.index), entry?.answer ?? '']));
+  const spoken = String(byIndex.get(Number(currentIndex)) ?? '').slice(0, ANSWER_MAX_CHARS).trim();
+
+  // Nothing to probe. Refusing here rather than in the prompt saves a call that
+  // could only ever come back declining, and a blank is evidence of nothing —
+  // the same rule the evaluation prompt states about silence.
+  if (!spoken) return { ok: true, question: null, model: null };
+
+  const position = ordered.findIndex((item) => Number(item?.index) === Number(currentIndex));
+  const hasJobAd = typeof jobAd === 'string' && jobAd.trim().length > 0;
+  const profileBlock = renderProfileBlock(profile);
+
+  const systemPrompt = withInterviewLanguage(
+    buildFollowUpPrompt({ tier: tierLevel, hasJobAd, hasProfile: Boolean(profileBlock) }),
+    language,
+  );
+
+  const parts = [];
+  const role = typeof targetRole === 'string' ? targetRole.slice(0, ROLE_MAX_CHARS).trim() : '';
+  if (role) parts.push(`Target role: ${role}`);
+  if (candidateStage && candidateStage !== 'unknown') parts.push(`Career stage: ${candidateStage}`);
+  if (profileBlock) parts.push(profileBlock);
+
+  // Everything before the current question, so a probe cannot ask for something
+  // the candidate already volunteered two answers ago.
+  const earlier = ordered.slice(0, Math.max(position, 0))
+    .map((item) => {
+      const answer = String(byIndex.get(Number(item.index)) ?? '').slice(0, ANSWER_MAX_CHARS).trim();
+      return `Q${item.index}: ${item.question}\nA${item.index}: ${answer || '(left blank)'}`;
+    })
+    .join('\n\n');
+  if (earlier) parts.push(`<INTERVIEW_SO_FAR>\n${earlier}\n</INTERVIEW_SO_FAR>`);
+
+  parts.push(`<CURRENT_QUESTION>\n${current.question}\n</CURRENT_QUESTION>`);
+  parts.push(`<CURRENT_ANSWER>\n${spoken}\n</CURRENT_ANSWER>`);
+
+  // The rest of the spine, so the probe does not ask what is already coming.
+  const upcoming = ordered.slice(position + 1)
+    .map((item) => `Q${item.index}: ${item.question}`)
+    .join('\n');
+  if (upcoming) {
+    parts.push(`<QUESTIONS_STILL_TO_COME>\n${upcoming}\n</QUESTIONS_STILL_TO_COME>`);
+  }
+
+  if (hasJobAd) parts.push(`<JOB_ADVERTISEMENT>\n${jobAd.slice(0, JOB_AD_MAX_CHARS)}\n</JOB_ADVERTISEMENT>`);
+
+  const reminder = interviewLanguageReminder(language);
+  if (reminder) parts.push(reminder);
+
+  const result = await requestJson({
+    label: 'interview-followup',
+    systemPrompt,
+    userMessage: `Decide whether to ask one follow-up question.\n\n${parts.join('\n\n')}`,
+    schema: InterviewFollowUpSchema,
+    tier,
+    params: FOLLOW_UP_COMPLETION_PARAMS,
+    language,
+    // The answer is the payload, and candidates introduce themselves in their
+    // answers. Masked on the same terms as a CV or a full transcript.
+    maskContext: { ...(identity ?? {}) },
+  });
+
+  if (!result.ok) return result;
+
+  // A model that set the flag and returned nothing has not asked a question.
+  // Treated as a decline rather than surfaced as an error: the next planned
+  // question is already written, so there is nothing for the user to lose.
+  if (!result.data.ask_follow_up || !result.data.question.trim()) {
+    console.log(`[interview-followup] declined after Q${currentIndex} language=${language}`);
+    return { ok: true, question: null, model: result.model };
+  }
+
+  let question = result.data.question.trim();
+  let why = String(result.data.why ?? '').trim();
+
+  // The tier-1 guarantee applies to a probe exactly as it applies to a planned
+  // question, and bites harder: this one arrives mid-conversation, where an
+  // invented "your time at" reads as the interviewer having read something.
+  if (tierLevel === 1) {
+    const cleanedQuestion = stripUnevidencedClaims(question);
+    const cleanedWhy = stripUnevidencedClaims(why);
+    if (cleanedQuestion.changed || cleanedWhy.changed) {
+      console.warn(
+        '[interview-followup] Rewrote a tier-1 follow-up that claimed knowledge of the '
+        + 'candidate. No resume was supplied; the prompt forbids this and the model did it anyway.'
+      );
+    }
+    question = cleanedQuestion.text;
+    why = cleanedWhy.text;
+  }
+
+  console.log(`[interview-followup] asked after Q${currentIndex} as Q${nextIndex} language=${language}`);
+
+  return {
+    ok: true,
+    model: result.model,
+    question: {
+      index: Number(nextIndex),
+      kind: 'follow_up',
+      question,
+      why,
+      targets_gap_key: null,
+      // Which question this reacted to. The transcript says so, and the
+      // interface can show it as a follow-up rather than as a sixth question
+      // that appeared from nowhere.
+      after_index: Number(currentIndex),
+    },
+  };
+}
+
 /**
  * Marks a completed transcript and emits the gaps it revealed.
  *
@@ -336,10 +639,25 @@ export async function generateInterviewQuestions({
  * regenerating them would produce a different five and mark answers against
  * questions nobody was asked.
  *
+ * ONE EVALUATION FOR BOTH MODES
+ *
+ * A live interview is marked here, by this function, against this rubric. The
+ * mode changes two things and nothing else: the transcript carries how long
+ * each answer took and whether it was spoken, and the prompt gains one block
+ * telling the model not to mark transcription noise. The bands, the contract,
+ * the gap rules and the per-question repair below are the same ones a written
+ * interview gets, because a score that meant something different in each mode
+ * would make the history on the profile page unreadable.
+ *
+ * With no mode passed, nothing here behaves differently from the day before
+ * live mode existed — the transcript is byte-identical and the prompt is the
+ * string it always was.
+ *
  * @param {object} input
  * @param {Array<{index: number, kind: string, question: string, targets_gap_key: string|null}>} input.questions
- * @param {Array<{index: number, answer: string}>} input.answers
+ * @param {Array<{index: number, answer: string, seconds?: number, source?: string}>} input.answers
  * @param {number} [input.tierLevel] the tier the questions were generated at
+ * @param {'written'|'live'} [input.mode] how the interview was conducted
  * @param {string} [input.targetRole]
  * @param {string} [input.candidateStage]
  * @param {string} [input.jobAd]
@@ -353,6 +671,7 @@ export async function evaluateInterview({
   questions = [],
   answers = [],
   tierLevel = 1,
+  mode = 'written',
   targetRole,
   candidateStage,
   jobAd,
@@ -365,26 +684,12 @@ export async function evaluateInterview({
     throw new Error('An interview cannot be evaluated without its questions.');
   }
 
-  const byIndex = new Map(answers.map((entry) => [Number(entry?.index), entry?.answer ?? '']));
-
-  const transcript = questions
-    .slice()
-    .sort((a, b) => a.index - b.index)
-    .map((question) => {
-      const answer = String(byIndex.get(Number(question.index)) ?? '').slice(0, ANSWER_MAX_CHARS).trim();
-      return [
-        `Q${question.index} [${question.kind}]: ${question.question}`,
-        // Said explicitly rather than left as an empty line. A blank answer and a
-        // missing one look identical in a transcript, and the prompt has a
-        // different rule for each.
-        `A${question.index}: ${answer || '(the candidate left this blank)'}`,
-      ].join('\n');
-    })
-    .join('\n\n');
+  const spoken = mode === 'live';
+  const transcript = buildTranscript({ questions, answers, mode });
 
   const profileBlock = renderProfileBlock(profile);
   const systemPrompt = withInterviewLanguage(
-    buildEvaluationPrompt({ tier: tierLevel, hasProfile: Boolean(profileBlock) }),
+    buildEvaluationPrompt({ tier: tierLevel, hasProfile: Boolean(profileBlock), spoken }),
     language,
   );
 
@@ -422,9 +727,7 @@ export async function evaluateInterview({
   // here renders as a missing card beside a question the user definitely
   // answered, which reads as their answer having been lost.
   const scored = new Map(result.data.per_question.map((entry) => [Number(entry.index), entry]));
-  const perQuestion = questions
-    .slice()
-    .sort((a, b) => a.index - b.index)
+  const perQuestion = orderQuestions(questions)
     .map((question) => scored.get(Number(question.index)) ?? {
       index: question.index,
       score: 0,
@@ -436,8 +739,8 @@ export async function evaluateInterview({
 
   const missing = perQuestion.filter((entry) => !entry.verdict && entry.score === 0).length;
   console.log(
-    `[interview-eval] tier=${tierLevel} score=${result.data.overall_score}`
-    + ` gaps=${gaps.length} unscored=${missing} language=${language}`
+    `[interview-eval] tier=${tierLevel} mode=${mode} score=${result.data.overall_score}`
+    + ` questions=${questions.length} gaps=${gaps.length} unscored=${missing} language=${language}`
   );
 
   return {

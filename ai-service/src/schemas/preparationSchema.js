@@ -95,3 +95,25 @@ export const InterviewEvaluationSchema = z.object({
   per_question: z.array(PerQuestionSchema).default([]),
   gaps: GapListSchema.default([]),
 });
+
+/* ── Live interview follow-up ───────────────────────────────────────────── */
+
+/**
+ * One reactive question, or an honest refusal to ask one.
+ *
+ * `ask_follow_up` exists so the model can decline. A probe is only worth a
+ * model call when the answer actually left something open — a complete,
+ * well-evidenced answer has nothing to follow up, and forcing a question out of
+ * it produces the "can you tell me more about that?" filler that makes a
+ * practice interview feel automated. Declining costs the candidate nothing:
+ * the next planned question is already written and waiting.
+ *
+ * Permissive in the same way the other two are. A model that sets the flag and
+ * then returns an empty question has not asked one, and the caller treats that
+ * as a decline rather than rejecting the response.
+ */
+export const InterviewFollowUpSchema = z.object({
+  ask_follow_up: z.boolean().default(false),
+  question: z.string().default(''),
+  why: z.string().default(''),
+});

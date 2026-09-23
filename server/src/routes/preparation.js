@@ -1,6 +1,22 @@
 /**
  * Module: preparation route
- * Responsibility: The gap board, and the two calls a mock interview is made of.
+ * Responsibility: The gap board, and the calls a mock interview is made of.
+ *
+ * TWO MODES, ONE INTERVIEW
+ *
+ * An interview runs written (five questions on a page, typed, submitted
+ * together) or live (one question at a time, dictated in the browser, on a
+ * clock). Both are created by POST /interviews and assessed by
+ * POST /interviews/:id/answers — the same two calls, the same generator, the
+ * same evaluator, the same gap reconciliation. The mode is a column, not a
+ * branch: nothing below forks on it except the transcript annotation and one
+ * prompt block, both of which live in ai-service.
+ *
+ * POST /interviews/:id/next is the live mode's only addition, and it does two
+ * things: it saves the answers so far, so an interview answered over several
+ * minutes survives a closed tab, and for premium accounts it may spend one
+ * small model call on a question that reacts to what was just said. It never
+ * fails the caller — see its own note.
  *
  * WHY THIS IS ONE ROUTER AND NOT TWO
  *
@@ -33,10 +49,14 @@ import rateLimit from 'express-rate-limit';
 import {
   generateInterviewQuestions,
   evaluateInterview,
+  generateFollowUpQuestion,
+  orderQuestions,
   JOB_AD_MAX_CHARS,
   ANSWER_MAX_CHARS,
   ROLE_MAX_CHARS,
   CANDIDATE_STAGES,
+  INTERVIEW_MODES,
+  LIVE_FOLLOW_UP_CAP,
 } from 'ai-service';
 import pool from '../db.js';
 import upload from '../middleware/upload.js';
@@ -135,6 +155,81 @@ async function readCandidateProfile(userId) {
     graduationYear: row.graduation_year ?? null,
   };
   return Object.values(profile).some((value) => value !== null && value !== '') ? profile : null;
+}
+
+/**
+ * Which mode the interview is being conducted in.
+ *
+ * Anything unrecognised is 'written'. That is the mode every interview ran in
+ * before live mode existed and the one that needs nothing from the browser, so
+ * it is the safe answer to a value this server does not understand.
+ *
+ * Bangla is forced to written. Speech recognition here is English-only — agreed
+ * with the client, because Bengali speech models are a paid API this project
+ * has no budget for — and a live interview whose microphone cannot be used is a
+ * worse experience than the written one it replaced. The client hides the
+ * option in Bangla; this is what makes that true rather than merely displayed.
+ */
+function readMode(value, language) {
+  const mode = INTERVIEW_MODES.includes(value) ? value : 'written';
+  if (mode === 'live' && language === 'bn') {
+    console.log('[interview] Live mode requested in Bangla; running written. Speech is English-only.');
+    return 'written';
+  }
+  return mode;
+}
+
+/** Longest a single answer may be recorded as having taken, in seconds. */
+const ANSWER_SECONDS_CAP = 3600;
+
+/** How an answer was produced. Recorded only when the client actually says. */
+const ANSWER_SOURCES = new Set(['speech', 'typed']);
+
+/**
+ * Reads the answers off a request.
+ *
+ * `seconds` and `source` are the live mode's additions and are omitted entirely
+ * rather than defaulted when they are absent, which is what keeps a written
+ * interview's stored answers byte-identical to the ones written before live
+ * mode existed. A defaulted `seconds: 0` would be a claim that somebody
+ * answered instantly.
+ *
+ * The clamp is not about storage. The duration reaches the evaluation prompt,
+ * and a tab left open over lunch would otherwise tell the model an answer took
+ * nine hours — which is not a fact about the candidate.
+ */
+function readAnswers(submitted) {
+  return submitted
+    .map((entry) => {
+      const seconds = Number(entry?.seconds);
+      const source = typeof entry?.source === 'string' ? entry.source : null;
+      return {
+        index: Number(entry?.index),
+        answer: typeof entry?.answer === 'string' ? entry.answer.slice(0, ANSWER_MAX_CHARS) : '',
+        ...(Number.isFinite(seconds) && seconds >= 0
+          ? { seconds: Math.min(Math.round(seconds), ANSWER_SECONDS_CAP) }
+          : {}),
+        ...(ANSWER_SOURCES.has(source) ? { source } : {}),
+      };
+    })
+    .filter((entry) => Number.isInteger(entry.index));
+}
+
+/**
+ * Whether this account's live interviews may ask reactive follow-up questions.
+ *
+ * Follow-ups are the one part of this feature that costs a model call per turn,
+ * so they are premium. That is not a paywall around the live mode — a free
+ * account gets the whole live interview, one question at a time, dictated,
+ * timed and marked, for exactly the two calls a written interview has always
+ * cost. What premium buys is the interview reacting to what was just said.
+ *
+ * `unlimited` is accepted alongside the tier so an admin demonstrating the
+ * feature sees it work. Their allowance is already unlimited for the same
+ * reason.
+ */
+function canAskFollowUps(quota) {
+  return Boolean(quota) && (quota.unlimited === true || quota.tier === 'premium');
 }
 
 /** Maps an ai-service failure code onto the status the client expects. */
@@ -271,6 +366,7 @@ router.post(
       const targetRole = readRole(req.body?.targetRole);
       const candidateStage = readStage(req.body?.candidateStage);
       const jobAd = readJobAd(req.body?.jobAd);
+      const mode = readMode(req.body?.mode, language);
 
       let resumeText;
       if (uploadedFilePath) {
@@ -283,11 +379,15 @@ router.post(
       // five questions aim at a real, previously identified weakness, which is
       // the thing that proves the two features are connected rather than sitting
       // beside each other.
-      const [knownGaps, profile, identity] = await Promise.all([
+      const [knownGaps, profile, identity, quota] = await Promise.all([
         readOpenGapsForPrompt(req.user.id),
         readCandidateProfile(req.user.id),
         // The known strings the outbound mask uses on top of its patterns.
         readAccountIdentity(req.user.id),
+        // Read rather than taken from res.locals, which holds what the limiter
+        // claimed and not the account's standing. Follow-ups are a tier
+        // question, not an allowance question.
+        readInterviewQuota(req.user.id),
       ]);
 
       const result = await generateInterviewQuestions({
@@ -317,8 +417,8 @@ router.post(
       const inserted = await pool.query(
         `INSERT INTO mock_interviews
            (user_id, tier_level, target_role, candidate_stage, resume_file_name,
-            job_ad_text, questions, status, model, tier, language, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'in_progress', $8, $9, $10, NOW())
+            job_ad_text, questions, status, model, tier, language, mode, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'in_progress', $8, $9, $10, $11, NOW())
          RETURNING interview_id, created_at`,
         [
           req.user.id,
@@ -331,6 +431,7 @@ router.post(
           result.model,
           res.locals.interviewQuota?.tier ?? 'free',
           language,
+          mode,
         ]
       );
 
@@ -341,6 +442,13 @@ router.post(
         focus: result.focus,
         questions: safeQuestions,
         profileUsed: profile !== null,
+        mode,
+        // Whether this interview may ask reactive questions, decided here and
+        // not in the browser. The client uses it to know whether asking for a
+        // next question is worth a round trip; the /next route enforces it
+        // regardless of what the client believes.
+        followUpsAvailable: mode === 'live' && canAskFollowUps(quota),
+        followUpsRemaining: mode === 'live' && canAskFollowUps(quota) ? LIVE_FOLLOW_UP_CAP : 0,
         createdAt: inserted.rows[0].created_at,
       });
     } catch (err) {
@@ -356,6 +464,191 @@ router.post(
     }
   }
 );
+
+/* ── POST /api/preparation/interviews/:id/next ─────────────────────── */
+
+/*
+ * The live mode's reactive turn: save what has been answered so far, and decide
+ * whether to ask a follow-up before the next planned question.
+ *
+ * ALWAYS 200, EVEN WHEN NOTHING IS ASKED
+ *
+ * Declining to ask is the normal outcome, not an error — a free account never
+ * asks, a complete answer does not need probing, and the cap runs out after
+ * two. So is a provider failure: the candidate is mid-interview with the next
+ * planned question already written and waiting, and failing this request would
+ * strand them in front of a spinner over a question that was optional. Every
+ * one of those returns `question: null` with a reason, and the interview walks
+ * on. The reason is for the log and for the client's own bookkeeping, not for
+ * an error message.
+ *
+ * THE ANSWERS ARE SAVED HERE, AND THAT IS HALF THE POINT
+ *
+ * A written interview is typed on one page and submitted in one go, so there is
+ * nothing to lose until the end. A live interview is answered over several
+ * minutes, one question at a time, and a closed tab at question four used to
+ * mean four answers gone. Persisting on every turn is what makes the existing
+ * "resume an unfinished interview" path work for a mode that can actually be
+ * interrupted.
+ *
+ * NO ALLOWANCE IS CLAIMED. The interview was paid for when its questions were
+ * written. What IS claimed is the follow-up counter, and it is incremented
+ * BEFORE the call rather than after it, for the reason the daily quota is
+ * claimed at generation: a call that succeeds at the provider and fails on the
+ * way back has been spent, and a counter that only counts successes would let a
+ * retry loop spend it repeatedly.
+ */
+router.post('/interviews/:id/next', preparationRateLimit, async (req, res) => {
+  const id = Number.parseInt(req.params.id, 10);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'Invalid interview id.' });
+  }
+
+  const afterIndex = Number(req.body?.afterIndex);
+  if (!Number.isInteger(afterIndex)) {
+    return res.status(400).json({ error: 'The question just answered is required.' });
+  }
+
+  const submitted = Array.isArray(req.body?.answers) ? req.body.answers : null;
+  if (!submitted) {
+    return res.status(400).json({ error: 'Answers are required.' });
+  }
+
+  try {
+    const existing = await pool.query(
+      `SELECT interview_id, tier_level, target_role, candidate_stage, job_ad_text,
+              questions, status, tier, language, mode, follow_up_count
+         FROM mock_interviews
+        WHERE interview_id = $1 AND user_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: 'Interview not found.' });
+    }
+
+    const interview = existing.rows[0];
+    if (interview.status === 'complete') {
+      return res.status(409).json({ error: 'This interview has already been assessed.' });
+    }
+
+    const answers = readAnswers(submitted);
+
+    // Saved first and unconditionally. Whatever this route decides about a
+    // follow-up, the answers are the part the candidate actually produced.
+    await pool.query(
+      'UPDATE mock_interviews SET answers = $2 WHERE interview_id = $1',
+      [id, JSON.stringify(answers)]
+    );
+
+    const decline = (reason) => res.json({ question: null, reason, followUpsRemaining: 0 });
+
+    // A written interview has no turns to react between.
+    if (interview.mode !== 'live') return decline('not_live');
+
+    const questions = Array.isArray(interview.questions) ? interview.questions : [];
+    const ordered = orderQuestions(questions);
+    const position = ordered.findIndex((item) => Number(item?.index) === afterIndex);
+    if (position === -1) {
+      return res.status(400).json({ error: 'That question is not part of this interview.' });
+    }
+
+    // Nothing follows the last question but the results screen. A probe here
+    // would extend an interview the candidate has been told is ending.
+    if (position === ordered.length - 1) return decline('interview_ending');
+
+    const used = Number(interview.follow_up_count) || 0;
+    if (used >= LIVE_FOLLOW_UP_CAP) return decline('cap_reached');
+
+    const quota = await readInterviewQuota(req.user.id);
+    if (!canAskFollowUps(quota)) return decline('premium_only');
+
+    // Claimed before the call. See the note above on why this is not done after.
+    await pool.query(
+      'UPDATE mock_interviews SET follow_up_count = follow_up_count + 1 WHERE interview_id = $1',
+      [id]
+    );
+    const remaining = Math.max(LIVE_FOLLOW_UP_CAP - (used + 1), 0);
+
+    const refundFollowUp = () => pool.query(
+      'UPDATE mock_interviews SET follow_up_count = GREATEST(follow_up_count - 1, 0) WHERE interview_id = $1',
+      [id]
+    );
+
+    const [profile, identity] = await Promise.all([
+      readCandidateProfile(req.user.id),
+      readAccountIdentity(req.user.id),
+    ]);
+
+    const nextIndex = Math.max(0, ...questions.map((item) => Number(item?.index) || 0)) + 1;
+    const language = req.body?.language === 'bn' ? 'bn' : (interview.language ?? resolveLanguage(req));
+
+    let result;
+    try {
+      result = await generateFollowUpQuestion({
+        questions,
+        answers,
+        currentIndex: afterIndex,
+        nextIndex,
+        tierLevel: interview.tier_level,
+        targetRole: interview.target_role,
+        candidateStage: interview.candidate_stage,
+        jobAd: interview.job_ad_text,
+        profile,
+        language,
+        tier: interview.tier === 'premium' ? 'premium' : 'free',
+        identity,
+      });
+    } catch (err) {
+      // A throw here is a bug in the call, not a provider failure. It still must
+      // not end the candidate's interview.
+      console.error('[interview-followup] Follow-up threw:', err.message);
+      await refundFollowUp();
+      return decline('unavailable');
+    }
+
+    if (!result.ok) {
+      // The provider failed. The next planned question is already written, so
+      // this costs the candidate nothing but the counter, which goes back.
+      console.error(`[interview-followup] Provider failure (${result.code}); continuing without a follow-up.`);
+      await refundFollowUp();
+      return decline('unavailable');
+    }
+
+    if (!result.question) {
+      // The model read the answer and judged it complete. A real outcome, and
+      // the reason the counter is NOT refunded: the call was made and spent.
+      return res.json({ question: null, reason: 'not_needed', followUpsRemaining: remaining });
+    }
+
+    // Same deterministic guard the planned questions get. A probe quotes the
+    // candidate's own answer back at them, which is exactly the payload most
+    // likely to carry a name.
+    const { value: safeQuestion } = redactPiiDeepWithFindings(result.question);
+
+    // Spliced in at the position it was asked, not appended. The stored array
+    // is the order of the conversation — a probe about answer 2 belongs after
+    // answer 2, and putting it last would hand the evaluator a transcript in an
+    // order the interview never had.
+    const withFollowUp = ordered.slice();
+    withFollowUp.splice(position + 1, 0, safeQuestion);
+
+    await pool.query(
+      'UPDATE mock_interviews SET questions = $2 WHERE interview_id = $1',
+      [id, JSON.stringify(withFollowUp)]
+    );
+
+    return res.json({
+      question: safeQuestion,
+      reason: 'asked',
+      followUpsRemaining: remaining,
+    });
+  } catch (err) {
+    console.error('[interview-followup] Could not decide on a follow-up:', err.message);
+    // Even an unexpected failure must not strand the candidate mid-interview.
+    return res.json({ question: null, reason: 'unavailable', followUpsRemaining: 0 });
+  }
+});
 
 /* ── POST /api/preparation/interviews/:id/answers ──────────────────── */
 
@@ -386,7 +679,7 @@ router.post('/interviews/:id/answers', preparationRateLimit, async (req, res) =>
   try {
     const existing = await pool.query(
       `SELECT interview_id, tier_level, target_role, candidate_stage, job_ad_text,
-              questions, status, tier, language
+              questions, status, tier, language, mode
          FROM mock_interviews
         WHERE interview_id = $1 AND user_id = $2`,
       [id, req.user.id]
@@ -404,12 +697,7 @@ router.post('/interviews/:id/answers', preparationRateLimit, async (req, res) =>
     }
 
     const questions = Array.isArray(interview.questions) ? interview.questions : [];
-    const answers = submitted
-      .map((entry) => ({
-        index: Number(entry?.index),
-        answer: typeof entry?.answer === 'string' ? entry.answer.slice(0, ANSWER_MAX_CHARS) : '',
-      }))
-      .filter((entry) => Number.isInteger(entry.index));
+    const answers = readAnswers(submitted);
 
     if (answers.every((entry) => entry.answer.trim() === '')) {
       // Nothing to assess. Refusing costs the user nothing; running would spend
@@ -430,6 +718,11 @@ router.post('/interviews/:id/answers', preparationRateLimit, async (req, res) =>
       questions,
       answers,
       tierLevel: interview.tier_level,
+      // The mode comes out of the database, never off the request. It decides
+      // whether the evaluator is told these answers were dictated, and a caller
+      // able to set it could ask for transcription leniency on a written
+      // interview that never had any.
+      mode: interview.mode === 'live' ? 'live' : 'written',
       targetRole: interview.target_role,
       candidateStage: interview.candidate_stage,
       jobAd: interview.job_ad_text,
@@ -503,7 +796,7 @@ router.get('/interviews', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT interview_id, tier_level, target_role, candidate_stage, resume_file_name,
-              overall_score, status, language, created_at, completed_at,
+              overall_score, status, language, mode, created_at, completed_at,
               (job_ad_text IS NOT NULL) AS had_job_ad
          FROM mock_interviews
         WHERE user_id = $1
@@ -537,7 +830,7 @@ router.get('/interviews/:id', async (req, res) => {
     const result = await pool.query(
       `SELECT interview_id, tier_level, target_role, candidate_stage, resume_file_name,
               job_ad_text, questions, answers, evaluation, overall_score, status,
-              model, tier, language, created_at, completed_at
+              model, tier, language, mode, follow_up_count, created_at, completed_at
          FROM mock_interviews
         WHERE interview_id = $1 AND user_id = $2`,
       [id, req.user.id]

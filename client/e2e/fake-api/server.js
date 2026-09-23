@@ -370,6 +370,156 @@ function handleReset(req, res) {
   return send(res, 200, { ok: true });
 }
 
+/* ── Preparation ────────────────────────────────────────────────────────── */
+
+/*
+ * Enough of the preparation API for the live interview spec to run.
+ *
+ * The gap board is served empty on purpose. The spec is about how an interview
+ * is CONDUCTED — one question at a time, dictated, timed, no way back — and a
+ * populated board would only add fixtures to the parts of the page it never
+ * touches.
+ *
+ * Follow-ups are always declined here. They are premium and they cost a model
+ * call, so the free path is the one every user takes and the one worth having
+ * a regression test for. What this fake does exercise is that the client calls
+ * /next on every turn, sends the timings, and carries on when nothing comes
+ * back — which is the behaviour that must not break.
+ */
+
+const FAKE_QUESTIONS = [
+  {
+    index: 1, kind: 'behavioural',
+    question: 'Tell me about a time you had to deliver under a tight deadline.',
+    why: 'A strong answer names the situation and what you decided.',
+    targets_gap_key: null,
+  },
+  {
+    index: 2, kind: 'role_specific',
+    question: 'How would you validate data before loading it into a reporting table?',
+    why: 'A strong answer names a specific check you would run.',
+    targets_gap_key: null,
+  },
+  {
+    index: 3, kind: 'behavioural',
+    question: 'Describe a disagreement with a colleague and how it ended.',
+    why: 'A strong answer says what you did, not only what they did.',
+    targets_gap_key: null,
+  },
+  {
+    index: 4, kind: 'role_specific',
+    question: 'Which reporting tools have you used, and for what?',
+    why: 'A strong answer names the tool and the job it did.',
+    targets_gap_key: null,
+  },
+  {
+    index: 5, kind: 'role_specific',
+    question: 'What would your first month in this role look like?',
+    why: 'A strong answer is specific about the first week.',
+    targets_gap_key: null,
+  },
+]
+
+/** interviewId → the interview as this fake holds it. */
+const interviews = new Map()
+let nextInterviewId = 1
+
+function handleInterviewStart(req, res) {
+  const user = currentUser(req)
+  if (!user) return send(res, 401, { error: 'Authentication required.' })
+
+  // multipart, and the only field the spec steers is the mode. Read off the
+  // raw body rather than parsed, because parsing multipart properly here would
+  // be a second implementation of something no assertion depends on.
+  let body = ''
+  req.on('data', chunk => { body += chunk })
+  req.on('end', () => {
+    const mode = /name="mode"\r?\n\r?\nlive/.test(body) ? 'live' : 'written'
+    const roleMatch = body.match(/name="targetRole"\r?\n\r?\n([^\r\n]*)/)
+    const id = nextInterviewId++
+
+    const interview = {
+      interview_id: id,
+      tier_level: 1,
+      target_role: roleMatch ? roleMatch[1] : '',
+      mode,
+      questions: FAKE_QUESTIONS.map(question => ({ ...question })),
+      answers: [],
+      status: 'in_progress',
+    }
+    interviews.set(id, interview)
+
+    send(res, 201, {
+      interviewId: id,
+      tierLevel: 1,
+      role: interview.target_role,
+      focus: 'Testing how you describe your own work.',
+      questions: interview.questions,
+      profileUsed: false,
+      mode,
+      // Declined for a free account, which is what this fake serves.
+      followUpsAvailable: false,
+      followUpsRemaining: 0,
+      createdAt: new Date().toISOString(),
+    })
+  })
+}
+
+async function handleInterviewNext(req, res, id) {
+  const user = currentUser(req)
+  if (!user) return send(res, 401, { error: 'Authentication required.' })
+
+  const interview = interviews.get(id)
+  if (!interview) return send(res, 404, { error: 'Interview not found.' })
+
+  const { answers } = await readJson(req)
+  // Saved, because saving is the half of this endpoint that every account gets
+  // and the half the spec can actually observe on a resume.
+  interview.answers = Array.isArray(answers) ? answers : []
+
+  return send(res, 200, { question: null, reason: 'premium_only', followUpsRemaining: 0 })
+}
+
+async function handleInterviewAnswers(req, res, id) {
+  const user = currentUser(req)
+  if (!user) return send(res, 401, { error: 'Authentication required.' })
+
+  const interview = interviews.get(id)
+  if (!interview) return send(res, 404, { error: 'Interview not found.' })
+  if (interview.status === 'complete') {
+    return send(res, 409, { error: 'This interview has already been assessed.' })
+  }
+
+  const { answers } = await readJson(req)
+  interview.answers = Array.isArray(answers) ? answers : []
+  interview.status = 'complete'
+
+  const evaluation = {
+    overall_score: 68,
+    summary: 'You give real examples and they land. Say what changed as a result more often.',
+    per_question: interview.questions.map(question => ({
+      index: question.index,
+      score: 68,
+      verdict: 'Relevant example, no outcome stated',
+      strengths: ['Named a specific situation'],
+      improvements: ['End on what changed'],
+      stronger_answer: 'Pick one project and close on the result it produced.',
+    })),
+  }
+  interview.evaluation = evaluation
+
+  return send(res, 200, { interviewId: id, evaluation, gaps: [], gapsChanged: null })
+}
+
+function handleInterviewRead(req, res, id) {
+  const user = currentUser(req)
+  if (!user) return send(res, 401, { error: 'Authentication required.' })
+
+  const interview = interviews.get(id)
+  if (!interview) return send(res, 404, { error: 'Interview not found.' })
+  return send(res, 200, { ...interview, evaluation: interview.evaluation ?? null })
+}
+
 /* ── Routing ────────────────────────────────────────────────────────────── */
 
 const ROUTES = [
@@ -395,10 +545,51 @@ const ROUTES = [
       ? send(res, 200, ALUMNI_ALL)
       : send(res, 403, { error: 'Access denied.' })],
 
+  /* The interview setup panel reads this to say what it knows about the
+     candidate. Served with the three fields empty, which is the state a fresh
+     account is in and the one the panel has a branch for. */
+  ['GET', '/api/users/me', (req, res) => {
+    const user = currentUser(req);
+    return user
+      ? send(res, 200, {
+        full_name: user.full_name, email: user.email,
+        discipline: null, institution: null, graduation_year: null,
+      })
+      : send(res, 401, { error: 'Authentication required.' });
+  }],
+
+  /* Preparation. The board is empty; the interview is the part under test. */
+  ['GET', '/api/preparation/gaps', (req, res) =>
+    currentUser(req) ? send(res, 200, []) : send(res, 401, { error: 'Authentication required.' })],
+  ['GET', '/api/preparation/summary', (req, res) =>
+    currentUser(req)
+      ? send(res, 200, { total: 0, open: 0, closed: 0, dismissed: 0, percent: 0, nextUp: null })
+      : send(res, 401, { error: 'Authentication required.' })],
+  ['GET', '/api/preparation/quota', (req, res) =>
+    currentUser(req)
+      ? send(res, 200, {
+        authenticated: true, tier: 'free', limit: 2, used: 0, remaining: 2, unlimited: false,
+      })
+      : send(res, 401, { error: 'Authentication required.' })],
+  ['GET', '/api/preparation/interviews', (req, res) =>
+    currentUser(req) ? send(res, 200, []) : send(res, 401, { error: 'Authentication required.' })],
+  ['POST', '/api/preparation/interviews', handleInterviewStart],
+
   ['GET', '/api/health', (req, res) => send(res, 200, { ok: true })],
 
   ['POST', '/api/test/promote', handlePromote],
   ['POST', '/api/test/reset', handleReset],
+];
+
+/*
+ * Routes whose path carries an id. Kept as a second table rather than turning
+ * the first into regexes, so the exact-match list stays readable — it is the
+ * majority and it is the one people scan.
+ */
+const ID_ROUTES = [
+  ['POST', /^\/api\/preparation\/interviews\/(\d+)\/next$/, handleInterviewNext],
+  ['POST', /^\/api\/preparation\/interviews\/(\d+)\/answers$/, handleInterviewAnswers],
+  ['GET', /^\/api\/preparation\/interviews\/(\d+)$/, handleInterviewRead],
 ];
 
 const server = http.createServer(async (req, res) => {
@@ -419,6 +610,22 @@ const server = http.createServer(async (req, res) => {
   }
 
   const route = ROUTES.find(([method, path]) => method === req.method && path === pathname);
+
+  if (!route) {
+    const withId = ID_ROUTES
+      .map(([method, pattern, handler]) => [method, pattern.exec(pathname), handler])
+      .find(([method, match]) => method === req.method && match);
+
+    if (withId) {
+      try {
+        await withId[2](req, res, Number(withId[1][1]));
+      } catch (err) {
+        console.error(`[fake-api] ${req.method} ${pathname} failed:`, err);
+        if (!res.headersSent) send(res, 500, { error: 'Fake API error.' });
+      }
+      return;
+    }
+  }
 
   if (!route) {
     // Loud on purpose. A spec that grows a dependency on an endpoint this fake
