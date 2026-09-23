@@ -49,6 +49,46 @@ const JOB_AD_MAX = 4000
 const ANSWER_MAX = 2500
 
 /*
+ * Answers in progress, kept on this device.
+ *
+ * Until submission the answers lived only in React state, so a reload — or a
+ * tab closed to look something up — threw away five typed paragraphs, and an
+ * unfinished interview reopened from history came back empty because the
+ * server only stores answers when an assessment fails. The draft is written
+ * as the user types and read back when the same interview is reopened; it is
+ * removed once the assessment has been returned, since the server holds the
+ * answers from then on. Storage can be unavailable in private browsing, in
+ * which case the interview simply behaves as it did before.
+ */
+const DRAFT_PREFIX = 'interviewDraft:'
+
+function readDraft(interviewId) {
+  try {
+    const raw = localStorage.getItem(DRAFT_PREFIX + interviewId)
+    const parsed = raw ? JSON.parse(raw) : null
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+function writeDraft(interviewId, answers) {
+  try {
+    localStorage.setItem(DRAFT_PREFIX + interviewId, JSON.stringify(answers))
+  } catch {
+    // Nothing to do: the in-memory answers still work for this session.
+  }
+}
+
+function clearDraft(interviewId) {
+  try {
+    localStorage.removeItem(DRAFT_PREFIX + interviewId)
+  } catch {
+    // Same as above.
+  }
+}
+
+/*
  * The profile fields the interview reads. The server pitches the questions at
  * these, so the setup panel says which of them it holds; null when the profile
  * has none of them, which is the state a fresh account is in.
@@ -686,6 +726,10 @@ function InterviewAnswering({ interview, answers, setAnswers, onSubmit, submitti
         </span>
       </div>
 
+      {/* Said once, so a user who steps away knows what they will find when
+          they come back — and knows it is this device, not their account. */}
+      {answered > 0 && <p className="prep-draft-note" role="status">{t('prep.draftSaved')}</p>}
+
       {questions.map(question => (
         <div className="card prep-q" key={question.index}>
           <div className="prep-q__head">
@@ -1001,6 +1045,13 @@ export default function Preparation() {
       .finally(() => setHistoryLoading(false))
   }, [])
 
+  // Mirrors the answers to this device while an interview is being answered.
+  // See readDraft above for why.
+  useEffect(() => {
+    if (stage !== 'answering' || !interview?.interviewId) return
+    writeDraft(interview.interviewId, answers)
+  }, [answers, stage, interview])
+
   const openGapCount = gaps.filter(gap => gap.status === 'open').length
   // What they were preparing for last time, as the starting value for the
   // role field. Newest first, so the first row with a role is the latest.
@@ -1050,6 +1101,7 @@ export default function Preparation() {
         answer: answers[question.index] ?? '',
       }))
       const result = await submitInterviewAnswers(interview.interviewId, payload, lang)
+      clearDraft(interview.interviewId)
       setEvaluation(result.evaluation)
       setFoundGaps(result.gaps ?? [])
       setStage('results')
@@ -1081,7 +1133,11 @@ export default function Preparation() {
         focus: '',
         questions: full.questions ?? [],
       })
-      setAnswers(Object.fromEntries((full.answers ?? []).map(entry => [entry.index, entry.answer])))
+      // What the server holds (written only when an assessment failed) under
+      // what was typed on this device since, which is always at least as new.
+      const saved = Object.fromEntries((full.answers ?? []).map(entry => [entry.index, entry.answer]))
+      const draft = full.status === 'complete' ? null : readDraft(full.interview_id)
+      setAnswers({ ...saved, ...(draft ?? {}) })
 
       if (full.status === 'complete' && full.evaluation) {
         setEvaluation(full.evaluation)

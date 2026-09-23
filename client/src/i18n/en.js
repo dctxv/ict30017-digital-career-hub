@@ -858,6 +858,7 @@ export default {
   'prep.submitAnswers': 'Submit for assessment',
   'prep.assessing': 'Assessing your answers…',
   'prep.assessFailed': 'Could not assess this interview. Your answers are saved.',
+  'prep.draftSaved': 'Your answers are saved on this device as you type. If you leave, pick this interview up again from Past Interviews.',
   'prep.partialWarning': 'Questions you haven\'t answered will be assessed as unanswered. You can finish them first if you\'d like.',
   'prep.submitNote': 'All five are assessed together, once.',
 

@@ -654,6 +654,12 @@
 
 .prep-run__head .card__sub { margin-bottom: 0; }
 
+.prep-draft-note {
+  font-size: 13px;
+  color: var(--muted-2);
+  margin: -6px 0 0 4px;
+}
+
 .prep-run__count {
   flex: none;
   font-family: var(--font-display);
