@@ -1,6 +1,15 @@
 import { test, expect } from '@playwright/test'
 
 /**
+ * Clicks Analyse and answers the language prompt that follows it. The review
+ * is generated once in the chosen language, so the page asks before sending.
+ */
+async function analyseInEnglish(page) {
+  await page.getByRole('button', { name: /analyse my resume/i }).click()
+  await page.getByRole('dialog').getByRole('button', { name: /^english$/i }).click()
+}
+
+/**
  * Verifies the application-context selectors added for the context-routed
  * reviewer: they render, their choices travel inside the multipart upload, and
  * the coarse market toggle stays consistent with the employer selector.
@@ -44,7 +53,7 @@ test('chosen context fields travel inside the upload; untouched ones are omitted
   await page.locator('#ctx-candidateStage').selectOption('fresher')
   // employerType and targetSector deliberately left at "Not sure".
 
-  await page.getByRole('button', { name: /analyse my resume/i }).click()
+  await analyseInEnglish(page)
   await expect(page.locator('.rr-error')).toBeVisible({ timeout: 15000 })
 
   expect(body, 'request should have been captured').not.toBeNull()

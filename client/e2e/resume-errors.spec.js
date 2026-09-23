@@ -1,6 +1,15 @@
 import { test, expect } from '@playwright/test'
 
 /**
+ * Clicks Analyse and answers the language prompt that follows it. The review
+ * is generated once in the chosen language, so the page asks before sending.
+ */
+async function analyseInEnglish(page) {
+  await page.getByRole('button', { name: /analyse my resume/i }).click()
+  await page.getByRole('dialog').getByRole('button', { name: /^english$/i }).click()
+}
+
+/**
  * Verifies H4 (analysis failure stranded the user in the results shell),
  * H5 (partial failure copy was reused for total failure) and H6 (file type and
  * size were only filtered by the picker dialog, not validated).
@@ -76,7 +85,7 @@ test.describe('H4 / H5 a failed analysis is recoverable', () => {
     await page.route('**/api/resume/analyze', route =>
       route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'Analysis failed' }) }))
 
-    await page.getByRole('button', { name: /analyse my resume/i }).click()
+    await analyseInEnglish(page)
 
     // The error view, not the results shell.
     const errorPanel = page.locator('.rr-error')
@@ -100,7 +109,7 @@ test.describe('H4 / H5 a failed analysis is recoverable', () => {
     await page.route('**/api/resume/analyze**', route =>
       route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'Analysis failed' }) }))
 
-    await page.getByRole('button', { name: /analyse my resume/i }).click()
+    await analyseInEnglish(page)
     await expect(page.locator('.rr-error')).toBeVisible({ timeout: 15000 })
 
     await page.getByRole('button', { name: /upload new resume/i }).click()

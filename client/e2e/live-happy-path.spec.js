@@ -2,6 +2,15 @@ import { test, expect } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 
 /**
+ * Clicks Analyse and answers the language prompt that follows it. The review
+ * is generated once in the chosen language, so the page asks before sending.
+ */
+async function analyseInEnglish(page) {
+  await page.getByRole('button', { name: /analyse my resume/i }).click()
+  await page.getByRole('dialog').getByRole('button', { name: /^english$/i }).click()
+}
+
+/**
  * The success path end to end through the browser, against real model output.
  * Everything else in the suite mocks the analysis endpoint; this one does not.
  */
@@ -34,7 +43,7 @@ test('a signed in user uploads a real resume and sees real AI feedback', async (
   // The counter is bound to the server, so it must show the real allowance.
   // It renders only once a file has been accepted.
   await expect(page.locator('.rr-quota')).toContainText(/3 of 3|remaining today/i)
-  await page.getByRole('button', { name: /analyse my resume/i }).click()
+  await analyseInEnglish(page)
 
   // Real analysis, so allow generous time.
   await expect(page.locator('.rr-error')).toHaveCount(0)
