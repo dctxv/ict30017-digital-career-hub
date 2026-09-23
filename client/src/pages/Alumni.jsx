@@ -77,6 +77,7 @@ export default function Alumni() {
                 key={item.name}
                 type="button"
                 className={`pill${disc === item.name ? ' pill--on' : ''}`}
+                aria-pressed={disc === item.name}
                 onClick={() => setDisc(item.name)}
               >
                 {item.label}

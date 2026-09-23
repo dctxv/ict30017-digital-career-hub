@@ -335,25 +335,28 @@ export default function Profile() {
       </section>
 
       <section className="pf-body">
-        <nav className="pf-rail" aria-label={t('profile.title')}>
+        <div className="pf-rail" role="tablist" aria-label={t('profile.title')}>
           {TABS.map(item => {
             const Icon = item.icon
             return (
               <button
                 key={item.key}
+                id={`pf-tab-${item.key}`}
                 type="button"
+                role="tab"
                 className={`pf-tab${tab === item.key ? ' pf-tab--on' : ''}`}
                 onClick={() => { setTab(item.key); setSaved(false); setError('') }}
-                aria-current={tab === item.key}
+                aria-selected={tab === item.key}
+                aria-controls="pf-panel"
               >
                 <Icon size={16} />
                 {t(item.labelKey)}
               </button>
             )
           })}
-        </nav>
+        </div>
 
-        <div className="pf-panel">
+        <div className="pf-panel" id="pf-panel" role="tabpanel" aria-labelledby={`pf-tab-${tab}`}>
           {error && <p className="notice notice--error" role="alert">{error}</p>}
 
           {tab === 'account' && (

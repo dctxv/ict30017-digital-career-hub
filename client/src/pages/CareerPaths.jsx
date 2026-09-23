@@ -99,6 +99,7 @@ export default function CareerPaths() {
                 key={item.name}
                 type="button"
                 className={`pill${disc === item.name ? ' pill--on' : ''}`}
+                aria-pressed={disc === item.name}
                 onClick={() => chooseDiscipline(item.name)}
               >
                 {item.label}

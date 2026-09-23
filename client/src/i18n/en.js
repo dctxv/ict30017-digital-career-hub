@@ -210,6 +210,8 @@ export default {
   'resources.searchPlaceholder': 'Search resources...',
   'resources.empty': 'No resources found. Try a different filter.',
   'resources.count': 'Showing {shown} of {total}',
+  'resources.forCareer': 'Showing {discipline} resources because you were reading about {title}.',
+  'resources.clearCareer': 'Show everything',
   'auth.continue': 'Continue',
   'auth.backStep': 'Back',
   'auth.stepOf': 'Step {step}/{total}',

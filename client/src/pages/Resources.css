@@ -25,6 +25,26 @@
   margin-bottom: 18px;
 }
 
+/* The career a visitor arrived from, when Career Paths handed one over. */
+.res-context {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.res-context__clear {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .res-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -61,6 +81,7 @@
 .res-card__banner--article { background: var(--type-article); }
 .res-card__banner--video { background: var(--type-video); }
 .res-card__banner--course { background: var(--type-course); }
+.res-card__banner--pdf { background: var(--type-pdf); }
 
 .res-card__type {
   font-size: 12.5px;
@@ -73,6 +94,7 @@
 .res-card__banner--article .res-card__type { color: var(--dot-article); }
 .res-card__banner--video .res-card__type { color: var(--dot-video); }
 .res-card__banner--course .res-card__type { color: var(--dot-course); }
+.res-card__banner--pdf .res-card__type { color: var(--dot-pdf); }
 
 .res-card__body {
   padding: 20px 22px 22px;

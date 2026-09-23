@@ -28,6 +28,14 @@ export default function Resources() {
   const [query, setQuery] = useState(
     () => localStorage.getItem('selectedResourceQuery') || ''
   )
+  // The career the visitor was reading about on Career Paths. That page wrote
+  // it alongside the discipline for months, and this one only ever deleted it,
+  // so "Find related resources for Treasury Analyst" landed on a page that
+  // never mentioned Treasury Analyst. It is shown as the reason the list is
+  // narrowed, and goes away when the visitor changes the filter themselves.
+  const [careerContext, setCareerContext] = useState(
+    () => localStorage.getItem('selectedCareer') || null
+  )
   const [visible, setVisible] = useState(PAGE_SIZE)
 
   // Narrowing the list while page three is showing would leave the user looking
@@ -35,7 +43,7 @@ export default function Resources() {
   // window rather than letting it persist across a change of subject.
   const narrow = (apply) => (value) => { apply(value); setVisible(PAGE_SIZE) }
   const chooseCategory = narrow(setCat)
-  const chooseDiscipline = narrow(setDisc)
+  const chooseDiscipline = narrow(value => { setDisc(value); setCareerContext(null) })
   const search = narrow(setQuery)
   // { name, label }: `name` is the English key resources are filtered by,
   // `label` is what the pill shows. Collapsing the two would make a Bangla
@@ -136,6 +144,7 @@ export default function Resources() {
                 key={c}
                 type="button"
                 className={`pill${cat === c ? ' pill--on' : ''}`}
+                aria-pressed={cat === c}
                 onClick={() => chooseCategory(c)}
               >
                 {c === 'All' ? t('common.all') : tc(`resources.category.${c}`, c)}
@@ -149,6 +158,7 @@ export default function Resources() {
                 key={d.name}
                 type="button"
                 className={`pill pill--sm${disc === d.name ? ' pill--on' : ''}`}
+                aria-pressed={disc === d.name}
                 onClick={() => chooseDiscipline(d.name)}
               >
                 {d.label}
@@ -167,6 +177,15 @@ export default function Resources() {
           <div className="empty-state">{t('resources.loading')}</div>
         ) : (
           <>
+            {!loadError && careerContext && (
+              <p className="res-context card card--tinted" role="status">
+                <span>{t('resources.forCareer', { title: careerContext, discipline: labelFor(disc) })}</span>
+                <button type="button" className="res-context__clear" onClick={() => setCareerContext(null)}>
+                  {t('resources.clearCareer')}
+                </button>
+              </p>
+            )}
+
             {!loadError && (
               <p className="res-count">
                 {t('resources.count', { shown: n(filtered.length), total: n(resources.length) })}

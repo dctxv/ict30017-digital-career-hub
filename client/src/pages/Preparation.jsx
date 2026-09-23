@@ -400,6 +400,7 @@ function PlanTab({ gaps, summary, loading, error, onDismiss, onRestore, busyId, 
           <button
             type="button"
             className={`pill pill--sm${status === 'all' ? ' pill--on' : ''}`}
+            aria-pressed={status === 'all'}
             onClick={() => setStatus('all')}
           >
             {t('common.all')}
@@ -409,6 +410,7 @@ function PlanTab({ gaps, summary, loading, error, onDismiss, onRestore, busyId, 
               key={value}
               type="button"
               className={`pill pill--sm${status === value ? ' pill--on' : ''}`}
+              aria-pressed={status === value}
               onClick={() => setStatus(value)}
             >
               {t(`prep.status.${value}`)}
@@ -420,6 +422,7 @@ function PlanTab({ gaps, summary, loading, error, onDismiss, onRestore, busyId, 
           <button
             type="button"
             className={`pill pill--sm${category === 'all' ? ' pill--on' : ''}`}
+            aria-pressed={category === 'all'}
             onClick={() => setCategory('all')}
           >
             {t('prep.allCategories')}
@@ -429,6 +432,7 @@ function PlanTab({ gaps, summary, loading, error, onDismiss, onRestore, busyId, 
               key={value}
               type="button"
               className={`pill pill--sm${category === value ? ' pill--on' : ''}`}
+              aria-pressed={category === value}
               onClick={() => setCategory(value)}
             >
               {t(`prep.category.${value}`)}
@@ -1179,16 +1183,22 @@ export default function Preparation() {
       </section>
 
       <section className="prep-body">
-        <nav className="prep-rail" aria-label={t('prep.title')}>
+        {/* A tab list rather than a nav: nothing here changes the URL, and the
+            three panels are alternatives, which is what a screen reader should
+            be told. */}
+        <div className="prep-rail" role="tablist" aria-label={t('prep.title')}>
           {TABS.map(item => {
             const Icon = item.icon
             return (
               <button
                 key={item.key}
+                id={`prep-tab-${item.key}`}
                 type="button"
+                role="tab"
                 className={`prep-tab${tab === item.key ? ' prep-tab--on' : ''}`}
                 onClick={() => setTab(item.key)}
-                aria-current={tab === item.key}
+                aria-selected={tab === item.key}
+                aria-controls="prep-panel"
               >
                 <Icon size={16} />
                 {t(item.labelKey)}
@@ -1198,9 +1208,9 @@ export default function Preparation() {
               </button>
             )
           })}
-        </nav>
+        </div>
 
-        <div className="prep-panel">
+        <div className="prep-panel" id="prep-panel" role="tabpanel" aria-labelledby={`prep-tab-${tab}`}>
           {tab === 'plan' && (
             <PlanTab
               gaps={gaps}

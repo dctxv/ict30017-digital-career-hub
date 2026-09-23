@@ -549,6 +549,8 @@ export default {
   'home.startReview': 'রিভিউ শুরু করুন',
 
   'resources.count': '{total}টির মধ্যে {shown}টি দেখানো হচ্ছে',
+  'resources.forCareer': 'আপনি {title} সম্পর্কে পড়ছিলেন, তাই {discipline} বিভাগের রিসোর্স দেখানো হচ্ছে।',
+  'resources.clearCareer': 'সব দেখান',
 
   /* ── Registration steps ──────────────────────────────────────── */
   'auth.continue': 'পরবর্তী ধাপ',
