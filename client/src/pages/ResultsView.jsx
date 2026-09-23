@@ -25,6 +25,7 @@ import { Link } from 'react-router-dom'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 import { useLanguage } from '../context/LanguageContext'
+import { useAuth } from '../context/AuthContext'
 import { openChatbot } from '../components/chatbotBus'
 import './ResultsView.css'
 
@@ -436,7 +437,8 @@ export default function ResultsView({
   filename, isSample, feedback, isLoading, streamError, marketMode,
   onReanalyse, onUploadNew, onNewFile, uploadedFile,
 }) {
-  const { t } = useLanguage()
+  const { t, n } = useLanguage()
+  const { isAuthenticated } = useAuth()
   const [expanded, setExpanded] = useState(false)
   const [previewWidth, setPreviewWidth] = useState(null)
   const previewRef = useRef(null)
@@ -562,7 +564,7 @@ export default function ResultsView({
               <div className="rv-overall__inner">
                 <div className="rv-overall__score">
                   <p className={`rv-overall__number rv-overall__number--${toneOf(overall)}`}>
-                    {overall}<span className="rv-overall__denom">/100</span>
+                    {n(overall)}<span className="rv-overall__denom">/{n(100)}</span>
                   </p>
                   <span className={`rv-band rv-band--${toneOf(overall)}`}>{t(bandLabelKey(overall))}</span>
                 </div>
@@ -662,11 +664,27 @@ export default function ResultsView({
                   where that becomes what to close and in what order, and where
                   a mock interview can aim a question at one of these gaps.
                   Extraction runs server side after the review is saved, so by
-                  the time anyone follows this link the board is already there. */}
-              <Link to="/preparation" className="btn btn--outline rv-next__btn">
-                <Target size={16} />
-                {t('results.buildPlan')}
-              </Link>
+                  the time anyone follows this link the board is already there.
+
+                  A guest's review is never saved and produces no gaps, so for
+                  them the same link led through the login form to an empty
+                  board. They are offered the account instead, and told why. */}
+              {isAuthenticated ? (
+                <Link to="/preparation" className="btn btn--outline rv-next__btn">
+                  <Target size={16} />
+                  {t('results.buildPlan')}
+                </Link>
+              ) : (
+                <Link
+                  to="/register"
+                  state={{ from: '/preparation' }}
+                  className="btn btn--outline rv-next__btn"
+                  title={t('results.signUpForPlanHint')}
+                >
+                  <Target size={16} />
+                  {t('results.signUpForPlan')}
+                </Link>
+              )}
               <Link to="/resources" className="btn btn--outline rv-next__btn">
                 <BookOpen size={16} />
                 {t('results.relatedResources')}

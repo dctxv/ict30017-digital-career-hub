@@ -941,7 +941,7 @@ function HistoryTab({ interviews, loading, onOpen, openingId }) {
 /* ── Page ────────────────────────────────────────────────────────────── */
 
 export default function Preparation() {
-  const { t, lang } = useLanguage()
+  const { t, n, lang } = useLanguage()
 
   const [tab, setTab] = useState('plan')
 
@@ -1137,7 +1137,7 @@ export default function Preparation() {
                 <Icon size={16} />
                 {t(item.labelKey)}
                 {item.key === 'plan' && openGapCount > 0 && (
-                  <span className="prep-tab__badge">{openGapCount}</span>
+                  <span className="prep-tab__badge">{n(openGapCount)}</span>
                 )}
               </button>
             )

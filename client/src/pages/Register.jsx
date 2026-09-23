@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Compass, ShieldCheck, Check, CheckCircle2, Circle, Smartphone, ChevronDown, Info,
 } from 'lucide-react'
@@ -60,6 +60,7 @@ export default function Register() {
   const { lang, t, n } = useLanguage()
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [step, setStep] = useState('details')
   const [show, setShow] = useState(false)
@@ -177,7 +178,10 @@ export default function Register() {
 
       const sessionData = await session.json()
       login(sessionData.user)
-      navigate('/profile')
+      // Same contract as the login page: a caller that sent the user here to
+      // reach something (the results page offering the preparation plan) gets
+      // them back there; otherwise the new account is the natural landing.
+      navigate(location.state?.from ?? '/profile')
     } catch {
       setMessage(t('common.serverUnreachable'))
       setStep('details')

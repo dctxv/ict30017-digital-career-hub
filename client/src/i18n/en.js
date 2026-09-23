@@ -380,6 +380,8 @@ export default {
   'results.relatedResources': 'Related resources',
   'results.askChatbot': 'Ask the career chatbot',
   'results.buildPlan': 'Build my preparation plan',
+  'results.signUpForPlan': 'Sign up to keep this review and build a plan',
+  'results.signUpForPlanHint': 'Guest reviews are not saved. An account keeps your reviews and turns them into a preparation plan.',
 
   'results.docxTitle': 'Word document',
   'results.docxBody': 'PDF preview is not available for .docx files. Review the AI feedback in the right panel.',
