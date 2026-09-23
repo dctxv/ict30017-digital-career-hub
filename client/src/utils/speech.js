@@ -155,3 +155,25 @@ export function appendTranscript(existing, chunk) {
   const startsNewSentence = /[.!?]["')\]]?$/.test(base)
   return `${base} ${startsNewSentence ? capitalise(addition) : addition}`
 }
+
+/**
+ * Whether a thrown start() failure just means "it is already running".
+ *
+ * Worth telling apart, because the two outcomes are opposites. A session that
+ * is already open is the state we wanted and there is nothing to report; any
+ * other failure means the microphone is NOT open, and the interface must stop
+ * claiming it is. The old code caught both and assumed the first, which is how
+ * a dead engine went on showing "Listening".
+ *
+ * Chrome raises a DOMException named InvalidStateError. The name is checked
+ * first and the message only as a fallback, because the message is not
+ * specified and differs between engines.
+ *
+ * @param {unknown} cause
+ * @returns {boolean}
+ */
+export function isAlreadyStarted(cause) {
+  if (!cause) return false
+  if (cause.name === 'InvalidStateError') return true
+  return /already (started|running)/i.test(String(cause.message ?? ''))
+}

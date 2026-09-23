@@ -903,7 +903,7 @@ export default {
   'prep.speech.denied': 'Microphone access was blocked. To speak your answers, allow the microphone for this site in your browser settings and reload the page. In the meantime you can type them.',
   'prep.speech.noMicrophone': 'No microphone was found. Connect one and reload the page, or type your answers instead.',
   'prep.speech.network': 'Speech to text lost its connection. Try again, or type your answer.',
-  'prep.speech.noSpeech': 'Nothing was picked up. Check your microphone is on and unmuted, or type your answer.',
+  'prep.speech.noSpeech': 'Nothing has been picked up for a while. Your browser listens through whichever microphone your computer is set to use by default, so if you have more than one — a headset and a webcam, say — check the right one is selected in your sound settings. Or just type your answer.',
   'prep.speech.languageUnsupported': 'This browser cannot transcribe English speech. Type your answers instead.',
   'prep.speech.generic': 'Speech to text stopped unexpectedly. Try again, or type your answer.',
 

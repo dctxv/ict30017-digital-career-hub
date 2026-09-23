@@ -6,6 +6,7 @@ import {
   speechAvailability,
   describeSpeechError,
   appendTranscript,
+  isAlreadyStarted,
   SPEECH_LANGUAGE,
 } from './speech.js'
 
@@ -138,4 +139,29 @@ test('appendTranscript', async (t) => {
 
 test('dictation is English only, as agreed with the client', () => {
   assert.equal(SPEECH_LANGUAGE, 'en-US')
+})
+
+test('isAlreadyStarted separates a harmless start() from a broken one', async (t) => {
+  await t.test('what Chrome throws when a session is already open', () => {
+    const cause = new Error('recognition has already started')
+    cause.name = 'InvalidStateError'
+    assert.equal(isAlreadyStarted(cause), true)
+  })
+
+  await t.test('an engine that says so only in the message', () => {
+    assert.equal(isAlreadyStarted(new Error('already running')), true)
+  })
+
+  await t.test('anything else, which means the microphone is NOT open', () => {
+    // The distinction the old catch collapsed. Treating this as "already
+    // running" is how the interface went on showing "Listening" over a dead
+    // engine, which is worse than saying nothing.
+    assert.equal(isAlreadyStarted(new Error('service unavailable')), false)
+    assert.equal(isAlreadyStarted(new TypeError('not a function')), false)
+  })
+
+  await t.test('nothing thrown at all', () => {
+    assert.equal(isAlreadyStarted(undefined), false)
+    assert.equal(isAlreadyStarted(null), false)
+  })
 })

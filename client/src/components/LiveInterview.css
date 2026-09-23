@@ -298,18 +298,6 @@
   resize: vertical;
 }
 
-.live__interim {
-  margin: 9px 0 0;
-  padding: 9px 13px;
-  border-left: 2px solid var(--border-accent-hover);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background: var(--tint);
-  font-size: 14px;
-  font-style: italic;
-  line-height: 1.6;
-  color: var(--muted);
-}
-
 .live__hint {
   margin: 10px 0 0;
   font-size: 12.5px;

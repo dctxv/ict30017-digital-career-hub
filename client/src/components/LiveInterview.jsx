@@ -171,22 +171,42 @@ function LiveQuestion({
   /*
    * A recognised fragment joins the answer as it stands right now.
    *
-   * Passed straight to the hook rather than through a ref of its own: the hook
-   * already keeps the latest callback in a ref, updated by an effect, so what
-   * it invokes is always this render's closure and this render's `answer`. A
-   * second cache here would only be a second thing to keep in step — and one
-   * that went stale would silently overwrite whatever was typed between two
-   * recognition events.
+   * Appended through an updater rather than by reading `answer` from this
+   * closure, and that is not a style preference. Recognition events are not
+   * React events, so two finals arriving in the same tick are batched: the
+   * second would read the same pre-batch `answer` as the first and overwrite
+   * it, dropping a whole spoken fragment. Dictation delivers finals in quick
+   * succession all the time, which made this a sentence going missing rather
+   * than a rare race.
    */
-  const { listening, interim, error: speechError, start, stop, availability } = useSpeechRecognition({
+  const { listening, interim, error: speechError, start, stop, clearInterim, availability } = useSpeechRecognition({
     onResult: (chunk) => {
-      onAnswerChange(appendTranscript(answer ?? '', chunk).slice(0, ANSWER_MAX))
+      onAnswerChange(previous => appendTranscript(previous ?? '', chunk).slice(0, ANSWER_MAX))
       // Recorded the moment speech contributes anything, and never unset: an
       // answer that was dictated and then tidied up by hand still carries
       // transcription artefacts, and the evaluator needs to know that.
       onSpeechSource()
     },
   })
+
+  /*
+   * What the box shows while somebody is speaking.
+   *
+   * The words appear as they are said, in the answer itself, which is the
+   * thing a candidate is watching. Provisional text used to be parked in a
+   * line underneath instead, on the reasoning that text replacing itself under
+   * the cursor cannot be edited — true, but it made the box look dead for the
+   * two or three seconds before the engine settles a phrase, which reads as
+   * the microphone not working at all.
+   *
+   * Only the SHOWN value carries it. `answer` — what gets submitted, what the
+   * character cap counts, what survives a reload — changes only when the
+   * engine settles a fragment, so nothing provisional can be submitted and a
+   * phrase the engine later revises does not leave a trace behind.
+   */
+  const displayedAnswer = interim
+    ? appendTranscript(answer ?? '', interim).slice(0, ANSWER_MAX)
+    : (answer ?? '')
 
   const answered = (answer ?? '').trim().length > 0
   const fatalSpeechError = speechError?.fatal === true
@@ -296,15 +316,16 @@ function LiveQuestion({
         rows={6}
         maxLength={ANSWER_MAX}
         placeholder={t('prep.liveAnswerPlaceholder')}
-        value={answer ?? ''}
+        value={displayedAnswer}
         disabled={busy}
-        onChange={event => onAnswerChange(event.target.value)}
+        onChange={(event) => {
+          // Typing wins over a phrase still in the air. Without this the
+          // preview would be re-appended on the next render and fight whatever
+          // was just typed.
+          clearInterim()
+          onAnswerChange(event.target.value)
+        }}
       />
-
-      {/* Provisional text, kept out of the box on purpose: it is replaced
-          wholesale on every recognition event, and inside the textarea it would
-          overwrite whatever the candidate was editing. */}
-      {interim && <p className="live__interim" aria-live="off">{interim}</p>}
 
       <p className="live__hint">{t('prep.liveTranscriptHint')}</p>
 
@@ -442,7 +463,14 @@ export default function LiveInterview({
       position={position}
       total={questions.length}
       answer={answers[questionIndex] ?? ''}
-      onAnswerChange={value => setAnswers(current => ({ ...current, [questionIndex]: value }))}
+      /* Takes a value from the textarea and an updater from dictation. The
+         updater form is what lets a recognised fragment append to whatever is
+         in the box at the moment it lands, rather than to a copy captured a
+         render earlier — see the note at its call site. */
+      onAnswerChange={next => setAnswers(current => ({
+        ...current,
+        [questionIndex]: typeof next === 'function' ? next(current[questionIndex] ?? '') : next,
+      }))}
       onSpeechSource={() => setLive(current => ({
         ...current,
         meta: {

@@ -23,10 +23,22 @@
  *    reason API_KEY_INVALID, so a 400 is only AI_BAD_REQUEST once the body has
  *    been checked for that.
  *  - A 429 is either per-minute throttling or the day's free allowance spent,
- *    and the body names which: the QuotaFailure detail carries a quotaId such
- *    as GenerateRequestsPerDayPerProjectPerModel-FreeTier. Telling someone to
- *    "try again in a minute" when the quota resets at midnight Pacific sends
- *    them to retry a request that cannot succeed until tomorrow.
+ *    and ONLY RetryInfo.retryDelay tells them apart. Two things that look like
+ *    they would are captured fixtures in the tests, and both lie:
+ *
+ *      the prose      "You exceeded your current quota, please check your plan
+ *                     and billing details" is boilerplate. Google sends it
+ *                     word for word for a 48-second throttle.
+ *      the quotaId    a burst of 26 requests against gemini-3.6-flash comes
+ *                     back as GenerateRequestsPerDayPerProjectPerModel-FreeTier
+ *                     — PerDay, in the name — with quotaValue 20 and
+ *                     retryDelay 48s. It is a per-minute window wearing a
+ *                     daily label.
+ *
+ *    Matching on either read every burst as the day being gone and told people
+ *    to come back tomorrow when the window refilled inside a minute. The delay
+ *    is the one field that is about the thing anybody actually wants to know:
+ *    how long until this works again.
  */
 
 /** One entry per code. `error` is shown to the user; `hint` is for the log. */
@@ -43,12 +55,12 @@ const CATALOGUE = Object.freeze({
   },
   AI_QUOTA: {
     error: 'The AI service\'s daily allowance for this server has been used up. Please try again tomorrow.',
-    hint: 'The Google AI Studio project has spent its free-tier daily quota for this model. It resets at midnight Pacific time. Enable billing on the project, use a different model id, or wait.',
+    hint: 'The Google AI Studio project has spent its free-tier daily quota for this model: the 429 asked for a wait measured in hours, or named a daily quota and gave no retry delay at all. It resets at midnight Pacific time. Enable billing on the project, use a different model id, or wait.',
     retryable: false,
   },
   AI_BUSY: {
     error: 'The AI service is busy right now. Please try again in a minute.',
-    hint: 'The provider throttled the request (per-minute rate limit). Nothing to fix unless it persists.',
+    hint: 'The provider throttled the request (per-minute rate limit). Google AI Studio\'s free tier allows 20 requests per minute per model, so a burst — an e2e run, a seeding script, or a few users at once — spends it in seconds and it refills within the minute. Nothing to fix unless it persists; if it does, enable billing or space the calls out.',
     retryable: true,
   },
   AI_UNAVAILABLE: {
@@ -107,6 +119,67 @@ function statusOf(err) {
 const NETWORK_CODES = /\b(ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|EHOSTUNREACH|ENETUNREACH|UND_ERR|CERT_|SELF_SIGNED)/;
 
 /**
+ * A quota that calls itself daily.
+ *
+ * Only consulted when the provider gave no retry delay at all, because the
+ * name is not trustworthy on its own: Google returns this exact quotaId for a
+ * window that refills in 48 seconds. Better than nothing when there is nothing
+ * else, and never allowed to overrule a delay that has been stated.
+ */
+const PER_DAY_QUOTA = /per_?day|requests?_per_day|per-day/i;
+
+/**
+ * Past this much waiting, "please try again in a minute" stops being honest.
+ *
+ * An hour rather than something tighter because per-minute windows are the
+ * only short ones Google uses, and the gap between one of those and a reset at
+ * midnight Pacific is wide enough that nothing sensible lives in between.
+ */
+const DAILY_WAIT_SECONDS = 3600;
+
+/**
+ * How long the provider asked the caller to wait, in seconds, if it said.
+ *
+ * Google gives this two ways and not always both: as prose in the message
+ * ("Please retry in 54.961456669s") and as a RetryInfo detail carrying a
+ * retryDelay. Either will do — the only question asked of it below is whether
+ * the wait is seconds or hours.
+ *
+ * @param {string} detail
+ * @returns {number|null}
+ */
+function retryAfterSeconds(detail) {
+  const prose = /retry in ([\d.]+)\s*s/i.exec(detail);
+  if (prose) return Number(prose[1]);
+  const structured = /retryDelay\D{0,4}([\d.]+)s/i.exec(detail);
+  if (structured) return Number(structured[1]);
+  return null;
+}
+
+/**
+ * Which of the two 429s this is.
+ *
+ * Defaults to the throttle, deliberately. When the body names no quota, "try
+ * again in a minute" costs one wasted retry if it is wrong; "try again
+ * tomorrow" costs the rest of the day, and the person reading it is usually
+ * mid-task. A genuinely spent day names its quota or asks for hours, so the
+ * evidence runs in the direction that makes the cheap default the safe one.
+ *
+ * @param {string} detail
+ * @returns {'AI_QUOTA'|'AI_BUSY'}
+ */
+function classifyThrottle(detail) {
+  // The stated delay settles it whenever there is one, ahead of any name in
+  // the body — see the header: the quotaId says PerDay for a window that
+  // refills in under a minute, so a name that disagrees with the clock is the
+  // name that is wrong.
+  const wait = retryAfterSeconds(detail);
+  if (wait !== null) return wait >= DAILY_WAIT_SECONDS ? 'AI_QUOTA' : 'AI_BUSY';
+  if (PER_DAY_QUOTA.test(detail)) return 'AI_QUOTA';
+  return 'AI_BUSY';
+}
+
+/**
  * @typedef {{code: string, error: string, hint: string, retryable: boolean, status: number|null, detail: string}} ClassifiedAiError
  */
 
@@ -123,7 +196,6 @@ const NETWORK_CODES = /\b(ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|
 export function classifyAiError(err) {
   const status = statusOf(err);
   const detail = describe(err);
-  const lower = detail.toLowerCase();
 
   let code;
 
@@ -136,13 +208,7 @@ export function classifyAiError(err) {
   } else if (status === 400 && /model/i.test(detail) && /not (found|supported|available)|no longer available|unknown/i.test(detail)) {
     code = 'AI_MODEL';
   } else if (status === 429) {
-    // Daily exhaustion names a per-day quota in the body; a minute-level
-    // throttle does not. Billing wording is the other tell: "check your plan
-    // and billing details" only appears once the allowance is gone.
-    code = /perday|per_day|daily|billing|resource_exhausted.*quota|exceeded your current quota/i.test(lower.replace(/\s+/g, ''))
-      || /per\s*day|daily|billing details|exceeded your current quota/i.test(detail)
-      ? 'AI_QUOTA'
-      : 'AI_BUSY';
+    code = classifyThrottle(detail);
   } else if (status !== null && status >= 500) {
     code = 'AI_UNAVAILABLE';
   } else if (status === 400) {

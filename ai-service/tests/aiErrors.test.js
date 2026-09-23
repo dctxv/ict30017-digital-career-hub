@@ -61,6 +61,55 @@ describe('classifyAiError', () => {
     assert.equal(classifyAiError(throttled).retryable, true);
   });
 
+  it('reads the per-minute throttle Google actually sends, not a spent day', () => {
+    // Captured verbatim on 2026-09-23 by firing 26 requests at gemini-3.6-flash
+    // in one go. Everything about it says "daily" except the one field that is
+    // measured: quotaValue is 20 and the window reopens in 48 seconds.
+    //
+    // Both of the tells that look authoritative are in here and both are
+    // wrong. The prose is the same billing boilerplate a spent day carries,
+    // and the quotaId is literally GenerateRequestsPerDayPerProjectPerModel.
+    // Classifying on either told people to come back tomorrow when they could
+    // have retried before finishing the sentence.
+    const throttled = sdkError(429, {
+      error: {
+        code: 429,
+        message: 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 48.243277032s.',
+        status: 'RESOURCE_EXHAUSTED',
+        details: [
+          {
+            '@type': 'type.googleapis.com/google.rpc.QuotaFailure',
+            violations: [{
+              quotaMetric: 'generativelanguage.googleapis.com/generate_content_free_tier_requests',
+              quotaId: 'GenerateRequestsPerDayPerProjectPerModel-FreeTier',
+              quotaDimensions: { model: 'gemini-3.6-flash', location: 'global' },
+              quotaValue: '20',
+            }],
+          },
+          { '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay: '48s' },
+        ],
+      },
+    });
+    const out = classifyAiError(throttled);
+    assert.equal(out.code, 'AI_BUSY');
+    assert.equal(out.retryable, true);
+    assert.match(out.error, /try again in a minute/i);
+  });
+
+  it('reads a spent day from the length of the wait, not the name', () => {
+    // A delay no per-minute window would ever ask for.
+    const byDelay = sdkError(429, {
+      error: {
+        code: 429,
+        message: 'You exceeded your current quota, please check your plan and billing details.',
+        status: 'RESOURCE_EXHAUSTED',
+        details: [{ '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay: '21600s' }],
+      },
+    });
+    assert.equal(classifyAiError(byDelay).code, 'AI_QUOTA');
+    assert.equal(classifyAiError(byDelay).retryable, false);
+  });
+
   it('keeps the old stringified-429 path working', () => {
     assert.equal(classifyAiError(new Error('Request failed with 429')).code, 'AI_BUSY');
   });
