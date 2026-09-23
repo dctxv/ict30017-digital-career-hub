@@ -62,6 +62,12 @@ const REQUIRED_COLUMNS = [
   // every interview with a column error instead of quietly not recording one.
   ['users', 'mock_interview_count'],
   ['users', 'mock_interview_reset_date'],
+  // add_interview_live_mode.sql. Every interview insert writes `mode`, written
+  // or live, so a database without it refuses every interview after the model
+  // call has already been spent — the failure this check exists to turn into a
+  // warning at startup instead.
+  ['mock_interviews', 'mode'],
+  ['mock_interviews', 'follow_up_count'],
 ];
 
 // Named rather than listed one by one: the runner knows the full order, and a
