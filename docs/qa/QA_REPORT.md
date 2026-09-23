@@ -69,6 +69,43 @@ edited.
 
 The remaining Low items (L3, L5–L12) were not re-verified individually.
 
+## Status as of 23 September 2026
+
+Re-verified against `main` in a real browser, with the Playwright suite run
+against the real API and a local PostgreSQL. **Every finding in the ledger is
+now closed: 36 of 36.**
+
+| Fixed | Finding | How |
+|---|---|---|
+| H1, H2 | Blank routes and no catch-all | `/forgot-password`, `/reset-password`, `/terms`, `/privacy` and a `*` route exist (interface rebuild, 27 August) |
+| H7 | Dead "Load more" | Paginates in nines and renders only when there is more to show |
+| H8, M1 | Dead Email and Google buttons | Removed; neither had anything behind it |
+| M4 | PDF type had no colour | `--type-pdf` / `--dot-pdf` declared in both themes |
+| M5 | Career hand-off ignored the career | Resources now says "Showing Finance resources because you were reading about Treasury Analyst", with a way to widen |
+| M6 | Hard navigation to Resources | `useNavigate()` |
+| L2 | Missing favicon | `client/public/favicon.svg`, the navbar's compass mark |
+| L3 | No meta description | Added to `index.html` |
+| L5 | "Upgrade" linked to sign-up | The quota label is bound to the server; upgrading lives on the Profile page |
+| L6, L7, L8 | Register: no form, no password rule, mouse-only plan cards | A real `<form>` per step, a "Use at least 12 characters" hint, plan cards as `aria-pressed` buttons |
+| L9 | Unnamed hamburger | `aria-label` and `aria-expanded` |
+| L10 | Pills with no pressed state | `aria-pressed` on every pill row; the account and preparation rails are tab lists with `aria-selected` |
+| L11 | Sideways scroll at 390px | Navbar wordmark yields before the controls; the Career Paths CTA wraps. Measured on every page |
+| L12 | Untrimmed search | `query.trim()` |
+
+Found and fixed in the same pass, outside the original ledger:
+
+- The localisation commit of 13 September had replaced the rebuilt resume
+  upload page with the pre-rework one, bringing back colours the theme no
+  longer declares. The drop-zone icon and the analysing spinner were invisible,
+  and the Playwright specs for that page could not pass. Restored, with the
+  language prompt kept. A unit test now fails on any `var(--x)` the theme does
+  not declare.
+- A guest's "Build my preparation plan" led through login to an empty board;
+  guests are now offered an account and told why.
+- Mock interview answers survive a reload.
+- The headline score's "/100" and the open-gap badge skipped Bengali numerals.
+- Analyse is disabled once a signed-in user's daily allowance is spent.
+
 Two findings in the original report are worth re-reading rather than trusting:
 H3's claim that there is no `tier` column, and M12's description of the resume
 limiter, were both accurate on 18 August and are not now.

@@ -4,6 +4,7 @@
 **Build under test** `claude/website-qa-testing-3snwws @ 361b00d`
 **Stack** Vite `:5173` · Express `:3000` · PostgreSQL 16
 **Fixtures** 7 disciplines · 70 paths · 42 resources · 10 alumni
+**Status (23 September 2026)** All 36 findings are closed. The per-item record, and the defects found while closing them, are in `docs/qa/QA_REPORT.md`.
 **Method** Every interactive control on every page driven in a real Chromium browser against a locally running stack, with console errors, failed requests and HTTP status codes captured at each step. API-level probes with `curl` covered validation, rate limiting and privilege escalation.
 
 ## Summary
