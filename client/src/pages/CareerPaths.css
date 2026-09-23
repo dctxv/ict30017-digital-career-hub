@@ -232,7 +232,16 @@
   color: var(--body-2);
 }
 
-.cp-detail__cta { color: var(--ink); border-color: var(--accent); }
+/* The label carries the path title, so it can run long. .btn keeps labels on
+   one line, which at phone width pushed this one past the viewport and made
+   the page scroll sideways; this button wraps instead. */
+.cp-detail__cta {
+  color: var(--ink);
+  border-color: var(--accent);
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
 .cp-detail__cta:hover { background: var(--tint); }
 
 /* ── Responsive ────────────────────────────────────────────────────── */

@@ -389,11 +389,23 @@ html:not([data-theme='dark']) .nav__theme-icon--moon {
   .nav__session--guest { display: none; }
   .nav__signout { display: none; }
   .nav__inner { padding: 0 16px; gap: 12px; }
-  .nav__wordmark { font-size: 16px; }
+  .nav__wordmark { font-size: 15px; }
+  .nav__brand { gap: 8px; }
+  .nav__controls { gap: 6px; }
+  .lang-switch__btn { width: 36px; }
+  .lang-switch__thumb { width: 36px; }
+  .lang-switch__thumb--bn { left: 39px; }
+
+  /* The three controls are the ones that must survive, so the wordmark is the
+     thing that gives way: it shrinks and truncates rather than pushing the
+     controls past the edge of the screen, which at 390px it did by 6px on
+     every page and made the whole document scroll sideways. */
+  .nav__brand { min-width: 0; flex: 1 1 auto; }
+  .nav__wordmark {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
-@media (max-width: 400px) {
-  .lang-switch__btn { width: 40px; }
-  .lang-switch__thumb { width: 40px; }
-  .lang-switch__thumb--bn { left: 43px; }
-}
