@@ -1,0 +1,54 @@
+# bd-agriculture-extension-officer — Agriculture Extension Officer (Bangladesh), layout: bd-traditional
+
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Md. Shafiqul Islam Sarkar"
+Extracted PDF text: 1 line(s) before sanitising, 5 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 address-bd-postcode=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+MD. SHAFIQUL ISLAM SARKAR Mobile: [PHONE] E-mail: [EMAIL] Village: Char Kalibari, Post Office: Godagari, Upazila: Godagari, District: [ADDRESS] Career Objective To support smallholder farmers with modern, climate-resilient practices through government or NGO extension programmes. Job Experience Sub-Assistant Agriculture Officer
+
+Department of Agricultural Extension (DAE), Godagari, Rajshahi 2017
+
+Present Run farmer field schools for 25 IPM groups (600 farmers). Introduced BRRI dhan89; average yield up 0.8 t/ha in my block. Educational Qualification Diploma in Agriculture
+
+Agricultural Training Institute, Ishurdi 2016 B.Sc. Ag (Hons), running
+
+Bangladesh Agricultural University Personal Information Father's Name : Late Abdus Sattar Sarkar Mother's Name : Mst. Hosne Ara Begum Date of Birth : 20 June 1995 NID : 8234567890123 Religion : Islam Nationality : Bangladeshi (by birth) Declaration I do hereby declare that the above information is true and correct. (Md. Shafiqul Islam Sarkar) Signature
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Shafiqul Islam","email":"shafiq.agri@gmail.com","phone":"01740-112233"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-name=3 known-email=1 known-phone=1 address-bd-postcode=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+MD. [NAME] SARKAR Mobile: [PHONE] E-mail: [EMAIL] Village: Char Kalibari, Post Office: Godagari, Upazila: Godagari, District: [ADDRESS] Career Objective To support smallholder farmers with modern, climate-resilient practices through government or NGO extension programmes. Job Experience Sub-Assistant Agriculture Officer
+
+Department of Agricultural Extension (DAE), Godagari, Rajshahi 2017
+
+Present Run farmer field schools for 25 IPM groups (600 farmers). Introduced BRRI dhan89; average yield up 0.8 t/ha in my block. Educational Qualification Diploma in Agriculture
+
+Agricultural Training Institute, Ishurdi 2016 B.Sc. Ag (Hons), running
+
+Bangladesh Agricultural University Personal Information Father's Name : Late Abdus Sattar Sarkar Mother's Name : Mst. Hosne Ara Begum Date of Birth : 20 June 1995 NID : 8234567890123 Religion : [NAME] Nationality : Bangladeshi (by birth) Declaration I do hereby declare that the above information is true and correct. (Md. [NAME] Sarkar) Signature
+</RESUME>

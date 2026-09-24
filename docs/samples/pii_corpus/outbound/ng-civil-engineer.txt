@@ -1,0 +1,58 @@
+# ng-civil-engineer — Civil / Structural Engineer (Nigeria), layout: table-header
+
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Engr. Chukwuemeka Obi"
+Extracted PDF text: 1 line(s) before sanitising, 6 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+Engr. Chukwuemeka Obi Civil / Structural Engineer, COREN Registered (R.23456) Phone: [PHONE], 0803 123 4567 Email: [EMAIL] Plot 15, Admiralty Way, Lekki Phase 1, Lagos State CAREER OBJECTIVE To apply 9 years of structural design and site supervision experience on large infrastructure projects. WORK EXPERIENCE Senior Site Engineer
+
+Julius Berger Nigeria Plc, Lagos 2018
+
+Present Supervised the 4.2 km Lekki Ikoyi link road; delivered 3 weeks ahead of schedule. Structural checks in SAP2000 and ETABS for 12 bridge decks. Site Engineer
+
+Dangote Cement Plc, Obajana 2015
+
+2018 Silo foundations and plant civil works. EDUCATION B.Eng Civil Engineering (Second Class Upper)
+
+University of Nigeria, Nsukka 2014 PERSONAL DATA Date of Birth : 14th February 1988 State of Origin : Anambra LGA : Onitsha North Sex : Male Marital Status : Married Religion : Christianity
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Emeka Obi","email":"emeka.obi.eng@yahoo.com","phone":"+2348031234567"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-name=3 email=1 phone-international=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+Engr. Chukwuemeka [NAME] Civil / Structural Engineer, COREN Registered (R.23456) Phone: [PHONE], 0803 123 4567 Email: [NAME][EMAIL] Plot 15, Admiralty Way, Lekki Phase 1, Lagos State CAREER OBJECTIVE To apply 9 years of structural design and site supervision experience on large infrastructure projects. WORK EXPERIENCE Senior Site Engineer
+
+Julius Berger Nigeria Plc, Lagos 2018
+
+Present Supervised the 4.2 km Lekki Ikoyi link road; delivered 3 weeks ahead of schedule. Structural checks in SAP2000 and ETABS for 12 bridge decks. Site Engineer
+
+Dangote Cement Plc, Obajana 2015
+
+2018 Silo foundations and plant civil works. EDUCATION B.Eng Civil Engineering (Second Class Upper)
+
+University of Nigeria, Nsukka 2014 PERSONAL DATA Date of Birth : 14th February 1988 State of Origin : Anambra LGA : Onitsha North Sex : Male Marital Status : Married Religion : Christianity
+</RESUME>

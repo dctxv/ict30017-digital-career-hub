@@ -1,0 +1,5764 @@
+[
+  {
+    "id": "au-registered-nurse",
+    "career": "Registered Nurse (ICU)",
+    "sector": "Healthcare",
+    "country": "Australia",
+    "layout": "classic",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": "Priya Raghunathan Registered Nurse",
+    "headerNameDocx": "Priya Raghunathan",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=known-name=13 email=2 profile-url=1 phone-au=3 address-street=1 address-au-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=13 known-phone=1 email=2 profile-url=1 phone-au=2 address-street=1 address-au-postcode=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Priya Raghunathan",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "priya",
+            "raghunathan"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "priya.raghunathan.rn@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "0491 570 156",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "linkedin.com/in/priya-raghunathan-rn",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Unit 3/15 Glenferrie Road",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Hawthorn VIC 3122",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "NMW0001234567",
+        "note": "AHPRA number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "Karen Whitfield",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "karen",
+            "whitfield"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "karen",
+            "whitfield"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "karen",
+            "whitfield"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "karen",
+            "whitfield"
+          ]
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "0491 570 110",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "k.whitfield@alfred.org.au",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "Michael Tanaka",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "michael",
+            "tanaka"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "michael",
+            "tanaka"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "michael",
+            "tanaka"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "michael",
+            "tanaka"
+          ]
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "(03) 9076 2000",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Registered Nurse",
+        "guest": "lost",
+        "account": "lost",
+        "guestRewrite": "[NAME] Intensive",
+        "accountRewrite": "[NAME] Intensive"
+      },
+      {
+        "value": "Nurse Unit Manager",
+        "guest": "lost",
+        "account": "lost",
+        "guestRewrite": "[NAME] Unit Manager, ICU, The A",
+        "accountRewrite": "[NAME] Unit Manager, ICU, The A"
+      },
+      {
+        "value": "The Alfred",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Epworth HealthCare",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Monash University",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Deakin University",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Intensive Care Unit",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "ECMO",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "CRRT",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Advanced Life Support",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Feb 2021",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "uk-head-chef",
+    "career": "Head Chef",
+    "sector": "Hospitality",
+    "country": "United Kingdom",
+    "layout": "sidebar",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Daniel Cook",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 address-street=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=4 known-phone=1 email=1 profile-url=1 address-street=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Daniel Cook",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "daniel",
+            "cook"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "daniel",
+            "cook"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "dan.cook.kitchen@outlook.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "07700 900461",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "@chefdancook",
+        "note": "bare Instagram handle",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "instagram.com/chefdancook",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "14 Mare Street",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "E8 3PN",
+        "note": "UK postcode",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Dishoom Shoreditch",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "The Ivy Chelsea Garden",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Hawksmoor Spitalfields",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Head Chef",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Sous Chef",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Line Cook",
+        "guest": "kept",
+        "account": "lost",
+        "accountRewrite": "Line [NAME] and worked"
+      },
+      {
+        "value": "Westminster Kingsway College",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "HACCP",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Level 3 Food Hygiene",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "bd-garment-production-supervisor",
+    "career": "Production Supervisor (Garments)",
+    "sector": "Manufacturing / RMG",
+    "country": "Bangladesh",
+    "layout": "bd-traditional",
+    "pdfLinesExtracted": 2,
+    "headerNamePdf": null,
+    "headerNameDocx": "Md. Abdul Karim Sheikh",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-bd=2 address-bd=1 address-bd-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=4 email=1 phone-bd=2 address-bd=1 address-bd-postcode=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Md. Abdul Karim Sheikh",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "abdul",
+            "karim",
+            "sheikh"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "sheikh"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "abdul",
+            "karim",
+            "sheikh"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "01819-456123",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "017 1122 3344",
+        "note": "3-4-4 grouping",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "karim.sheikh.rmg@yahoo.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "House 14, Road 3, Sector 7",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Dhaka-1230",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Char Bhadrasan",
+        "note": "home village",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "family",
+        "value": "Abdul Jalil Sheikh",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "abdul",
+            "jalil",
+            "sheikh"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "jalil",
+            "sheikh"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "abdul",
+            "jalil",
+            "sheikh"
+          ]
+        },
+        "docxGuest": {
+          "status": "partial",
+          "left": [
+            "jalil"
+          ]
+        }
+      },
+      {
+        "cat": "family",
+        "value": "Rokeya Begum",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "rokeya",
+            "begum"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "rokeya",
+            "begum"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "rokeya",
+            "begum"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "rokeya",
+            "begum"
+          ]
+        }
+      },
+      {
+        "cat": "dob",
+        "value": "15-03-1990",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "19902692512345678",
+        "note": "BD NID, 17 digits",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "sensitive",
+        "value": "Religion Islam",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "sensitive",
+        "value": "Blood Group B",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "Mizanur Rahman",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "mizanur",
+            "rahman"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "mizanur",
+            "rahman"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "mizanur",
+            "rahman"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "mizanur",
+            "rahman"
+          ]
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "01711-908070",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "DBL Group",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Ha-Meem Group",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Bangladesh Institute of Textile Technology",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "BGMEA",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Line balancing",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "SMV",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "H&M",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Primark",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Faridpur Zilla School",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "58% to 71%",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "bd-primary-teacher-bangla",
+    "career": "Assistant Teacher (Primary)",
+    "sector": "Education",
+    "country": "Bangladesh",
+    "layout": "classic",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "মোছাঃ ফারজানা ইয়াসমিন",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=2 email=1 phone-bd=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "মোছাঃ ফারজানা ইয়াসমিন",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "ফরজন",
+            "ইযসমন"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "ফরজন",
+            "ইযসমন"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "ফরজন",
+            "ইযসমন"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "০১৭১৫-৩৩৪৪৫৫",
+        "note": "Bengali numerals",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "farzana.yasmin.edu@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "বাসা ২৭, রোড ৪",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "ঢাকা-১২০৭",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "family",
+        "value": "আব্দুল হাকিম",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "আবদল",
+            "হকম"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "আবদল",
+            "হকম"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "আবদল",
+            "হকম"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "আবদল",
+            "হকম"
+          ]
+        }
+      },
+      {
+        "cat": "family",
+        "value": "রাশিদা বেগম",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "রশদ",
+            "বগম"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "রশদ",
+            "বগম"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "রশদ",
+            "বগম"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "রশদ",
+            "বগম"
+          ]
+        }
+      },
+      {
+        "cat": "dob",
+        "value": "১২ জানুয়ারি ১৯৯৪",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "১৯৯৪২৬৯২৫১২৩৪৫৬৭৮",
+        "note": "NID in Bengali numerals",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "sensitive",
+        "value": "ধর্ম ইসলাম",
+        "guest": {
+          "status": "absent"
+        },
+        "account": {
+          "status": "absent"
+        },
+        "redactorOnEcho": {
+          "status": "absent"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "ঢাকা বিশ্ববিদ্যালয়",
+        "guest": "absent",
+        "account": "absent"
+      },
+      {
+        "value": "ইডেন মহিলা কলেজ",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "বি.এড",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "মোহাম্মদপুর সরকারি প্রাথমিক বিদ্যালয়",
+        "guest": "absent",
+        "account": "absent"
+      },
+      {
+        "value": "গণিত",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "au-licensed-electrician",
+    "career": "Licensed Electrician",
+    "sector": "Trades",
+    "country": "Australia",
+    "layout": "modern-header",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": "L I A M O",
+    "headerNameDocx": "Liam O Connor",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=known-name=1 email=1 phone-au=2 address-street=1 address-au-postcode=2",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=2 email=1 phone-au=2 address-street=1 address-au-postcode=2"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Liam O’Connor",
+        "note": "curly apostrophe on the CV, straight one on the account",
+        "guest": {
+          "status": "partial",
+          "left": [
+            "connor"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "connor"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "liam",
+            "connor"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "0491 570 006",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "liam.oconnor.sparky@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "22 Wattle Street",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Penrith NSW 2750",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "312456C",
+        "note": "electrical licence",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "WC-1234567",
+        "note": "White Card",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "12345678",
+        "note": "driver licence number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "Steve Kowalski",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "steve",
+            "kowalski"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "steve",
+            "kowalski"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "steve",
+            "kowalski"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "steve",
+            "kowalski"
+          ]
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "0491 570 159",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Ausgrid",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Penrith Electrical Services",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "TAFE NSW",
+        "guest": "lost",
+        "account": "lost",
+        "guestRewrite": "[ADDRESS] 2019",
+        "accountRewrite": "[ADDRESS] 2019"
+      },
+      {
+        "value": "AS/NZS 3000",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Certificate III in Electrotechnology",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Test and tag",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Working at Heights",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "us-associate-attorney",
+    "career": "Associate Attorney",
+    "sector": "Law",
+    "country": "United States",
+    "layout": "classic",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Rebecca Chen-Adler",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 phone-grouped=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=1 known-email=1 known-phone=1 profile-url=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Rebecca Chen-Adler",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "rebecca",
+            "chen",
+            "adler"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "rebecca",
+            "chen",
+            "adler"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "350 West 57th Street",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Apt 12C",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "NY 10019",
+        "note": "ZIP code",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "(212) 555-0147",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "rchenadler@protonmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "linkedin.com/in/rchenadler",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "5123456",
+        "note": "bar registration number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Skadden, Arps, Slate, Meagher & Flom LLP",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Columbia Law School",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Columbia Law Review",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "University of Michigan",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Southern District of New York",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Securities litigation",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "$400M",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "in-chartered-accountant",
+    "career": "Chartered Accountant",
+    "sector": "Finance",
+    "country": "India",
+    "layout": "table-header",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "CA Rohan Mehta",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-international=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=4 known-phone=1 email=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Rohan Mehta",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "rohan",
+            "mehta"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "rohan",
+            "mehta"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+91 98200 12345",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "022 2634 5678",
+        "note": "Mumbai landline",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "rohan.mehta.ca@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Flat 302, Sai Krupa CHS",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "400058",
+        "note": "PIN code",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "154321",
+        "note": "ICAI membership number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "family",
+        "value": "Suresh Mehta",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "suresh",
+            "mehta"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "suresh"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "suresh",
+            "mehta"
+          ]
+        },
+        "docxGuest": {
+          "status": "partial",
+          "left": [
+            "suresh"
+          ]
+        }
+      },
+      {
+        "cat": "dob",
+        "value": "07/11/1993",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "ABCPM1234K",
+        "note": "PAN",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "4521 8876 3310",
+        "note": "Aadhaar",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Deloitte Haskins & Sells LLP",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Kalyaniwalla & Mistry LLP",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "ICAI",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "University of Mumbai",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Ind AS 115",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "GST",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "SAP FICO",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Tally ERP 9",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "All India Rank 38",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "ca-long-haul-truck-driver",
+    "career": "Long-Haul Truck Driver (AZ)",
+    "sector": "Transport & Logistics",
+    "country": "Canada",
+    "layout": "sidebar",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Gurpreet Singh Dhillon",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 phone-grouped=1 address-street=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=2 known-email=1 known-phone=1 phone-international=1 address-street=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Gurpreet Singh Dhillon",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "gurpreet",
+            "singh",
+            "dhillon"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "singh"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "gurpreet",
+            "singh",
+            "dhillon"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "416-555-0199",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+1 905 555 0142",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "gsdhillon.trucking@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "88 Maple Grove Crescent",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "L6X 2K4",
+        "note": "Canadian postal code",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "D4123-56789-01234",
+        "note": "Ontario driver licence",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Bison Transport",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Challenger Motor Freight",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Class AZ",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "FAST card",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "TDG",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Hours of Service",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "CVOR",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "B-trains",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "1.2 million",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "nz-retail-store-manager",
+    "career": "Retail Store Manager",
+    "sector": "Retail",
+    "country": "New Zealand",
+    "layout": "classic",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Rose Walker",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-grouped=1 address-street=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=4 known-phone=1 email=1 address-street=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Rose Walker",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "rose",
+            "walker"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "rose",
+            "walker"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "021 555 0123",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "(09) 555 0876",
+        "note": "NZ landline",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "rose.walker.nz@xtra.co.nz",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "42 Ponsonby Road",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Auckland 1011",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "The Warehouse",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Farmers",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "ServiceIQ",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Store Manager",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "rose to Store Manager",
+        "guest": "kept",
+        "account": "lost",
+        "accountRewrite": "[NAME] to Store Manager within six"
+      },
+      {
+        "value": "shrinkage",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "I will bring",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "NPS",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "ph-graphic-designer",
+    "career": "Graphic Designer",
+    "sector": "Creative / Design",
+    "country": "Philippines",
+    "layout": "modern-header",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Maria Isabel Santos",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 phone-international=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 profile-url=1 name-domain=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Maria Isabel Santos",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "maria",
+            "isabel",
+            "santos"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "maria",
+            "isabel",
+            "santos"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "maria",
+            "isabel",
+            "santos"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "hello@isabelsantos.design",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+63 917 123 4567",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "0917 123 4567",
+        "note": "local 4-3-4 form",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Unit 1504, Greenbelt Residences",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Makati City 1224",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "behance.net/isabelsantos",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "isabelsantos.myportfolio.com",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "@isa.designs",
+        "note": "bare Instagram handle",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Ogilvy Philippines",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Jollibee Chickenjoy",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "University of Santo Tomas",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Upwork",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Adobe Illustrator",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Figma",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "38M impressions",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "uk-social-worker",
+    "career": "Social Worker (Children & Families)",
+    "sector": "Community & Social Services",
+    "country": "United Kingdom",
+    "layout": "classic",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Aisha Bello",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=2 phone-international=1 address-street=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=3 email=2 phone-international=1 address-street=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Aisha Bello",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "aisha",
+            "bello"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "aisha",
+            "bello"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+44 (0)161 496 0123",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "07700 900 372",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "aisha.bello.sw@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "27 Wilmslow Road",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "M14 5TQ",
+        "note": "UK postcode",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "SW112233",
+        "note": "Social Work England",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "001234567890",
+        "note": "DBS certificate number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "QQ 12 34 56 C",
+        "note": "National Insurance number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "Joanne Pritchard",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "joanne",
+            "pritchard"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "joanne",
+            "pritchard"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "joanne",
+            "pritchard"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "joanne",
+            "pritchard"
+          ]
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "0161 234 5000",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "joanne.pritchard@manchester.gov.uk",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Manchester City Council",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "University of Salford",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Section 47",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Signs of Safety",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "MA Social Work",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Children in Need",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "ng-civil-engineer",
+    "career": "Civil / Structural Engineer",
+    "sector": "Engineering & Construction",
+    "country": "Nigeria",
+    "layout": "table-header",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Engr. Chukwuemeka Obi",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-international=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=3 email=1 phone-international=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Chukwuemeka Obi",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "chukwuemeka",
+            "obi"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "chukwuemeka"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "chukwuemeka",
+            "obi"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+234 803 123 4567",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "0803 123 4567",
+        "note": "local 4-3-4 form",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "emeka.obi.eng@yahoo.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Plot 15, Admiralty Way",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "R.23456",
+        "note": "COREN registration",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "dob",
+        "value": "14th February 1988",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "sensitive",
+        "value": "Religion Christianity",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "sensitive",
+        "value": "Marital Status Married",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Julius Berger Nigeria Plc",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Dangote Cement Plc",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "University of Nigeria, Nsukka",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "SAP2000",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "ETABS",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Lekki–Ikoyi link road",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "COREN",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "bd-pharmacist",
+    "career": "Pharmacist (QA)",
+    "sector": "Healthcare / Pharma",
+    "country": "Bangladesh",
+    "layout": "sidebar",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Tasnim Rahman Mithila",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-bd=2 address-bd=1 address-bd-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=5 known-phone=1 phone-bd=1 address-bd=1 address-bd-postcode=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Tasnim Rahman Mithila",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "tasnim",
+            "rahman",
+            "mithila"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "tasnim",
+            "rahman",
+            "mithila"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+8801712345678",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "0171-2345678",
+        "note": "4-7 grouping",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "tasnim.mithila@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "Skype tasnim.mithila",
+        "note": "Skype id",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "House 12, Road 7",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Dhaka-1205",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "A-12345",
+        "note": "Pharmacy Council registration",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "Sitesh C. Bachar",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "sitesh",
+            "bachar"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "sitesh",
+            "bachar"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "sitesh",
+            "bachar"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "sitesh",
+            "bachar"
+          ]
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "01711-556677",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Square Pharmaceuticals PLC",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Beximco Pharmaceuticals",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "University of Dhaka",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "WHO-GMP",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "MHRA",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "CAPA",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "CGPA 3.72/4.00",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "M.Pharm",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "bd-security-guard-overseas",
+    "career": "Security Guard (overseas employment)",
+    "sector": "Security Services",
+    "country": "Bangladesh",
+    "layout": "bd-traditional",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Md. Jahangir Alam",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 phone-international=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=3 known-phone=1 email=1 phone-international=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Md. Jahangir Alam",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "jahangir",
+            "alam"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "jahangir",
+            "alam"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "01912-345678",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+966 55 123 4567",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "jahangir.alam.bd88@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Kalir Bazar",
+        "note": "home village",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "A01234567",
+        "note": "passport number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "5102938475",
+        "note": "BD smart NID, 10 digits",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "family",
+        "value": "Nurul Islam",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "nurul",
+            "islam"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "nurul",
+            "islam"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "nurul",
+            "islam"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "nurul",
+            "islam"
+          ]
+        }
+      },
+      {
+        "cat": "dob",
+        "value": "01-01-1988",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "sensitive",
+        "value": "Weight 70 kg",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "sensitive",
+        "value": "Religion Islam",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "G4S Secure Solutions Bangladesh",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Elite Security Services Ltd",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "CCTV",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Bangladesh Ansar",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "BMET",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Best Guard award 2021",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Fire Service & Civil Defence",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "au-senior-hairdresser",
+    "career": "Senior Hairdresser & Colourist",
+    "sector": "Beauty / Personal Services",
+    "country": "Australia",
+    "layout": "modern-header",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Jessica Tran",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 phone-au=1 address-street=1 address-au-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=1 known-email=1 known-phone=1 profile-url=1 address-street=1 address-au-postcode=1 name-domain=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Jessica Tran",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "jessica",
+            "tran"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "jessica",
+            "tran"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "jessica",
+            "tran"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "0491 570 313",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "bookings@hairbyjess.com.au",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "hairbyjess.com.au",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "@hairbyjess_bne",
+        "note": "bare Instagram handle",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "instagram.com/hairbyjess_bne",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "8/22 Brunswick St",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Fortitude Valley QLD 4006",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Toni&Guy James Street",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Rokk Ebony",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "TAFE Queensland",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Wella",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "balayage",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "SHB30416",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "92% client retention",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "bd-senior-reporter",
+    "career": "Senior Reporter",
+    "sector": "Media & Journalism",
+    "country": "Bangladesh",
+    "layout": "classic",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": "Rafsan Haque Senior Reporter",
+    "headerNameDocx": "Rafsan Haque",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=known-name=9 email=1 profile-url=1 phone-bd=1 address-street=1 address-bd-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=9 known-email=1 known-phone=1 profile-url=1 address-street=1 address-bd-postcode=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Rafsan Haque",
+        "guest": {
+          "status": "partial",
+          "left": [
+            "rafsan"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "rafsan"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "rafsan",
+            "haque"
+          ]
+        },
+        "docxGuest": {
+          "status": "partial",
+          "left": [
+            "rafsan"
+          ]
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "01552-667788",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "rafsanhaque.bd@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "x.com/rafsan_reports",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "muckrack.com/rafsan-haque",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "@rafsan_reports",
+        "note": "bare X handle",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Flat 5C, Green Valley Apartments",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "45/1 Indira Road",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Dhaka-1215",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "PID accreditation card no. 4417",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Senior Reporter",
+        "guest": "lost",
+        "account": "lost",
+        "guestRewrite": "[NAME] Investigat",
+        "accountRewrite": "[NAME] Investigat"
+      },
+      {
+        "value": "Staff Reporter",
+        "guest": "lost",
+        "account": "lost",
+        "guestRewrite": "Staff [NAME] Prothom Al",
+        "accountRewrite": "Staff [NAME] Prothom Al"
+      },
+      {
+        "value": "The Daily Star",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Prothom Alo",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "University of Dhaka",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Mass Communication and Journalism",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "TIB Investigative Journalism Award",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "RTI",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "3,000",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "sg-airline-first-officer",
+    "career": "Airline First Officer (A320)",
+    "sector": "Aviation",
+    "country": "Singapore",
+    "layout": "table-header",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Nicholas Ang Wei Jie",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 address-street=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=2 known-phone=1 email=1 address-street=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Nicholas Ang Wei Jie",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "nicholas",
+            "ang",
+            "wei",
+            "jie"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "wei",
+            "jie"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "nicholas",
+            "ang",
+            "wei",
+            "jie"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+65 9123 4567",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "9123 4567",
+        "note": "local 4-4 form",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "nick.ang.flying@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "123 Tampines Street 11",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "#05-67",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Singapore 521123",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "ATPL(A) No. 12345",
+        "note": "pilot licence",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "S8912345D",
+        "note": "NRIC",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "K1234567A",
+        "note": "passport number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "dob",
+        "value": "03 Aug 1989",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Jetstar Asia",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Singapore Flying College",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "A320 type rating",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "ICAO English Level 6",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "4,850 hrs",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Line Training First Officer",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "au-aged-care-worker",
+    "career": "Personal Care Worker (Aged Care)",
+    "sector": "Aged & Disability Care",
+    "country": "Australia",
+    "layout": "classic",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Sunita Gurung",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-au=2 address-au-postcode=2",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=2 known-phone=1 email=1 phone-au=1 address-au-postcode=2"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Sunita Gurung",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "sunita",
+            "gurung"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "sunita",
+            "gurung"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "0401 234 567",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "sunita.gurung92@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "5 Rosella Close",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Mawson Lakes SA 5095",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "1234567",
+        "note": "NDIS worker screening number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "Margaret Evans",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "margaret",
+            "evans"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "margaret",
+            "evans"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "margaret",
+            "evans"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "margaret",
+            "evans"
+          ]
+        }
+      },
+      {
+        "cat": "referee",
+        "value": "08 8123 4567",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Resthaven Marion",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "TAFE SA",
+        "guest": "lost",
+        "account": "lost",
+        "guestRewrite": "[ADDRESS] LANGUA",
+        "accountRewrite": "[ADDRESS] LANGUA"
+      },
+      {
+        "value": "CHC33015",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Certificate III in Individual Support",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Dementia Champion",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Nepali",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "bd-agriculture-extension-officer",
+    "career": "Agriculture Extension Officer",
+    "sector": "Agriculture",
+    "country": "Bangladesh",
+    "layout": "bd-traditional",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Md. Shafiqul Islam Sarkar",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 address-bd-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=3 known-email=1 known-phone=1 address-bd-postcode=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Md. Shafiqul Islam Sarkar",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "shafiqul",
+            "islam",
+            "sarkar"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "sarkar"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "shafiqul",
+            "islam",
+            "sarkar"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "01740-112233",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "shafiq.agri@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Char Kalibari",
+        "note": "home village",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Rajshahi-6290",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "family",
+        "value": "Abdus Sattar Sarkar",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "abdus",
+            "sattar",
+            "sarkar"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "abdus",
+            "sattar",
+            "sarkar"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "abdus",
+            "sattar",
+            "sarkar"
+          ]
+        },
+        "docxGuest": {
+          "status": "partial",
+          "left": [
+            "abdus",
+            "sattar"
+          ]
+        }
+      },
+      {
+        "cat": "family",
+        "value": "Hosne Ara Begum",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "hosne",
+            "ara",
+            "begum"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "hosne",
+            "ara",
+            "begum"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "hosne",
+            "ara",
+            "begum"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "hosne",
+            "ara",
+            "begum"
+          ]
+        }
+      },
+      {
+        "cat": "dob",
+        "value": "20 June 1995",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "8234567890123",
+        "note": "BD NID, 13 digits",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Department of Agricultural Extension",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "DAE",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Bangladesh Agricultural University",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Agricultural Training Institute, Ishurdi",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "IPM",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "BRRI dhan89",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Religion Islam",
+        "guest": "kept",
+        "account": "lost",
+        "accountRewrite": "Religion [NAME]"
+      }
+    ]
+  },
+  {
+    "id": "bd-medical-officer",
+    "career": "Medical Officer",
+    "sector": "Healthcare / Medicine",
+    "country": "Bangladesh",
+    "layout": "sidebar",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Dr. Nusrat Jahan Chowdhury",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 address-bd=1 address-bd-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=3 known-phone=1 address-bd=1 address-bd-postcode=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Nusrat Jahan Chowdhury",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "nusrat",
+            "jahan",
+            "chowdhury"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "chowdhury"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "nusrat",
+            "jahan",
+            "chowdhury"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+880 1811-223344",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "dr.nusrat.jahan@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "A-65432",
+        "note": "BMDC registration",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "House 5, Road 2",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Chattogram-4225",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "dob",
+        "value": "22/09/1993",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "sensitive",
+        "value": "Blood Group O",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Chattogram Medical College Hospital",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Hathazari Upazila Health Complex",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Bangladesh College of Physicians and Surgeons",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "BCS (Health)",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "MBBS",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "FCPS Part-I",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "au-early-childhood-educator",
+    "career": "Early Childhood Educator",
+    "sector": "Education & Childcare",
+    "country": "Australia",
+    "layout": "modern-header",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Grace Hill",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-au=1 address-au-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=2 known-email=1 known-phone=1 address-au-postcode=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Grace Hill",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "grace",
+            "hill"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "grace",
+            "hill"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "grace",
+            "hill"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+61 8 9123 4567",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "gracehill.ece@outlook.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "14 Banksia Way",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Joondalup WA 6027",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "WWC Card 1234567",
+        "note": "Working with Children Check",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Goodstart Early Learning Joondalup",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Only About Children Box Hill",
+        "guest": "kept",
+        "account": "lost",
+        "accountRewrite": "Only About Children Box [NAME], Melbourne"
+      },
+      {
+        "value": "Box Hill Institute",
+        "guest": "kept",
+        "account": "lost",
+        "accountRewrite": "Box [NAME] Institute 2018 Provid"
+      },
+      {
+        "value": "St John Ambulance",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "EYLF",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "NQS",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "CHC50121",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "HLTAID012",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Storypark",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "us-real-estate-agent",
+    "career": "Real Estate Agent",
+    "sector": "Sales / Real Estate",
+    "country": "United States",
+    "layout": "sidebar",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Sarah Mitchell",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 phone-grouped=1 address-street=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=2 known-phone=1 profile-url=1 address-street=1 name-domain=2"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Sarah Mitchell",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "sarah",
+            "mitchell"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "sarah",
+            "mitchell"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "0654321",
+        "note": "TREC licence number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "512.555.0198",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "sarah@sarahmitchellhomes.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "www.sarahmitchellhomes.com",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "facebook.com/sarahmitchellrealtor",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "@sarahsellsaustin",
+        "note": "bare Instagram handle",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "1204 Barton Springs Rd",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "TX 78704",
+        "note": "ZIP code",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Keller Williams Realty Austin Southwest",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Greystar",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "The University of Texas at Austin",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Zillow Premier Agent",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "$12M",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "MLS",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "38 transactions",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "ie-musician-music-teacher",
+    "career": "Musician & Music Teacher",
+    "sector": "Arts & Music",
+    "country": "Ireland",
+    "layout": "classic",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Siobhán O Sullivan",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 address-street=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=1 known-phone=1 email=1 address-street=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Siobhán O’Sullivan",
+        "note": "fada and curly apostrophe on the CV, neither on the account",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "siobhán",
+            "sullivan"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "siobhán",
+            "sullivan"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "siobhán",
+            "sullivan"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+353 87 123 4567",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "siobhan.osullivan.music@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "soundcloud.com/siobhanosullivanmusic",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "url",
+        "value": "youtube.com/@siobhanplays",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "21 Harcourt Terrace",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "D02 X285",
+        "note": "Eircode",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Royal Irish Academy of Music",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "ABRSM",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Feis Ceoil",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "RTÉ Concert Orchestra",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "National Concert Hall",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "TU Dublin Conservatory of Music and Drama",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Grade 8",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "za-diesel-mechanic",
+    "career": "Diesel Mechanic",
+    "sector": "Automotive / Heavy Equipment",
+    "country": "South Africa",
+    "layout": "table-header",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Thabo Mokoena",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 phone-grouped=1 address-street=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=3 known-phone=1 email=1 phone-international=1 address-street=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Thabo Mokoena",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "thabo",
+            "mokoena"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "thabo",
+            "mokoena"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "082 123 4567",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+27 11 555 0123",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "thabo.mokoena.diesel@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "23 Jan Smuts Avenue",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Johannesburg, 2193",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "gov-id",
+        "value": "9001015009087",
+        "note": "SA ID number (encodes date of birth)",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Barloworld Equipment",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Sasol Mining",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Caterpillar 777",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Red Seal Trade Test",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Ekurhuleni East TVET College",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "N3 Motor Diesel",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "36 to 20 hours",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "au-physiotherapist",
+    "career": "Physiotherapist",
+    "sector": "Allied Health",
+    "country": "Australia",
+    "layout": "classic",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": null,
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-au=1 address-street=1 address-au-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=4 known-phone=1 email=1 address-street=1 address-au-postcode=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "ZHANG Wei",
+        "note": "surname-first with English name in brackets",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "zhang",
+            "wei"
+          ]
+        },
+        "account": {
+          "status": "partial",
+          "left": [
+            "wei"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "zhang",
+            "wei"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "zhang",
+            "wei"
+          ]
+        }
+      },
+      {
+        "cat": "name",
+        "value": "David",
+        "note": "English name",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "david"
+          ]
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "david"
+          ]
+        },
+        "docxGuest": {
+          "status": "leaked",
+          "left": [
+            "david"
+          ]
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "+61 491 570 157",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "david.zhang.physio@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "registration",
+        "value": "PHY0001987654",
+        "note": "AHPRA number",
+        "guest": {
+          "status": "leaked"
+        },
+        "account": {
+          "status": "leaked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "leaked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "88 George Street",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Parramatta NSW 2150",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Westmead Hospital",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Back In Motion Parramatta",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Macquarie University",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Doctor of Physiotherapy",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Mandarin",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "dry needling",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  },
+  {
+    "id": "au-barista-cafe-supervisor",
+    "career": "Barista / Café Supervisor",
+    "sector": "Hospitality",
+    "country": "Australia (from Colombia)",
+    "layout": "modern-header",
+    "pdfLinesExtracted": 1,
+    "headerNamePdf": null,
+    "headerNameDocx": "Valentina Gómez Ramírez",
+    "maskLog": {
+      "guest": "[pii-mask] label=AI messages=2 masked=email=1 phone-au=1 address-street=1 address-au-postcode=1",
+      "account": "[pii-mask] label=AI messages=2 masked=known-name=1 known-phone=1 email=1 address-street=1 address-au-postcode=1"
+    },
+    "items": [
+      {
+        "cat": "name",
+        "value": "Valentina Gómez Ramírez",
+        "note": "accents on the CV, none on the account",
+        "guest": {
+          "status": "leaked",
+          "left": [
+            "valentina",
+            "gómez",
+            "ramírez"
+          ]
+        },
+        "account": {
+          "status": "leaked",
+          "left": [
+            "valentina",
+            "gómez",
+            "ramírez"
+          ]
+        },
+        "redactorOnEcho": {
+          "status": "leaked",
+          "left": [
+            "valentina",
+            "gómez",
+            "ramírez"
+          ]
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "phone",
+        "value": "0468 123 456",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "email",
+        "value": "vale.gomez.r@gmail.com",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "1203/555 Swanston Street",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "masked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      },
+      {
+        "cat": "address",
+        "value": "Carlton VIC 3053",
+        "guest": {
+          "status": "masked"
+        },
+        "account": {
+          "status": "masked"
+        },
+        "redactorOnEcho": {
+          "status": "leaked"
+        },
+        "docxGuest": {
+          "status": "masked"
+        }
+      }
+    ],
+    "keep": [
+      {
+        "value": "Market Lane Coffee",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Juan Valdez Café",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "RMIT University",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "La Marzocco",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Square POS",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Latte art",
+        "guest": "kept",
+        "account": "kept"
+      },
+      {
+        "value": "Bogotá",
+        "guest": "kept",
+        "account": "kept"
+      }
+    ]
+  }
+]

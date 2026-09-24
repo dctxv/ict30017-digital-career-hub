@@ -1,0 +1,58 @@
+# au-physiotherapist — Physiotherapist (Australia), layout: classic
+
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: null
+Extracted PDF text: 1 line(s) before sanitising, 6 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-au=1 address-street=1 address-au-postcode=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+ZHANG Wei (David) Musculoskeletal Physiotherapist Mobile: [PHONE] | Email: [EMAIL] | AHPRA: PHY0001987654 Level 2, [ADDRESS] SUMMARY Physiotherapist with 5 years in hospital and private musculoskeletal practice. Fluent in Mandarin; dry needling and clinical Pilates certified. EXPERIENCE Senior Physiotherapist
+
+Westmead Hospital, Sydney 2021
+
+Present Orthopaedic ward and outpatient fracture clinic. Physiotherapist
+
+Back In Motion Parramatta, Parramatta 2019
+
+2021 35 consults per week; sports and workplace injuries. EDUCATION Doctor of Physiotherapy
+
+Macquarie University 2018
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"David Zhang","email":"david.zhang.physio@gmail.com","phone":"+61 491 570 157"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-name=4 known-phone=1 email=1 address-street=1 address-au-postcode=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME] Wei ([NAME]) Musculoskeletal Physiotherapist Mobile: [PHONE] | Email: [NAME][EMAIL] | AHPRA: PHY0001987654 Level 2, [ADDRESS] SUMMARY Physiotherapist with 5 years in hospital and private musculoskeletal practice. Fluent in Mandarin; dry needling and clinical Pilates certified. EXPERIENCE Senior Physiotherapist
+
+Westmead Hospital, Sydney 2021
+
+Present Orthopaedic ward and outpatient fracture clinic. Physiotherapist
+
+Back In Motion Parramatta, Parramatta 2019
+
+2021 35 consults per week; sports and workplace injuries. EDUCATION Doctor of Physiotherapy
+
+Macquarie University 2018
+</RESUME>

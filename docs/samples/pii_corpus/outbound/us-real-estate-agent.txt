@@ -1,0 +1,58 @@
+# us-real-estate-agent — Real Estate Agent (United States), layout: sidebar
+
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Sarah Mitchell"
+Extracted PDF text: 1 line(s) before sanitising, 6 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 phone-grouped=1 address-street=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT PHONE [PHONE] EMAIL [EMAIL] WEB www.sarahmitchellhomes.com FACEBOOK [URL] INSTAGRAM @sarahsellsaustin ADDRESS [ADDRESS] Austin, TX 78704 Sarah Mitchell REALTOR® · TREC License #0654321 SUMMARY Top-producing agent with $12M in closed sales volume in 2023 and a 4.9-star Zillow Premier Agent rating across 140 reviews. EXPERIENCE Real Estate Agent
+
+Keller Williams Realty Austin Southwest, Austin, TX 2018
+
+Present Closed 38 transactions in 2023; 62% from repeat and referral clients. Average days on market 11 vs 34 across the MLS. Leasing Consultant
+
+Greystar, Austin, TX 2015
+
+2018 Leased 300+ units per year at a 96% occupancy community. EDUCATION BBA, Marketing
+
+The University of Texas at Austin 2015
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Sarah Mitchell","email":"sarah@sarahmitchellhomes.com","phone":"512.555.0198"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-name=2 known-phone=1 profile-url=1 address-street=1 name-domain=2
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT PHONE [PHONE] EMAIL [NAME]@[URL] WEB [URL] FACEBOOK [URL] INSTAGRAM @sarahsellsaustin ADDRESS [ADDRESS] Austin, TX 78704 [NAME] REALTOR® · TREC License #0654321 SUMMARY Top-producing agent with $12M in closed sales volume in 2023 and a 4.9-star Zillow Premier Agent rating across 140 reviews. EXPERIENCE Real Estate Agent
+
+Keller Williams Realty Austin Southwest, Austin, TX 2018
+
+Present Closed 38 transactions in 2023; 62% from repeat and referral clients. Average days on market 11 vs 34 across the MLS. Leasing Consultant
+
+Greystar, Austin, TX 2015
+
+2018 Leased 300+ units per year at a 96% occupancy community. EDUCATION BBA, Marketing
+
+The University of Texas at Austin 2015
+</RESUME>
