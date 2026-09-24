@@ -1,6 +1,8 @@
 # PII audit corpus
 
-44 fictional resumes built to test how well the PII mask (`ai-service/src/utils/piiMask.js`) protects real uploads, 15 of them Bangladeshi. The findings and fixes are in [`docs/qa/PII_MASK_AUDIT.md`](../../qa/PII_MASK_AUDIT.md). All 44 run on every `npm test --prefix server`.
+44 fictional resumes built to test how well the PII mask (`ai-service/src/utils/piiMask.js`) protects real uploads, 15 of them Bangladeshi. The findings and fixes are in [`docs/qa/PII_MASK_AUDIT.md`](../../qa/PII_MASK_AUDIT.md). All 44 run on every `npm test --prefix server`, along with the team's 6 sample CVs from `docs/database/` and `docs/samples/mock_interview/` ([`team-samples.js`](../../../server/scripts/pii-audit/team-samples.js)).
+
+To see what the AI would receive for any CV, including one of your own: `npm run pii-preview --prefix server -- path/to/cv.pdf --html check.html`, then open `check.html` (section 8 of the report).
 
 Three sets, in the order they were written:
 

@@ -140,6 +140,19 @@ describe('nameHintFromItems', () => {
     assert.equal(hint, 'Md. Jahangir Alam');
   });
 
+  it('takes the name from a title that introduces it', () => {
+    assert.equal(nameHintFromItems([item('Resume of Sakib Hasan', { size: 22 })]), 'Sakib Hasan');
+    assert.equal(nameHintFromItems([item('CURRICULUM VITAE OF MD. RAFIQUL ISLAM', { size: 22 })]), 'MD. RAFIQUL ISLAM');
+  });
+
+  it('never returns a title as the name', () => {
+    const hint = nameHintFromItems([
+      item('Resume of', { size: 26, eol: true }),
+      item('Nusrat Jahan', { y: 660, size: 20 }),
+    ]);
+    assert.equal(hint, 'Nusrat Jahan');
+  });
+
   it('returns nothing for a largest line that is not a name', () => {
     assert.equal(nameHintFromItems([item('PROFILE', { size: 24 })]), null);
     assert.equal(nameHintFromItems([item('42 Software Projects', { size: 24 })]), null);

@@ -3,8 +3,9 @@
 **Date** 24 September 2026
 **Branch** `pii-masking-fixes` (based on `de3d08f`)
 **Modules** `ai-service/src/utils/piiMask.js` (user → model), `server/src/utils/piiRedactor.js` (model → user), `server/src/utils/pdfText.js` + `fileParser.js` (PDF extraction), `server/src/utils/sanitise.js`
-**Corpus** `docs/samples/pii_corpus/` — 44 fictional resumes, 445 known pieces of personal information
-**Re-run** `npm run pii-audit --prefix server` · the same corpus runs on every `npm test --prefix server`
+**Corpus** `docs/samples/pii_corpus/` — 44 fictional resumes, 445 known pieces of personal information, plus the team's own 6 sample CVs (92 items)
+**Re-run** `npm run pii-audit --prefix server` · all of it runs on every `npm test --prefix server`
+**See it for yourself** `npm run pii-preview --prefix server -- path/to/cv.pdf --html check.html` (section 8)
 
 ## Bottom line
 
@@ -49,7 +50,7 @@ Mobile: [PHONE]
 
 Labels are kept and values removed. The reviewer can still say "remove your father's name for an international CV" without ever seeing the name.
 
-**How far to trust "100%".** It is measured on 44 resumes, and the rules are deterministic, so a format none of them contains can still get through. Two blind rounds measured this honestly (section 3): new resumes, run before any rule was changed for them, scored 87% and then 94%. Each gap they found was fixed with a general rule, and those resumes are now in the regression test. Section 6 has the real limits.
+**How far to trust "100%".** It is measured on 44 resumes, and the rules are deterministic, so a format none of them contains can still get through. Three blind rounds measured this honestly (section 3): new resumes, run before any rule was changed for them, scored 87%, then 94%, then 98% on the team's own sample CVs. Each gap they found was fixed with a general rule, and those resumes are now in the regression test. Section 6 has the real limits.
 
 ---
 
@@ -96,14 +97,15 @@ The first version of this report, on 26 resumes, found ten problems. Each is fix
 |---|---|---|---|
 | 12 holdout resumes | 97/111 (87%) | 97/111 (87%) | CNIC, ABN, "Father Name" without the 's, P.O. Box, `-straße`, Malay and Vietnamese streets, `House No. 45`, `Ward No. 7`, place of birth, arm reach; `NVQ Level 4,` read as an address; a sole trader's surname in his business name |
 | 6 Bangladesh resumes | 68/72 (94%) | 69/72 (96%) | `Name (in English):` (a bracketed label), `Brother:` / emergency contact names, a licence label that took the whole line |
+| The team's 6 sample CVs (`docs/database/`, `docs/samples/mock_interview/`) | 90/92 (98%) | 90/92 (98%) | Two referees printed side by side, one with stacked initials (`Prof. Dr. A.K.M. Ashikur Rahman Mr. Tanvir Hossain`), both leaked. Three over-masks: `Engineering 2018` read as a German `-ring` street (twice), and `Web : HTML, CSS…` read as a website. Name guesses: `Resume of` taken from the largest type, and `Mailing Address:` / a template's `[CANDIDATE NAME]` taken as a header name |
 
-Both rounds are now at 100%. Snapshots of the results before fixing are kept in `docs/samples/pii_corpus/before/`.
+All three rounds are now at 100%, with no over-masking. The fixes: one-word street suffixes are limited to ones no English word ends in, and a year is never a house number; referee names accept initials and a second name on the same line; a `Website:`-style label only takes a value that looks like a site or handle; `Resume of <name>` gives the name and `Resume of` alone gives nothing; a header line ending in `:` or wholly in brackets is not a name. Snapshots of the results before fixing are kept in `docs/samples/pii_corpus/before/`.
 
 **Standing checks:**
-- `npm test --prefix server` runs all 44 resumes (`scripts/pii-audit/corpus.test.js`, about 5 seconds). I verified it fails when a rule is broken: removing the date-of-birth labels failed 22 items at once.
+- `npm test --prefix server` runs all 44 resumes and the 6 team CVs (`scripts/pii-audit/corpus.test.js`, `team-samples.js`, about 6 seconds). I verified it fails when a rule is broken: removing the date-of-birth labels failed 22 items at once, and running the team CVs on the old mask failed 3 of them on exactly the bugs above.
 - The integration test now asserts that **no service's system prompt is altered** by the mask. The first version of the label rules rewrote the review prompt's own headings, so the guard is there for a reason.
 - New unit tests: `piiMaskFields.test.js` (46), `pdfText.test.js`, `sanitise.test.js`, `maskIdentity.test.js`, and redactor additions.
-- Totals: 283 ai-service tests and 178 server tests, all passing.
+- Totals: 287 ai-service tests and 191 server tests, all passing.
 
 ## 4. What changed in behaviour
 
@@ -143,3 +145,23 @@ npm test --prefix ai-service                     # mask rules, system-prompt gua
 ```
 
 `docs/samples/pii_corpus/outbound/<id>.txt` holds, for each resume, the exact user message that would have been sent as a guest and as a logged-in user.
+
+## 8. Checking it yourself, and showing someone else
+
+**Any CV, in one command.** `pii-preview` runs a PDF or DOCX through the real upload path and shows what the AI provider would receive. Like the audit, it stubs `fetch`, so nothing is sent and no API key is needed. It works offline.
+
+```sh
+npm run pii-preview --prefix server -- docs/database/bangladesh_resume_fahmida_akter.pdf
+npm run pii-preview --prefix server -- my-cv.pdf --name "Account Name" --email me@example.com --phone 01712345678
+npm run pii-preview --prefix server -- my-cv.pdf --html check.html
+```
+
+The first form prints the resume block as sent and the mask's log line. `--name/--email/--phone` simulate a logged-in account. `--html` also writes a side-by-side page: the CV as the server reads it on the left, what the AI receives on the right, every removed value struck through and every placeholder highlighted, with counts by type at the top. That page is the one to show someone who doesn't read code. For a live demo, run it on a CV the audience brings, then open the page.
+
+**In the running app.** Every AI call logs one line on the server, for example:
+
+```
+[pii-mask] label=AI messages=2 masked=email=4 phone-bd=4 national-id-digits=1 field-dob=1 field-family=2 field-personal=4 referee-name=2 known-name=3
+```
+
+It lists which rules fired and how many times, never the values themselves. A CV upload whose line shows no `masked=` counts had nothing the rules recognised.

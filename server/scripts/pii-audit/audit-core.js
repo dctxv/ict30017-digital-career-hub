@@ -32,6 +32,7 @@ import JSZip from 'jszip';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const CORPUS_DIR = path.resolve(HERE, '../../../docs/samples/pii_corpus');
+const REPO_DIR = path.resolve(HERE, '../../..');
 
 // The client reads these at call time; nothing is sent to a real endpoint.
 process.env.GOOGLE_AI_API_KEY ??= 'audit-key-never-sent';
@@ -221,8 +222,14 @@ export async function writeDocx(entry, dir) {
 
 const marketFor = (entry) => (entry.country.startsWith('Bangladesh') ? 'bangladesh' : 'international');
 
+/**
+ * A corpus entry is scored from the PDF built for it, plus a DOCX twin. An
+ * entry with a `file` (team-samples.js) is a CV already in the repo, scored
+ * as it is, with no twin.
+ */
 export async function auditEntry(entry, docxDir) {
-  const { text: rawText, nameHint } = await extractResume(path.join(CORPUS_DIR, `${entry.id}.pdf`));
+  const source = entry.file ? path.join(REPO_DIR, entry.file) : path.join(CORPUS_DIR, `${entry.id}.pdf`);
+  const { text: rawText, nameHint } = await extractResume(source);
   const cleanText = sanitiseResumeText(rawText);
   const beforeNorm = norm(cleanText);
   const marketMode = marketFor(entry);
@@ -243,18 +250,23 @@ export async function auditEntry(entry, docxDir) {
   const echoNorm = norm(echoed);
 
   // DOCX twin, guest only: the comparison is about the header-name guess.
-  const docx = await extractResume(await writeDocx(entry, docxDir));
-  const docxText = sanitiseResumeText(docx.text);
-  const docxGuest = await captureOutbound(docxText, { identity: withNameHint(null, docx.nameHint), marketMode });
-  const docxBefore = norm(docxText);
-  const docxAfter = norm(docxGuest.userText);
+  let docxText = null;
+  let docxBefore = null;
+  let docxAfter = null;
+  if (!entry.file) {
+    const docx = await extractResume(await writeDocx(entry, docxDir));
+    docxText = sanitiseResumeText(docx.text);
+    const docxGuest = await captureOutbound(docxText, { identity: withNameHint(null, docx.nameHint), marketMode });
+    docxBefore = norm(docxText);
+    docxAfter = norm(docxGuest.userText);
+  }
 
   const items = entry.pii.map((item) => ({
     ...item,
     guest: classify(item, beforeNorm, guestNorm, entry.keep),
     account: classify(item, beforeNorm, accountNorm, entry.keep),
     redactorOnEcho: classify(item, beforeNorm, echoNorm, entry.keep),
-    docxGuest: classify(item, docxBefore, docxAfter, entry.keep),
+    docxGuest: docxText === null ? { status: 'not run' } : classify(item, docxBefore, docxAfter, entry.keep),
   }));
 
   // The same mask contexts resumeReviewer.buildMaskContext builds, so a lost
@@ -289,7 +301,7 @@ export async function auditEntry(entry, docxDir) {
     '',
     `Name read from the PDF's largest type: ${JSON.stringify(nameHint)}`,
     `Header name inferred from PDF text: ${JSON.stringify(inferNameFromHeader(cleanText))}`,
-    `Header name inferred from DOCX text: ${JSON.stringify(inferNameFromHeader(docxText))}`,
+    `Header name inferred from DOCX text: ${docxText === null ? '(no DOCX twin)' : JSON.stringify(inferNameFromHeader(docxText))}`,
     `Extracted PDF text: ${rawText.split('\n').filter(Boolean).length} line(s) before sanitising, ${cleanText.split('\n').filter(Boolean).length} after`,
     '',
     '## Guest — mask log',
@@ -318,7 +330,7 @@ export async function auditEntry(entry, docxDir) {
     pdfLinesExtracted: rawText.split('\n').filter(Boolean).length,
     nameHintPdf: nameHint,
     headerNamePdf: inferNameFromHeader(cleanText),
-    headerNameDocx: inferNameFromHeader(docxText),
+    headerNameDocx: docxText === null ? null : inferNameFromHeader(docxText),
     maskLog: { guest: guest.maskLog, account: account.maskLog },
     items,
     keep,
