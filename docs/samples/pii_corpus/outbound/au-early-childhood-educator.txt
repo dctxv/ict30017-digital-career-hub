@@ -1,0 +1,65 @@
+# au-early-childhood-educator — Early Childhood Educator (Australia), layout: modern-header
+
+Name read from the PDF's largest type: "GRACE HILL"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Grace Hill"
+Extracted PDF text: 15 line(s) before sanitising, 15 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-au=1 keyword-id=1 address-street=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Diploma-Qualified Early Childhood Educator
+[PHONE] [EMAIL] [ADDRESS]
+ABOUT ME
+Room Leader with 6 years in long day care. Play-based programming under the EYLF, and a strong record in the NQS
+rating process. WWC Card [ID].
+EXPERIENCE
+Room Leader (Pre-Kindy) — Goodstart Early Learning Joondalup, Perth 2021 – Present
+Lead a room of 22 children and 3 educators; centre rated Exceeding NQS in 2023.
+Educator — Only About Children Box Hill, Melbourne 2018 – 2021
+Toddler room; family communication through Storypark.
+QUALIFICATIONS
+Diploma of Early Childhood Education and Care (CHC50121) — Box Hill Institute 2018
+Provide First Aid in an education and care setting (HLTAID012) — St John Ambulance 2024
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Grace Hill","email":"gracehill.ece@outlook.com","phone":"+61 8 9123 4567"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 keyword-id=1 address-street=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Diploma-Qualified Early Childhood Educator
+[PHONE] [EMAIL] [ADDRESS]
+ABOUT ME
+Room Leader with 6 years in long day care. Play-based programming under the EYLF, and a strong record in the NQS
+rating process. WWC Card [ID].
+EXPERIENCE
+Room Leader (Pre-Kindy) — Goodstart Early Learning Joondalup, Perth 2021 – Present
+Lead a room of 22 children and 3 educators; centre rated Exceeding NQS in 2023.
+Educator — Only About Children Box Hill, Melbourne 2018 – 2021
+Toddler room; family communication through Storypark.
+QUALIFICATIONS
+Diploma of Early Childhood Education and Care (CHC50121) — Box Hill Institute 2018
+Provide First Aid in an education and care setting (HLTAID012) — St John Ambulance 2024
+</RESUME>

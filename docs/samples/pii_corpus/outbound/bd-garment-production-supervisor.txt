@@ -1,0 +1,123 @@
+# bd-garment-production-supervisor — Production Supervisor (Garments) (Bangladesh), layout: bd-traditional
+
+Name read from the PDF's largest type: "MD. ABDUL KARIM SHEIKH"
+Header name inferred from PDF text: "MD. ABDUL KARIM SHEIKH"
+Header name inferred from DOCX text: "Md. Abdul Karim Sheikh"
+Extracted PDF text: 42 line(s) before sanitising, 42 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=3 phone-labelled=3 national-id-digits=1 field-dob=1 field-family=2 field-personal=3 field-address=5 referee-name=1 known-name=2
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Mobile: [PHONE]
+Alternative Mobile: [PHONE]
+E-mail: [EMAIL]
+Present Address: [ADDRESS]
+Career Objective
+To build a career in a reputed garment manufacturing company where I can use my experience in line
+balancing, SMV reduction and quality control to increase efficiency.
+Employment History
+Production Supervisor (Sewing) — DBL Group, Gazipur March 2019 – Present
+Supervise 4 sewing lines (160 operators) for knit tops for H&M and Primark.
+Raised line efficiency from 58% to 71% through line balancing and SMV study.
+Line Chief — Ha-Meem Group, Ashulia January 2015 – February 2019
+Managed daily production target, WIP and operator skill matrix.
+Academic Qualification
+Diploma in Textile Engineering — Bangladesh Institute of Textile Technology (BGMEA) 2014
+SSC (Science), GPA 4.50 — Faridpur Zilla School 2007
+Special Skills
+Lean manufacturing
+Line balancing
+SMV / GSD
+Quality control (AQL 2.5)
+MS Excel
+Personal Information
+Father's Name : [NAME]
+Mother's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+National ID No : [ID]
+Permanent Address : [ADDRESS] Post: [ADDRESS] Upazila: [ADDRESS] District:
+[ADDRESS]
+Religion : [PERSONAL]
+Marital Status : [PERSONAL]
+Blood Group : [PERSONAL]
+Nationality : Bangladeshi
+Reference
+[NAME]
+General Manager (Production), DBL Group
+Mobile: [PHONE]
+
+Declaration
+I hereby declare that all the information given above is true to the best of my knowledge.
+([NAME])
+Signature
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Abdul Karim","email":"karim.sheikh.rmg@yahoo.com","phone":"01819456123"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-bd=2 phone-labelled=3 national-id-digits=1 field-dob=1 field-family=2 field-personal=3 field-address=5 referee-name=1 known-name=2
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Mobile: [PHONE]
+Alternative Mobile: [PHONE]
+E-mail: [EMAIL]
+Present Address: [ADDRESS]
+Career Objective
+To build a career in a reputed garment manufacturing company where I can use my experience in line
+balancing, SMV reduction and quality control to increase efficiency.
+Employment History
+Production Supervisor (Sewing) — DBL Group, Gazipur March 2019 – Present
+Supervise 4 sewing lines (160 operators) for knit tops for H&M and Primark.
+Raised line efficiency from 58% to 71% through line balancing and SMV study.
+Line Chief — Ha-Meem Group, Ashulia January 2015 – February 2019
+Managed daily production target, WIP and operator skill matrix.
+Academic Qualification
+Diploma in Textile Engineering — Bangladesh Institute of Textile Technology (BGMEA) 2014
+SSC (Science), GPA 4.50 — Faridpur Zilla School 2007
+Special Skills
+Lean manufacturing
+Line balancing
+SMV / GSD
+Quality control (AQL 2.5)
+MS Excel
+Personal Information
+Father's Name : [NAME]
+Mother's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+National ID No : [ID]
+Permanent Address : [ADDRESS] Post: [ADDRESS] Upazila: [ADDRESS] District:
+[ADDRESS]
+Religion : [PERSONAL]
+Marital Status : [PERSONAL]
+Blood Group : [PERSONAL]
+Nationality : Bangladeshi
+Reference
+[NAME]
+General Manager (Production), DBL Group
+Mobile: [PHONE]
+
+Declaration
+I hereby declare that all the information given above is true to the best of my knowledge.
+([NAME])
+Signature
+</RESUME>

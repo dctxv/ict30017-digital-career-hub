@@ -1,0 +1,67 @@
+# us-associate-attorney — Associate Attorney (United States), layout: classic
+
+Name read from the PDF's largest type: "Rebecca Chen-Adler"
+Header name inferred from PDF text: "Rebecca Chen-Adler"
+Header name inferred from DOCX text: "Rebecca Chen-Adler"
+Extracted PDF text: 15 line(s) before sanitising, 15 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 phone-grouped=1 numbered-id=1 address-street=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+[ADDRESS] | [PHONE] | [EMAIL] |
+[URL]
+BAR ADMISSIONS
+New York State Bar (Registration No. [ID]); U.S. District Court, Southern District of New York.
+EXPERIENCE
+Litigation Associate — Skadden, Arps, Slate, Meagher & Flom LLP, New York, NY Sept 2020 – Present
+Securities litigation and SEC enforcement defense for Fortune 500 clients.
+Drafted the winning motion to dismiss in a $400M shareholder class action.
+Judicial Law Clerk — Hon. Maria Delgado, S.D.N.Y., New York, NY 2019 – 2020
+Drafted bench memoranda and opinions on civil and criminal matters.
+EDUCATION
+J.D., magna cum laude — Columbia Law School 2019
+Articles Editor, Columbia Law Review
+B.A., Political Science — University of Michigan 2016
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Rebecca Chen-Adler","email":"rchenadler@protonmail.com","phone":"(212) 555-0147"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 profile-url=1 known-phone=1 numbered-id=1 address-street=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+[ADDRESS] | [PHONE] | [EMAIL] |
+[URL]
+BAR ADMISSIONS
+New York State Bar (Registration No. [ID]); U.S. District Court, Southern District of New York.
+EXPERIENCE
+Litigation Associate — Skadden, Arps, Slate, Meagher & Flom LLP, New York, NY Sept 2020 – Present
+Securities litigation and SEC enforcement defense for Fortune 500 clients.
+Drafted the winning motion to dismiss in a $400M shareholder class action.
+Judicial Law Clerk — Hon. Maria Delgado, S.D.N.Y., New York, NY 2019 – 2020
+Drafted bench memoranda and opinions on civil and criminal matters.
+EDUCATION
+J.D., magna cum laude — Columbia Law School 2019
+Articles Editor, Columbia Law Review
+B.A., Political Science — University of Michigan 2016
+</RESUME>

@@ -1,0 +1,97 @@
+# ca-long-haul-truck-driver — Long-Haul Truck Driver (AZ) (Canada), layout: sidebar
+
+Name read from the PDF's largest type: "Gurpreet Singh Dhillon"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Gurpreet Singh Dhillon"
+Extracted PDF text: 31 line(s) before sanitising, 30 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 phone-grouped=1 phone-labelled=2 keyword-id=1 field-address=2 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+CELL
+[PHONE]
+HOME
+[PHONE]
+EMAIL
+[EMAIL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+LICENCES
+Ontario Class AZ — DL
+[ID]
+FAST card
+TDG certified
+Air brake (Z) endorsement
+[NAME]
+Class AZ Professional Driver
+SUMMARY
+AZ driver with 8 years and 1.2 million accident-free kilometres on crossborder and long-haul routes. FAST card holder, clean abstract,
+experienced with B-trains and reefers.
+EXPERIENCE
+Long-Haul AZ Driver — Bison Transport, Mississauga,
+ON
+2019 – Present
+Ontario–Texas lanes, 5,000 km weekly, 99.6% on-time delivery.
+Full compliance with Hours of Service and ELD logs; zero CVOR
+violations.
+AZ Driver — Challenger Motor Freight, Cambridge, ON 2016 – 2019
+Regional reefer runs; trained 4 new drivers.
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Gurpreet Dhillon","email":"gsdhillon.trucking@gmail.com","phone":"416-555-0199"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-international=1 phone-labelled=2 keyword-id=1 field-address=2 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+CELL
+[PHONE]
+HOME
+[PHONE]
+EMAIL
+[EMAIL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+LICENCES
+Ontario Class AZ — DL
+[ID]
+FAST card
+TDG certified
+Air brake (Z) endorsement
+[NAME]
+Class AZ Professional Driver
+SUMMARY
+AZ driver with 8 years and 1.2 million accident-free kilometres on crossborder and long-haul routes. FAST card holder, clean abstract,
+experienced with B-trains and reefers.
+EXPERIENCE
+Long-Haul AZ Driver — Bison Transport, Mississauga,
+ON
+2019 – Present
+Ontario–Texas lanes, 5,000 km weekly, 99.6% on-time delivery.
+Full compliance with Hours of Service and ELD logs; zero CVOR
+violations.
+AZ Driver — Challenger Motor Freight, Cambridge, ON 2016 – 2019
+Regional reefer runs; trained 4 new drivers.
+</RESUME>

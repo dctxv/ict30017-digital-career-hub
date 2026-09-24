@@ -1,0 +1,101 @@
+# bd-senior-staff-nurse — Senior Staff Nurse (Bangladesh), layout: sidebar
+
+Name read from the PDF's largest type: "Salma Khatun (সালমা খাতুন"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Salma Khatun (সালমা খাতুন)"
+Extracted PDF text: 32 line(s) before sanitising, 32 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 phone-labelled=1 numbered-id=1 field-family=1 field-personal=3 field-address=2 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+MOBILE
+[PHONE]
+EMAIL
+[EMAIL]
+BNMC REG. NO
+[ID]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+PERSONAL
+Height
+[PERSONAL]
+Weight
+[PERSONAL]
+Blood Group
+[PERSONAL]
+Husband's Name
+[NAME]
+[NAME])
+Senior Staff Nurse, BSc in Nursing
+PROFILE
+Senior staff nurse with 7 years in cardiac critical care at a tertiary
+government hospital.
+EXPERIENCE
+Senior Staff Nurse, CCU — National Institute of
+Cardiovascular Diseases, Dhaka
+2017 – Present
+In charge of a 20-bed CCU shift; trained 30 junior nurses in ECG
+interpretation.
+EDUCATION
+BSc in Nursing — College of Nursing, Mohakhali 2016
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Salma Khatun","email":"salma.khatun.rn@gmail.com","phone":"01818123456"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-labelled=1 numbered-id=1 field-family=1 field-personal=3 field-address=2 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+MOBILE
+[PHONE]
+EMAIL
+[EMAIL]
+BNMC REG. NO
+[ID]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+PERSONAL
+Height
+[PERSONAL]
+Weight
+[PERSONAL]
+Blood Group
+[PERSONAL]
+Husband's Name
+[NAME]
+[NAME])
+Senior Staff Nurse, BSc in Nursing
+PROFILE
+Senior staff nurse with 7 years in cardiac critical care at a tertiary
+government hospital.
+EXPERIENCE
+Senior Staff Nurse, CCU — National Institute of
+Cardiovascular Diseases, Dhaka
+2017 – Present
+In charge of a 20-bed CCU shift; trained 30 junior nurses in ECG
+interpretation.
+EDUCATION
+BSc in Nursing — College of Nursing, Mohakhali 2016
+</RESUME>

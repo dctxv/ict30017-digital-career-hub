@@ -1,0 +1,67 @@
+# nz-retail-store-manager — Retail Store Manager (New Zealand), layout: classic
+
+Name read from the PDF's largest type: "Rose Walker"
+Header name inferred from PDF text: "Rose Walker"
+Header name inferred from DOCX text: "Rose Walker"
+Extracted PDF text: 15 line(s) before sanitising, 15 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-grouped=1 phone-trunk=1 phone-labelled=2 address-street=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Store Manager
+Mobile: [PHONE] | Home: [PHONE] | Email: [EMAIL]
+[ADDRESS]
+SUMMARY
+Retail leader who joined The Warehouse as a casual and rose to Store Manager within six years. I will bring
+strong rostering, shrinkage control and a coaching style to a larger format store.
+EXPERIENCE
+Store Manager — The Warehouse, Auckland 2020 – Present
+Lead 45 staff; store ranked top 5 of 86 for NPS in 2023.
+Cut shrinkage from 2.1% to 1.3% of sales.
+Department Manager — Farmers, Auckland 2017 – 2020
+Homewares and seasonal; stock ordering and rostering.
+EDUCATION
+New Zealand Certificate in Retail (Level 4) — ServiceIQ 2018
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Rose Walker","email":"rose.walker.nz@xtra.co.nz","phone":"021 555 0123"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-trunk=1 phone-labelled=2 address-street=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Store Manager
+Mobile: [PHONE] | Home: [PHONE] | Email: [EMAIL]
+[ADDRESS]
+SUMMARY
+Retail leader who joined The Warehouse as a casual and rose to Store Manager within six years. I will bring
+strong rostering, shrinkage control and a coaching style to a larger format store.
+EXPERIENCE
+Store Manager — The Warehouse, Auckland 2020 – Present
+Lead 45 staff; store ranked top 5 of 86 for NPS in 2023.
+Cut shrinkage from 2.1% to 1.3% of sales.
+Department Manager — Farmers, Auckland 2017 – 2020
+Homewares and seasonal; stock ordering and rostering.
+EDUCATION
+New Zealand Certificate in Retail (Level 4) — ServiceIQ 2018
+</RESUME>

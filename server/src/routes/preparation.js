@@ -57,13 +57,16 @@ import {
   CANDIDATE_STAGES,
   INTERVIEW_MODES,
   LIVE_FOLLOW_UP_CAP,
+  inspectMaskedPii,
+  resumeMaskContext,
 } from 'ai-service';
 import pool from '../db.js';
 import upload from '../middleware/upload.js';
-import { extractText } from '../utils/fileParser.js';
+import { extractResume } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
 import { redactPiiDeepWithFindings } from '../utils/piiRedactor.js';
 import { readAccountIdentity } from '../utils/accountIdentity.js';
+import { withNameHint } from '../utils/maskIdentity.js';
 import { requireAuth, requireActiveAccount } from '../middleware/auth.js';
 import { resolveLanguage } from '../i18n/index.js';
 import { statusForAiErrorCode, isAiErrorCode } from '../utils/aiStatus.js';
@@ -369,9 +372,12 @@ router.post(
       const mode = readMode(req.body?.mode, language);
 
       let resumeText;
+      let nameHint = null;
       if (uploadedFilePath) {
-        const rawText = await extractText(uploadedFilePath);
-        resumeText = sanitiseResumeText(rawText);
+        // nameHint is the name read off the CV's largest type, for the PII mask.
+        const extracted = await extractResume(uploadedFilePath);
+        resumeText = sanitiseResumeText(extracted.text);
+        nameHint = extracted.nameHint;
         console.log(`[interview] Resume supplied: ${req.file.originalname}, ${resumeText.length} chars`);
       }
 
@@ -379,7 +385,7 @@ router.post(
       // five questions aim at a real, previously identified weakness, which is
       // the thing that proves the two features are connected rather than sitting
       // beside each other.
-      const [knownGaps, profile, identity, quota] = await Promise.all([
+      const [knownGaps, profile, accountIdentity, quota] = await Promise.all([
         readOpenGapsForPrompt(req.user.id),
         readCandidateProfile(req.user.id),
         // The known strings the outbound mask uses on top of its patterns.
@@ -389,6 +395,12 @@ router.post(
         // question, not an allowance question.
         readInterviewQuota(req.user.id),
       ]);
+      const identity = withNameHint(accountIdentity, nameHint);
+      // Exactly what the mask removes from the CV, so the redactor can catch
+      // any of it quoted back in a question. In memory only.
+      const maskedValues = resumeText
+        ? inspectMaskedPii(resumeText, resumeMaskContext(resumeText, identity), { collectValues: true }).values
+        : [];
 
       const result = await generateInterviewQuestions({
         targetRole,
@@ -412,7 +424,7 @@ router.post(
       // The questions can quote the resume, and two models in the May 2026
       // feasibility study echoed contact details despite the prompt forbidding
       // it. Same deterministic guard the review applies, for the same reason.
-      const { value: safeQuestions } = redactPiiDeepWithFindings(result.questions);
+      const { value: safeQuestions } = redactPiiDeepWithFindings(result.questions, identity, maskedValues);
 
       const inserted = await pool.query(
         `INSERT INTO mock_interviews
@@ -624,7 +636,7 @@ router.post('/interviews/:id/next', preparationRateLimit, async (req, res) => {
     // Same deterministic guard the planned questions get. A probe quotes the
     // candidate's own answer back at them, which is exactly the payload most
     // likely to carry a name.
-    const { value: safeQuestion } = redactPiiDeepWithFindings(result.question);
+    const { value: safeQuestion } = redactPiiDeepWithFindings(result.question, identity);
 
     // Spliced in at the position it was asked, not appended. The stored array
     // is the order of the conversation — a probe about answer 2 belongs after
@@ -743,8 +755,8 @@ router.post('/interviews/:id/answers', preparationRateLimit, async (req, res) =>
       return res.status(statusForCode(result.code)).json({ error: result.error, code: result.code });
     }
 
-    const { value: safeEvaluation } = redactPiiDeepWithFindings(result.evaluation);
-    const { value: safeGaps } = redactPiiDeepWithFindings(result.gaps);
+    const { value: safeEvaluation } = redactPiiDeepWithFindings(result.evaluation, identity);
+    const { value: safeGaps } = redactPiiDeepWithFindings(result.gaps, identity);
 
     await pool.query(
       `UPDATE mock_interviews

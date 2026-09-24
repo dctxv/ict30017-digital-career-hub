@@ -1,0 +1,65 @@
+# us-warehouse-supervisor — Warehouse Shift Supervisor (United States), layout: modern-header
+
+Name read from the PDF's largest type: "MARCUS JOHNSON"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Marcus Johnson"
+Extracted PDF text: 15 line(s) before sanitising, 15 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 phone-grouped=1 numbered-id=1 address-street=1 address-unit=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Warehouse Shift Supervisor
+[PHONE] [EMAIL] [ADDRESS]
+[URL]
+SUMMARY
+Night-shift supervisor with 9 years in high-volume fulfilment. OSHA 30 card #[ID]. Certified forklift trainer.
+EXPERIENCE
+Shift Supervisor — Amazon Fulfillment Center MDW2, Joliet, IL 2019 – Present
+Lead 85 associates; raised units per hour 14% while cutting recordable injuries to zero in 2023.
+Forklift Operator Lead — Target Distribution Center, Chicago, IL 2015 – 2019
+EDUCATION
+A.A.S. Supply Chain Management — Harold Washington College 2015
+REFERENCES
+Available on request.
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Marcus Johnson","email":"marcus.j.logistics@gmail.com","phone":"(773) 555-0123"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 profile-url=1 known-phone=1 numbered-id=1 address-street=1 address-unit=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Warehouse Shift Supervisor
+[PHONE] [EMAIL] [ADDRESS]
+[URL]
+SUMMARY
+Night-shift supervisor with 9 years in high-volume fulfilment. OSHA 30 card #[ID]. Certified forklift trainer.
+EXPERIENCE
+Shift Supervisor — Amazon Fulfillment Center MDW2, Joliet, IL 2019 – Present
+Lead 85 associates; raised units per hour 14% while cutting recordable injuries to zero in 2023.
+Forklift Operator Lead — Target Distribution Center, Chicago, IL 2015 – 2019
+EDUCATION
+A.A.S. Supply Chain Management — Harold Washington College 2015
+REFERENCES
+Available on request.
+</RESUME>

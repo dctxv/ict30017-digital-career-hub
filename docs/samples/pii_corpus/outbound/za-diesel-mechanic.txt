@@ -1,0 +1,75 @@
+# za-diesel-mechanic — Diesel Mechanic (South Africa), layout: table-header
+
+Name read from the PDF's largest type: "Thabo Mokoena"
+Header name inferred from PDF text: "Thabo Mokoena"
+Header name inferred from DOCX text: "Thabo Mokoena"
+Extracted PDF text: 19 line(s) before sanitising, 19 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 phone-grouped=1 phone-labelled=2 national-id-digits=1 address-street=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Qualified Diesel Mechanic (Red Seal)
+Cell: [PHONE]
+Tel: [PHONE]
+Email: [EMAIL]
+[ADDRESS]
+PERSONAL DETAILS
+ID Number : [ID]
+Driver's Licence : Code EC (C1)
+Languages : English, isiZulu, Sesotho
+EXPERIENCE
+Diesel Mechanic — Barloworld Equipment, Isando 2017 – Present
+Service and overhaul of Caterpillar 777 haul trucks and D10 dozers for mining clients.
+Cut average breakdown turnaround from 36 to 20 hours.
+Apprentice Diesel Mechanic — Sasol Mining, Secunda 2013 – 2017
+QUALIFICATIONS
+Red Seal Trade Test — Diesel Mechanic (2017)
+N3 Motor Diesel, Ekurhuleni East TVET College
+Caterpillar Service Technician Level II
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Thabo Mokoena","email":"thabo.mokoena.diesel@gmail.com","phone":"082 123 4567"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-international=1 phone-labelled=2 national-id-digits=1 address-street=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Qualified Diesel Mechanic (Red Seal)
+Cell: [PHONE]
+Tel: [PHONE]
+Email: [EMAIL]
+[ADDRESS]
+PERSONAL DETAILS
+ID Number : [ID]
+Driver's Licence : Code EC (C1)
+Languages : English, isiZulu, Sesotho
+EXPERIENCE
+Diesel Mechanic — Barloworld Equipment, Isando 2017 – Present
+Service and overhaul of Caterpillar 777 haul trucks and D10 dozers for mining clients.
+Cut average breakdown turnaround from 36 to 20 hours.
+Apprentice Diesel Mechanic — Sasol Mining, Secunda 2013 – 2017
+QUALIFICATIONS
+Red Seal Trade Test — Diesel Mechanic (2017)
+N3 Motor Diesel, Ekurhuleni East TVET College
+Caterpillar Service Technician Level II
+</RESUME>

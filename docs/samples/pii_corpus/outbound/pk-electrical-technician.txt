@@ -1,0 +1,81 @@
+# pk-electrical-technician — Electrical Technician (Pakistan), layout: table-header
+
+Name read from the PDF's largest type: "Muhammad Usman Tariq"
+Header name inferred from PDF text: "Muhammad Usman Tariq"
+Header name inferred from DOCX text: "Muhammad Usman Tariq"
+Extracted PDF text: 22 line(s) before sanitising, 22 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 phone-trunk=1 phone-labelled=2 dashed-id=1 numbered-id=1 field-dob=1 field-family=1 field-personal=2 address-unit=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Electrical Technician (DAE Electrical)
+Mobile: [PHONE]
+WhatsApp: [PHONE]
+Email: [EMAIL]
+[ADDRESS]
+OBJECTIVE
+Electrical technician with 6 years of industrial maintenance, seeking a position in Saudi Arabia or the UAE.
+EXPERIENCE
+Maintenance Technician — Fauji Fertilizer Company, Goth Machhi 2020 – Present
+Preventive maintenance of 11 kV switchgear, MCCs and VFDs.
+Cut unplanned motor downtime 30% with a thermography programme.
+Electrician — K-Electric, Karachi 2017 – 2020
+EDUCATION
+DAE Electrical Technology — Government College of Technology, Rawalpindi 2017
+PERSONAL INFORMATION
+Father Name : [NAME]
+CNIC : [ID]
+Date of Birth : [DATE OF BIRTH]
+Domicile : [PERSONAL]
+Passport No : [ID]
+Marital Status : [PERSONAL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Muhammad Usman Tariq","email":"usman.tariq.elec@gmail.com","phone":"+923001234567"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-international=1 phone-labelled=2 dashed-id=1 numbered-id=1 field-dob=1 field-family=1 field-personal=2 address-unit=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Electrical Technician (DAE Electrical)
+Mobile: [PHONE]
+WhatsApp: [PHONE]
+Email: [EMAIL]
+[ADDRESS]
+OBJECTIVE
+Electrical technician with 6 years of industrial maintenance, seeking a position in Saudi Arabia or the UAE.
+EXPERIENCE
+Maintenance Technician — Fauji Fertilizer Company, Goth Machhi 2020 – Present
+Preventive maintenance of 11 kV switchgear, MCCs and VFDs.
+Cut unplanned motor downtime 30% with a thermography programme.
+Electrician — K-Electric, Karachi 2017 – 2020
+EDUCATION
+DAE Electrical Technology — Government College of Technology, Rawalpindi 2017
+PERSONAL INFORMATION
+Father Name : [NAME]
+CNIC : [ID]
+Date of Birth : [DATE OF BIRTH]
+Domicile : [PERSONAL]
+Passport No : [ID]
+Marital Status : [PERSONAL]
+</RESUME>

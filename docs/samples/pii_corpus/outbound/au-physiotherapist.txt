@@ -1,0 +1,65 @@
+# au-physiotherapist — Physiotherapist (Australia), layout: classic
+
+Name read from the PDF's largest type: "ZHANG Wei (David)"
+Header name inferred from PDF text: "ZHANG Wei (David)"
+Header name inferred from DOCX text: "ZHANG Wei (David)"
+Extracted PDF text: 14 line(s) before sanitising, 14 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-au=1 phone-labelled=1 national-id-shape=1 address-street=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Musculoskeletal Physiotherapist
+Mobile: [PHONE] | Email: [EMAIL] | AHPRA: [ID]
+Level 2, [ADDRESS]
+SUMMARY
+Physiotherapist with 5 years in hospital and private musculoskeletal practice. Fluent in Mandarin; dry needling
+and clinical Pilates certified.
+EXPERIENCE
+Senior Physiotherapist — Westmead Hospital, Sydney 2021 – Present
+Orthopaedic ward and outpatient fracture clinic.
+Physiotherapist — Back In Motion Parramatta, Parramatta 2019 – 2021
+35 consults per week; sports and workplace injuries.
+EDUCATION
+Doctor of Physiotherapy — Macquarie University 2018
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"David Zhang","email":"david.zhang.physio@gmail.com","phone":"+61 491 570 157"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-labelled=1 national-id-shape=1 address-street=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Musculoskeletal Physiotherapist
+Mobile: [PHONE] | Email: [EMAIL] | AHPRA: [ID]
+Level 2, [ADDRESS]
+SUMMARY
+Physiotherapist with 5 years in hospital and private musculoskeletal practice. Fluent in Mandarin; dry needling
+and clinical Pilates certified.
+EXPERIENCE
+Senior Physiotherapist — Westmead Hospital, Sydney 2021 – Present
+Orthopaedic ward and outpatient fracture clinic.
+Physiotherapist — Back In Motion Parramatta, Parramatta 2019 – 2021
+35 consults per week; sports and workplace injuries.
+EDUCATION
+Doctor of Physiotherapy — Macquarie University 2018
+</RESUME>

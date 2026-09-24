@@ -1,0 +1,101 @@
+# bd-pharmacist — Pharmacist (QA) (Bangladesh), layout: sidebar
+
+Name read from the PDF's largest type: "Tasnim Rahman Mithila"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Tasnim Rahman Mithila"
+Extracted PDF text: 33 line(s) before sanitising, 33 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 name-domain=1 phone-bd=3 phone-labelled=2 numbered-id=1 field-address=2 referee-name=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+MOBILE
+[PHONE]
+ALT
+[PHONE]
+EMAIL
+[EMAIL]
+SKYPE
+[URL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+[NAME]
+Pharmacist — Quality Assurance
+CAREER SUMMARY
+Registered Pharmacist (Pharmacy Council of Bangladesh Reg. No. [ID]) with 4 years in QA for oral solid dosage manufacturing.
+EXPERIENCE
+Executive, Quality Assurance — Square
+Pharmaceuticals PLC, Gazipur
+2021 – Present
+Own deviation and CAPA management; closed 94% of CAPAs on time
+in 2023.
+Prepared the site for the MHRA UK and WHO-GMP audits.
+Officer, QA — Beximco Pharmaceuticals, Tongi 2020 – 2021
+Batch record review and line clearance.
+EDUCATION
+M.Pharm (Pharmaceutical Technology) — University of Dhaka 2020
+B.Pharm (Hons), CGPA 3.72/4.00 — University of Dhaka 2019
+REFERENCES
+[NAME]
+Professor, Department of Pharmacy, University of Dhaka
+[PHONE]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Tasnim Rahman Mithila","email":"tasnim.mithila@gmail.com","phone":"+8801712345678"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 name-domain=1 known-phone=2 phone-bd=1 phone-labelled=2 numbered-id=1 field-address=2 referee-name=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+MOBILE
+[PHONE]
+ALT
+[PHONE]
+EMAIL
+[EMAIL]
+SKYPE
+[URL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+[NAME]
+Pharmacist — Quality Assurance
+CAREER SUMMARY
+Registered Pharmacist (Pharmacy Council of Bangladesh Reg. No. [ID]) with 4 years in QA for oral solid dosage manufacturing.
+EXPERIENCE
+Executive, Quality Assurance — Square
+Pharmaceuticals PLC, Gazipur
+2021 – Present
+Own deviation and CAPA management; closed 94% of CAPAs on time
+in 2023.
+Prepared the site for the MHRA UK and WHO-GMP audits.
+Officer, QA — Beximco Pharmaceuticals, Tongi 2020 – 2021
+Batch record review and line clearance.
+EDUCATION
+M.Pharm (Pharmaceutical Technology) — University of Dhaka 2020
+B.Pharm (Hons), CGPA 3.72/4.00 — University of Dhaka 2019
+REFERENCES
+[NAME]
+Professor, Department of Pharmacy, University of Dhaka
+[PHONE]
+</RESUME>

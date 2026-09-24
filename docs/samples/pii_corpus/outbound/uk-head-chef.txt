@@ -1,0 +1,109 @@
+# uk-head-chef — Head Chef (United Kingdom), layout: sidebar
+
+Name read from the PDF's largest type: "Daniel Cook"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Daniel Cook"
+Extracted PDF text: 36 line(s) before sanitising, 36 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 handle=1 phone-trunk=1 phone-labelled=1 field-address=2 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+PHONE
+[PHONE]
+EMAIL
+[EMAIL]
+INSTAGRAM
+[URL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+SKILLS
+Menu development
+GP and food cost control
+HACCP
+Level 3 Food Hygiene
+Allergen management
+[NAME]
+Head Chef
+PROFILE
+Head Chef with 11 years in high-volume London kitchens. Started as a
+Line Cook and worked through every section. Menu costing, GP control
+and building calm, well-trained brigades. Portfolio of dishes at
+[URL].
+EXPERIENCE
+Head Chef — Dishoom Shoreditch, London 2021 – Present
+Run a brigade of 22 across 450 covers a day; cut food waste 18% in
+the first year.
+Took the site to a 5-star Food Hygiene Rating on every inspection.
+Sous Chef — The Ivy Chelsea Garden, London 2017 – 2021
+Led the pastry and garnish sections; trained 9 Commis Chefs.
+Line Cook — Hawksmoor Spitalfields, London 2013 – 2017
+Grill and sauce sections on a 300-cover service.
+EDUCATION
+Professional Chef Diploma (Level 3) — Westminster
+Kingsway College
+2011 – 2013
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Daniel Cook","email":"dan.cook.kitchen@outlook.com","phone":"07700 900461"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 profile-url=1 handle=1 known-phone=1 phone-labelled=1 field-address=2 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+PHONE
+[PHONE]
+EMAIL
+[EMAIL]
+INSTAGRAM
+[URL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+SKILLS
+Menu development
+GP and food cost control
+HACCP
+Level 3 Food Hygiene
+Allergen management
+[NAME]
+Head Chef
+PROFILE
+Head Chef with 11 years in high-volume London kitchens. Started as a
+Line Cook and worked through every section. Menu costing, GP control
+and building calm, well-trained brigades. Portfolio of dishes at
+[URL].
+EXPERIENCE
+Head Chef — Dishoom Shoreditch, London 2021 – Present
+Run a brigade of 22 across 450 covers a day; cut food waste 18% in
+the first year.
+Took the site to a 5-star Food Hygiene Rating on every inspection.
+Sous Chef — The Ivy Chelsea Garden, London 2017 – 2021
+Led the pastry and garnish sections; trained 9 Commis Chefs.
+Line Cook — Hawksmoor Spitalfields, London 2013 – 2017
+Grill and sauce sections on a 300-cover service.
+EDUCATION
+Professional Chef Diploma (Level 3) — Westminster
+Kingsway College
+2011 – 2013
+</RESUME>

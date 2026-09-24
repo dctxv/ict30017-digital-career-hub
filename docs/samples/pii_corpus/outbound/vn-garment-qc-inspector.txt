@@ -1,0 +1,93 @@
+# vn-garment-qc-inspector — Quality Control Inspector (Garments) (Vietnam), layout: sidebar
+
+Name read from the PDF's largest type: "Nguyễn Thị Lan"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Nguyễn Thị Lan"
+Extracted PDF text: 28 line(s) before sanitising, 28 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 phone-labelled=1 national-id-digits=1 field-dob=1 field-personal=1 field-address=2 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+PHONE
+[PHONE]
+EMAIL
+[EMAIL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+PERSONAL
+INFORMATION
+CCCD
+[ID]
+Date of Birth
+[DATE OF BIRTH]
+Gender
+[PERSONAL]
+[NAME]
+QC Inspector
+SUMMARY
+QC inspector with 6 years of inline and final inspection for EU and US
+sportswear buyers.
+EXPERIENCE
+Final QC Inspector — Việt Tiến Garment Corporation,
+Ho Chi Minh City
+2019 – Present
+AQL 2.5 final audits for Decathlon and Nike; cut returned lots from 4%
+to 0.8%.
+Inline QC — Nhà Bè Garment 2017 – 2019
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Nguyen Thi Lan","email":"lan.nguyen.qc@gmail.com","phone":"0912345678"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-labelled=1 national-id-digits=1 field-dob=1 field-personal=1 field-address=2 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+PHONE
+[PHONE]
+EMAIL
+[EMAIL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+PERSONAL
+INFORMATION
+CCCD
+[ID]
+Date of Birth
+[DATE OF BIRTH]
+Gender
+[PERSONAL]
+[NAME]
+QC Inspector
+SUMMARY
+QC inspector with 6 years of inline and final inspection for EU and US
+sportswear buyers.
+EXPERIENCE
+Final QC Inspector — Việt Tiến Garment Corporation,
+Ho Chi Minh City
+2019 – Present
+AQL 2.5 final audits for Decathlon and Nike; cut returned lots from 4%
+to 0.8%.
+Inline QC — Nhà Bè Garment 2017 – 2019
+</RESUME>

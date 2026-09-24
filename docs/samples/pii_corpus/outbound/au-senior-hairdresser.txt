@@ -1,0 +1,67 @@
+# au-senior-hairdresser — Senior Hairdresser & Colourist (Australia), layout: modern-header
+
+Name read from the PDF's largest type: "JESSICA TRAN"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Jessica Tran"
+Extracted PDF text: 16 line(s) before sanitising, 16 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 handle=1 own-domain=1 phone-au=1 address-street=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Senior Stylist · Colour Specialist
+[PHONE] [EMAIL] [URL] Instagram: [URL]
+[ADDRESS]
+ABOUT
+Colour specialist with 8 years behind the chair. Clients know me as Jess — most of my book is rebookings and
+referrals. Before-and-after work at [URL].
+EXPERIENCE
+Senior Stylist — Toni&Guy James Street, Brisbane 2019 – Present
+92% client retention; highest colour revenue in the salon two years running.
+Educator for Wella balayage and toning workshops.
+Stylist — Rokk Ebony, Brisbane 2016 – 2019
+Cuts, foils and bridal styling.
+QUALIFICATIONS
+Certificate III in Hairdressing (SHB30416) — TAFE Queensland 2016
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Jess Tran","email":"bookings@hairbyjess.com.au","phone":"0491 570 313"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 profile-url=1 handle=1 name-domain=1 known-phone=1 address-street=1 known-name=2
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Senior Stylist · Colour Specialist
+[PHONE] [EMAIL] [URL] Instagram: [URL]
+[ADDRESS]
+ABOUT
+Colour specialist with 8 years behind the chair. Clients know me as [NAME] — most of my book is rebookings and
+referrals. Before-and-after work at [URL].
+EXPERIENCE
+Senior Stylist — Toni&Guy James Street, Brisbane 2019 – Present
+92% client retention; highest colour revenue in the salon two years running.
+Educator for Wella balayage and toning workshops.
+Stylist — Rokk Ebony, Brisbane 2016 – 2019
+Cuts, foils and bridal styling.
+QUALIFICATIONS
+Certificate III in Hairdressing (SHB30416) — TAFE Queensland 2016
+</RESUME>

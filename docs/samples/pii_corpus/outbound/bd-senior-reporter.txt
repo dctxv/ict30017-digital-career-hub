@@ -1,0 +1,67 @@
+# bd-senior-reporter — Senior Reporter (Bangladesh), layout: classic
+
+Name read from the PDF's largest type: "Rafsan Haque"
+Header name inferred from PDF text: "Rafsan Haque"
+Header name inferred from DOCX text: "Rafsan Haque"
+Extracted PDF text: 15 line(s) before sanitising, 15 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 profile-url=2 handle=1 phone-bd=1 numbered-id=1 address-street=1 address-unit=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Senior Reporter — Investigations
+[PHONE] | [EMAIL] | [URL]
+[ADDRESS]
+PROFILE
+Investigative reporter covering labour rights and public procurement. Follow my reporting at [URL].
+PID accreditation card no. [ID].
+EXPERIENCE
+Senior Reporter — The Daily Star, Dhaka 2020 – Present
+Series on RMG wage theft cited in parliament; 2022 TIB Investigative Journalism Award.
+Built a procurement database from 3,000 RTI responses.
+Staff Reporter — Prothom Alo, Dhaka 2016 – 2020
+City desk; local government and transport.
+EDUCATION
+BSS & MSS, Mass Communication and Journalism — University of Dhaka 2015
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Rafsan Haque","email":"rafsanhaque.bd@gmail.com","phone":"01552-667788"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 profile-url=2 handle=1 known-phone=1 numbered-id=1 address-street=1 address-unit=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Senior Reporter — Investigations
+[PHONE] | [EMAIL] | [URL]
+[ADDRESS]
+PROFILE
+Investigative reporter covering labour rights and public procurement. Follow my reporting at [URL].
+PID accreditation card no. [ID].
+EXPERIENCE
+Senior Reporter — The Daily Star, Dhaka 2020 – Present
+Series on RMG wage theft cited in parliament; 2022 TIB Investigative Journalism Award.
+Built a procurement database from 3,000 RTI responses.
+Staff Reporter — Prothom Alo, Dhaka 2016 – 2020
+City desk; local government and transport.
+EDUCATION
+BSS & MSS, Mass Communication and Journalism — University of Dhaka 2015
+</RESUME>

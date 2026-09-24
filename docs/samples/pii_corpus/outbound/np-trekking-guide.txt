@@ -1,0 +1,61 @@
+# np-trekking-guide — Trekking Guide (Nepal), layout: modern-header
+
+Name read from the PDF's largest type: "PEMBATENZING SHERPA"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Pemba Tenzing Sherpa"
+Extracted PDF text: 13 line(s) before sanitising, 13 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 dashed-id=1 keyword-id=1 field-dob=1 address-unit=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Licensed Trekking Guide
+[PHONE] [EMAIL] [ADDRESS]
+PROFILE
+Government-licensed trekking guide (Licence [ID]) with 10 years on the Everest, Annapurna and Manaslu
+circuits. Wilderness First Responder.
+EXPERIENCE
+Lead Guide — Himalayan Glacier Trekking, Kathmandu 2016 – Present
+Led 140 groups; zero serious incidents; 5-star rating on TripAdvisor.
+DOCUMENTS
+Citizenship No : [ID]
+Date of Birth : [DATE OF BIRTH]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Pemba Sherpa","email":"pemba.sherpa.treks@gmail.com","phone":"+977 9841234567"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 dashed-id=1 keyword-id=1 field-dob=1 address-unit=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Licensed Trekking Guide
+[PHONE] [EMAIL] [ADDRESS]
+PROFILE
+Government-licensed trekking guide (Licence [ID]) with 10 years on the Everest, Annapurna and Manaslu
+circuits. Wilderness First Responder.
+EXPERIENCE
+Lead Guide — Himalayan Glacier Trekking, Kathmandu 2016 – Present
+Led 140 groups; zero serious incidents; 5-star rating on TripAdvisor.
+DOCUMENTS
+Citizenship No : [ID]
+Date of Birth : [DATE OF BIRTH]
+</RESUME>

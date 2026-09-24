@@ -1,0 +1,97 @@
+# bd-security-guard-overseas — Security Guard (overseas employment) (Bangladesh), layout: bd-traditional
+
+Name read from the PDF's largest type: "MD. JAHANGIR ALAM"
+Header name inferred from PDF text: "MD. JAHANGIR ALAM"
+Header name inferred from DOCX text: "Md. Jahangir Alam"
+Extracted PDF text: 30 line(s) before sanitising, 30 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 phone-international=1 phone-labelled=2 national-id-digits=1 numbered-id=1 field-dob=1 field-family=1 field-personal=6 field-address=4 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Mobile: [PHONE]
+WhatsApp: [PHONE]
+Email: [EMAIL]
+Permanent Address: [ADDRESS] P.O: [ADDRESS] P.S: [ADDRESS] Dist: [ADDRESS]
+Objective
+Seeking a security guard position in Saudi Arabia or Qatar. Disciplined, physically fit, and trained in access
+control and fire safety.
+Work Experience
+Security Guard — G4S Secure Solutions Bangladesh, Dhaka 2016 – 2023
+Access control and CCTV monitoring at a 12-storey bank headquarters.
+First responder for fire drills; Best Guard award 2021.
+Security Guard — Elite Security Services Ltd, Narayanganj 2012 – 2016
+Night patrol at a garment factory compound.
+Training
+Bangladesh Ansar & VDP basic training (2011)
+Fire safety and first aid — Fire Service & Civil Defence
+BMET pre-departure orientation
+Passport Details
+Passport No : [ID]
+Date of Issue : [PERSONAL]
+Date of Expiry : [PERSONAL]
+Personal Details
+Father's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+NID No : [ID]
+Height : [PERSONAL]
+Weight : [PERSONAL]
+Religion : [PERSONAL]
+Marital Status : [PERSONAL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Jahangir Alam","email":"jahangir.alam.bd88@gmail.com","phone":"01912-345678"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-international=1 phone-labelled=2 national-id-digits=1 numbered-id=1 field-dob=1 field-family=1 field-personal=6 field-address=4 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Mobile: [PHONE]
+WhatsApp: [PHONE]
+Email: [EMAIL]
+Permanent Address: [ADDRESS] P.O: [ADDRESS] P.S: [ADDRESS] Dist: [ADDRESS]
+Objective
+Seeking a security guard position in Saudi Arabia or Qatar. Disciplined, physically fit, and trained in access
+control and fire safety.
+Work Experience
+Security Guard — G4S Secure Solutions Bangladesh, Dhaka 2016 – 2023
+Access control and CCTV monitoring at a 12-storey bank headquarters.
+First responder for fire drills; Best Guard award 2021.
+Security Guard — Elite Security Services Ltd, Narayanganj 2012 – 2016
+Night patrol at a garment factory compound.
+Training
+Bangladesh Ansar & VDP basic training (2011)
+Fire safety and first aid — Fire Service & Civil Defence
+BMET pre-departure orientation
+Passport Details
+Passport No : [ID]
+Date of Issue : [PERSONAL]
+Date of Expiry : [PERSONAL]
+Personal Details
+Father's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+NID No : [ID]
+Height : [PERSONAL]
+Weight : [PERSONAL]
+Religion : [PERSONAL]
+Marital Status : [PERSONAL]
+</RESUME>

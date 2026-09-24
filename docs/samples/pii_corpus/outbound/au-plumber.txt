@@ -1,0 +1,75 @@
+# au-plumber — Licensed Plumber & Gasfitter (Australia), layout: table-header
+
+Name read from the PDF's largest type: "Jack Thompson"
+Header name inferred from PDF text: "Jack Thompson"
+Header name inferred from DOCX text: "Jack Thompson"
+Extracted PDF text: 19 line(s) before sanitising, 19 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-au=2 phone-labelled=1 numbered-id=1 keyword-id=1 address-street=1 address-unit-weak=1 referee-name=1 known-name=2
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Licensed Plumber & Gasfitter
+Mobile: [PHONE]
+Email: [EMAIL]
+ABN: [ID]
+[ADDRESS]
+SUMMARY
+Plumber and gasfitter with 12 years across residential, commercial fit-outs and emergency call-outs. VBA
+Licence No. [ID].
+EXPERIENCE
+Owner / Plumber — [NAME] Plumbing (sole trader), Melbourne 2017 – Present
+600+ jobs a year; 4.9 stars across 210 Google reviews.
+Plumber — Metropolitan Plumbing Services, Melbourne 2012 – 2017
+TRAINING
+Certificate III in Plumbing (CPC32420) — Holmesglen Institute 2012
+REFEREES
+[NAME]
+Site Manager, Hansen Yuncken
+[PHONE]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Jack Thompson","email":"jack@thompsonplumbing.com.au","phone":"0412 345 678"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-au=1 phone-labelled=1 numbered-id=1 keyword-id=1 address-street=1 address-unit-weak=1 referee-name=1 known-name=2
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Licensed Plumber & Gasfitter
+Mobile: [PHONE]
+Email: [EMAIL]
+ABN: [ID]
+[ADDRESS]
+SUMMARY
+Plumber and gasfitter with 12 years across residential, commercial fit-outs and emergency call-outs. VBA
+Licence No. [ID].
+EXPERIENCE
+Owner / Plumber — [NAME] Plumbing (sole trader), Melbourne 2017 – Present
+600+ jobs a year; 4.9 stars across 210 Google reviews.
+Plumber — Metropolitan Plumbing Services, Melbourne 2012 – 2017
+TRAINING
+Certificate III in Plumbing (CPC32420) — Holmesglen Institute 2012
+REFEREES
+[NAME]
+Site Manager, Hansen Yuncken
+[PHONE]
+</RESUME>

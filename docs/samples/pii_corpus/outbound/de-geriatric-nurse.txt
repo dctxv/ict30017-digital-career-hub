@@ -1,0 +1,71 @@
+# de-geriatric-nurse — Geriatric Nurse (Altenpflegerin) (Germany), layout: classic
+
+Name read from the PDF's largest type: "Katarina Müller"
+Header name inferred from PDF text: "Katarina Müller"
+Header name inferred from DOCX text: "Katarina Müller"
+Extracted PDF text: 17 line(s) before sanitising, 17 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 field-dob=1 field-personal=2 address-street-suffix=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Examined Geriatric Nurse
+[ADDRESS] | [PHONE] | [EMAIL]
+PROFILE
+Registered geriatric nurse with 8 years in residential and palliative care. Applying for roles in the UK and
+Ireland (NMC application in progress).
+EXPERIENCE
+Shift Lead, Geriatric Nursing — Vivantes Hauptstadtpflege, Berlin 2018 – Present
+Lead a team of 9 on a 36-bed dementia unit; wound care champion.
+Geriatric Nurse — Caritas Seniorenzentrum, Potsdam 2015 – 2018
+EDUCATION
+State Examination, Geriatric Nursing — Evangelische Pflegeakademie Berlin 2015
+PERSONAL DETAILS
+Date of birth : [DATE OF BIRTH]
+Place of birth : [PERSONAL]
+Nationality : German
+Marital status : [PERSONAL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Katarina Müller","email":"k.mueller.pflege@web.de","phone":"+49 151 23456789"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 field-dob=1 field-personal=2 address-street-suffix=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Examined Geriatric Nurse
+[ADDRESS] | [PHONE] | [EMAIL]
+PROFILE
+Registered geriatric nurse with 8 years in residential and palliative care. Applying for roles in the UK and
+Ireland (NMC application in progress).
+EXPERIENCE
+Shift Lead, Geriatric Nursing — Vivantes Hauptstadtpflege, Berlin 2018 – Present
+Lead a team of 9 on a 36-bed dementia unit; wound care champion.
+Geriatric Nurse — Caritas Seniorenzentrum, Potsdam 2015 – 2018
+EDUCATION
+State Examination, Geriatric Nursing — Evangelische Pflegeakademie Berlin 2015
+PERSONAL DETAILS
+Date of birth : [DATE OF BIRTH]
+Place of birth : [PERSONAL]
+Nationality : German
+Marital status : [PERSONAL]
+</RESUME>

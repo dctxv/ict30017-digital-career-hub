@@ -1,0 +1,83 @@
+# ke-community-health-worker — Community Health Promoter (Kenya), layout: classic
+
+Name read from the PDF's largest type: "Grace Wanjiku Kamau"
+Header name inferred from PDF text: "Grace Wanjiku Kamau"
+Header name inferred from DOCX text: "Grace Wanjiku Kamau"
+Extracted PDF text: 23 line(s) before sanitising, 23 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=2 phone-international=1 phone-trunk=1 numbered-id=1 keyword-id=1 field-dob=1 address-pobox=1 referee-name=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Community Health Promoter
+[PHONE] | [EMAIL] | [ADDRESS]
+PROFILE
+Community health promoter with 5 years of household visits, maternal health follow-up and TB contact tracing
+in Kibera.
+EXPERIENCE
+Community Health Promoter — Amref Health Africa, Nairobi 2020 – Present
+Follow up 120 households a month; raised facility deliveries in my unit from 61% to 84%.
+Trained 15 new promoters on the eCHIS mobile app.
+Volunteer — Kenya Red Cross Society 2018 – 2020
+EDUCATION
+Certificate in Community Health — Kenya Medical Training College 2019
+PERSONAL DETAILS
+ID No. : [ID]
+KRA PIN : [ID]
+Date of Birth : [DATE OF BIRTH]
+Languages : English, Kiswahili, Kikuyu
+REFEREES
+[NAME]
+Programme Manager, Amref Health Africa
+[PHONE]
+[EMAIL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Wanjiku Kamau","email":"wanjiku.kamau.chp@gmail.com","phone":"0712345678"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 email=1 known-phone=1 phone-trunk=1 numbered-id=1 keyword-id=1 field-dob=1 address-pobox=1 referee-name=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Community Health Promoter
+[PHONE] | [EMAIL] | [ADDRESS]
+PROFILE
+Community health promoter with 5 years of household visits, maternal health follow-up and TB contact tracing
+in Kibera.
+EXPERIENCE
+Community Health Promoter — Amref Health Africa, Nairobi 2020 – Present
+Follow up 120 households a month; raised facility deliveries in my unit from 61% to 84%.
+Trained 15 new promoters on the eCHIS mobile app.
+Volunteer — Kenya Red Cross Society 2018 – 2020
+EDUCATION
+Certificate in Community Health — Kenya Medical Training College 2019
+PERSONAL DETAILS
+ID No. : [ID]
+KRA PIN : [ID]
+Date of Birth : [DATE OF BIRTH]
+Languages : English, Kiswahili, Kikuyu
+REFEREES
+[NAME]
+Programme Manager, Amref Health Africa
+[PHONE]
+[EMAIL]
+</RESUME>

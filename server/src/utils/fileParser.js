@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { getDocument, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import mammoth from 'mammoth';
+import { itemsToText, nameHintFromItems } from './pdfText.js';
 
 const MAGIC_BYTES = {
   '.pdf': Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2D]), // %PDF-
@@ -31,6 +32,22 @@ async function validateMagicBytes(filePath, ext) {
  * @throws {Error} - If the file type is unsupported or extraction fails
  */
 export async function extractText(filePath) {
+  return (await extractResume(filePath)).text;
+}
+
+/**
+ * extractText plus what the file's layout says about who wrote it.
+ *
+ * `nameHint` is the candidate's name as read from the largest type on page 1
+ * of a PDF (null for DOCX, where the mask reads the header lines instead). It
+ * is passed to the PII mask as an extra known name — the one reliable signal
+ * for a guest, who has no account name, and for an account whose stored name
+ * is not the one on the CV.
+ *
+ * @param {string} filePath
+ * @returns {Promise<{text: string, nameHint: string|null}>}
+ */
+export async function extractResume(filePath) {
   const ext = path.extname(filePath).toLowerCase();
 
   if (ext !== '.pdf' && ext !== '.docx') {
@@ -41,9 +58,8 @@ export async function extractText(filePath) {
 
   if (ext === '.pdf') {
     return extractFromPDF(filePath);
-  } else {
-    return extractFromDOCX(filePath);
   }
+  return { text: await extractFromDOCX(filePath), nameHint: null };
 }
 
 /**
@@ -65,14 +81,15 @@ async function extractFromPDF(filePath) {
   });
   const pdf = await loadingTask.promise;
 
+  // Lines are kept (see pdfText.js): the PII mask scopes what it removes to
+  // a line, and reads the header by its lines.
   let fullText = '';
+  let nameHint = null;
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const pageText = content.items
-      .map((item) => ('str' in item ? item.str : ''))
-      .join(' ');
-    fullText += pageText + '\n';
+    if (i === 1) nameHint = nameHintFromItems(content.items);
+    fullText += itemsToText(content.items) + '\n\n';
   }
   await pdf.cleanup();
   await pdf.destroy();
@@ -83,7 +100,7 @@ async function extractFromPDF(filePath) {
     );
   }
 
-  return fullText;
+  return { text: fullText, nameHint };
 }
 
 /**

@@ -1,0 +1,77 @@
+# bd-primary-teacher-bangla — Assistant Teacher (Primary) (Bangladesh), layout: classic
+
+Name read from the PDF's largest type: "মোছাঃ ফারজানা ইয়াসমিন"
+Header name inferred from PDF text: "মোছাঃ ফারজানা ইয়াসমিন"
+Header name inferred from DOCX text: "মোছাঃ ফারজানা ইয়াসমিন"
+Extracted PDF text: 20 line(s) before sanitising, 20 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 phone-labelled=1 national-id-digits=1 field-dob=1 field-family=2 field-personal=2 field-address=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+সহকারী শিক্ষক
+মোবাইল: [PHONE] | ইমেইল: [EMAIL]
+বতমান ঠিকানা: [ADDRESS]
+কারিয়ার উে শ
+একজন নিবেদিতপাণ শিক্ষক হিসেবে শিশুদের আনন্ দময় পরিবেশে শিক্ষাদান করতে চাই।
+কম অভিজ্ঞতা
+সহকারী শিক্ষক — মোহা দপুর সরকারি পাথমিক বিদালয় জানুয়ারি ২০১৯ – বতমান
+তৃতীয় থেকে পঞ্চ ম শেণিতে বাংলা ও গণিত পাঠদান।
+পাথমিক শিক্ষা সমাপনী পরীক্ষায় শতভাগ পাসের হার অজন।
+শিক্ষাগত যোগতা
+বি.এড — ঢাকা বিশবিদালয় ২০১৮
+াতক (স ান), বাংলা — ইডেন মহিলা কলেজ ২০১৬
+বি গত তথ
+পিতার নাম : [NAME]
+মাতার নাম : [NAME]
+জ তারিখ : [DATE OF BIRTH]
+জাতীয় পরিচয়পত্র নং : [ID]
+ধম : [PERSONAL]
+বেবাহিক অব া : [PERSONAL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Farzana Yasmin","email":"farzana.yasmin.edu@gmail.com","phone":"01715334455"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-labelled=1 national-id-digits=1 field-dob=1 field-family=2 field-personal=2 field-address=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+সহকারী শিক্ষক
+মোবাইল: [PHONE] | ইমেইল: [EMAIL]
+বতমান ঠিকানা: [ADDRESS]
+কারিয়ার উে শ
+একজন নিবেদিতপাণ শিক্ষক হিসেবে শিশুদের আনন্ দময় পরিবেশে শিক্ষাদান করতে চাই।
+কম অভিজ্ঞতা
+সহকারী শিক্ষক — মোহা দপুর সরকারি পাথমিক বিদালয় জানুয়ারি ২০১৯ – বতমান
+তৃতীয় থেকে পঞ্চ ম শেণিতে বাংলা ও গণিত পাঠদান।
+পাথমিক শিক্ষা সমাপনী পরীক্ষায় শতভাগ পাসের হার অজন।
+শিক্ষাগত যোগতা
+বি.এড — ঢাকা বিশবিদালয় ২০১৮
+াতক (স ান), বাংলা — ইডেন মহিলা কলেজ ২০১৬
+বি গত তথ
+পিতার নাম : [NAME]
+মাতার নাম : [NAME]
+জ তারিখ : [DATE OF BIRTH]
+জাতীয় পরিচয়পত্র নং : [ID]
+ধম : [PERSONAL]
+বেবাহিক অব া : [PERSONAL]
+</RESUME>

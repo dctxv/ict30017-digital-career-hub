@@ -1,0 +1,103 @@
+# bd-bdjobs-merchandiser — Merchandiser (Garments), BDJobs format (Bangladesh), layout: bd-traditional
+
+Name read from the PDF's largest type: "MD. NAZMUL HASAN RONY"
+Header name inferred from PDF text: "MD. NAZMUL HASAN RONY"
+Header name inferred from DOCX text: "Md. Nazmul Hasan Rony"
+Extracted PDF text: 33 line(s) before sanitising, 33 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=2 phone-bd=3 phone-trunk=1 phone-labelled=2 national-id-digits=1 field-dob=1 field-family=2 field-personal=4 field-address=5 field-name=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Address: [ADDRESS]
+Home Phone: [PHONE]
+Mobile No 1: [PHONE]
+Mobile No 2: [PHONE]
+e-mail: [EMAIL]
+Career Objective:
+To work as a merchandiser in a reputed export-oriented garment company and grow with it.
+Employment History:
+Assistant Merchandiser — Standard Group, Gazipur January 1, 2020 - Continuing
+Handle 6 buyers including Zara and C&A; T&A follow-up from sampling to shipment.
+Academic Qualification:
+B.Sc in Textile Engineering : Southeast University, CGPA 3.21 out of 4, 2019
+HSC (Science) : Dhaka City College, GPA 4.60 out of 5, 2014
+Personal Details :
+Father's Name : [NAME]
+Mother's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+Gender : [PERSONAL]
+Marital Status : [PERSONAL]
+Nationality : Bangladeshi
+National Id No. : [ID]
+Religion : [PERSONAL]
+Permanent Address : [ADDRESS] P.O: [ADDRESS] P.S: [ADDRESS] Dist: [ADDRESS]
+Current Location : Dhaka
+Blood Group : [PERSONAL]
+Reference (s):
+Name : [NAME]
+Organization : Standard Group
+Designation : Senior Merchandising Manager
+Mobile : [PHONE]
+E-Mail : [EMAIL]
+Relation : Professional
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Nazmul Hasan","email":"nazmul.hasan.merch@gmail.com","phone":"01911223344"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 email=1 known-phone=1 phone-bd=2 phone-trunk=1 phone-labelled=2 national-id-digits=1 field-dob=1 field-family=2 field-personal=4 field-address=5 field-name=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Address: [ADDRESS]
+Home Phone: [PHONE]
+Mobile No 1: [PHONE]
+Mobile No 2: [PHONE]
+e-mail: [EMAIL]
+Career Objective:
+To work as a merchandiser in a reputed export-oriented garment company and grow with it.
+Employment History:
+Assistant Merchandiser — Standard Group, Gazipur January 1, 2020 - Continuing
+Handle 6 buyers including Zara and C&A; T&A follow-up from sampling to shipment.
+Academic Qualification:
+B.Sc in Textile Engineering : Southeast University, CGPA 3.21 out of 4, 2019
+HSC (Science) : Dhaka City College, GPA 4.60 out of 5, 2014
+Personal Details :
+Father's Name : [NAME]
+Mother's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+Gender : [PERSONAL]
+Marital Status : [PERSONAL]
+Nationality : Bangladeshi
+National Id No. : [ID]
+Religion : [PERSONAL]
+Permanent Address : [ADDRESS] P.O: [ADDRESS] P.S: [ADDRESS] Dist: [ADDRESS]
+Current Location : Dhaka
+Blood Group : [PERSONAL]
+Reference (s):
+Name : [NAME]
+Organization : Standard Group
+Designation : Senior Merchandising Manager
+Mobile : [PHONE]
+E-Mail : [EMAIL]
+Relation : Professional
+</RESUME>

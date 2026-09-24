@@ -204,9 +204,16 @@ describe('personal domains built from a known name', () => {
     assert.equal(maskPii(text, identity), text);
   });
 
-  it('does nothing when no name is known', () => {
-    const text = 'Website: saminmahmud.com';
+  it('does nothing to an unlabelled domain when no name is known', () => {
+    const text = 'Portfolio at saminmahmud.com';
     assert.equal(maskPii(text), text);
+  });
+
+  it('masks a site the CV labels as its own, even with no name known', () => {
+    // "Website:" in a CV header is the candidate's site, whoever they are.
+    const out = maskPii('Website: saminmahmud.com');
+    assertGone(out, 'saminmahmud.com', 'labelled personal site');
+    assertKept(out, 'Website:');
   });
 });
 

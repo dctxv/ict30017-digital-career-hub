@@ -2,12 +2,13 @@ import express from 'express';
 import fs from 'fs';
 import rateLimit from 'express-rate-limit';
 import upload from '../middleware/upload.js';
-import { extractText } from '../utils/fileParser.js';
+import { extractResume } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
 import { resolveLanguage, translateMessage } from '../i18n/index.js';
 import { redactPiiDeepWithFindings, createStreamRedactor } from '../utils/piiRedactor.js';
 import { readAccountIdentity } from '../utils/accountIdentity.js';
-import { analyzeResume, analyzeResumeStream, getModel, extractGapsFromReview } from 'ai-service';
+import { withNameHint } from '../utils/maskIdentity.js';
+import { analyzeResume, analyzeResumeStream, getModel, extractGapsFromReview, inspectMaskedPii, resumeMaskContext } from 'ai-service';
 import { statusForAiErrorCode, isAiErrorCode } from '../utils/aiStatus.js';
 import { reconcileGaps } from '../services/gapStore.js';
 import pool from  '../db.js'; 
@@ -113,6 +114,18 @@ async function saveReviewToDb({ userId, filename, jobAd, feedback, model, tier, 
  * swallowed: the user has already received their review, and there is no longer
  * a response to fail.
  */
+
+/**
+ * What the outbound PII mask removes from a CV, for the inbound redactor.
+ *
+ * The same text and the same mask context the review sends (resumeMaskContext
+ * is what analyzeResume uses), so the list is exactly what the model was not
+ * shown. Values stay in this request's memory.
+ */
+function maskedValuesOf(cleanText, identity) {
+  return inspectMaskedPii(cleanText, resumeMaskContext(cleanText, identity), { collectValues: true }).values;
+}
+
 function extractGapsInBackground({ userId, feedback, jobAd, jobRole, context, language, tier, identity }) {
   if (!userId || userId === 'guest') return;
 
@@ -292,7 +305,8 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
 
     // Step 1 — Extract text from the uploaded file
     console.log(`[resume] Extracting text from: ${req.file.originalname}`);
-    const rawText = await extractText(uploadedFilePath);
+    // nameHint is the name read off the CV's largest type, for the PII mask.
+    const { text: rawText, nameHint } = await extractResume(uploadedFilePath);
 
     // Step 2 — Sanitise extracted text
     const cleanText = sanitiseResumeText(rawText);
@@ -307,8 +321,12 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
     // review, so it has to be readable further down this handler.
     const language = req.body?.language === 'bn' ? 'bn' : resolveLanguage(req);
     // The known strings the outbound mask uses on top of its patterns. Read
-    // per request rather than carried in the token, and null for a guest.
-    const identity = await readAccountIdentity(req.user?.id);
+    // per request rather than carried in the token, and null for a guest; the
+    // CV's own name is added either way, which is what masks a guest's name.
+    const identity = withNameHint(await readAccountIdentity(req.user?.id), nameHint);
+    // Exactly what the outbound mask removes from this CV, so the redactor can
+    // catch any of it coming back. In memory only; never logged or stored.
+    const maskedValues = maskedValuesOf(cleanText, identity);
 
     const feedback = await analyzeResume(cleanText, {
       jobRole, jobAd, marketMode,
@@ -336,7 +354,7 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
     // echoed contact details despite the prompt forbidding it, so this runs
     // deterministically regardless of which model is configured. See
     // utils/piiRedactor.js.
-    const { value: safeFeedback, findings } = redactPiiDeepWithFindings(feedback);
+    const { value: safeFeedback, findings } = redactPiiDeepWithFindings(feedback, identity, maskedValues);
     logPiiFindings('analysis response', findings);
 
     // Step 5 — Save to history for logged-in users (skipped for guests)
@@ -429,7 +447,7 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
     res.flushHeaders();
 
     console.log(`[resume-stream] Extracting text from: ${req.file.originalname}`);
-    const rawText = await extractText(uploadedFilePath);
+    const { text: rawText, nameHint } = await extractResume(uploadedFilePath);
     const cleanText = sanitiseResumeText(rawText);
     console.log(`[resume-stream] Sanitised text length: ${cleanText.length} chars`);
 
@@ -445,9 +463,9 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
     // straddle a chunk boundary. The stream redactor buffers a trailing window
     // and only releases text once it is far enough from the write head to be
     // final — redacting each token in isolation would emit both halves intact.
-    const streamRedactor = createStreamRedactor();
-
-    const identity = await readAccountIdentity(req.user?.id);
+    const identity = withNameHint(await readAccountIdentity(req.user?.id), nameHint);
+    const maskedValues = maskedValuesOf(cleanText, identity);
+    const streamRedactor = createStreamRedactor({ identity, knownValues: maskedValues });
 
     const feedback = await analyzeResumeStream(cleanText, {
       identity,
@@ -482,7 +500,7 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
 
     // The authoritative payload is the parsed object, redacted per string
     // value rather than over serialised JSON so structure cannot be corrupted.
-    const { value: safeFeedback, findings } = redactPiiDeepWithFindings(feedback);
+    const { value: safeFeedback, findings } = redactPiiDeepWithFindings(feedback, identity, maskedValues);
     logPiiFindings('stream response', findings);
 
     const reviewId = await saveReviewToDb({
