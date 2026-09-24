@@ -1,0 +1,62 @@
+# uk-social-worker — Social Worker (Children & Families) (United Kingdom), layout: classic
+
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Aisha Bello"
+Extracted PDF text: 1 line(s) before sanitising, 7 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=2 phone-international=1 address-street=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+Aisha Bello Registered Social Worker Tel: [PHONE] | Mobile: 07700 900 372 | Email: [EMAIL] [ADDRESS], Rusholme, Manchester M14 5TQ REGISTRATION Social Work England registration SW112233. Enhanced DBS on the Update Service (certificate 001234567890). National Insurance number QQ 12 34 56 C. EXPERIENCE Social Worker, Children in Need Team
+
+Manchester City Council, Manchester 2020
+
+Present Caseload of 18 families; lead on Section 47 enquiries and child protection plans. Trained the team in the Signs of Safety model. Family Support Worker
+
+Barnardo s, Salford 2016
+
+2018 Early help work with families at risk. EDUCATION MA Social Work
+
+University of Salford 2018
+
+2020 REFERENCES Joanne Pritchard Team Manager, Manchester City Council 0161 234 5000 [EMAIL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Aisha Bello","email":"aisha.bello.sw@gmail.com","phone":"07700 900372"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-name=3 email=2 phone-international=1 address-street=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME] Registered Social Worker Tel: [PHONE] | Mobile: 07700 900 372 | Email: [NAME][EMAIL] [ADDRESS], Rusholme, Manchester M14 5TQ REGISTRATION Social Work England registration SW112233. Enhanced DBS on the Update Service (certificate 001234567890). National Insurance number QQ 12 34 56 C. EXPERIENCE Social Worker, Children in Need Team
+
+Manchester City Council, Manchester 2020
+
+Present Caseload of 18 families; lead on Section 47 enquiries and child protection plans. Trained the team in the Signs of Safety model. Family Support Worker
+
+Barnardo s, Salford 2016
+
+2018 Early help work with families at risk. EDUCATION MA Social Work
+
+University of Salford 2018
+
+2020 REFERENCES Joanne Pritchard Team Manager, Manchester City Council 0161 234 5000 [EMAIL]
+</RESUME>

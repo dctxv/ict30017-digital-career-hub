@@ -1,0 +1,100 @@
+# ph-graphic-designer — Graphic Designer (Philippines), layout: modern-header
+
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Maria Isabel Santos"
+Extracted PDF text: 1 line(s) before sanitising, 17 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 profile-url=1 phone-international=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+M A R I A I S A B E L S A N T O S Graphic Designer · Brand & Social
+
+[EMAIL]
+
+[PHONE] / 0917 123 4567
+
+Unit 1504, Greenbelt Residences, Makati City 1224
+
+[URL]
+
+isabelsantos.myportfolio.com
+
+IG @isa.designs PROFILE Designer with 5 years in agency brand work and social content for FMCG and QSR clients. Comfortable owning a campaign from moodboard to final artwork. EXPERIENCE Senior Graphic Designer
+
+Ogilvy Philippines, Makati 2021
+
+Present Lead designer on the Jollibee Chickenjoy summer campaign (38M impressions). Built the social design system used across 4 client accounts. Graphic Designer
+
+Freelance (Upwork Top Rated) 2019
+
+2021 Logos, packaging and pitch decks for 60+ clients in 9 countries. EDUCATION BFA Advertising Arts
+
+University of Santo Tomas 2019 TOOLS Adobe Illustrator
+
+Photoshop
+
+InDesign
+
+Figma
+
+After Effects
+
+Canva
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Isabel Santos","email":"hello@isabelsantos.design","phone":"+63 917 123 4567"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 profile-url=1 name-domain=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+M A R I A I S A B E L S A N T O S Graphic Designer · Brand & Social
+
+[EMAIL]
+
+[PHONE] / 0917 123 4567
+
+Unit 1504, Greenbelt Residences, Makati City 1224
+
+[URL]
+
+IG @isa.designs PROFILE Designer with 5 years in agency brand work and social content for FMCG and QSR clients. Comfortable owning a campaign from moodboard to final artwork. EXPERIENCE Senior Graphic Designer
+
+Ogilvy Philippines, Makati 2021
+
+Present Lead designer on the Jollibee Chickenjoy summer campaign (38M impressions). Built the social design system used across 4 client accounts. Graphic Designer
+
+Freelance (Upwork Top Rated) 2019
+
+2021 Logos, packaging and pitch decks for 60+ clients in 9 countries. EDUCATION BFA Advertising Arts
+
+University of Santo Tomas 2019 TOOLS Adobe Illustrator
+
+Photoshop
+
+InDesign
+
+Figma
+
+After Effects
+
+Canva
+</RESUME>

@@ -1,0 +1,58 @@
+# sg-airline-first-officer — Airline First Officer (A320) (Singapore), layout: table-header
+
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Nicholas Ang Wei Jie"
+Extracted PDF text: 1 line(s) before sanitising, 6 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 address-street=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+Nicholas Ang Wei Jie First Officer
+
+Airbus A320 Mobile: [PHONE] Local: 9123 4567 Email: [EMAIL] Blk [ADDRESS] 11, #05-67, Singapore 521123 LICENCES & RATINGS CAAS ATPL(A) No. 12345 A320 type rating Class 1 Medical (valid to 03/2027) ICAO English Level 6 FLYING EXPERIENCE Total time : 4,850 hrs A320 time : 4,100 hrs PIC : 350 hrs EMPLOYMENT First Officer, A320
+
+Jetstar Asia, Singapore 2018
+
+Present Line operations across 17 destinations; Line Training First Officer since 2022. Cadet Pilot
+
+Singapore Flying College 2016
+
+2018 PERSONAL PARTICULARS NRIC : S8912345D Date of Birth : 03 Aug 1989 Nationality : Singaporean Passport : K1234567A
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Nicholas Ang","email":"nick.ang.flying@gmail.com","phone":"+65 9123 4567"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-name=2 known-phone=1 email=1 address-street=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME] Wei Jie First Officer
+
+Airbus A320 Mobile: [PHONE] Local: 9123 4567 Email: nick.[NAME][EMAIL] Blk [ADDRESS] 11, #05-67, Singapore 521123 LICENCES & RATINGS CAAS ATPL(A) No. 12345 A320 type rating Class 1 Medical (valid to 03/2027) ICAO English Level 6 FLYING EXPERIENCE Total time : 4,850 hrs A320 time : 4,100 hrs PIC : 350 hrs EMPLOYMENT First Officer, A320
+
+Jetstar Asia, Singapore 2018
+
+Present Line operations across 17 destinations; Line Training First Officer since 2022. Cadet Pilot
+
+Singapore Flying College 2016
+
+2018 PERSONAL PARTICULARS NRIC : S8912345D Date of Birth : 03 Aug 1989 Nationality : Singaporean Passport : K1234567A
+</RESUME>

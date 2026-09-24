@@ -1,0 +1,66 @@
+# bd-pharmacist — Pharmacist (QA) (Bangladesh), layout: sidebar
+
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Tasnim Rahman Mithila"
+Extracted PDF text: 1 line(s) before sanitising, 8 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=2 address-bd=1 address-bd-postcode=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT MOBILE [PHONE] ALT 0171-2345678 EMAIL [EMAIL] SKYPE tasnim.mithila ADDRESS [ADDRESS], Dhanmondi, [ADDRESS] Tasnim Rahman Mithila Pharmacist
+
+Quality Assurance CAREER SUMMARY Registered Pharmacist (Pharmacy Council of Bangladesh Reg. No. A- 12345) with 4 years in QA for oral solid dosage manufacturing. EXPERIENCE Executive, Quality Assurance
+
+Square Pharmaceuticals PLC, Gazipur 2021
+
+Present Own deviation and CAPA management; closed 94% of CAPAs on time in 2023. Prepared the site for the MHRA UK and WHO-GMP audits. Officer, QA
+
+Beximco Pharmaceuticals, Tongi 2020
+
+2021 Batch record review and line clearance. EDUCATION M.Pharm (Pharmaceutical Technology)
+
+University of Dhaka 2020 B.Pharm (Hons), CGPA 3.72/4.00
+
+University of Dhaka 2019 REFERENCES Prof. Dr. Sitesh C. Bachar Professor, Department of Pharmacy, University of Dhaka [PHONE]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Tasnim Rahman Mithila","email":"tasnim.mithila@gmail.com","phone":"+8801712345678"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-name=5 known-phone=1 phone-bd=1 address-bd=1 address-bd-postcode=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT MOBILE [PHONE] ALT 0171-2345678 EMAIL [NAME]@gmail.com SKYPE [NAME] ADDRESS [ADDRESS], Dhanmondi, [ADDRESS] [NAME] Pharmacist
+
+Quality Assurance CAREER SUMMARY Registered Pharmacist (Pharmacy Council of Bangladesh Reg. No. A- 12345) with 4 years in QA for oral solid dosage manufacturing. EXPERIENCE Executive, Quality Assurance
+
+Square Pharmaceuticals PLC, Gazipur 2021
+
+Present Own deviation and CAPA management; closed 94% of CAPAs on time in 2023. Prepared the site for the MHRA UK and WHO-GMP audits. Officer, QA
+
+Beximco Pharmaceuticals, Tongi 2020
+
+2021 Batch record review and line clearance. EDUCATION M.Pharm (Pharmaceutical Technology)
+
+University of Dhaka 2020 B.Pharm (Hons), CGPA 3.72/4.00
+
+University of Dhaka 2019 REFERENCES Prof. Dr. Sitesh C. Bachar Professor, Department of Pharmacy, University of Dhaka [PHONE]
+</RESUME>

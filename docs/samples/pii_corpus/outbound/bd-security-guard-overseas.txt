@@ -1,0 +1,58 @@
+# bd-security-guard-overseas — Security Guard (overseas employment) (Bangladesh), layout: bd-traditional
+
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Md. Jahangir Alam"
+Extracted PDF text: 1 line(s) before sanitising, 6 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 phone-international=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+MD. JAHANGIR ALAM Mobile: [PHONE] WhatsApp: [PHONE] Email: [EMAIL] Permanent Address: Village: Kalir Bazar, P.O: Kalir Bazar, P.S: Fatullah, Dist: Narayanganj Objective Seeking a security guard position in Saudi Arabia or Qatar. Disciplined, physically fit, and trained in access control and fire safety. Work Experience Security Guard
+
+G4S Secure Solutions Bangladesh, Dhaka 2016
+
+2023 Access control and CCTV monitoring at a 12-storey bank headquarters. First responder for fire drills; Best Guard award 2021. Security Guard
+
+Elite Security Services Ltd, Narayanganj 2012
+
+2016 Night patrol at a garment factory compound. Training Bangladesh Ansar & VDP basic training (2011) Fire safety and first aid
+
+Fire Service & Civil Defence BMET pre-departure orientation Passport Details Passport No : A01234567 Date of Issue : 10-01-2022 Date of Expiry : 09-01-2032 Personal Details Father's Name : Md. Nurul Islam Date of Birth : 01-01-1988 NID No : 5102938475 Height : 5'8" Weight : 70 kg Religion : Islam Marital Status : Married
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Jahangir Alam","email":"jahangir.alam.bd88@gmail.com","phone":"01912-345678"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-name=3 known-phone=1 email=1 phone-international=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+MD. [NAME] Mobile: [PHONE] WhatsApp: [PHONE] Email: [NAME][EMAIL] Permanent Address: Village: Kalir Bazar, P.O: Kalir Bazar, P.S: Fatullah, Dist: Narayanganj Objective Seeking a security guard position in Saudi Arabia or Qatar. Disciplined, physically fit, and trained in access control and fire safety. Work Experience Security Guard
+
+G4S Secure Solutions Bangladesh, Dhaka 2016
+
+2023 Access control and CCTV monitoring at a 12-storey bank headquarters. First responder for fire drills; Best Guard award 2021. Security Guard
+
+Elite Security Services Ltd, Narayanganj 2012
+
+2016 Night patrol at a garment factory compound. Training Bangladesh Ansar & VDP basic training (2011) Fire safety and first aid
+
+Fire Service & Civil Defence BMET pre-departure orientation Passport Details Passport No : A01234567 Date of Issue : 10-01-2022 Date of Expiry : 09-01-2032 Personal Details Father's Name : Md. Nurul Islam Date of Birth : 01-01-1988 NID No : 5102938475 Height : 5'8" Weight : 70 kg Religion : Islam Marital Status : Married
+</RESUME>
