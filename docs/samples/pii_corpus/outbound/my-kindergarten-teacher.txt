@@ -1,0 +1,101 @@
+# my-kindergarten-teacher — Kindergarten Teacher (Malaysia), layout: sidebar
+
+Name read from the PDF's largest type: "Nur Aisyah Binti Rahman"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Nur Aisyah Binti Rahman"
+Extracted PDF text: 32 line(s) before sanitising, 32 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-grouped=1 phone-labelled=1 dashed-id=1 field-dob=1 field-personal=2 field-address=2 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+PHONE
+[PHONE]
+EMAIL
+[EMAIL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+Lumpur
+PERSONAL
+IC No
+[ID]
+Date of Birth
+[DATE OF BIRTH]
+Race
+[PERSONAL]
+Religion
+[PERSONAL]
+[NAME]
+Kindergarten Teacher
+SUMMARY
+Early childhood teacher with 7 years in play-based preschool
+programmes and parent engagement.
+EXPERIENCE
+Lead Teacher — Tadika Kristal Ceria, Kuala Lumpur 2019 – Present
+Designed the bilingual literacy programme now used across 3
+branches.
+Assistant Teacher — Q-dees Global Pte Ltd, Petaling
+Jaya
+2016 – 2019
+EDUCATION
+Diploma in Early Childhood Education — SEGi University 2016
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Nur Aisyah Binti Rahman","email":"aisyah.rahman.edu@gmail.com","phone":"012-345 6789"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-labelled=1 dashed-id=1 field-dob=1 field-personal=2 field-address=2 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+CONTACT
+PHONE
+[PHONE]
+EMAIL
+[EMAIL]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+Lumpur
+PERSONAL
+IC No
+[ID]
+Date of Birth
+[DATE OF BIRTH]
+Race
+[PERSONAL]
+Religion
+[PERSONAL]
+[NAME]
+Kindergarten Teacher
+SUMMARY
+Early childhood teacher with 7 years in play-based preschool
+programmes and parent engagement.
+EXPERIENCE
+Lead Teacher — Tadika Kristal Ceria, Kuala Lumpur 2019 – Present
+Designed the bilingual literacy programme now used across 3
+branches.
+Assistant Teacher — Q-dees Global Pte Ltd, Petaling
+Jaya
+2016 – 2019
+EDUCATION
+Diploma in Early Childhood Education — SEGi University 2016
+</RESUME>

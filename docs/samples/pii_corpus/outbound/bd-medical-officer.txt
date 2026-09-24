@@ -1,11 +1,12 @@
 # bd-medical-officer — Medical Officer (Bangladesh), layout: sidebar
 
+Name read from the PDF's largest type: "Dr. Nusrat Jahan Chowdhury"
 Header name inferred from PDF text: null
 Header name inferred from DOCX text: "Dr. Nusrat Jahan Chowdhury"
-Extracted PDF text: 1 line(s) before sanitising, 7 after
+Extracted PDF text: 37 line(s) before sanitising, 37 after
 
 ## Guest — mask log
-[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 address-bd=1 address-bd-postcode=1
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 phone-labelled=1 keyword-id=1 field-dob=1 field-personal=2 field-address=2 known-name=1
 
 ## Guest — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -16,26 +17,50 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-CONTACT CELL [PHONE] EMAIL [EMAIL] BMDC REG. A-65432 ADDRESS [ADDRESS], Khulshi, [ADDRESS] PERSONAL Date of Birth 22/09/1993 Blood Group O+ Marital Status Married Dr. Nusrat Jahan Chowdhury MBBS, FCPS Part-I (Medicine) PROFILE Medical Officer with 5 years of emergency and internal medicine experience, including 2 years at an Upazila Health Complex through BCS (Health). EXPERIENCE Medical Officer, Emergency
-
-Chattogram Medical College Hospital, Chattogram 2022
-
-Present Triage and resuscitation in a 120-bed emergency department. Medical Officer
-
-Hathazari Upazila Health Complex, Hathazari 2020
-
-2022 Outpatient, maternal health and dengue outbreak response. EDUCATION FCPS Part-I (Medicine)
-
-Bangladesh College of Physicians and Surgeons 2021 MBBS
-
-Chattogram Medical College 2018
+CONTACT
+CELL
+[PHONE]
+EMAIL
+[EMAIL]
+BMDC REG.
+[ID]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+PERSONAL
+Date of Birth
+[DATE OF BIRTH]
+Blood Group
+[PERSONAL]
+Marital Status
+[PERSONAL]
+[NAME]
+MBBS, FCPS Part-I (Medicine)
+PROFILE
+Medical Officer with 5 years of emergency and internal medicine
+experience, including 2 years at an Upazila Health Complex through
+BCS (Health).
+EXPERIENCE
+Medical Officer, Emergency — Chattogram Medical
+College Hospital, Chattogram
+2022 – Present
+Triage and resuscitation in a 120-bed emergency department.
+Medical Officer — Hathazari Upazila Health Complex,
+Hathazari
+2020 – 2022
+Outpatient, maternal health and dengue outbreak response.
+EDUCATION
+FCPS Part-I (Medicine) — Bangladesh College of Physicians
+and Surgeons
+2021
+MBBS — Chattogram Medical College 2018
 </RESUME>
 
 ## Logged in — account identity
 {"fullName":"Nusrat Jahan","email":"dr.nusrat.jahan@gmail.com","phone":"+880 1811-223344"}
 
 ## Logged in — mask log
-[pii-mask] label=AI messages=2 masked=known-name=3 known-phone=1 address-bd=1 address-bd-postcode=1
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-labelled=1 keyword-id=1 field-dob=1 field-personal=2 field-address=2 known-name=1
 
 ## Logged in — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -46,17 +71,41 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-CONTACT CELL [PHONE] EMAIL dr.[NAME]@gmail.com BMDC REG. A-65432 ADDRESS [ADDRESS], Khulshi, [ADDRESS] PERSONAL Date of Birth 22/09/1993 Blood Group O+ Marital Status Married Dr. [NAME] Chowdhury MBBS, FCPS Part-I (Medicine) PROFILE Medical Officer with 5 years of emergency and internal medicine experience, including 2 years at an Upazila Health Complex through BCS (Health). EXPERIENCE Medical Officer, Emergency
-
-Chattogram Medical College Hospital, Chattogram 2022
-
-Present Triage and resuscitation in a 120-bed emergency department. Medical Officer
-
-Hathazari Upazila Health Complex, Hathazari 2020
-
-2022 Outpatient, maternal health and dengue outbreak response. EDUCATION FCPS Part-I (Medicine)
-
-Bangladesh College of Physicians and Surgeons 2021 MBBS
-
-Chattogram Medical College 2018
+CONTACT
+CELL
+[PHONE]
+EMAIL
+[EMAIL]
+BMDC REG.
+[ID]
+ADDRESS
+[ADDRESS]
+[ADDRESS]
+PERSONAL
+Date of Birth
+[DATE OF BIRTH]
+Blood Group
+[PERSONAL]
+Marital Status
+[PERSONAL]
+[NAME]
+MBBS, FCPS Part-I (Medicine)
+PROFILE
+Medical Officer with 5 years of emergency and internal medicine
+experience, including 2 years at an Upazila Health Complex through
+BCS (Health).
+EXPERIENCE
+Medical Officer, Emergency — Chattogram Medical
+College Hospital, Chattogram
+2022 – Present
+Triage and resuscitation in a 120-bed emergency department.
+Medical Officer — Hathazari Upazila Health Complex,
+Hathazari
+2020 – 2022
+Outpatient, maternal health and dengue outbreak response.
+EDUCATION
+FCPS Part-I (Medicine) — Bangladesh College of Physicians
+and Surgeons
+2021
+MBBS — Chattogram Medical College 2018
 </RESUME>

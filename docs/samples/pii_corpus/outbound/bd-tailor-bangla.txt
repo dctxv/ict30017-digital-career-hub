@@ -1,0 +1,59 @@
+# bd-tailor-bangla — Tailor / Sewing Machine Operator (Bangladesh), layout: bd-traditional
+
+Name read from the PDF's largest type: "রিনা আ"
+Header name inferred from PDF text: "রিনা আ ার"
+Header name inferred from DOCX text: "রিনা আক্তার"
+Extracted PDF text: 11 line(s) before sanitising, 11 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=phone-bd=1 national-id-digits=1 field-dob=1 field-family=2 field-address=4 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+মোবাইল নং: [PHONE]
+ায়ী ঠিকানা: [ADDRESS] ডাকঘর: [ADDRESS] উপজেলা: [ADDRESS] জেলা: [ADDRESS]
+অভিজ্ঞতা
+সিনিয়র অপারেটর — স্ক য়ার ফাশনস লিমিটেড ২০১৮ – বতমান
+দেনিক ল মাত্রার ১১০% উৎপাদন।
+বি গত তথ
+পিতার নাম : [NAME]
+ামীর নাম : [NAME]
+জ তারিখ : [DATE OF BIRTH]
+জাতীয় পরিচয়পত্র নম্বর : [ID]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Rina Akter","email":"","phone":"01912345678"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-phone=1 national-id-digits=1 field-dob=1 field-family=2 field-address=4 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+মোবাইল নং: [PHONE]
+ায়ী ঠিকানা: [ADDRESS] ডাকঘর: [ADDRESS] উপজেলা: [ADDRESS] জেলা: [ADDRESS]
+অভিজ্ঞতা
+সিনিয়র অপারেটর — স্ক য়ার ফাশনস লিমিটেড ২০১৮ – বতমান
+দেনিক ল মাত্রার ১১০% উৎপাদন।
+বি গত তথ
+পিতার নাম : [NAME]
+ামীর নাম : [NAME]
+জ তারিখ : [DATE OF BIRTH]
+জাতীয় পরিচয়পত্র নম্বর : [ID]
+</RESUME>

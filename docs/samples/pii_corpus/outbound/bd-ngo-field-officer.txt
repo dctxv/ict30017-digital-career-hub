@@ -1,0 +1,69 @@
+# bd-ngo-field-officer — Field Officer (Microfinance NGO) (Bangladesh), layout: table-header
+
+Name read from the PDF's largest type: "Mohammad Rafiqul Islam"
+Header name inferred from PDF text: "Mohammad Rafiqul"
+Header name inferred from DOCX text: "Mohammad Rafiqul Islam"
+Extracted PDF text: 17 line(s) before sanitising, 17 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 phone-labelled=1 national-id-digits=1 field-dob=1 field-personal=1 field-address=4 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Field Officer, Microfinance
+Cell: [PHONE]
+Email: [EMAIL]
+Present Address: [ADDRESS] Vill: [ADDRESS] Post: [ADDRESS]
+[ADDRESS]
+EXPERIENCE
+Field Officer — BRAC Microfinance, Barishal Sadar 2018 – Present
+Manage 420 borrowers across 14 village organisations with a 98.6% on-time repayment rate.
+Credit Officer — ASA, Jhalokati 2015 – 2018
+EDUCATION
+MSS in Economics — University of Barishal 2014
+PERSONAL DETAILS
+Birth Registration No : [ID]
+Date of Birth : [DATE OF BIRTH]
+Religion : [PERSONAL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Rafiqul Islam","email":"rafiq.brac.fo@gmail.com","phone":"+8801556112233"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-labelled=1 national-id-digits=1 field-dob=1 field-personal=1 field-address=4 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Field Officer, Microfinance
+Cell: [PHONE]
+Email: [EMAIL]
+Present Address: [ADDRESS] Vill: [ADDRESS] Post: [ADDRESS]
+[ADDRESS]
+EXPERIENCE
+Field Officer — BRAC Microfinance, Barishal Sadar 2018 – Present
+Manage 420 borrowers across 14 village organisations with a 98.6% on-time repayment rate.
+Credit Officer — ASA, Jhalokati 2015 – 2018
+EDUCATION
+MSS in Economics — University of Barishal 2014
+PERSONAL DETAILS
+Birth Registration No : [ID]
+Date of Birth : [DATE OF BIRTH]
+Religion : [PERSONAL]
+</RESUME>

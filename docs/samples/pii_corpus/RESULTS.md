@@ -8,18 +8,18 @@ Each cell is items fully masked / items present in the extracted text. ✅ maske
 
 | Category | PDF, guest | PDF, logged in | DOCX, guest | Inbound redactor, if the model echoed it |
 |---|---|---|---|---|
-| Candidate name | 1/27 (4%) · 2 partial | 12/27 (44%) · 9 partial | 24/27 (89%) · 1 partial | 0/27 (0%) |
-| Email | 26/26 (100%) | 26/26 (100%) | 26/26 (100%) | 26/26 (100%) |
-| Phone | 28/37 (76%) | 29/37 (78%) | 28/37 (76%) | 22/37 (59%) |
-| Address | 29/54 (54%) | 29/54 (54%) | 31/54 (57%) | 20/54 (37%) |
-| Profile URL / handle | 8/19 (42%) | 12/19 (63%) | 11/19 (58%) | 7/19 (37%) |
-| Government ID | 0/15 (0%) | 0/15 (0%) | 0/15 (0%) | 4/15 (27%) |
-| Registration / licence no. | 0/14 (0%) | 0/14 (0%) | 0/14 (0%) | 2/14 (14%) |
-| Date of birth | 0/8 (0%) | 0/8 (0%) | 0/8 (0%) | 0/8 (0%) |
-| Parent's name | 0/8 (0%) | 0/8 (0%) · 2 partial | 0/8 (0%) · 3 partial | 0/8 (0%) |
-| Referee details | 8/16 (50%) | 8/16 (50%) | 8/16 (50%) | 4/16 (25%) |
-| Sensitive attributes | 0/7 (0%) | 0/7 (0%) | 0/8 (0%) | 0/7 (0%) |
-| **All** | **100/231 (43%) · 2 partial** | **116/231 (50%) · 11 partial** | **128/232 (55%) · 4 partial** | **85/231 (37%)** |
+| Candidate name | 48/48 (100%) | 48/48 (100%) | 49/49 (100%) | 48/48 (100%) |
+| Email | 42/42 (100%) | 42/42 (100%) | 42/42 (100%) | 42/42 (100%) |
+| Phone | 61/61 (100%) | 61/61 (100%) | 61/61 (100%) | 61/61 (100%) |
+| Address | 98/98 (100%) | 98/98 (100%) | 98/98 (100%) | 98/98 (100%) |
+| Profile URL / handle | 22/22 (100%) | 22/22 (100%) | 22/22 (100%) | 22/22 (100%) |
+| Government ID | 34/34 (100%) | 34/34 (100%) | 34/34 (100%) | 34/34 (100%) |
+| Registration / licence no. | 18/18 (100%) | 18/18 (100%) | 18/18 (100%) | 18/18 (100%) |
+| Date of birth | 22/22 (100%) | 22/22 (100%) | 22/22 (100%) | 22/22 (100%) |
+| Parent's name | 22/22 (100%) | 22/22 (100%) | 22/22 (100%) | 22/22 (100%) |
+| Referee details | 33/33 (100%) | 33/33 (100%) | 33/33 (100%) | 33/33 (100%) |
+| Sensitive attributes | 42/42 (100%) | 42/42 (100%) | 42/42 (100%) | 42/42 (100%) |
+| **All** | **442/442 (100%)** | **442/442 (100%)** | **443/443 (100%)** | **442/442 (100%)** |
 
 ## Content kept for the review
 
@@ -27,445 +27,802 @@ The value, then what the text starting at that value looked like after masking.
 
 | Resume | Guest kept | Logged in kept | Lost as a guest | Lost when logged in |
 |---|---|---|---|---|
-| au-registered-nurse | 9/11 | 9/11 | `Registered Nurse` → `[NAME] Intensive`<br>`Nurse Unit Manager` → `[NAME] Unit Manager, ICU, The A` | `Registered Nurse` → `[NAME] Intensive`<br>`Nurse Unit Manager` → `[NAME] Unit Manager, ICU, The A` |
-| uk-head-chef | 9/9 | 8/9 | — | `Line Cook` → `Line [NAME] and worked` |
+| au-registered-nurse | 11/11 | 11/11 | — | — |
+| uk-head-chef | 9/9 | 9/9 | — | — |
 | bd-garment-production-supervisor | 10/10 | 10/10 | — | — |
-| bd-primary-teacher-bangla | 3/3 | 3/3 | — | — |
-| au-licensed-electrician | 6/7 | 6/7 | `TAFE NSW` → `[ADDRESS] 2019` | `TAFE NSW` → `[ADDRESS] 2019` |
+| bd-primary-teacher-bangla | 6/6 | 6/6 | — | — |
+| au-licensed-electrician | 7/7 | 7/7 | — | — |
 | us-associate-attorney | 7/7 | 7/7 | — | — |
 | in-chartered-accountant | 9/9 | 9/9 | — | — |
 | ca-long-haul-truck-driver | 9/9 | 9/9 | — | — |
-| nz-retail-store-manager | 8/8 | 7/8 | — | `rose to Store Manager` → `[NAME] to Store Manager within six` |
+| nz-retail-store-manager | 8/8 | 8/8 | — | — |
 | ph-graphic-designer | 7/7 | 7/7 | — | — |
 | uk-social-worker | 6/6 | 6/6 | — | — |
 | ng-civil-engineer | 7/7 | 7/7 | — | — |
 | bd-pharmacist | 8/8 | 8/8 | — | — |
 | bd-security-guard-overseas | 7/7 | 7/7 | — | — |
 | au-senior-hairdresser | 7/7 | 7/7 | — | — |
-| bd-senior-reporter | 7/9 | 7/9 | `Senior Reporter` → `[NAME] Investigat`<br>`Staff Reporter` → `Staff [NAME] Prothom Al` | `Senior Reporter` → `[NAME] Investigat`<br>`Staff Reporter` → `Staff [NAME] Prothom Al` |
+| bd-senior-reporter | 9/9 | 9/9 | — | — |
 | sg-airline-first-officer | 6/6 | 6/6 | — | — |
-| au-aged-care-worker | 5/6 | 5/6 | `TAFE SA` → `[ADDRESS] LANGUA` | `TAFE SA` → `[ADDRESS] LANGUA` |
-| bd-agriculture-extension-officer | 7/7 | 6/7 | — | `Religion Islam` → `Religion [NAME]` |
+| au-aged-care-worker | 6/6 | 6/6 | — | — |
+| bd-agriculture-extension-officer | 7/7 | 7/7 | — | — |
 | bd-medical-officer | 6/6 | 6/6 | — | — |
-| au-early-childhood-educator | 9/9 | 7/9 | — | `Only About Children Box Hill` → `Only About Children Box [NAME], Melbourne`<br>`Box Hill Institute` → `Box [NAME] Institute 2018 Provid` |
+| au-early-childhood-educator | 9/9 | 9/9 | — | — |
 | us-real-estate-agent | 7/7 | 7/7 | — | — |
 | ie-musician-music-teacher | 7/7 | 7/7 | — | — |
 | za-diesel-mechanic | 7/7 | 7/7 | — | — |
 | au-physiotherapist | 6/6 | 6/6 | — | — |
 | au-barista-cafe-supervisor | 7/7 | 7/7 | — | — |
+| bd-bank-officer | 8/8 | 8/8 | — | — |
+| pk-electrical-technician | 7/7 | 7/7 | — | — |
+| ke-community-health-worker | 7/7 | 7/7 | — | — |
+| my-kindergarten-teacher | 6/6 | 6/6 | — | — |
+| de-geriatric-nurse | 6/6 | 6/6 | — | — |
+| us-warehouse-supervisor | 7/7 | 7/7 | — | — |
+| ae-flight-attendant | 6/6 | 6/6 | — | — |
+| lk-hotel-chef | 6/6 | 6/6 | — | — |
+| vn-garment-qc-inspector | 6/6 | 6/6 | — | — |
+| au-plumber | 6/6 | 6/6 | — | — |
+| np-trekking-guide | 5/5 | 5/5 | — | — |
+| bd-tailor-bangla | 4/4 | 4/4 | — | — |
+| bd-bdjobs-merchandiser | 8/8 | 8/8 | — | — |
+| bd-ngo-field-officer | 7/7 | 7/7 | — | — |
+| bd-senior-staff-nurse | 6/6 | 6/6 | — | — |
+| bd-govt-application-bangla | 5/5 | 5/5 | — | — |
+| bd-heavy-vehicle-driver | 6/6 | 6/6 | — | — |
+| bd-university-lecturer | 6/6 | 6/6 | — | — |
 
 ## Per resume
 
 ### au-registered-nurse — Registered Nurse (ICU), Australia
 
-Layout `classic` · PDF extracted as 1 line(s) · header name guessed from PDF: `Priya Raghunathan Registered Nurse` · from DOCX: `Priya Raghunathan`
+Layout `classic` · PDF extracted as 30 line(s) · header name guessed from PDF: `Priya Raghunathan` · from DOCX: `Priya Raghunathan`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Priya Raghunathan` | ✅ | ✅ | ✅ | ❌ |
+| Candidate name | `Priya Raghunathan` | ✅ | ✅ | ✅ | ✅ |
 | Email | `priya.raghunathan.rn@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Phone | `0491 570 156` | ✅ | ✅ | ✅ | ❌ |
+| Phone | `0491 570 156` | ✅ | ✅ | ✅ | ✅ |
 | Profile URL / handle | `linkedin.com/in/priya-raghunathan-rn` | ✅ | ✅ | ✅ | ✅ |
 | Address | `Unit 3/15 Glenferrie Road` | ✅ | ✅ | ✅ | ✅ |
-| Address | `Hawthorn VIC 3122` | ✅ | ✅ | ✅ | ❌ |
-| Registration / licence no. (AHPRA number) | `NMW0001234567` | ❌ | ❌ | ❌ | ✅ |
-| Referee details | `Karen Whitfield` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `0491 570 110` | ✅ | ✅ | ✅ | ❌ |
+| Address | `Hawthorn VIC 3122` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (AHPRA number) | `NMW0001234567` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Karen Whitfield` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `0491 570 110` | ✅ | ✅ | ✅ | ✅ |
 | Referee details | `k.whitfield@alfred.org.au` | ✅ | ✅ | ✅ | ✅ |
-| Referee details | `Michael Tanaka` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `(03) 9076 2000` | ✅ | ✅ | ✅ | ❌ |
+| Referee details | `Michael Tanaka` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `(03) 9076 2000` | ✅ | ✅ | ✅ | ✅ |
 
 ### uk-head-chef — Head Chef, United Kingdom
 
-Layout `sidebar` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Daniel Cook`
+Layout `sidebar` · PDF extracted as 36 line(s) · header name guessed from PDF: **none** · from DOCX: `Daniel Cook`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Daniel Cook` | ❌ | ✅ | ✅ | ❌ |
+| Candidate name | `Daniel Cook` | ✅ | ✅ | ✅ | ✅ |
 | Email | `dan.cook.kitchen@outlook.com` | ✅ | ✅ | ✅ | ✅ |
-| Phone | `07700 900461` | ❌ | ✅ | ❌ | ❌ |
-| Profile URL / handle (bare Instagram handle) | `@chefdancook` | ❌ | ❌ | ❌ | ❌ |
+| Phone | `07700 900461` | ✅ | ✅ | ✅ | ✅ |
+| Profile URL / handle (bare Instagram handle) | `@chefdancook` | ✅ | ✅ | ✅ | ✅ |
 | Profile URL / handle | `instagram.com/chefdancook` | ✅ | ✅ | ✅ | ✅ |
 | Address | `14 Mare Street` | ✅ | ✅ | ✅ | ✅ |
-| Address (UK postcode) | `E8 3PN` | ❌ | ❌ | ❌ | ❌ |
+| Address (UK postcode) | `E8 3PN` | ✅ | ✅ | ✅ | ✅ |
 
 ### bd-garment-production-supervisor — Production Supervisor (Garments), Bangladesh
 
-Layout `bd-traditional` · PDF extracted as 2 line(s) · header name guessed from PDF: **none** · from DOCX: `Md. Abdul Karim Sheikh`
+Layout `bd-traditional` · PDF extracted as 42 line(s) · header name guessed from PDF: `MD. ABDUL KARIM SHEIKH` · from DOCX: `Md. Abdul Karim Sheikh`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Md. Abdul Karim Sheikh` | ❌ | 🟡 left: sheikh | ✅ | ❌ |
+| Candidate name | `Md. Abdul Karim Sheikh` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `01819-456123` | ✅ | ✅ | ✅ | ✅ |
-| Phone (3-4-4 grouping) | `017 1122 3344` | ❌ | ❌ | ❌ | ❌ |
+| Phone (3-4-4 grouping) | `017 1122 3344` | ✅ | ✅ | ✅ | ✅ |
 | Email | `karim.sheikh.rmg@yahoo.com` | ✅ | ✅ | ✅ | ✅ |
 | Address | `House 14, Road 3, Sector 7` | ✅ | ✅ | ✅ | ✅ |
 | Address | `Dhaka-1230` | ✅ | ✅ | ✅ | ✅ |
-| Address (home village) | `Char Bhadrasan` | ❌ | ❌ | ❌ | ❌ |
-| Parent's name | `Abdul Jalil Sheikh` | ❌ | 🟡 left: jalil, sheikh | 🟡 left: jalil | ❌ |
-| Parent's name | `Rokeya Begum` | ❌ | ❌ | ❌ | ❌ |
-| Date of birth | `15-03-1990` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (BD NID, 17 digits) | `19902692512345678` | ❌ | ❌ | ❌ | ✅ |
-| Sensitive attributes | `Religion Islam` | ❌ | ❌ | ❌ | ❌ |
-| Sensitive attributes | `Blood Group B` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `Mizanur Rahman` | ❌ | ❌ | ❌ | ❌ |
+| Address (home village) | `Char Bhadrasan` | ✅ | ✅ | ✅ | ✅ |
+| Address (home district) | `District: Faridpur` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Abdul Jalil Sheikh` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Rokeya Begum` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `15-03-1990` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (BD NID, 17 digits) | `19902692512345678` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Religion Islam` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Blood Group B` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Marital Status Married` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Mizanur Rahman` | ✅ | ✅ | ✅ | ✅ |
 | Referee details | `01711-908070` | ✅ | ✅ | ✅ | ✅ |
 
 ### bd-primary-teacher-bangla — Assistant Teacher (Primary), Bangladesh
 
-Layout `classic` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `মোছাঃ ফারজানা ইয়াসমিন`
+Layout `classic` · PDF extracted as 20 line(s) · header name guessed from PDF: `মোছাঃ ফারজানা ইয়াসমিন` · from DOCX: `মোছাঃ ফারজানা ইয়াসমিন`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `মোছাঃ ফারজানা ইয়াসমিন` | ❌ | ❌ | ✅ | ❌ |
-| Phone (Bengali numerals) | `০১৭১৫-৩৩৪৪৫৫` | ✅ | ✅ | ✅ | ❌ |
+| Candidate name | `মোছাঃ ফারজানা ইয়াসমিন` | ✅ | ✅ | ✅ | ✅ |
+| Phone (Bengali numerals) | `০১৭১৫-৩৩৪৪৫৫` | ✅ | ✅ | ✅ | ✅ |
 | Email | `farzana.yasmin.edu@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Address | `বাসা ২৭, রোড ৪` | ❌ | ❌ | ✅ | ❌ |
-| Address | `ঢাকা-১২০৭` | ❌ | ❌ | ✅ | ❌ |
-| Parent's name | `আব্দুল হাকিম` | ❌ | ❌ | ❌ | ❌ |
-| Parent's name | `রাশিদা বেগম` | ❌ | ❌ | ❌ | ❌ |
-| Date of birth | `১২ জানুয়ারি ১৯৯৪` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (NID in Bengali numerals) | `১৯৯৪২৬৯২৫১২৩৪৫৬৭৮` | ❌ | ❌ | ❌ | ❌ |
-| Sensitive attributes | `ধর্ম ইসলাম` | ⚪ | ⚪ | ❌ | ⚪ |
+| Address | `বাসা ২৭, রোড ৪` | ✅ | ✅ | ✅ | ✅ |
+| Address | `ঢাকা-১২০৭` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `আব্দুল হাকিম` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `রাশিদা বেগম` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `১২ জানুয়ারি ১৯৯৪` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (NID in Bengali numerals) | `১৯৯৪২৬৯২৫১২৩৪৫৬৭৮` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes (religion) | `ইসলাম` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes (marital status) | `বিবাহিত` | ✅ | ✅ | ✅ | ✅ |
 
 ### au-licensed-electrician — Licensed Electrician, Australia
 
-Layout `modern-header` · PDF extracted as 1 line(s) · header name guessed from PDF: `L I A M O` · from DOCX: `Liam O Connor`
+Layout `modern-header` · PDF extracted as 22 line(s) · header name guessed from PDF: **none** · from DOCX: `Liam O’Connor`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name (curly apostrophe on the CV, straight one on the account) | `Liam O’Connor` | 🟡 left: connor | 🟡 left: connor | ✅ | ❌ |
-| Phone | `0491 570 006` | ✅ | ✅ | ✅ | ❌ |
+| Candidate name (curly apostrophe on the CV, straight one on the account) | `Liam O’Connor` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `0491 570 006` | ✅ | ✅ | ✅ | ✅ |
 | Email | `liam.oconnor.sparky@gmail.com` | ✅ | ✅ | ✅ | ✅ |
 | Address | `22 Wattle Street` | ✅ | ✅ | ✅ | ✅ |
-| Address | `Penrith NSW 2750` | ✅ | ✅ | ✅ | ❌ |
-| Registration / licence no. (electrical licence) | `312456C` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (White Card) | `WC-1234567` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (driver licence number) | `12345678` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `Steve Kowalski` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `0491 570 159` | ✅ | ✅ | ✅ | ❌ |
+| Address | `Penrith NSW 2750` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (electrical licence) | `312456C` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (White Card) | `WC-1234567` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (driver licence number) | `12345678` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Steve Kowalski` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `0491 570 159` | ✅ | ✅ | ✅ | ✅ |
 
 ### us-associate-attorney — Associate Attorney, United States
 
-Layout `classic` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Rebecca Chen-Adler`
+Layout `classic` · PDF extracted as 15 line(s) · header name guessed from PDF: `Rebecca Chen-Adler` · from DOCX: `Rebecca Chen-Adler`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Rebecca Chen-Adler` | ❌ | ✅ | ✅ | ❌ |
-| Address | `350 West 57th Street` | ❌ | ❌ | ❌ | ❌ |
-| Address | `Apt 12C` | ❌ | ❌ | ❌ | ❌ |
-| Address (ZIP code) | `NY 10019` | ❌ | ❌ | ❌ | ❌ |
+| Candidate name | `Rebecca Chen-Adler` | ✅ | ✅ | ✅ | ✅ |
+| Address | `350 West 57th Street` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Apt 12C` | ✅ | ✅ | ✅ | ✅ |
+| Address (ZIP code) | `NY 10019` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `(212) 555-0147` | ✅ | ✅ | ✅ | ✅ |
 | Email | `rchenadler@protonmail.com` | ✅ | ✅ | ✅ | ✅ |
 | Profile URL / handle | `linkedin.com/in/rchenadler` | ✅ | ✅ | ✅ | ✅ |
-| Registration / licence no. (bar registration number) | `5123456` | ❌ | ❌ | ❌ | ❌ |
+| Registration / licence no. (bar registration number) | `5123456` | ✅ | ✅ | ✅ | ✅ |
 
 ### in-chartered-accountant — Chartered Accountant, India
 
-Layout `table-header` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `CA Rohan Mehta`
+Layout `table-header` · PDF extracted as 30 line(s) · header name guessed from PDF: `CA Rohan Mehta` · from DOCX: `CA Rohan Mehta`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Rohan Mehta` | ❌ | ✅ | ✅ | ❌ |
+| Candidate name | `Rohan Mehta` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+91 98200 12345` | ✅ | ✅ | ✅ | ✅ |
-| Phone (Mumbai landline) | `022 2634 5678` | ❌ | ❌ | ❌ | ❌ |
+| Phone (Mumbai landline) | `022 2634 5678` | ✅ | ✅ | ✅ | ✅ |
 | Email | `rohan.mehta.ca@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Address | `Flat 302, Sai Krupa CHS` | ❌ | ❌ | ❌ | ❌ |
-| Address (PIN code) | `400058` | ❌ | ❌ | ❌ | ❌ |
-| Registration / licence no. (ICAI membership number) | `154321` | ❌ | ❌ | ❌ | ❌ |
-| Parent's name | `Suresh Mehta` | ❌ | 🟡 left: suresh | 🟡 left: suresh | ❌ |
-| Date of birth | `07/11/1993` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (PAN) | `ABCPM1234K` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (Aadhaar) | `4521 8876 3310` | ❌ | ❌ | ❌ | ❌ |
+| Address | `Flat 302, Sai Krupa CHS` | ✅ | ✅ | ✅ | ✅ |
+| Address (PIN code) | `400058` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (ICAI membership number) | `154321` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Suresh Mehta` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `07/11/1993` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (PAN) | `ABCPM1234K` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (Aadhaar) | `4521 8876 3310` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Marital Status Single` | ✅ | ✅ | ✅ | ✅ |
 
 ### ca-long-haul-truck-driver — Long-Haul Truck Driver (AZ), Canada
 
-Layout `sidebar` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Gurpreet Singh Dhillon`
+Layout `sidebar` · PDF extracted as 31 line(s) · header name guessed from PDF: **none** · from DOCX: `Gurpreet Singh Dhillon`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Gurpreet Singh Dhillon` | ❌ | 🟡 left: singh | ✅ | ❌ |
+| Candidate name | `Gurpreet Singh Dhillon` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `416-555-0199` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+1 905 555 0142` | ✅ | ✅ | ✅ | ✅ |
 | Email | `gsdhillon.trucking@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Address | `88 Maple Grove Crescent` | ✅ | ✅ | ✅ | ❌ |
-| Address (Canadian postal code) | `L6X 2K4` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (Ontario driver licence) | `D4123-56789-01234` | ❌ | ❌ | ❌ | ❌ |
+| Address | `88 Maple Grove Crescent` | ✅ | ✅ | ✅ | ✅ |
+| Address (Canadian postal code) | `L6X 2K4` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (Ontario driver licence) | `D4123-56789-01234` | ✅ | ✅ | ✅ | ✅ |
 
 ### nz-retail-store-manager — Retail Store Manager, New Zealand
 
-Layout `classic` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Rose Walker`
+Layout `classic` · PDF extracted as 15 line(s) · header name guessed from PDF: `Rose Walker` · from DOCX: `Rose Walker`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Rose Walker` | ❌ | ✅ | ✅ | ❌ |
+| Candidate name | `Rose Walker` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `021 555 0123` | ✅ | ✅ | ✅ | ✅ |
-| Phone (NZ landline) | `(09) 555 0876` | ❌ | ❌ | ❌ | ❌ |
+| Phone (NZ landline) | `(09) 555 0876` | ✅ | ✅ | ✅ | ✅ |
 | Email | `rose.walker.nz@xtra.co.nz` | ✅ | ✅ | ✅ | ✅ |
 | Address | `42 Ponsonby Road` | ✅ | ✅ | ✅ | ✅ |
-| Address | `Auckland 1011` | ❌ | ❌ | ❌ | ❌ |
+| Address | `Auckland 1011` | ✅ | ✅ | ✅ | ✅ |
 
 ### ph-graphic-designer — Graphic Designer, Philippines
 
-Layout `modern-header` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Maria Isabel Santos`
+Layout `modern-header` · PDF extracted as 18 line(s) · header name guessed from PDF: **none** · from DOCX: `Maria Isabel Santos`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Maria Isabel Santos` | ❌ | ❌ | ✅ | ❌ |
+| Candidate name | `Maria Isabel Santos` | ✅ | ✅ | ✅ | ✅ |
 | Email | `hello@isabelsantos.design` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+63 917 123 4567` | ✅ | ✅ | ✅ | ✅ |
-| Phone (local 4-3-4 form) | `0917 123 4567` | ❌ | ❌ | ❌ | ❌ |
-| Address | `Unit 1504, Greenbelt Residences` | ❌ | ❌ | ❌ | ❌ |
-| Address | `Makati City 1224` | ❌ | ❌ | ❌ | ❌ |
+| Phone (local 4-3-4 form) | `0917 123 4567` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Unit 1504, Greenbelt Residences` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Makati City 1224` | ✅ | ✅ | ✅ | ✅ |
 | Profile URL / handle | `behance.net/isabelsantos` | ✅ | ✅ | ✅ | ✅ |
-| Profile URL / handle | `isabelsantos.myportfolio.com` | ❌ | ✅ | ✅ | ❌ |
-| Profile URL / handle (bare Instagram handle) | `@isa.designs` | ❌ | ❌ | ❌ | ❌ |
+| Profile URL / handle | `isabelsantos.myportfolio.com` | ✅ | ✅ | ✅ | ✅ |
+| Profile URL / handle (bare Instagram handle) | `@isa.designs` | ✅ | ✅ | ✅ | ✅ |
 
 ### uk-social-worker — Social Worker (Children & Families), United Kingdom
 
-Layout `classic` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Aisha Bello`
+Layout `classic` · PDF extracted as 20 line(s) · header name guessed from PDF: `Aisha Bello` · from DOCX: `Aisha Bello`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Aisha Bello` | ❌ | ✅ | ✅ | ❌ |
+| Candidate name | `Aisha Bello` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+44 (0)161 496 0123` | ✅ | ✅ | ✅ | ✅ |
-| Phone | `07700 900 372` | ❌ | ❌ | ❌ | ❌ |
+| Phone | `07700 900 372` | ✅ | ✅ | ✅ | ✅ |
 | Email | `aisha.bello.sw@gmail.com` | ✅ | ✅ | ✅ | ✅ |
 | Address | `27 Wilmslow Road` | ✅ | ✅ | ✅ | ✅ |
-| Address (UK postcode) | `M14 5TQ` | ❌ | ❌ | ❌ | ❌ |
-| Registration / licence no. (Social Work England) | `SW112233` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (DBS certificate number) | `001234567890` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (National Insurance number) | `QQ 12 34 56 C` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `Joanne Pritchard` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `0161 234 5000` | ❌ | ❌ | ❌ | ❌ |
+| Address (UK postcode) | `M14 5TQ` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (Social Work England) | `SW112233` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (DBS certificate number) | `001234567890` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (National Insurance number) | `QQ 12 34 56 C` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Joanne Pritchard` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `0161 234 5000` | ✅ | ✅ | ✅ | ✅ |
 | Referee details | `joanne.pritchard@manchester.gov.uk` | ✅ | ✅ | ✅ | ✅ |
 
 ### ng-civil-engineer — Civil / Structural Engineer, Nigeria
 
-Layout `table-header` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Engr. Chukwuemeka Obi`
+Layout `table-header` · PDF extracted as 22 line(s) · header name guessed from PDF: `Engr. Chukwuemeka Obi` · from DOCX: `Engr. Chukwuemeka Obi`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Chukwuemeka Obi` | ❌ | 🟡 left: chukwuemeka | ✅ | ❌ |
+| Candidate name | `Chukwuemeka Obi` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+234 803 123 4567` | ✅ | ✅ | ✅ | ✅ |
-| Phone (local 4-3-4 form) | `0803 123 4567` | ❌ | ❌ | ❌ | ❌ |
+| Phone (local 4-3-4 form) | `0803 123 4567` | ✅ | ✅ | ✅ | ✅ |
 | Email | `emeka.obi.eng@yahoo.com` | ✅ | ✅ | ✅ | ✅ |
-| Address | `Plot 15, Admiralty Way` | ❌ | ❌ | ❌ | ❌ |
-| Registration / licence no. (COREN registration) | `R.23456` | ❌ | ❌ | ❌ | ❌ |
-| Date of birth | `14th February 1988` | ❌ | ❌ | ❌ | ❌ |
-| Sensitive attributes | `Religion Christianity` | ❌ | ❌ | ❌ | ❌ |
-| Sensitive attributes | `Marital Status Married` | ❌ | ❌ | ❌ | ❌ |
+| Address | `Plot 15, Admiralty Way` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (COREN registration) | `R.23456` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `14th February 1988` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Religion Christianity` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Marital Status Married` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `State of Origin Anambra` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `LGA Onitsha North` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Sex Male` | ✅ | ✅ | ✅ | ✅ |
 
 ### bd-pharmacist — Pharmacist (QA), Bangladesh
 
-Layout `sidebar` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Tasnim Rahman Mithila`
+Layout `sidebar` · PDF extracted as 33 line(s) · header name guessed from PDF: **none** · from DOCX: `Tasnim Rahman Mithila`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Tasnim Rahman Mithila` | ❌ | ✅ | ✅ | ❌ |
+| Candidate name | `Tasnim Rahman Mithila` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+8801712345678` | ✅ | ✅ | ✅ | ✅ |
-| Phone (4-7 grouping) | `0171-2345678` | ❌ | ❌ | ❌ | ❌ |
+| Phone (4-7 grouping) | `0171-2345678` | ✅ | ✅ | ✅ | ✅ |
 | Email | `tasnim.mithila@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Profile URL / handle (Skype id) | `Skype tasnim.mithila` | ❌ | ✅ | ✅ | ❌ |
+| Profile URL / handle (Skype id) | `Skype tasnim.mithila` | ✅ | ✅ | ✅ | ✅ |
 | Address | `House 12, Road 7` | ✅ | ✅ | ✅ | ✅ |
 | Address | `Dhaka-1205` | ✅ | ✅ | ✅ | ✅ |
-| Registration / licence no. (Pharmacy Council registration) | `A-12345` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `Sitesh C. Bachar` | ❌ | ❌ | ❌ | ❌ |
+| Registration / licence no. (Pharmacy Council registration) | `A-12345` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Sitesh C. Bachar` | ✅ | ✅ | ✅ | ✅ |
 | Referee details | `01711-556677` | ✅ | ✅ | ✅ | ✅ |
 
 ### bd-security-guard-overseas — Security Guard (overseas employment), Bangladesh
 
-Layout `bd-traditional` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Md. Jahangir Alam`
+Layout `bd-traditional` · PDF extracted as 30 line(s) · header name guessed from PDF: `MD. JAHANGIR ALAM` · from DOCX: `Md. Jahangir Alam`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Md. Jahangir Alam` | ❌ | ✅ | ✅ | ❌ |
+| Candidate name | `Md. Jahangir Alam` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `01912-345678` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+966 55 123 4567` | ✅ | ✅ | ✅ | ✅ |
 | Email | `jahangir.alam.bd88@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Address (home village) | `Kalir Bazar` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (passport number) | `A01234567` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (BD smart NID, 10 digits) | `5102938475` | ❌ | ❌ | ❌ | ✅ |
-| Parent's name | `Nurul Islam` | ❌ | ❌ | ❌ | ❌ |
-| Date of birth | `01-01-1988` | ❌ | ❌ | ❌ | ❌ |
-| Sensitive attributes | `Weight 70 kg` | ❌ | ❌ | ❌ | ❌ |
-| Sensitive attributes | `Religion Islam` | ❌ | ❌ | ❌ | ❌ |
+| Address (home village) | `Kalir Bazar` | ✅ | ✅ | ✅ | ✅ |
+| Address (police station) | `P.S: Fatullah` | ✅ | ✅ | ✅ | ✅ |
+| Address (home district) | `Dist: Narayanganj` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (passport number) | `A01234567` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes (passport issue date) | `Date of Issue 10-01-2022` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes (passport expiry date) | `Date of Expiry 09-01-2032` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (BD smart NID, 10 digits) | `5102938475` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Nurul Islam` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `01-01-1988` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Height 5'8"` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Weight 70 kg` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Marital Status Married` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Religion Islam` | ✅ | ✅ | ✅ | ✅ |
 
 ### au-senior-hairdresser — Senior Hairdresser & Colourist, Australia
 
-Layout `modern-header` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Jessica Tran`
+Layout `modern-header` · PDF extracted as 16 line(s) · header name guessed from PDF: **none** · from DOCX: `Jessica Tran`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Jessica Tran` | ❌ | ❌ | ✅ | ❌ |
-| Phone | `0491 570 313` | ✅ | ✅ | ✅ | ❌ |
+| Candidate name | `Jessica Tran` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `0491 570 313` | ✅ | ✅ | ✅ | ✅ |
 | Email | `bookings@hairbyjess.com.au` | ✅ | ✅ | ✅ | ✅ |
-| Profile URL / handle | `hairbyjess.com.au` | ❌ | ✅ | ❌ | ❌ |
-| Profile URL / handle (bare Instagram handle) | `@hairbyjess_bne` | ❌ | ❌ | ❌ | ❌ |
+| Profile URL / handle | `hairbyjess.com.au` | ✅ | ✅ | ✅ | ✅ |
+| Profile URL / handle (bare Instagram handle) | `@hairbyjess_bne` | ✅ | ✅ | ✅ | ✅ |
 | Profile URL / handle | `instagram.com/hairbyjess_bne` | ✅ | ✅ | ✅ | ✅ |
 | Address | `8/22 Brunswick St` | ✅ | ✅ | ✅ | ✅ |
-| Address | `Fortitude Valley QLD 4006` | ✅ | ✅ | ✅ | ❌ |
+| Address | `Fortitude Valley QLD 4006` | ✅ | ✅ | ✅ | ✅ |
 
 ### bd-senior-reporter — Senior Reporter, Bangladesh
 
-Layout `classic` · PDF extracted as 1 line(s) · header name guessed from PDF: `Rafsan Haque Senior Reporter` · from DOCX: `Rafsan Haque`
+Layout `classic` · PDF extracted as 15 line(s) · header name guessed from PDF: `Rafsan Haque` · from DOCX: `Rafsan Haque`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Rafsan Haque` | 🟡 left: rafsan | 🟡 left: rafsan | 🟡 left: rafsan | ❌ |
+| Candidate name | `Rafsan Haque` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `01552-667788` | ✅ | ✅ | ✅ | ✅ |
 | Email | `rafsanhaque.bd@gmail.com` | ✅ | ✅ | ✅ | ✅ |
 | Profile URL / handle | `x.com/rafsan_reports` | ✅ | ✅ | ✅ | ✅ |
-| Profile URL / handle | `muckrack.com/rafsan-haque` | ✅ | ✅ | ✅ | ❌ |
-| Profile URL / handle (bare X handle) | `@rafsan_reports` | ❌ | ❌ | ❌ | ❌ |
-| Address | `Flat 5C, Green Valley Apartments` | ❌ | ❌ | ❌ | ❌ |
+| Profile URL / handle | `muckrack.com/rafsan-haque` | ✅ | ✅ | ✅ | ✅ |
+| Profile URL / handle (bare X handle) | `@rafsan_reports` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Flat 5C, Green Valley Apartments` | ✅ | ✅ | ✅ | ✅ |
 | Address | `45/1 Indira Road` | ✅ | ✅ | ✅ | ✅ |
 | Address | `Dhaka-1215` | ✅ | ✅ | ✅ | ✅ |
-| Registration / licence no. | `PID accreditation card no. 4417` | ❌ | ❌ | ❌ | ❌ |
+| Registration / licence no. | `PID accreditation card no. 4417` | ✅ | ✅ | ✅ | ✅ |
 
 ### sg-airline-first-officer — Airline First Officer (A320), Singapore
 
-Layout `table-header` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Nicholas Ang Wei Jie`
+Layout `table-header` · PDF extracted as 24 line(s) · header name guessed from PDF: `Nicholas Ang Wei Jie` · from DOCX: `Nicholas Ang Wei Jie`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Nicholas Ang Wei Jie` | ❌ | 🟡 left: wei, jie | ✅ | ❌ |
+| Candidate name | `Nicholas Ang Wei Jie` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+65 9123 4567` | ✅ | ✅ | ✅ | ✅ |
-| Phone (local 4-4 form) | `9123 4567` | ❌ | ❌ | ❌ | ❌ |
+| Phone (local 4-4 form) | `9123 4567` | ✅ | ✅ | ✅ | ✅ |
 | Email | `nick.ang.flying@gmail.com` | ✅ | ✅ | ✅ | ✅ |
 | Address | `123 Tampines Street 11` | ✅ | ✅ | ✅ | ✅ |
-| Address | `#05-67` | ❌ | ❌ | ❌ | ❌ |
-| Address | `Singapore 521123` | ❌ | ❌ | ❌ | ❌ |
-| Registration / licence no. (pilot licence) | `ATPL(A) No. 12345` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (NRIC) | `S8912345D` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (passport number) | `K1234567A` | ❌ | ❌ | ❌ | ❌ |
-| Date of birth | `03 Aug 1989` | ❌ | ❌ | ❌ | ❌ |
+| Address | `#05-67` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Singapore 521123` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (pilot licence) | `ATPL(A) No. 12345` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (NRIC) | `S8912345D` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (passport number) | `K1234567A` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `03 Aug 1989` | ✅ | ✅ | ✅ | ✅ |
 
 ### au-aged-care-worker — Personal Care Worker (Aged Care), Australia
 
-Layout `classic` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Sunita Gurung`
+Layout `classic` · PDF extracted as 21 line(s) · header name guessed from PDF: `Sunita Gurung` · from DOCX: `Sunita Gurung`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Sunita Gurung` | ❌ | ✅ | ✅ | ❌ |
-| Phone | `0401 234 567` | ✅ | ✅ | ✅ | ❌ |
+| Candidate name | `Sunita Gurung` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `0401 234 567` | ✅ | ✅ | ✅ | ✅ |
 | Email | `sunita.gurung92@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Address | `5 Rosella Close` | ❌ | ❌ | ❌ | ❌ |
-| Address | `Mawson Lakes SA 5095` | ✅ | ✅ | ✅ | ❌ |
-| Registration / licence no. (NDIS worker screening number) | `1234567` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `Margaret Evans` | ❌ | ❌ | ❌ | ❌ |
-| Referee details | `08 8123 4567` | ✅ | ✅ | ✅ | ❌ |
+| Address | `5 Rosella Close` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Mawson Lakes SA 5095` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (NDIS worker screening number) | `1234567` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Margaret Evans` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `08 8123 4567` | ✅ | ✅ | ✅ | ✅ |
 
 ### bd-agriculture-extension-officer — Agriculture Extension Officer, Bangladesh
 
-Layout `bd-traditional` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Md. Shafiqul Islam Sarkar`
+Layout `bd-traditional` · PDF extracted as 27 line(s) · header name guessed from PDF: `MD. SHAFIQUL ISLAM SARKAR` · from DOCX: `Md. Shafiqul Islam Sarkar`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Md. Shafiqul Islam Sarkar` | ❌ | 🟡 left: sarkar | ✅ | ❌ |
+| Candidate name | `Md. Shafiqul Islam Sarkar` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `01740-112233` | ✅ | ✅ | ✅ | ✅ |
 | Email | `shafiq.agri@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Address (home village) | `Char Kalibari` | ❌ | ❌ | ❌ | ❌ |
+| Address (home village) | `Char Kalibari` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Post Office: Godagari` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Upazila: Godagari` | ✅ | ✅ | ✅ | ✅ |
 | Address | `Rajshahi-6290` | ✅ | ✅ | ✅ | ✅ |
-| Parent's name | `Abdus Sattar Sarkar` | ❌ | ❌ | 🟡 left: abdus, sattar | ❌ |
-| Parent's name | `Hosne Ara Begum` | ❌ | ❌ | ❌ | ❌ |
-| Date of birth | `20 June 1995` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (BD NID, 13 digits) | `8234567890123` | ❌ | ❌ | ❌ | ✅ |
+| Parent's name | `Abdus Sattar Sarkar` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Hosne Ara Begum` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `20 June 1995` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (BD NID, 13 digits) | `8234567890123` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Religion Islam` | ✅ | ✅ | ✅ | ✅ |
 
 ### bd-medical-officer — Medical Officer, Bangladesh
 
-Layout `sidebar` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Dr. Nusrat Jahan Chowdhury`
+Layout `sidebar` · PDF extracted as 37 line(s) · header name guessed from PDF: **none** · from DOCX: `Dr. Nusrat Jahan Chowdhury`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Nusrat Jahan Chowdhury` | ❌ | 🟡 left: chowdhury | ✅ | ❌ |
+| Candidate name | `Nusrat Jahan Chowdhury` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+880 1811-223344` | ✅ | ✅ | ✅ | ✅ |
 | Email | `dr.nusrat.jahan@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Registration / licence no. (BMDC registration) | `A-65432` | ❌ | ❌ | ❌ | ❌ |
+| Registration / licence no. (BMDC registration) | `A-65432` | ✅ | ✅ | ✅ | ✅ |
 | Address | `House 5, Road 2` | ✅ | ✅ | ✅ | ✅ |
 | Address | `Chattogram-4225` | ✅ | ✅ | ✅ | ✅ |
-| Date of birth | `22/09/1993` | ❌ | ❌ | ❌ | ❌ |
-| Sensitive attributes | `Blood Group O` | ❌ | ❌ | ❌ | ❌ |
+| Date of birth | `22/09/1993` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Blood Group O` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Marital Status Married` | ✅ | ✅ | ✅ | ✅ |
 
 ### au-early-childhood-educator — Early Childhood Educator, Australia
 
-Layout `modern-header` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Grace Hill`
+Layout `modern-header` · PDF extracted as 15 line(s) · header name guessed from PDF: **none** · from DOCX: `Grace Hill`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Grace Hill` | ❌ | ❌ | ✅ | ❌ |
+| Candidate name | `Grace Hill` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+61 8 9123 4567` | ✅ | ✅ | ✅ | ✅ |
 | Email | `gracehill.ece@outlook.com` | ✅ | ✅ | ✅ | ✅ |
-| Address | `14 Banksia Way` | ❌ | ❌ | ❌ | ❌ |
-| Address | `Joondalup WA 6027` | ✅ | ✅ | ✅ | ❌ |
-| Registration / licence no. (Working with Children Check) | `WWC Card 1234567` | ❌ | ❌ | ❌ | ❌ |
+| Address | `14 Banksia Way` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Joondalup WA 6027` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (Working with Children Check) | `WWC Card 1234567` | ✅ | ✅ | ✅ | ✅ |
 
 ### us-real-estate-agent — Real Estate Agent, United States
 
-Layout `sidebar` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Sarah Mitchell`
+Layout `sidebar` · PDF extracted as 29 line(s) · header name guessed from PDF: **none** · from DOCX: `Sarah Mitchell`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Sarah Mitchell` | ❌ | ✅ | ✅ | ❌ |
-| Registration / licence no. (TREC licence number) | `0654321` | ❌ | ❌ | ❌ | ❌ |
+| Candidate name | `Sarah Mitchell` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (TREC licence number) | `0654321` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `512.555.0198` | ✅ | ✅ | ✅ | ✅ |
 | Email | `sarah@sarahmitchellhomes.com` | ✅ | ✅ | ✅ | ✅ |
-| Profile URL / handle | `www.sarahmitchellhomes.com` | ❌ | ✅ | ✅ | ❌ |
+| Profile URL / handle | `www.sarahmitchellhomes.com` | ✅ | ✅ | ✅ | ✅ |
 | Profile URL / handle | `facebook.com/sarahmitchellrealtor` | ✅ | ✅ | ✅ | ✅ |
-| Profile URL / handle (bare Instagram handle) | `@sarahsellsaustin` | ❌ | ❌ | ❌ | ❌ |
+| Profile URL / handle (bare Instagram handle) | `@sarahsellsaustin` | ✅ | ✅ | ✅ | ✅ |
 | Address | `1204 Barton Springs Rd` | ✅ | ✅ | ✅ | ✅ |
-| Address (ZIP code) | `TX 78704` | ❌ | ❌ | ❌ | ❌ |
+| Address (ZIP code) | `TX 78704` | ✅ | ✅ | ✅ | ✅ |
 
 ### ie-musician-music-teacher — Musician & Music Teacher, Ireland
 
-Layout `classic` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Siobhán O Sullivan`
+Layout `classic` · PDF extracted as 17 line(s) · header name guessed from PDF: `Siobhán O’Sullivan` · from DOCX: `Siobhán O’Sullivan`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name (fada and curly apostrophe on the CV, neither on the account) | `Siobhán O’Sullivan` | ❌ | ❌ | ✅ | ❌ |
+| Candidate name (fada and curly apostrophe on the CV, neither on the account) | `Siobhán O’Sullivan` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+353 87 123 4567` | ✅ | ✅ | ✅ | ✅ |
 | Email | `siobhan.osullivan.music@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Profile URL / handle | `soundcloud.com/siobhanosullivanmusic` | ❌ | ❌ | ❌ | ❌ |
-| Profile URL / handle | `youtube.com/@siobhanplays` | ❌ | ❌ | ❌ | ❌ |
-| Address | `21 Harcourt Terrace` | ✅ | ✅ | ✅ | ❌ |
-| Address (Eircode) | `D02 X285` | ❌ | ❌ | ❌ | ❌ |
+| Profile URL / handle | `soundcloud.com/siobhanosullivanmusic` | ✅ | ✅ | ✅ | ✅ |
+| Profile URL / handle | `youtube.com/@siobhanplays` | ✅ | ✅ | ✅ | ✅ |
+| Address | `21 Harcourt Terrace` | ✅ | ✅ | ✅ | ✅ |
+| Address (Eircode) | `D02 X285` | ✅ | ✅ | ✅ | ✅ |
 
 ### za-diesel-mechanic — Diesel Mechanic, South Africa
 
-Layout `table-header` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Thabo Mokoena`
+Layout `table-header` · PDF extracted as 19 line(s) · header name guessed from PDF: `Thabo Mokoena` · from DOCX: `Thabo Mokoena`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name | `Thabo Mokoena` | ❌ | ✅ | ✅ | ❌ |
+| Candidate name | `Thabo Mokoena` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `082 123 4567` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+27 11 555 0123` | ✅ | ✅ | ✅ | ✅ |
 | Email | `thabo.mokoena.diesel@gmail.com` | ✅ | ✅ | ✅ | ✅ |
 | Address | `23 Jan Smuts Avenue` | ✅ | ✅ | ✅ | ✅ |
-| Address | `Johannesburg, 2193` | ❌ | ❌ | ❌ | ❌ |
-| Government ID (SA ID number (encodes date of birth)) | `9001015009087` | ❌ | ❌ | ❌ | ✅ |
+| Address | `Johannesburg, 2193` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (SA ID number (encodes date of birth)) | `9001015009087` | ✅ | ✅ | ✅ | ✅ |
 
 ### au-physiotherapist — Physiotherapist, Australia
 
-Layout `classic` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: **none**
+Layout `classic` · PDF extracted as 14 line(s) · header name guessed from PDF: `ZHANG Wei (David)` · from DOCX: `ZHANG Wei (David)`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name (surname-first with English name in brackets) | `ZHANG Wei` | ❌ | 🟡 left: wei | ❌ | ❌ |
-| Candidate name (English name) | `David` | ❌ | ✅ | ❌ | ❌ |
+| Candidate name (surname-first with English name in brackets) | `ZHANG Wei` | ✅ | ✅ | ✅ | ✅ |
+| Candidate name (English name) | `David` | ✅ | ✅ | ✅ | ✅ |
 | Phone | `+61 491 570 157` | ✅ | ✅ | ✅ | ✅ |
 | Email | `david.zhang.physio@gmail.com` | ✅ | ✅ | ✅ | ✅ |
-| Registration / licence no. (AHPRA number) | `PHY0001987654` | ❌ | ❌ | ❌ | ✅ |
+| Registration / licence no. (AHPRA number) | `PHY0001987654` | ✅ | ✅ | ✅ | ✅ |
 | Address | `88 George Street` | ✅ | ✅ | ✅ | ✅ |
-| Address | `Parramatta NSW 2150` | ✅ | ✅ | ✅ | ❌ |
+| Address | `Parramatta NSW 2150` | ✅ | ✅ | ✅ | ✅ |
 
 ### au-barista-cafe-supervisor — Barista / Café Supervisor, Australia (from Colombia)
 
-Layout `modern-header` · PDF extracted as 1 line(s) · header name guessed from PDF: **none** · from DOCX: `Valentina Gómez Ramírez`
+Layout `modern-header` · PDF extracted as 16 line(s) · header name guessed from PDF: **none** · from DOCX: `Valentina Gómez Ramírez`
 
 | Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
 |---|---|---|---|---|---|
-| Candidate name (accents on the CV, none on the account) | `Valentina Gómez Ramírez` | ❌ | ❌ | ✅ | ❌ |
-| Phone | `0468 123 456` | ✅ | ✅ | ✅ | ❌ |
+| Candidate name (accents on the CV, none on the account) | `Valentina Gómez Ramírez` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `0468 123 456` | ✅ | ✅ | ✅ | ✅ |
 | Email | `vale.gomez.r@gmail.com` | ✅ | ✅ | ✅ | ✅ |
 | Address | `1203/555 Swanston Street` | ✅ | ✅ | ✅ | ✅ |
-| Address | `Carlton VIC 3053` | ✅ | ✅ | ✅ | ❌ |
+| Address | `Carlton VIC 3053` | ✅ | ✅ | ✅ | ✅ |
+
+### bd-bank-officer — Senior Officer (Retail Banking), Bangladesh
+
+Layout `bd-traditional` · PDF extracted as 35 line(s) · header name guessed from PDF: `SHUVO KUMAR SAHA` · from DOCX: `Shuvo Kumar Saha`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Shuvo Kumar Saha` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+880-1712-000111` | ✅ | ✅ | ✅ | ✅ |
+| Phone (5-3-3 grouping) | `01712 000 222` | ✅ | ✅ | ✅ | ✅ |
+| Email | `shuvo.saha.bank@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Holding No. 12/A, Road No. 5, Block-B` | ✅ | ✅ | ✅ | ✅ |
+| Address (postcode without a dash) | `Dhaka 1213` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Haripada Saha` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Anjali Rani Saha` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name (spouse) | `Mitu Rani Saha` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `12th July 1992` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (smart NID) | `1234567890` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (TIN) | `123456789012` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Religion Hinduism` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Blood Group AB` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Tanvir Ahmed` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `+880 1713-445566` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `tanvir.ahmed@bracbank.com` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Farhana Islam` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `01819-778899` | ✅ | ✅ | ✅ | ✅ |
+
+### pk-electrical-technician — Electrical Technician, Pakistan
+
+Layout `table-header` · PDF extracted as 22 line(s) · header name guessed from PDF: `Muhammad Usman Tariq` · from DOCX: `Muhammad Usman Tariq`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Muhammad Usman Tariq` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `0300-1234567` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+92 321 7654321` | ✅ | ✅ | ✅ | ✅ |
+| Email | `usman.tariq.elec@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Address | `House No. 45, Street 12` | ✅ | ✅ | ✅ | ✅ |
+| Address (Islamabad sector) | `G-9/2` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Tariq Mehmood` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (CNIC) | `35202-1234567-1` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `05/04/1995` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (passport number) | `AB1234567` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Marital Status Single` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Domicile Punjab` | ✅ | ✅ | ✅ | ✅ |
+
+### ke-community-health-worker — Community Health Promoter, Kenya
+
+Layout `classic` · PDF extracted as 23 line(s) · header name guessed from PDF: `Grace Wanjiku Kamau` · from DOCX: `Grace Wanjiku Kamau`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Grace Wanjiku Kamau` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+254 712 345 678` | ✅ | ✅ | ✅ | ✅ |
+| Email | `wanjiku.kamau.chp@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Address (postal box) | `P.O. Box 1234-00100` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (national ID) | `23456789` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (KRA PIN) | `A012345678Z` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `3 March 1996` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Peter Otieno` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `0722 111 222` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `p.otieno@amref.org` | ✅ | ✅ | ✅ | ✅ |
+
+### my-kindergarten-teacher — Kindergarten Teacher, Malaysia
+
+Layout `sidebar` · PDF extracted as 32 line(s) · header name guessed from PDF: **none** · from DOCX: `Nur Aisyah Binti Rahman`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Nur Aisyah Binti Rahman` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `012-345 6789` | ✅ | ✅ | ✅ | ✅ |
+| Email | `aisyah.rahman.edu@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Address | `No. 12, Jalan Bukit Bintang 3/4` | ✅ | ✅ | ✅ | ✅ |
+| Address | `55100 Kuala Lumpur` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (MyKad (encodes date of birth)) | `900101-14-5678` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `1 January 1990` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Race Malay` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Religion Islam` | ✅ | ✅ | ✅ | ✅ |
+
+### de-geriatric-nurse — Geriatric Nurse (Altenpflegerin), Germany
+
+Layout `classic` · PDF extracted as 17 line(s) · header name guessed from PDF: `Katarina Müller` · from DOCX: `Katarina Müller`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Katarina Müller` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Musterstraße 12` | ✅ | ✅ | ✅ | ✅ |
+| Address | `10115 Berlin` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+49 151 23456789` | ✅ | ✅ | ✅ | ✅ |
+| Email | `k.mueller.pflege@web.de` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `12.03.1990` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Place of birth Leipzig` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Married, 2 children` | ✅ | ✅ | ✅ | ✅ |
+
+### us-warehouse-supervisor — Warehouse Shift Supervisor, United States
+
+Layout `modern-header` · PDF extracted as 15 line(s) · header name guessed from PDF: **none** · from DOCX: `Marcus Johnson`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Marcus Johnson` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `(773) 555-0123` | ✅ | ✅ | ✅ | ✅ |
+| Email | `marcus.j.logistics@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Address | `4417 N Broadway Ave` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Apt 3` | ✅ | ✅ | ✅ | ✅ |
+| Address | `IL 60640` | ✅ | ✅ | ✅ | ✅ |
+| Profile URL / handle | `linkedin.com/in/marcusjohnsonops` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (OSHA card number) | `12345678` | ✅ | ✅ | ✅ | ✅ |
+
+### ae-flight-attendant — Cabin Crew (Flight Attendant), United Arab Emirates
+
+Layout `table-header` · PDF extracted as 20 line(s) · header name guessed from PDF: `Angelica Mae Reyes` · from DOCX: `Angelica Mae Reyes`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Angelica Mae Reyes` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+971 50 123 4567` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `050 765 4321` | ✅ | ✅ | ✅ | ✅ |
+| Email | `angelica.reyes.crew@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Flat 1204, Al Nahda Tower 2` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (Emirates ID) | `784-1990-1234567-1` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (passport number) | `P1234567A` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `14 Feb 1994` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Height 165 cm` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes (body measurement) | `Arm reach 212 cm` | ✅ | ✅ | ✅ | ✅ |
+
+### lk-hotel-chef — Chef de Partie, Sri Lanka
+
+Layout `bd-traditional` · PDF extracted as 18 line(s) · header name guessed from PDF: `W. A. KASUN PERERA` · from DOCX: `W. A. Kasun Perera`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Kasun Perera` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+94 77 123 4567` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `011 234 5678` | ✅ | ✅ | ✅ | ✅ |
+| Email | `kasun.perera.chef@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Address | `No. 45/2, Galle Road` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (old-format NIC) | `901234567V` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `1990-05-02` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Civil Status Married` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Gender Male` | ✅ | ✅ | ✅ | ✅ |
+
+### vn-garment-qc-inspector — Quality Control Inspector (Garments), Vietnam
+
+Layout `sidebar` · PDF extracted as 28 line(s) · header name guessed from PDF: **none** · from DOCX: `Nguyễn Thị Lan`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name (account stored without diacritics) | `Nguyễn Thị Lan` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+84 912 345 678` | ✅ | ✅ | ✅ | ✅ |
+| Email | `lan.nguyen.qc@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Address (Vietnamese street address) | `Số 12, đường Nguyễn Trãi` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Quận 1` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (citizen ID) | `079123456789` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `20/10/1995` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Gender Female` | ✅ | ✅ | ✅ | ✅ |
+
+### au-plumber — Licensed Plumber & Gasfitter, Australia
+
+Layout `table-header` · PDF extracted as 19 line(s) · header name guessed from PDF: `Jack Thompson` · from DOCX: `Jack Thompson`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Jack Thompson` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `0412 345 678` | ✅ | ✅ | ✅ | ✅ |
+| Email | `jack@thompsonplumbing.com.au` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (ABN of a sole trader) | `12 345 678 901` | ✅ | ✅ | ✅ | ✅ |
+| Address | `17-19 Smith Street` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Collingwood VIC 3066` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (VBA licence) | `L12345` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Paul Nguyen` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `0423 987 654` | ✅ | ✅ | ✅ | ✅ |
+
+### np-trekking-guide — Trekking Guide, Nepal
+
+Layout `modern-header` · PDF extracted as 13 line(s) · header name guessed from PDF: **none** · from DOCX: `Pemba Tenzing Sherpa`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Pemba Tenzing Sherpa` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+977 9841234567` | ✅ | ✅ | ✅ | ✅ |
+| Email | `pemba.sherpa.treks@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Ward No. 7, Thamel` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (guide licence) | `TGL-1234` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (citizenship certificate) | `12-01-73-01234` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth (Bikram Sambat date) | `2045-06-15 BS` | ✅ | ✅ | ✅ | ✅ |
+
+### bd-tailor-bangla — Tailor / Sewing Machine Operator, Bangladesh
+
+Layout `bd-traditional` · PDF extracted as 11 line(s) · header name guessed from PDF: `রিনা আ ার` · from DOCX: `রিনা আক্তার`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `রিনা আক্তার` | ⚪ | ⚪ | ✅ | ⚪ |
+| Candidate name (first name; the surname's conjunct is not in the PDF text layer) | `রিনা` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `০১৯১২-৩৪৫৬৭৮` | ✅ | ✅ | ✅ | ✅ |
+| Address (village) | `চরপাড়া` | ✅ | ✅ | ✅ | ✅ |
+| Address (post office) | `ডাকঘর: কালিহাতী` | ✅ | ✅ | ✅ | ✅ |
+| Address (upazila) | `উপজেলা: কালিহাতী` | ✅ | ✅ | ✅ | ✅ |
+| Address (Tangail (district), as the PDF text layer holds it) | `টাাইল` | ✅ | ✅ | ⚪ | ✅ |
+| Address (Tangail (district), as the DOCX holds it) | `টাঙ্গাইল` | ⚪ | ⚪ | ✅ | ⚪ |
+| Parent's name | `আব্দুর রশিদ` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name (husband) | `জাহিদ হাসান` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `০৫/০৮/১৯৯৬` | ✅ | ✅ | ✅ | ✅ |
+| Government ID | `৫১০২৯৩৮৪৭৫` | ✅ | ✅ | ✅ | ✅ |
+
+### bd-bdjobs-merchandiser — Merchandiser (Garments), BDJobs format, Bangladesh
+
+Layout `bd-traditional` · PDF extracted as 33 line(s) · header name guessed from PDF: `MD. NAZMUL HASAN RONY` · from DOCX: `Md. Nazmul Hasan Rony`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Md. Nazmul Hasan Rony` | ✅ | ✅ | ✅ | ✅ |
+| Address (BDJobs dash style) | `Road-4, House-21, Sector-11` | ✅ | ✅ | ✅ | ✅ |
+| Phone (Dhaka landline) | `02-8950123` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `01911-223344` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `01674-556677` | ✅ | ✅ | ✅ | ✅ |
+| Email | `nazmul.hasan.merch@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Abdur Razzak` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Nasima Begum` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `March 12, 1996` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Gender Male` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Marital Status Unmarried` | ✅ | ✅ | ✅ | ✅ |
+| Government ID | `6452138790` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Religion Islam` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Boro Bari` | ✅ | ✅ | ✅ | ✅ |
+| Address | `P.O: Mirzapur` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Dist: Tangail` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Blood Group A` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Shafiul Alam` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `01713-000555` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `shafiul.alam@standardgroup.com.bd` | ✅ | ✅ | ✅ | ✅ |
+
+### bd-ngo-field-officer — Field Officer (Microfinance NGO), Bangladesh
+
+Layout `table-header` · PDF extracted as 17 line(s) · header name guessed from PDF: `Mohammad Rafiqul` · from DOCX: `Mohammad Rafiqul Islam`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Mohammad Rafiqul Islam` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+880 1556 112233` | ✅ | ✅ | ✅ | ✅ |
+| Email | `rafiq.brac.fo@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name (care-of name in the address) | `Abdul Majid` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Vill: Kashipur` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Post: Kashipur Bazar` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Thana: Kotwali` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Zilla: Barishal` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (birth registration number) | `19941026512345678` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `02 February 1994` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Religion Islam` | ✅ | ✅ | ✅ | ✅ |
+
+### bd-senior-staff-nurse — Senior Staff Nurse, Bangladesh
+
+Layout `sidebar` · PDF extracted as 32 line(s) · header name guessed from PDF: **none** · from DOCX: `Salma Khatun (সালমা খাতুন)`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Salma Khatun` | ✅ | ✅ | ✅ | ✅ |
+| Candidate name (name in Bangla, in brackets) | `সালমা খাতুন` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `01818-123456` | ✅ | ✅ | ✅ | ✅ |
+| Email | `salma.khatun.rn@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Registration / licence no. (BNMC registration) | `54321` | ✅ | ✅ | ✅ | ✅ |
+| Address | `House 7, Road 12` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Dhaka-1207` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Height 5 ft 2 in` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Weight 50 kg` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes | `Blood Group O` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `Kamrul Hasan` | ✅ | ✅ | ✅ | ✅ |
+
+### bd-govt-application-bangla — Office Assistant (government application form), Bangladesh
+
+Layout `bd-traditional` · PDF extracted as 17 line(s) · header name guessed from PDF: `সুমন মিয়া` · from DOCX: `সুমন মিয়া`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `সুমন মিয়া` | ✅ | ✅ | ✅ | ✅ |
+| Candidate name (English name field) | `SUMON MIA` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `০১৭২২-৩৩৪৪৫৫` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `আলী হোসেন` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name | `জমিলা খাতুন` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `১০/০২/১৯৯৮` | ✅ | ✅ | ✅ | ✅ |
+| Government ID | `৭৮৯৪৫৬১২৩০` | ✅ | ✅ | ✅ | ✅ |
+| Sensitive attributes (religion) | `ইসলাম` | ✅ | ✅ | ✅ | ✅ |
+| Address (village) | `দক্ষিণপাড়া` | ⚪ | ⚪ | ✅ | ⚪ |
+| Address (the village, as the PDF text layer holds it) | `দিণপাড়া` | ✅ | ✅ | ⚪ | ✅ |
+| Address (post office (also a college name, which must survive)) | `ডাকঘর : সোনাতলা` | ✅ | ✅ | ✅ | ✅ |
+| Address | `উপজেলা : সোনাতলা` | ✅ | ✅ | ✅ | ✅ |
+| Address (district) | `বগুড়া` | ✅ | ✅ | ✅ | ✅ |
+
+### bd-heavy-vehicle-driver — Heavy Vehicle Driver (overseas employment), Bangladesh
+
+Layout `classic` · PDF extracted as 16 line(s) · header name guessed from PDF: `Md. Abul Kalam Azad` · from DOCX: `Md. Abul Kalam Azad`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Md. Abul Kalam Azad` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `01799-887766` | ✅ | ✅ | ✅ | ✅ |
+| Referee details (guardian's phone) | `01799-112200` | ✅ | ✅ | ✅ | ✅ |
+| Email | `abulkalam.driver@gmail.com` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name (care-of name) | `Md. Harun` | ✅ | ✅ | ✅ | ✅ |
+| Address | `House 34, Road 2, Section 6` | ✅ | ✅ | ✅ | ✅ |
+| Address | `Dhaka-1216` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (driving licence) | `DK0012345L00001` | ✅ | ✅ | ✅ | ✅ |
+| Parent's name (emergency contact (brother)) | `Abul Hashem` | ✅ | ✅ | ✅ | ✅ |
+| Referee details (emergency contact phone) | `01799-334455` | ✅ | ✅ | ✅ | ✅ |
+| Government ID (passport) | `EC7654321` | ✅ | ✅ | ✅ | ✅ |
+| Date of birth | `15-08-1990` | ✅ | ✅ | ✅ | ✅ |
+
+### bd-university-lecturer — Lecturer (Environmental Science), Bangladesh
+
+Layout `classic` · PDF extracted as 17 line(s) · header name guessed from PDF: `Dr. Tahmina Rahman` · from DOCX: `Dr. Tahmina Rahman`
+
+| Category | Value | PDF guest | PDF logged in | DOCX guest | Redactor on echo |
+|---|---|---|---|---|---|
+| Candidate name | `Tahmina Rahman` | ✅ | ✅ | ✅ | ✅ |
+| Candidate name (own name in citation form) | `Rahman, T.` | ✅ | ✅ | ✅ | ✅ |
+| Phone | `+880 1711-998877` | ✅ | ✅ | ✅ | ✅ |
+| Email | `tahmina.rahman@juniv.edu` | ✅ | ✅ | ✅ | ✅ |
+| Profile URL / handle | `orcid.org/0000-0002-1234-5678` | ✅ | ✅ | ✅ | ✅ |
+| Profile URL / handle | `scholar.google.com/citations?user=AbCdEf12345` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `Md. Shahidul Islam` | ✅ | ✅ | ✅ | ✅ |
+| Referee details | `shahid.islam@juniv.edu` | ✅ | ✅ | ✅ | ✅ |

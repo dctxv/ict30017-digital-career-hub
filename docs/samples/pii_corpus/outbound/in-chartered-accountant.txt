@@ -1,11 +1,12 @@
 # in-chartered-accountant — Chartered Accountant (India), layout: table-header
 
-Header name inferred from PDF text: null
+Name read from the PDF's largest type: "CA Rohan Mehta"
+Header name inferred from PDF text: "CA Rohan Mehta"
 Header name inferred from DOCX text: "CA Rohan Mehta"
-Extracted PDF text: 1 line(s) before sanitising, 9 after
+Extracted PDF text: 30 line(s) before sanitising, 30 after
 
 ## Guest — mask log
-[pii-mask] label=AI messages=2 masked=email=1 phone-international=1
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 phone-trunk=1 phone-labelled=2 national-id-shape=1 numbered-id=1 keyword-id=1 field-dob=1 field-family=1 field-personal=1 address-unit=1 known-name=1
 
 ## Guest — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -16,30 +17,43 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-CA Rohan Mehta Chartered Accountant | ICAI Membership No. 154321 Mobile: [PHONE] Residence: 022 2634 5678 Email: [EMAIL] Flat 302, Sai Krupa CHS, Andheri (West), Mumbai
-
-400058 PROFILE Chartered Accountant with 5 years in statutory audit and Ind AS reporting for listed manufacturing clients. WORK EXPERIENCE Assistant Manager, Audit & Assurance
-
-Deloitte Haskins & Sells LLP, Mumbai Aug 2021
-
-Present Lead statutory audits for 6 listed clients with turnover up to
-
-4,000 crore. Ind AS 115 and Ind AS 116 transition reviews. Article Assistant
-
-Kalyaniwalla & Mistry LLP, Mumbai 2018
-
-2021 GST reconciliations and tax audits under Section 44AB. QUALIFICATIONS Chartered Accountant (All India Rank 38)
-
-ICAI Nov 2021 B.Com
-
-University of Mumbai 2018 SKILLS Ind AS GST Tally ERP 9 SAP FICO Advanced Excel PERSONAL DETAILS Father's Name : Suresh Mehta Date of Birth : 07/11/1993 PAN : ABCPM1234K Aadhaar : 4521 8876 3310 Marital Status : Single Languages : English, Hindi, Gujarati, Marathi
+[NAME]
+Chartered Accountant | ICAI Membership No. [ID]
+Mobile: [PHONE]
+Residence: [PHONE]
+Email: [EMAIL]
+[ADDRESS]
+PROFILE
+Chartered Accountant with 5 years in statutory audit and Ind AS reporting for listed manufacturing clients.
+WORK EXPERIENCE
+Assistant Manager, Audit & Assurance — Deloitte Haskins & Sells LLP, Mumbai Aug 2021 – Present
+Lead statutory audits for 6 listed clients with turnover up to 4,000 crore.
+Ind AS 115 and Ind AS 116 transition reviews.
+Article Assistant — Kalyaniwalla & Mistry LLP, Mumbai 2018 – 2021
+GST reconciliations and tax audits under Section 44AB.
+QUALIFICATIONS
+Chartered Accountant (All India Rank 38) — ICAI Nov 2021
+B.Com — University of Mumbai 2018
+SKILLS
+Ind AS
+GST
+Tally ERP 9
+SAP FICO
+Advanced Excel
+PERSONAL DETAILS
+Father's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+PAN : [ID]
+Aadhaar : [ID]
+Marital Status : [PERSONAL]
+Languages : English, Hindi, Gujarati, Marathi
 </RESUME>
 
 ## Logged in — account identity
 {"fullName":"Rohan Mehta","email":"rohan.mehta.ca@gmail.com","phone":"+91 98200 12345"}
 
 ## Logged in — mask log
-[pii-mask] label=AI messages=2 masked=known-name=4 known-phone=1 email=1
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-trunk=1 phone-labelled=2 national-id-shape=1 numbered-id=1 keyword-id=1 field-dob=1 field-family=1 field-personal=1 address-unit=1 known-name=1
 
 ## Logged in — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -50,21 +64,34 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-CA [NAME] Chartered Accountant | ICAI Membership No. 154321 Mobile: [PHONE] Residence: 022 2634 5678 Email: [NAME][EMAIL] Flat 302, Sai Krupa CHS, Andheri (West), Mumbai
-
-400058 PROFILE Chartered Accountant with 5 years in statutory audit and Ind AS reporting for listed manufacturing clients. WORK EXPERIENCE Assistant Manager, Audit & Assurance
-
-Deloitte Haskins & Sells LLP, Mumbai Aug 2021
-
-Present Lead statutory audits for 6 listed clients with turnover up to
-
-4,000 crore. Ind AS 115 and Ind AS 116 transition reviews. Article Assistant
-
-Kalyaniwalla & Mistry LLP, Mumbai 2018
-
-2021 GST reconciliations and tax audits under Section 44AB. QUALIFICATIONS Chartered Accountant (All India Rank 38)
-
-ICAI Nov 2021 B.Com
-
-University of Mumbai 2018 SKILLS Ind AS GST Tally ERP 9 SAP FICO Advanced Excel PERSONAL DETAILS Father's Name : Suresh [NAME] Date of Birth : 07/11/1993 PAN : ABCPM1234K Aadhaar : 4521 8876 3310 Marital Status : Single Languages : English, Hindi, Gujarati, Marathi
+[NAME]
+Chartered Accountant | ICAI Membership No. [ID]
+Mobile: [PHONE]
+Residence: [PHONE]
+Email: [EMAIL]
+[ADDRESS]
+PROFILE
+Chartered Accountant with 5 years in statutory audit and Ind AS reporting for listed manufacturing clients.
+WORK EXPERIENCE
+Assistant Manager, Audit & Assurance — Deloitte Haskins & Sells LLP, Mumbai Aug 2021 – Present
+Lead statutory audits for 6 listed clients with turnover up to 4,000 crore.
+Ind AS 115 and Ind AS 116 transition reviews.
+Article Assistant — Kalyaniwalla & Mistry LLP, Mumbai 2018 – 2021
+GST reconciliations and tax audits under Section 44AB.
+QUALIFICATIONS
+Chartered Accountant (All India Rank 38) — ICAI Nov 2021
+B.Com — University of Mumbai 2018
+SKILLS
+Ind AS
+GST
+Tally ERP 9
+SAP FICO
+Advanced Excel
+PERSONAL DETAILS
+Father's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+PAN : [ID]
+Aadhaar : [ID]
+Marital Status : [PERSONAL]
+Languages : English, Hindi, Gujarati, Marathi
 </RESUME>

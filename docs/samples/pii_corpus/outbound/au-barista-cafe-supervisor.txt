@@ -1,11 +1,12 @@
 # au-barista-cafe-supervisor — Barista / Café Supervisor (Australia (from Colombia)), layout: modern-header
 
+Name read from the PDF's largest type: "VALENTINAGÓMEZ RAMÍREZ"
 Header name inferred from PDF text: null
 Header name inferred from DOCX text: "Valentina Gómez Ramírez"
-Extracted PDF text: 1 line(s) before sanitising, 15 after
+Extracted PDF text: 16 line(s) before sanitising, 16 after
 
 ## Guest — mask log
-[pii-mask] label=AI messages=2 masked=email=1 phone-au=1 address-street=1 address-au-postcode=1
+[pii-mask] label=AI messages=2 masked=email=1 phone-au=1 address-street=1 known-name=1
 
 ## Guest — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -16,42 +17,28 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-V A L E N T I N A G Ó M E Z R A M Í R E Z Barista & Café Supervisor
-
-[PHONE]
-
-[EMAIL]
-
-Apt [ADDRESS] ABOUT Specialty coffee barista with 5 years across Bogotá and Melbourne. Student visa (subclass 500)
-
-available 48 hours per fortnight and full-time in semester breaks. EXPERIENCE Café Supervisor
-
-Market Lane Coffee, Melbourne 2023
-
-Present Run the floor on 600-cup mornings; trained 7 new baristas on La Marzocco and EK43. Barista
-
-Juan Valdez Café, Bogotá 2019
-
-2022 Latte art competitions; Colombian single-origin tastings. EDUCATION Master of Marketing (current)
-
-RMIT University 2023
-
-2025 SKILLS Latte art
-
-Square POS
-
-RSA (Victoria)
-
-Food Handler certificate
-
-Spanish (native)
+[NAME]
+Barista & Café Supervisor
+[PHONE] [EMAIL] Apt [ADDRESS]
+ABOUT
+Specialty coffee barista with 5 years across Bogotá and Melbourne. Student visa (subclass 500) — available 48 hours
+per fortnight and full-time in semester breaks.
+EXPERIENCE
+Café Supervisor — Market Lane Coffee, Melbourne 2023 – Present
+Run the floor on 600-cup mornings; trained 7 new baristas on La Marzocco and EK43.
+Barista — Juan Valdez Café, Bogotá 2019 – 2022
+Latte art competitions; Colombian single-origin tastings.
+EDUCATION
+Master of Marketing (current) — RMIT University 2023 – 2025
+SKILLS
+Latte art • Square POS • RSA (Victoria) • Food Handler certificate • Spanish (native)
 </RESUME>
 
 ## Logged in — account identity
 {"fullName":"Valentina Gomez","email":"vale.gomez.r@gmail.com","phone":"0468 123 456"}
 
 ## Logged in — mask log
-[pii-mask] label=AI messages=2 masked=known-name=1 known-phone=1 email=1 address-street=1 address-au-postcode=1
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 address-street=1 known-name=1
 
 ## Logged in — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -62,33 +49,19 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-V A L E N T I N A G Ó M E Z R A M Í R E Z Barista & Café Supervisor
-
-[PHONE]
-
-vale.[NAME][EMAIL]
-
-Apt [ADDRESS] ABOUT Specialty coffee barista with 5 years across Bogotá and Melbourne. Student visa (subclass 500)
-
-available 48 hours per fortnight and full-time in semester breaks. EXPERIENCE Café Supervisor
-
-Market Lane Coffee, Melbourne 2023
-
-Present Run the floor on 600-cup mornings; trained 7 new baristas on La Marzocco and EK43. Barista
-
-Juan Valdez Café, Bogotá 2019
-
-2022 Latte art competitions; Colombian single-origin tastings. EDUCATION Master of Marketing (current)
-
-RMIT University 2023
-
-2025 SKILLS Latte art
-
-Square POS
-
-RSA (Victoria)
-
-Food Handler certificate
-
-Spanish (native)
+[NAME]
+Barista & Café Supervisor
+[PHONE] [EMAIL] Apt [ADDRESS]
+ABOUT
+Specialty coffee barista with 5 years across Bogotá and Melbourne. Student visa (subclass 500) — available 48 hours
+per fortnight and full-time in semester breaks.
+EXPERIENCE
+Café Supervisor — Market Lane Coffee, Melbourne 2023 – Present
+Run the floor on 600-cup mornings; trained 7 new baristas on La Marzocco and EK43.
+Barista — Juan Valdez Café, Bogotá 2019 – 2022
+Latte art competitions; Colombian single-origin tastings.
+EDUCATION
+Master of Marketing (current) — RMIT University 2023 – 2025
+SKILLS
+Latte art • Square POS • RSA (Victoria) • Food Handler certificate • Spanish (native)
 </RESUME>

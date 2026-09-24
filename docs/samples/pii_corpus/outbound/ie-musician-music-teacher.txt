@@ -1,11 +1,12 @@
 # ie-musician-music-teacher — Musician & Music Teacher (Ireland), layout: classic
 
-Header name inferred from PDF text: null
-Header name inferred from DOCX text: "Siobhán O Sullivan"
-Extracted PDF text: 1 line(s) before sanitising, 6 after
+Name read from the PDF's largest type: "Siobhán O’Sullivan"
+Header name inferred from PDF text: "Siobhán O’Sullivan"
+Header name inferred from DOCX text: "Siobhán O’Sullivan"
+Extracted PDF text: 17 line(s) before sanitising, 17 after
 
 ## Guest — mask log
-[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 address-street=1
+[pii-mask] label=AI messages=2 masked=email=1 profile-url=2 phone-international=1 address-street=1 address-unit=1 known-name=1
 
 ## Guest — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -16,24 +17,30 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-Siobhán O Sullivan Pianist · Piano & Theory Teacher [PHONE] | [EMAIL] | soundcloud.com/siobhanosullivanmusic | youtube.com/@siobhanplays Apartment 7, [ADDRESS], Dublin 2, D02 X285 PROFILE Concert pianist and teacher with 10 years preparing students for RIAM and ABRSM exams through Grade 8 and diploma. Garda vetted. TEACHING Piano Teacher
-
-Royal Irish Academy of Music, Dublin 2017
-
-Present 28 students per week; 11 first-place finishes at Feis Ceoil since 2019. Leaving Certificate Music Teacher
-
-Loreto College St Stephen s Green, Dublin 2015
-
-2017 PERFORMANCE Guest soloist, RTÉ Concert Orchestra (2022) Lunchtime recital series, National Concert Hall EDUCATION MA Music Performance
-
-TU Dublin Conservatory of Music and Drama 2015
+[NAME]
+Pianist · Piano & Theory Teacher
+[PHONE] | [EMAIL] | [URL] |
+[URL]
+[ADDRESS]
+PROFILE
+Concert pianist and teacher with 10 years preparing students for RIAM and ABRSM exams through Grade 8
+and diploma. Garda vetted.
+TEACHING
+Piano Teacher — Royal Irish Academy of Music, Dublin 2017 – Present
+28 students per week; 11 first-place finishes at Feis Ceoil since 2019.
+Leaving Certificate Music Teacher — Loreto College St Stephen’s Green, Dublin 2015 – 2017
+PERFORMANCE
+Guest soloist, RTÉ Concert Orchestra (2022)
+Lunchtime recital series, National Concert Hall
+EDUCATION
+MA Music Performance — TU Dublin Conservatory of Music and Drama 2015
 </RESUME>
 
 ## Logged in — account identity
 {"fullName":"Siobhan O'Sullivan","email":"siobhan.osullivan.music@gmail.com","phone":"+353 87 123 4567"}
 
 ## Logged in — mask log
-[pii-mask] label=AI messages=2 masked=known-name=1 known-phone=1 email=1 address-street=1
+[pii-mask] label=AI messages=2 masked=known-email=1 profile-url=2 known-phone=1 address-street=1 address-unit=1 known-name=1
 
 ## Logged in — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -44,15 +51,21 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-Siobhán O Sullivan Pianist · Piano & Theory Teacher [PHONE] | [NAME][EMAIL] | soundcloud.com/siobhanosullivanmusic | youtube.com/@siobhanplays Apartment 7, [ADDRESS], Dublin 2, D02 X285 PROFILE Concert pianist and teacher with 10 years preparing students for RIAM and ABRSM exams through Grade 8 and diploma. Garda vetted. TEACHING Piano Teacher
-
-Royal Irish Academy of Music, Dublin 2017
-
-Present 28 students per week; 11 first-place finishes at Feis Ceoil since 2019. Leaving Certificate Music Teacher
-
-Loreto College St Stephen s Green, Dublin 2015
-
-2017 PERFORMANCE Guest soloist, RTÉ Concert Orchestra (2022) Lunchtime recital series, National Concert Hall EDUCATION MA Music Performance
-
-TU Dublin Conservatory of Music and Drama 2015
+[NAME]
+Pianist · Piano & Theory Teacher
+[PHONE] | [EMAIL] | [URL] |
+[URL]
+[ADDRESS]
+PROFILE
+Concert pianist and teacher with 10 years preparing students for RIAM and ABRSM exams through Grade 8
+and diploma. Garda vetted.
+TEACHING
+Piano Teacher — Royal Irish Academy of Music, Dublin 2017 – Present
+28 students per week; 11 first-place finishes at Feis Ceoil since 2019.
+Leaving Certificate Music Teacher — Loreto College St Stephen’s Green, Dublin 2015 – 2017
+PERFORMANCE
+Guest soloist, RTÉ Concert Orchestra (2022)
+Lunchtime recital series, National Concert Hall
+EDUCATION
+MA Music Performance — TU Dublin Conservatory of Music and Drama 2015
 </RESUME>

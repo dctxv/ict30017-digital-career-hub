@@ -1,11 +1,12 @@
 # au-registered-nurse — Registered Nurse (ICU) (Australia), layout: classic
 
-Header name inferred from PDF text: "Priya Raghunathan Registered Nurse"
+Name read from the PDF's largest type: "Priya Raghunathan"
+Header name inferred from PDF text: "Priya Raghunathan"
 Header name inferred from DOCX text: "Priya Raghunathan"
-Extracted PDF text: 1 line(s) before sanitising, 9 after
+Extracted PDF text: 30 line(s) before sanitising, 29 after
 
 ## Guest — mask log
-[pii-mask] label=AI messages=2 masked=known-name=13 email=2 profile-url=1 phone-au=3 address-street=1 address-au-postcode=1
+[pii-mask] label=AI messages=2 masked=email=2 profile-url=1 phone-au=3 phone-labelled=1 national-id-shape=1 address-street=1 referee-name=2 known-name=1
 
 ## Guest — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -17,29 +18,41 @@ rendered_pages_available: false
 
 <RESUME>
 [NAME]
-
-Intensive Care Mobile: [PHONE] | Email: [NAME][EMAIL] | LinkedIn: [URL]/[NAME]-rn Unit [ADDRESS] PROFESSIONAL SUMMARY [NAME] with six years of acute care experience, including four years in a 24-bed tertiary Intensive Care Unit. Confident managing ventilated patients, CRRT and post-cardiac surgery care. AHPRA registration: NMW0001234567. EXPERIENCE [NAME], Intensive Care Unit
-
-The Alfred, Melbourne Feb 2021
-
-Present Care for 1:1 ventilated patients, including ECMO and CRRT. Preceptor to 12 graduate nurses; ICU Link [NAME] for pressure injury prevention. Graduate [NAME]
-
-Epworth HealthCare, Richmond Jan 2019
-
-Jan 2021 Rotations through cardiothoracic surgery and general medicine. EDUCATION Graduate Certificate in Intensive Care Nursing
-
-Monash University 2022 Bachelor of Nursing
-
-Deakin University 2015
-
-2018 CERTIFICATIONS Advanced Life Support (ALS2) Basic Life Support Current Working with Children Check REFEREES Karen Whitfield [NAME] Unit Manager, ICU, The Alfred [PHONE] [EMAIL] Dr Michael Tanaka ICU Consultant, The Alfred [PHONE]
+Registered Nurse — Intensive Care
+Mobile: [PHONE] | Email: [EMAIL] | LinkedIn: [URL]
+Unit [ADDRESS]
+PROFESSIONAL SUMMARY
+Registered Nurse with six years of acute care experience, including four years in a 24-bed tertiary Intensive
+Care Unit. Confident managing ventilated patients, CRRT and post-cardiac surgery care. AHPRA registration:
+[ID].
+EXPERIENCE
+Registered Nurse, Intensive Care Unit — The Alfred, Melbourne Feb 2021 – Present
+Care for 1:1 ventilated patients, including ECMO and CRRT.
+Preceptor to 12 graduate nurses; ICU Link Nurse for pressure injury prevention.
+Graduate Registered Nurse — Epworth HealthCare, Richmond Jan 2019 – Jan 2021
+Rotations through cardiothoracic surgery and general medicine.
+EDUCATION
+Graduate Certificate in Intensive Care Nursing — Monash University 2022
+Bachelor of Nursing — Deakin University 2015 – 2018
+CERTIFICATIONS
+Advanced Life Support (ALS2)
+Basic Life Support
+Current Working with Children Check
+REFEREES
+[NAME]
+Nurse Unit Manager, ICU, The Alfred
+[PHONE]
+[EMAIL]
+[NAME]
+ICU Consultant, The Alfred
+[PHONE]
 </RESUME>
 
 ## Logged in — account identity
 {"fullName":"Priya Raghunathan","email":"priya.raghunathan.rn@gmail.com","phone":"0491 570 156"}
 
 ## Logged in — mask log
-[pii-mask] label=AI messages=2 masked=known-name=13 known-phone=1 email=2 profile-url=1 phone-au=2 address-street=1 address-au-postcode=1
+[pii-mask] label=AI messages=2 masked=known-email=1 email=1 profile-url=1 known-phone=1 phone-au=2 phone-labelled=1 national-id-shape=1 address-street=1 referee-name=2 known-name=1
 
 ## Logged in — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -51,20 +64,32 @@ rendered_pages_available: false
 
 <RESUME>
 [NAME]
-
-Intensive Care Mobile: [PHONE] | Email: [NAME][EMAIL] | LinkedIn: [URL]/[NAME]-rn Unit [ADDRESS] PROFESSIONAL SUMMARY [NAME] with six years of acute care experience, including four years in a 24-bed tertiary Intensive Care Unit. Confident managing ventilated patients, CRRT and post-cardiac surgery care. AHPRA registration: NMW0001234567. EXPERIENCE [NAME], Intensive Care Unit
-
-The Alfred, Melbourne Feb 2021
-
-Present Care for 1:1 ventilated patients, including ECMO and CRRT. Preceptor to 12 graduate nurses; ICU Link [NAME] for pressure injury prevention. Graduate [NAME]
-
-Epworth HealthCare, Richmond Jan 2019
-
-Jan 2021 Rotations through cardiothoracic surgery and general medicine. EDUCATION Graduate Certificate in Intensive Care Nursing
-
-Monash University 2022 Bachelor of Nursing
-
-Deakin University 2015
-
-2018 CERTIFICATIONS Advanced Life Support (ALS2) Basic Life Support Current Working with Children Check REFEREES Karen Whitfield [NAME] Unit Manager, ICU, The Alfred [PHONE] [EMAIL] Dr Michael Tanaka ICU Consultant, The Alfred [PHONE]
+Registered Nurse — Intensive Care
+Mobile: [PHONE] | Email: [EMAIL] | LinkedIn: [URL]
+Unit [ADDRESS]
+PROFESSIONAL SUMMARY
+Registered Nurse with six years of acute care experience, including four years in a 24-bed tertiary Intensive
+Care Unit. Confident managing ventilated patients, CRRT and post-cardiac surgery care. AHPRA registration:
+[ID].
+EXPERIENCE
+Registered Nurse, Intensive Care Unit — The Alfred, Melbourne Feb 2021 – Present
+Care for 1:1 ventilated patients, including ECMO and CRRT.
+Preceptor to 12 graduate nurses; ICU Link Nurse for pressure injury prevention.
+Graduate Registered Nurse — Epworth HealthCare, Richmond Jan 2019 – Jan 2021
+Rotations through cardiothoracic surgery and general medicine.
+EDUCATION
+Graduate Certificate in Intensive Care Nursing — Monash University 2022
+Bachelor of Nursing — Deakin University 2015 – 2018
+CERTIFICATIONS
+Advanced Life Support (ALS2)
+Basic Life Support
+Current Working with Children Check
+REFEREES
+[NAME]
+Nurse Unit Manager, ICU, The Alfred
+[PHONE]
+[EMAIL]
+[NAME]
+ICU Consultant, The Alfred
+[PHONE]
 </RESUME>

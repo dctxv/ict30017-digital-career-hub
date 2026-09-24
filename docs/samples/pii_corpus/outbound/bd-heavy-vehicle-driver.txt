@@ -1,0 +1,69 @@
+# bd-heavy-vehicle-driver — Heavy Vehicle Driver (overseas employment) (Bangladesh), layout: classic
+
+Name read from the PDF's largest type: "Md. Abul Kalam Azad"
+Header name inferred from PDF text: "Md. Abul Kalam Azad"
+Header name inferred from DOCX text: "Md. Abul Kalam Azad"
+Extracted PDF text: 16 line(s) before sanitising, 16 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=3 phone-labelled=3 numbered-id=2 field-dob=1 field-family=1 field-address=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Heavy Vehicle Driver
+Mobile: [PHONE] | Guardian's Mobile: [PHONE] | Email: [EMAIL]
+Present Address: [ADDRESS]
+OBJECTIVE
+Experienced heavy vehicle driver seeking employment in Saudi Arabia, Qatar or the UAE.
+LICENCE
+BRTA Driving Licence No: [ID] (Professional, Heavy). Valid to 2029.
+EXPERIENCE
+Covered Van Driver — Pran-RFL Group, Dhaka 2016 – 2024
+Dhaka–Chattogram highway runs; 400,000 km without an accident.
+EMERGENCY CONTACT
+Brother: [NAME]
+PASSPORT DETAILS
+Passport No : [ID]
+Date of Birth : [DATE OF BIRTH]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Abul Kalam","email":"abulkalam.driver@gmail.com","phone":"01799887766"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-bd=2 phone-labelled=3 numbered-id=2 field-dob=1 field-family=1 field-address=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Heavy Vehicle Driver
+Mobile: [PHONE] | Guardian's Mobile: [PHONE] | Email: [EMAIL]
+Present Address: [ADDRESS]
+OBJECTIVE
+Experienced heavy vehicle driver seeking employment in Saudi Arabia, Qatar or the UAE.
+LICENCE
+BRTA Driving Licence No: [ID] (Professional, Heavy). Valid to 2029.
+EXPERIENCE
+Covered Van Driver — Pran-RFL Group, Dhaka 2016 – 2024
+Dhaka–Chattogram highway runs; 400,000 km without an accident.
+EMERGENCY CONTACT
+Brother: [NAME]
+PASSPORT DETAILS
+Passport No : [ID]
+Date of Birth : [DATE OF BIRTH]
+</RESUME>

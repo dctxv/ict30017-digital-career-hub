@@ -17,10 +17,17 @@ const INJECTION_PATTERNS = [
 
 // Unicode symbol ranges that PDF parsers mangle into garbage sequences.
 // e.g. ✉ (U+2709) → "%", ☎ (U+260E) → "n", ■ (U+25A0) → ")"
-// Covers: General Punctuation → Dingbats (U+2000–U+27FF)
+// Covers: General Punctuation → Dingbats (U+2000–U+27FF), except as below
 //       + Halfwidth/Fullwidth Forms (U+FF00–U+FFEF)
 // Bangla script (U+0980–U+09FF) and Latin Extended are outside these ranges — preserved.
-const SYMBOL_RANGE = /[ -⟿＀-￯]/g;
+// Punctuation U+2010–U+2027 (hyphens, dashes, curly quotes, bullets) is NOT
+// stripped: pdfjs extracts it correctly, and removing it loses meaning — a
+// date range "2019 – 2023" becomes two unrelated years, "O’Connor" becomes
+// two words, and the dash between a job title and an employer ("Plumber —
+// Thompson Plumbing") is the only thing separating them. U+2028/U+2029 are
+// line and paragraph separators and become a newline.
+const SYMBOL_RANGE = /[\u2000-\u200F\u202A-\u27FF\uFF00-\uFFEF]/g;
+const LINE_SEPARATORS = /[\u2028\u2029]/g;
 
 /**
  * Sanitises extracted resume text before it is passed to the AI.
@@ -35,11 +42,15 @@ const SYMBOL_RANGE = /[ -⟿＀-￯]/g;
 export function sanitiseResumeText(rawText) {
   let text = rawText;
 
-  // 1. Repair line breaks inserted mid-word or mid-sentence by PyMuPDF during PDF extraction.
+  // 1. Rejoin words hyphenated across a line break (e.g. "opti-\nmisation" → "optimisation").
   //    Must run before any other pass so rejoined characters aren't stripped prematurely.
-  text = text.replace(/(\w)-\n(\w)/g, '$1$2');  // rejoin hyphenated line breaks (e.g. "opti-\nmisation" → "optimisation")
-  text = text.replace(/(\w)\n(\w)/g, '$1 $2');   // rejoin bare mid-word breaks with a space
-  text = text.replace(/ {2,}/g, ' ');             // collapse multiple spaces from above joins
+  //    Plain line breaks are kept: the parser now reports the document's real
+  //    lines, and the PII mask depends on them to find a CV's header, its
+  //    labelled fields and where an address ends. Joining every "word\nword"
+  //    used to flatten each page into a single line.
+  //    Lower case on both sides only: a value that ends in a dash ("Blood
+  //    Group : AB-") must not be glued to the label on the next line.
+  text = text.replace(/(\p{Ll})-\n(\p{Ll})/gu, '$1$2');
 
   // 2. Strip script/style blocks first (before stripping tags, to remove their content too)
   text = text.replace(/<script[\s\S]*?<\/script>/gi, '');
@@ -50,6 +61,7 @@ export function sanitiseResumeText(rawText) {
 
   // 4. Replace Unicode symbol/pictograph characters that PDF parsers mangle.
   //    Replaces with a space so word boundaries are preserved (e.g. "John✉gmail" → "John gmail").
+  text = text.replace(LINE_SEPARATORS, '\n');
   text = text.replace(SYMBOL_RANGE, ' ');
 
   // 5. Redact prompt injection patterns
@@ -57,8 +69,13 @@ export function sanitiseResumeText(rawText) {
     text = text.replace(pattern, '[REDACTED]');
   }
 
-  // 6. Collapse runs of 3+ whitespace/newline characters down to a blank line
-  text = text.replace(/\s{3,}/g, '\n\n');
+  // 6. Normalise whitespace. Spaces left by the passes above collapse to one
+  //    space and never become a line break: a stripped icon or dash between
+  //    two words ("Nurse — ICU") used to leave three spaces, which turned into
+  //    a paragraph break in the middle of a line.
+  text = text.replace(/[^\S\n]+/g, ' ');
+  text = text.replace(/ ?\n ?/g, '\n');
+  text = text.replace(/\n{3,}/g, '\n\n');
   text = text.trim();
 
   // 7. Truncate to character limit

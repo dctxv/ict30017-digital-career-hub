@@ -120,6 +120,20 @@ function assertContentSurvived(label) {
   }
 }
 
+/**
+ * The mask runs over system prompts too, and a prompt about CVs is full of
+ * CV vocabulary: "REFERENCES", "Religion", "Father's name". A placeholder in a
+ * system message means the mask rewrote our own instructions.
+ */
+function assertSystemPromptsIntact(label) {
+  for (const body of sentBodies) {
+    for (const message of body.messages.filter((m) => m.role === 'system')) {
+      const found = String(message.content).match(/\[(?:NAME|EMAIL|PHONE|ADDRESS|URL|ID|DATE OF BIRTH|PERSONAL)\]/);
+      assert.ok(!found, `${label}: the system prompt was masked (${found?.[0]})`);
+    }
+  }
+}
+
 /** The SDK must never be handed our own bookkeeping field. */
 function assertNoMaskContextOnTheWire(label) {
   for (const body of sentBodies) {
@@ -153,6 +167,7 @@ describe('no PII reaches the wire', () => {
     await analyzeResume(RESUME, { identity: IDENTITY, marketMode: 'bangladesh' });
 
     assertClean('resume review');
+    assertSystemPromptsIntact('resume review');
     assertContentSurvived('resume review');
     assertNoMaskContextOnTheWire('resume review');
   });
@@ -178,6 +193,7 @@ describe('no PII reaches the wire', () => {
     });
 
     assertClean('interview questions');
+    assertSystemPromptsIntact('interview questions');
     assertContentSurvived('interview questions');
     assertNoMaskContextOnTheWire('interview questions');
   });
@@ -204,6 +220,7 @@ describe('no PII reaches the wire', () => {
     });
 
     assertClean('interview evaluation');
+    assertSystemPromptsIntact('interview evaluation');
     assert.ok(
       JSON.stringify(sentBodies).includes('BRAC Bank Limited'),
       'interview evaluation: the employer named in the answer must survive'
@@ -231,6 +248,7 @@ describe('no PII reaches the wire', () => {
     );
 
     assertClean('gap analysis');
+    assertSystemPromptsIntact('gap analysis');
     assert.ok(
       JSON.stringify(sentBodies).includes('BRAC Bank Limited'),
       'gap analysis: the employer in the findings must survive'
@@ -259,6 +277,7 @@ describe('no PII reaches the wire', () => {
     for await (const _ of stream) { void _; }
 
     assertClean('chatbot');
+    assertSystemPromptsIntact('chatbot');
     assertNoMaskContextOnTheWire('chatbot');
   });
 });

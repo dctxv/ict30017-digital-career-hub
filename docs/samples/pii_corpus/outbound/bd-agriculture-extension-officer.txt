@@ -1,11 +1,12 @@
 # bd-agriculture-extension-officer — Agriculture Extension Officer (Bangladesh), layout: bd-traditional
 
-Header name inferred from PDF text: null
+Name read from the PDF's largest type: "MD. SHAFIQUL ISLAM SARKAR"
+Header name inferred from PDF text: "MD. SHAFIQUL ISLAM SARKAR"
 Header name inferred from DOCX text: "Md. Shafiqul Islam Sarkar"
-Extracted PDF text: 1 line(s) before sanitising, 5 after
+Extracted PDF text: 27 line(s) before sanitising, 27 after
 
 ## Guest — mask log
-[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 address-bd-postcode=1
+[pii-mask] label=AI messages=2 masked=email=1 phone-bd=1 phone-labelled=1 national-id-digits=1 field-dob=1 field-family=2 field-personal=1 field-address=4 known-name=2
 
 ## Guest — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -16,22 +17,40 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-MD. SHAFIQUL ISLAM SARKAR Mobile: [PHONE] E-mail: [EMAIL] Village: Char Kalibari, Post Office: Godagari, Upazila: Godagari, District: [ADDRESS] Career Objective To support smallholder farmers with modern, climate-resilient practices through government or NGO extension programmes. Job Experience Sub-Assistant Agriculture Officer
-
-Department of Agricultural Extension (DAE), Godagari, Rajshahi 2017
-
-Present Run farmer field schools for 25 IPM groups (600 farmers). Introduced BRRI dhan89; average yield up 0.8 t/ha in my block. Educational Qualification Diploma in Agriculture
-
-Agricultural Training Institute, Ishurdi 2016 B.Sc. Ag (Hons), running
-
-Bangladesh Agricultural University Personal Information Father's Name : Late Abdus Sattar Sarkar Mother's Name : Mst. Hosne Ara Begum Date of Birth : 20 June 1995 NID : 8234567890123 Religion : Islam Nationality : Bangladeshi (by birth) Declaration I do hereby declare that the above information is true and correct. (Md. Shafiqul Islam Sarkar) Signature
+[NAME]
+Mobile: [PHONE]
+E-mail: [EMAIL]
+Village: [ADDRESS] Post Office: [ADDRESS] Upazila: [ADDRESS] District: [ADDRESS]
+Career Objective
+To support smallholder farmers with modern, climate-resilient practices through government or NGO
+extension programmes.
+Job Experience
+Sub-Assistant Agriculture Officer — Department of Agricultural Extension (DAE),
+Godagari, Rajshahi
+2017 – Present
+Run farmer field schools for 25 IPM groups (600 farmers).
+Introduced BRRI dhan89; average yield up 0.8 t/ha in my block.
+Educational Qualification
+Diploma in Agriculture — Agricultural Training Institute, Ishurdi 2016
+B.Sc. Ag (Hons), running — Bangladesh Agricultural University
+Personal Information
+Father's Name : [NAME]
+Mother's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+NID : [ID]
+Religion : [PERSONAL]
+Nationality : Bangladeshi (by birth)
+Declaration
+I do hereby declare that the above information is true and correct.
+([NAME])
+Signature
 </RESUME>
 
 ## Logged in — account identity
 {"fullName":"Shafiqul Islam","email":"shafiq.agri@gmail.com","phone":"01740-112233"}
 
 ## Logged in — mask log
-[pii-mask] label=AI messages=2 masked=known-name=3 known-email=1 known-phone=1 address-bd-postcode=1
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-labelled=1 national-id-digits=1 field-dob=1 field-family=2 field-personal=1 field-address=4 known-name=2
 
 ## Logged in — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -42,13 +61,31 @@ rendered_pages_available: false
 </APPLICATION_CONTEXT>
 
 <RESUME>
-MD. [NAME] SARKAR Mobile: [PHONE] E-mail: [EMAIL] Village: Char Kalibari, Post Office: Godagari, Upazila: Godagari, District: [ADDRESS] Career Objective To support smallholder farmers with modern, climate-resilient practices through government or NGO extension programmes. Job Experience Sub-Assistant Agriculture Officer
-
-Department of Agricultural Extension (DAE), Godagari, Rajshahi 2017
-
-Present Run farmer field schools for 25 IPM groups (600 farmers). Introduced BRRI dhan89; average yield up 0.8 t/ha in my block. Educational Qualification Diploma in Agriculture
-
-Agricultural Training Institute, Ishurdi 2016 B.Sc. Ag (Hons), running
-
-Bangladesh Agricultural University Personal Information Father's Name : Late Abdus Sattar Sarkar Mother's Name : Mst. Hosne Ara Begum Date of Birth : 20 June 1995 NID : 8234567890123 Religion : [NAME] Nationality : Bangladeshi (by birth) Declaration I do hereby declare that the above information is true and correct. (Md. [NAME] Sarkar) Signature
+[NAME]
+Mobile: [PHONE]
+E-mail: [EMAIL]
+Village: [ADDRESS] Post Office: [ADDRESS] Upazila: [ADDRESS] District: [ADDRESS]
+Career Objective
+To support smallholder farmers with modern, climate-resilient practices through government or NGO
+extension programmes.
+Job Experience
+Sub-Assistant Agriculture Officer — Department of Agricultural Extension (DAE),
+Godagari, Rajshahi
+2017 – Present
+Run farmer field schools for 25 IPM groups (600 farmers).
+Introduced BRRI dhan89; average yield up 0.8 t/ha in my block.
+Educational Qualification
+Diploma in Agriculture — Agricultural Training Institute, Ishurdi 2016
+B.Sc. Ag (Hons), running — Bangladesh Agricultural University
+Personal Information
+Father's Name : [NAME]
+Mother's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+NID : [ID]
+Religion : [PERSONAL]
+Nationality : Bangladeshi (by birth)
+Declaration
+I do hereby declare that the above information is true and correct.
+([NAME])
+Signature
 </RESUME>

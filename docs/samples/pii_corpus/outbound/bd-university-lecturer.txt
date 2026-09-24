@@ -1,0 +1,71 @@
+# bd-university-lecturer — Lecturer (Environmental Science) (Bangladesh), layout: classic
+
+Name read from the PDF's largest type: "Dr. Tahmina Rahman"
+Header name inferred from PDF text: "Dr. Tahmina Rahman"
+Header name inferred from DOCX text: "Dr. Tahmina Rahman"
+Extracted PDF text: 17 line(s) before sanitising, 17 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=2 profile-url=2 phone-bd=1 referee-name=1 known-name=3
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Lecturer, Department of Environmental Sciences
+[PHONE] | [EMAIL] | [URL] |
+[URL]
+APPOINTMENTS
+Lecturer — Jahangirnagar University, Savar 2021 – Present
+EDUCATION
+PhD, Environmental Science — University of Queensland 2020
+MS, Environmental Sciences — Jahangirnagar University 2015
+SELECTED PUBLICATIONS
+[NAME], T., Hossain, M. A. (2023). Arsenic in shallow tubewells of the Ganges delta. Environmental
+Pollution, 318, 120901.
+[NAME], T. et al. (2021). River plastic loads in Dhaka. Science of the Total Environment, 790, 148012.
+REFERENCES
+[NAME]
+Chairman, Department of Environmental Sciences, Jahangirnagar University
+[EMAIL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Tahmina Rahman","email":"tahmina.rahman@juniv.edu","phone":"+8801711998877"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 email=1 profile-url=2 known-phone=1 referee-name=1 known-name=3
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Lecturer, Department of Environmental Sciences
+[PHONE] | [EMAIL] | [URL] |
+[URL]
+APPOINTMENTS
+Lecturer — Jahangirnagar University, Savar 2021 – Present
+EDUCATION
+PhD, Environmental Science — University of Queensland 2020
+MS, Environmental Sciences — Jahangirnagar University 2015
+SELECTED PUBLICATIONS
+[NAME], T., Hossain, M. A. (2023). Arsenic in shallow tubewells of the Ganges delta. Environmental
+Pollution, 318, 120901.
+[NAME], T. et al. (2021). River plastic loads in Dhaka. Science of the Total Environment, 790, 148012.
+REFERENCES
+[NAME]
+Chairman, Department of Environmental Sciences, Jahangirnagar University
+[EMAIL]
+</RESUME>

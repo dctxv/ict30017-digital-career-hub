@@ -11,7 +11,7 @@
  * Needs Playwright with a Chromium build. It is not a project dependency; the
  * generated PDFs are committed so the audit itself runs without it.
  *
- * Run: node server/scripts/pii-audit/build-pdfs.js
+ * Run: node server/scripts/pii-audit/build-pdfs.js [--holdout] [id ...]
  * Output: docs/samples/pii_corpus/<id>.pdf
  */
 
@@ -21,6 +21,7 @@ import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { CORPUS } from './corpus.js';
+import { HOLDOUT, HOLDOUT_BD } from './corpus-holdout.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.resolve(HERE, '../../../docs/samples/pii_corpus');
@@ -234,9 +235,13 @@ async function main() {
 
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  const only = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const set = args.includes('--holdout-bd') ? HOLDOUT_BD
+    : args.includes('--holdout') ? HOLDOUT
+      : [...CORPUS, ...HOLDOUT, ...HOLDOUT_BD];
+  const only = args.filter((arg) => !arg.startsWith('--'));
 
-  for (const entry of CORPUS) {
+  for (const entry of set) {
     if (only.length && !only.includes(entry.id)) continue;
     await page.setContent(renderHtml(entry), { waitUntil: 'load' });
     const file = path.join(OUT_DIR, `${entry.id}.pdf`);

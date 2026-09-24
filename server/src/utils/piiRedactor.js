@@ -38,7 +38,78 @@
  * only. It never touches keys, and never runs over serialised JSON text, so it
  * cannot corrupt structure, escaping, or the server-side scores (which are
  * numbers, and numbers are left alone entirely).
+ *
+ * ── Shared rules ─────────────────────────────────────────────────────────────
+ *
+ * After its own rules, every string also goes through the outbound mask's
+ * value-shape rules and known-name matching (ai-service utils/piiMask), so a
+ * value the mask recognises on the way out is recognised here on the way back
+ * — Australian and UK phones, postcodes, national ids, handles, and the
+ * candidate's own name when the caller passes their identity. The mask's
+ * label-driven rules are left off: "Religion: consider removing this field" is
+ * advice about a field, and exactly what this layer must not rewrite.
  */
+
+import { inspectMaskedPii, MASK } from 'ai-service';
+
+/* ── Values the outbound mask removed ────────────────────────────────────────
+ *
+ * The strongest check available: the server knows exactly which values the
+ * mask took out of the CV on the way to the model (inspectMaskedPii with
+ * collectValues), so any of them appearing in the feedback is an echo by
+ * definition. Matching those literal values cannot touch advice ABOUT a field
+ * — "remove your religion" contains no one's religion — which the label rules
+ * could.
+ *
+ * Two kinds of value are too ordinary to match on their own: very short ones
+ * ("B+", "M") and everyday words ("Single", "Married", "Male"). Those are
+ * matched only straight after the label they were filed under.
+ */
+const ORDINARY_VALUES = new Set([
+  'single', 'married', 'unmarried', 'divorced', 'widowed', 'separated', 'male', 'female', 'other', 'yes', 'no',
+  'none', 'n/a', 'na', 'nil', 'present', 'current',
+]);
+const ORDINARY_LABEL = '(?:blood[^\\S\\n]+(?:group|type)|marital[^\\S\\n]+status|civil[^\\S\\n]+status|gender|sex|height|weight|age)';
+const escapeRe = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Compiled once per list: the stream redactor matches on every push. */
+const compiledKnownValues = new WeakMap();
+
+function knownValuePatterns(knownValues) {
+  if (!Array.isArray(knownValues)) return [];
+  if (compiledKnownValues.has(knownValues)) return compiledKnownValues.get(knownValues);
+  const compiled = [];
+  const values = knownValues
+    .filter((item) => item && typeof item.value === 'string')
+    .sort((a, b) => b.value.length - a.value.length);
+
+  for (const { value, placeholder } of values) {
+    const mark = MARK_FOR_PLACEHOLDER.get(placeholder) ?? MARK.personal;
+    const clean = value.normalize('NFC').replace(/\s+/g, ' ').trim();
+    if (!clean) continue;
+    const body = escapeRe(clean).replace(/ /g, '\\s+');
+    const ordinary = ORDINARY_VALUES.has(clean.toLowerCase()) || (clean.match(/[\p{L}\p{N}]/gu) ?? []).length < 3;
+    const pattern = ordinary
+      // The label may sit on the line above its value, as in a sidebar.
+      ? new RegExp(`(${ORDINARY_LABEL}[^\\S\\n]*[:\\-–]?\\s*)${body}(?![\\p{L}\\p{N}])`, 'giu')
+      : new RegExp(`(?<![\\p{L}\\p{N}])()${body}(?![\\p{L}\\p{N}])`, 'giu');
+    compiled.push({ pattern, mark });
+  }
+  compiledKnownValues.set(knownValues, compiled);
+  return compiled;
+}
+
+function applyKnownValues(input, knownValues) {
+  let text = input;
+  let count = 0;
+  for (const { pattern, mark } of knownValuePatterns(knownValues)) {
+    text = text.replace(pattern, (_match, label) => {
+      count += 1;
+      return `${label}${mark}`;
+    });
+  }
+  return { text, count };
+}
 
 /* ── Redaction markers ──────────────────────────────────────────────────────
  * Markers deliberately contain no digits, no '@' and no '/', so re-running the
@@ -50,7 +121,22 @@ const MARK = {
   nid: '[redacted-id]',
   username: '[redacted-username]',
   address: '[redacted-address]',
+  name: '[redacted-name]',
+  url: '[redacted-url]',
+  personal: '[redacted-personal]',
 };
+
+/** The mask's placeholders, as this layer's markers. */
+const MARK_FOR_PLACEHOLDER = new Map([
+  [MASK.name, MARK.name],
+  [MASK.email, MARK.email],
+  [MASK.phone, MARK.phone],
+  [MASK.address, MARK.address],
+  [MASK.url, MARK.url],
+  [MASK.id, MARK.nid],
+  [MASK.dob, MARK.personal],
+  [MASK.personal, MARK.personal],
+]);
 
 /* ── Rules ──────────────────────────────────────────────────────────────────
  *
@@ -157,16 +243,51 @@ const PII_RULES = [
  * The streaming redactor holds back this many trailing characters so that PII
  * which has only partially arrived (e.g. '0171' so far) is never emitted before
  * it is complete enough to match. It must therefore exceed the longest possible
- * single match — emails and street addresses both run well past 50 characters,
- * so 64 is the floor rather than 50.
+ * single match. The shared address rules widen a match to the whole address
+ * line ("Flat 5C, Green Valley Apartments, 45/1 Indira Road, Farmgate,
+ * Dhaka-1215" is over 70 characters), so the window is 160.
  */
-export const STREAM_HOLDBACK_CHARS = 64;
+export const STREAM_HOLDBACK_CHARS = 160;
 
 /* ── Core (pure) ─────────────────────────────────────────────────────────── */
 
-function applyRules(input) {
-  let text = String(input ?? '');
+// Markers and placeholders already in the text, and a profile URL this layer
+// has already reduced to its host. They are set aside while the shared rules
+// run, so the model's own "[NAME]" passes through as written and
+// "linkedin.com/in/[redacted-username]" keeps its host.
+const ALREADY_HANDLED = /(?:(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\/(?:[A-Za-z0-9._-]+\/)*@?)?\[(?:NAME|EMAIL|PHONE|ADDRESS|URL|ID|DATE OF BIRTH|PERSONAL|redacted-[a-z]+)\]/g;
+const STAND_IN = '\uE000';
+
+function applySharedRules(text, identity) {
+  const setAside = [];
+  const guarded = text.replace(ALREADY_HANDLED, (match) => {
+    setAside.push(match);
+    return STAND_IN;
+  });
+
+  const { text: masked, findings } = inspectMaskedPii(guarded, identity ?? {}, { labelledFields: false, referees: false });
+  if (findings.length === 0) return { text, findings: [] };
+
+  let out = masked;
+  for (const [placeholder, mark] of MARK_FOR_PLACEHOLDER) out = out.split(placeholder).join(mark);
+  let index = 0;
+  out = out.replace(new RegExp(STAND_IN, 'g'), () => setAside[index++]);
+
+  return {
+    text: out,
+    findings: findings.map((finding) => ({ rule: `shared:${finding.rule}`, confidence: 'high', count: finding.count })),
+  };
+}
+
+function applyRules(input, identity, knownValues) {
+  let text = String(input ?? '').normalize('NFC');
   const findings = [];
+
+  if (knownValues?.length) {
+    const known = applyKnownValues(text, knownValues);
+    text = known.text;
+    if (known.count > 0) findings.push({ rule: 'known-value', confidence: 'high', count: known.count });
+  }
 
   for (const rule of PII_RULES) {
     let count = 0;
@@ -179,17 +300,22 @@ function applyRules(input) {
     }
   }
 
-  return { text, findings };
+  const shared = applySharedRules(text, identity);
+  return { text: shared.text, findings: [...findings, ...shared.findings] };
 }
 
 /**
  * Redacts PII from a single string. Pure.
  *
  * @param {string} input
+ * @param {object|null} [identity] the account holder's identity, as passed to
+ *   the outbound mask, so their name is caught if the model writes it
+ * @param {Array<{value: string, placeholder: string}>} [knownValues] what the
+ *   outbound mask removed from the CV (inspectMaskedPii collectValues)
  * @returns {string}
  */
-export function redactPii(input) {
-  return applyRules(input).text;
+export function redactPii(input, identity, knownValues) {
+  return applyRules(input, identity, knownValues).text;
 }
 
 /**
@@ -201,8 +327,8 @@ export function redactPii(input) {
  * @param {string} input
  * @returns {{ text: string, findings: Array<{rule: string, confidence: string, count: number}> }}
  */
-export function inspectPii(input) {
-  return applyRules(input);
+export function inspectPii(input, identity, knownValues) {
+  return applyRules(input, identity, knownValues);
 }
 
 /**
@@ -215,8 +341,8 @@ export function inspectPii(input) {
  * @param {unknown} value
  * @returns {unknown} a redacted deep copy
  */
-export function redactPiiDeep(value) {
-  return redactPiiDeepWithFindings(value).value;
+export function redactPiiDeep(value, identity, knownValues) {
+  return redactPiiDeepWithFindings(value, identity, knownValues).value;
 }
 
 /**
@@ -225,12 +351,12 @@ export function redactPiiDeep(value) {
  * @param {unknown} value
  * @returns {{ value: unknown, findings: Array<{rule: string, confidence: string, count: number}> }}
  */
-export function redactPiiDeepWithFindings(value) {
+export function redactPiiDeepWithFindings(value, identity, knownValues) {
   const totals = new Map();
 
   const walk = (node) => {
     if (typeof node === 'string') {
-      const { text, findings } = applyRules(node);
+      const { text, findings } = applyRules(node, identity, knownValues);
       for (const finding of findings) {
         const existing = totals.get(finding.rule);
         if (existing) {
@@ -256,10 +382,11 @@ export function redactPiiDeepWithFindings(value) {
 
 /* ── Streaming ───────────────────────────────────────────────────────────── */
 
-function findMatchRanges(text) {
+function findMatchRanges(text, knownValues) {
   const ranges = [];
-  for (const rule of PII_RULES) {
-    for (const match of text.matchAll(rule.pattern)) {
+  const patterns = [...PII_RULES.map((rule) => rule.pattern), ...knownValuePatterns(knownValues).map((k) => k.pattern)];
+  for (const pattern of patterns) {
+    for (const match of text.matchAll(pattern)) {
       ranges.push({ start: match.index, end: match.index + match[0].length });
     }
   }
@@ -279,13 +406,16 @@ function findMatchRanges(text) {
  *   - if a completed match still straddles the release point, the release point
  *     is pulled back to the start of that match so it is never split.
  *
+ *   - the release point is moved back to a space, so a word — a name the
+ *     shared rules would recognise whole — is never split across releases.
+ *
  * flush() drains the remainder and must be called when the stream ends,
  * otherwise the final `holdback` characters are dropped.
  *
- * @param {{ holdback?: number }} [options]
+ * @param {{ holdback?: number, identity?: object|null, knownValues?: Array<object> }} [options]
  * @returns {{ push: (chunk: string) => string, flush: () => string }}
  */
-export function createStreamRedactor({ holdback = STREAM_HOLDBACK_CHARS } = {}) {
+export function createStreamRedactor({ holdback = STREAM_HOLDBACK_CHARS, identity = null, knownValues = [] } = {}) {
   let buffer = '';
 
   return {
@@ -295,22 +425,26 @@ export function createStreamRedactor({ holdback = STREAM_HOLDBACK_CHARS } = {}) 
       let cut = buffer.length - holdback;
       if (cut <= 0) return '';
 
-      // Never release a partial match: if a match spans the cut point, hold
-      // the whole match back for the next push.
-      for (const range of findMatchRanges(buffer)) {
+      // Release at a space, so no word is split across releases...
+      const space = buffer.lastIndexOf(' ', cut);
+      if (space > 0) cut = space;
+      // ...then never release a partial match: if a match spans the cut
+      // point, hold the whole match back for the next push. This runs second
+      // because moving to a space can land inside a multi-word match.
+      for (const range of findMatchRanges(buffer, knownValues)) {
         if (range.start < cut && range.end > cut) cut = range.start;
       }
       if (cut <= 0) return '';
 
       const head = buffer.slice(0, cut);
       buffer = buffer.slice(cut);
-      return redactPii(head);
+      return redactPii(head, identity, knownValues);
     },
 
     flush() {
       const remainder = buffer;
       buffer = '';
-      return redactPii(remainder);
+      return redactPii(remainder, identity, knownValues);
     },
   };
 }

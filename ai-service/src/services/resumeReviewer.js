@@ -364,9 +364,22 @@ function logLanguageDecision(label, { language, systemPrompt, userMessage, model
  * @returns {object}
  */
 function buildMaskContext(label, resumeText, identity) {
+  return { label, ...resumeMaskContext(resumeText, identity) };
+}
+
+/**
+ * The identity the outbound mask uses for a CV: the caller's identity plus the
+ * name read off the CV's first lines. Exported so the server can mask the same
+ * text with the same knowledge — which is how it learns exactly what was
+ * removed, for the inbound redactor to watch for.
+ *
+ * @param {string} resumeText
+ * @param {import('../utils/piiMask.js').MaskIdentity} [identity]
+ */
+export function resumeMaskContext(resumeText, identity) {
   const headerName = inferNameFromHeader(resumeText);
   const extraNames = [...(identity?.extraNames ?? []), headerName].filter(Boolean);
-  return { label, ...(identity ?? {}), extraNames };
+  return { ...(identity ?? {}), extraNames };
 }
 
 /* ── Streaming export ── */

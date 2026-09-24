@@ -1,211 +1,145 @@
-# PII Mask Audit — 26 resumes across careers and countries
+# PII Mask Audit and Fixes
 
 **Date** 24 September 2026
-**Build under test** `pii-masking-fixes` (based on `de3d08f`)
-**Modules** `ai-service/src/utils/piiMask.js` (user → model), `server/src/utils/piiRedactor.js` (model → user)
-**Corpus** `docs/samples/pii_corpus/` — 26 fictional resumes, 232 known pieces of personal information
-**Raw results** `docs/samples/pii_corpus/RESULTS.md`, exact text sent per resume in `docs/samples/pii_corpus/outbound/`
-**Re-run** `npm run pii-audit --prefix server`
+**Branch** `pii-masking-fixes` (based on `de3d08f`)
+**Modules** `ai-service/src/utils/piiMask.js` (user → model), `server/src/utils/piiRedactor.js` (model → user), `server/src/utils/pdfText.js` + `fileParser.js` (PDF extraction), `server/src/utils/sanitise.js`
+**Corpus** `docs/samples/pii_corpus/` — 44 fictional resumes, 445 known pieces of personal information
+**Re-run** `npm run pii-audit --prefix server` · the same corpus runs on every `npm test --prefix server`
 
 ## Bottom line
 
-The mask is **reliable for email addresses** and good for phone numbers and street lines in the formats it was written for (Bangladeshi and Australian mobiles, `+` international numbers, "House 12, Road 7", "15 Glenferrie Road"). It is **not reliable for anything else**, and on a PDF upload it almost never masks the candidate's name.
+On all 44 resumes, every piece of personal information is now masked before anything reaches the model provider. That holds for a guest and for a logged-in user, for PDF and DOCX uploads, and in the inbound redactor if the model ever echoed a CV back. Nothing the review needs was removed.
 
-| | PDF, guest | PDF, logged in |
+| | Before | After |
 |---|---|---|
-| All 232 items | **43%** masked | **50%** masked |
-| Only what the mask claims to cover (name, email, phone, address, URL) | 56% | 66% |
-| Candidate's own name, fully masked | **1 of 27** | 12 of 27 |
-| Government IDs, dates of birth, parents' names, registration numbers, religion | **0 of 52** | **0 of 52** |
+| All items, PDF upload, guest | 43% | **442/442 (100%)** |
+| All items, PDF upload, logged in | 50% | **442/442 (100%)** |
+| All items, DOCX upload, guest | 55% | **443/443 (100%)** |
+| Inbound redactor, if the model echoed the CV | 37% | **442/442 (100%)** |
+| Candidate's name, PDF, guest | 1 of 27 | **48/48** |
+| National IDs, passports, DOB, parents' names, registration numbers, religion and other personal details | 0 of 52 | **138/138** |
+| Resumes that lost content the review needs | 8 | **0** |
+| Words removed that were not personal (word-by-word diff of all 44) | not measured | **0** |
 
-A typical guest upload of a traditional Bangladeshi CV — the product's main market — still sends the provider the candidate's full name, father's and mother's names, date of birth, 17-digit NID, home village, religion, blood group and one of their two phone numbers. From `outbound/bd-garment-production-supervisor.txt` (verbatim, with `...` where text is cut):
+The corpus holds 445 items; 442 can be judged from the PDF text. The other 3 are in Bangla PDFs whose text layer doesn't hold them in that spelling, and each is checked under the spelling the PDF does hold (section 6).
+
+The same Bangladeshi CV that opened the first version of this report now goes to the provider like this (`outbound/bd-garment-production-supervisor.txt`, abridged):
 
 ```
-MD. ABDUL KARIM SHEIKH Mobile: [PHONE] Alternative Mobile: 017 1122 3344 E-mail: [EMAIL]
-Present Address: [ADDRESS], Uttara, [ADDRESS] ...
-Father's Name : Md. Abdul Jalil Sheikh Mother's Name : Mst. Rokeya Begum
-Date of Birth : 15-03-1990 National ID No : 19902692512345678
-Permanent Address : Village: Char Bhadrasan, Post: Char Bhadrasan, Upazila: Char Bhadrasan, District: Faridpur
-Religion : Islam Marital Status : Married Blood Group : B+ ...
-Reference Engr. Mizanur Rahman ... Mobile: [PHONE]
-Declaration ... (Md. Abdul Karim Sheikh) Signature
+[NAME]
+Mobile: [PHONE]
+Alternative Mobile: [PHONE]
+E-mail: [EMAIL]
+Present Address: [ADDRESS]
+...
+Father's Name : [NAME]
+Mother's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+National ID No : [ID]
+Permanent Address : [ADDRESS]
+Religion : [PERSONAL]
+Marital Status : [PERSONAL]
+Blood Group : [PERSONAL]
+Nationality : Bangladeshi
+Reference
+[NAME]
+General Manager (Production), DBL Group
+Mobile: [PHONE]
 ```
 
-The system prompt already tells the model to *"never reproduce names, addresses, phone numbers, emails, NID or passport numbers, dates of birth, religion, marital status, blood group, or referee contact details"* (`ai-service/tests/golden/systemPrompt.bangladesh.txt:22`). So the project already treats all of these as PII. The mask was only ever built to cover the first four.
+Labels are kept and values removed. The reviewer can still say "remove your father's name for an international CV" without ever seeing the name.
+
+**How far to trust "100%".** It is measured on 44 resumes, and the rules are deterministic, so a format none of them contains can still get through. Two blind rounds measured this honestly (section 3): new resumes, run before any rule was changed for them, scored 87% and then 94%. Each gap they found was fixed with a general rule, and those resumes are now in the regression test. Section 6 has the real limits.
 
 ---
 
-## 1. What the masking covers today
+## 1. What the first audit found, and what fixed it
 
-Two separate layers, pointing in opposite directions.
+The first version of this report, on 26 resumes, found ten problems. Each is fixed below, and the fix is covered by a test.
 
-**`piiMask` — user → model.** Every request goes through `withOutboundMasking` in `aiClient.js`, and a request made without a masking context throws. That chokepoint is well designed: no feature can forget to mask. What it masks:
-
-| Rule | Catches | Does not catch |
+| # | Finding | Fix |
 |---|---|---|
-| `email` | any `local@domain.tld` | — |
-| `profile-url` | linkedin, github, gitlab, twitter/x, facebook, instagram, behance, dribbble, medium, stackoverflow, kaggle, bitbucket URLs | youtube, soundcloud, tiktok, muckrack, linktr.ee; bare `@handles` |
-| `personal-site` | `*.github.io`, `vercel.app`, `netlify.app`, `herokuapp.com`, `wordpress.com`, `blogspot.com` | every other portfolio host (`myportfolio.com`, custom domains) |
-| `phone-bd` | `01XXX-XXXXXX`, `+880 1XXX XXXXXX`, Bengali numerals | `017 1122 3344`, `0171-2345678` |
-| `phone-au` | `04XX XXX XXX`, `(0X) XXXX XXXX`, `+61 …` | — |
-| `phone-international` | anything starting with `+` | local forms without `+` |
-| `phone-grouped` | NANP `XXX-XXX-XXXX`, and any other 3-3-4 | 4-3-4 (Philippines, Nigeria), UK `07700 900 372`, 4-4 (Singapore) |
-| `address-bd` | `House 12, Road 7, Block C` and Bangla `বাসা ১২, রোড ৫` | `Flat 5C, Green Valley Apartments`, `Village: … P.O: … Upazila: …` |
-| `address-street` | `12 Oak Street` with one of 22 street types | `Way`, `Close`, ordinal streets (`West 57th Street`), `Plot 15, Admiralty Way` |
-| `address-au-postcode` | `Hawthorn VIC 3122` | — (and it has a false positive, see F9) |
-| `address-bd-postcode` | `Dhaka-1209` for 14 cities | — |
-| known strings | the account's stored name (and each word of it), email and phone; the name guessed from the CV's first lines | anything spelt differently from the stored value |
+| F1 | A guest's name was masked on 1 of 27 PDFs. The parser joined every text item with `' '`, so a page became one line, and the header-name guess never saw a line. When it did fire, it swallowed the job title ("Priya Raghunathan Registered Nurse"). | `pdfText.js` builds text from pdfjs's own line ends and spaces. The name is read from the **largest type on page 1** and passed to the mask as a known name for every upload (`extractResume` → `withNameHint`). The sanitiser no longer merges lines or turns a stripped icon into a paragraph break. |
+| F2 | For a logged-in user, only names written exactly like the account were masked. Nicknames, accents, apostrophes, extra names and letter-spaced headings all got through. | Name matching ignores accents and treats `'`, `’`, `-` and spaces alike. The CV's own name (F1) covers nicknames and extra names. Letter-spaced headings (`M A R I A`) are collapsed at extraction. |
+| F3 | 0 of 52 government IDs, dates of birth, parents' names, registration numbers or religion values were masked. | **Labelled fields** in English and Bangla: the label is kept and the value masked. This covers Father's/Mother's/Spouse's Name, Date of Birth, NID/Passport/NRIC/PAN/CNIC/TIN…, Religion, Marital Status, Blood Group, Height, Weight and more. Also bare NID shapes (10/13/17 digits), registration numbers after a keyword ("BMDC Reg.: A-65432"), and anything after "No." with four or more digits. |
+| F4 | Phones: 76%. | Every grouping of Bangladeshi mobile numbers, national numbers with a trunk `0`, any number after a phone label, and the account phone however it is grouped. |
+| F5 | Addresses: 54%. | Anchors are widened to the whole address line. Added: Bangladeshi `Village: … P.O: … Upazila: … District:` and `Holding No. …, Road No. …`, P.O. boxes, dwelling prefixes, and postcodes from more countries. |
+| F6 | Handles and sites: 42%. | Bare `@handles`, labelled ids (`Skype:`), 30 more profile hosts, and the candidate's own email domain wherever it appears. |
+| F7 | Referee names always leaked. | Names in a References section are masked, and their roles and organisations kept. Relatives are covered too: brother, nominee, emergency contact, C/O. |
+| F8 | Bangla PDFs arrived garbled. | Vowel signs are put back in order, the split `ো` is rebuilt, and pdfjs's fake spaces after conjuncts are dropped. Bangla labels are matched even when extraction damaged them. Glyphs the PDF never mapped still can't be recovered (section 6). |
+| F9 | Over-masking in 8 resumes. | Fixed individually, with regression tests. `TAFE NSW 2015` is no longer a postcode (the digits must be a valid postcode for the state, and not a year). The job title in a bad header guess is gone with F1. A single word of a name is masked only where it stands as a name, so `Line Cook` and `Box Hill Institute` survive. |
+| F10 | The inbound redactor caught 37%. | It now also runs the mask's value rules and known-name matching. The server also hands it **exactly the values the mask removed** from the CV, so anything masked going out is masked coming back. Advice about a field ("remove your religion") contains no one's religion, so it is untouched. |
 
-**Nothing** matches government IDs, dates of birth, parents' names, professional registration numbers, religion, marital status or blood group. The NID rule that exists in the inbound redactor (`piiRedactor.js:116`) was never ported to the outbound mask.
+## 2. The corpus
 
-**`piiRedactor` — model → user.** Only matters if the model echoes a value back. It is a strictly weaker set of rules (no Australian phones or postcodes, no known-name pass, no personal-site rule) with one addition: 10/13/17-digit national IDs.
+- **26 original resumes:** one per career across 12 countries, in five layouts that imitate real exports (Word single column, Canva sidebar, traditional Bangladeshi with a personal-details table, a banner header with letter-spaced name and icons, and a table header).
+- **12 holdout resumes:** written after the mask reached 100% on the first 26, to test whether the fixes generalised. They cover Bangladesh (banking, Bangla tailoring CV), Pakistan, Kenya, Malaysia, Germany, the US, the UAE, Sri Lanka, Vietnam, Australia and Nepal.
+- **6 Bangladesh holdout resumes:** written after the mask reached 100% on the first 38, in the formats Bangladeshi candidates actually send:
+  - a **BDJobs export**
+  - an NGO field officer's CV with a `C/O …, Zilla:` address
+  - a nurse with her Bangla name in brackets
+  - a **Bangla government job application form**
+  - an overseas driver's CV with a licence, a guardian's phone and an emergency contact
+  - a lecturer's CV with publications.
 
-## 2. How this was tested
+15 of the 44 are Bangladeshi, 3 of them in Bangla script. Every resume carries ground truth in `server/scripts/pii-audit/corpus.js` / `corpus-holdout.js`: each piece of personal information by category, the content the review must keep, and the account row a logged-in user would have.
 
-- **26 resumes, one per career**, across 12 countries: registered nurse, head chef, garment production supervisor, Bangla-script primary teacher, electrician, attorney, chartered accountant, truck driver, retail manager, graphic designer, social worker, civil engineer, pharmacist, overseas security guard, hairdresser, journalist, airline pilot, aged-care worker, agriculture extension officer, medical officer, early-childhood educator, real-estate agent, music teacher, diesel mechanic, physiotherapist and barista. Seven are Bangladeshi and seven Australian.
-- **Five layouts** that imitate real exports: a Word-style single column, a Canva-style sidebar, the traditional Bangladeshi format (personal-details table, declaration, signature), a banner header with letter-spaced name and icon glyphs, and a table-based header. Rendered by Chromium to real PDFs (`server/scripts/pii-audit/build-pdfs.js`).
-- **Ground truth per resume** (`server/scripts/pii-audit/corpus.js`): every piece of personal information, tagged by category (232 in total), plus the content the review needs to keep (employers, qualifications, job titles).
-- **The real pipeline.** `run-audit.js` calls the production `extractText` → `sanitiseResumeText` → `analyzeResume` with `fetch` stubbed. It records the JSON body the OpenAI SDK actually tried to POST. Nothing below the HTTP boundary is mocked.
-- **Scenarios:** a guest, a logged-in user whose account row is given per resume, and for comparison the same resume as a DOCX uploaded by a guest.
-- **Matching** ignores case, punctuation, spacing, numeral alphabet and Bangla vowel-sign order. So a value counts as leaked if the model could still read it: `O Connor` for `O’Connor`, `M A R I A` for a letter-spaced `MARIA`, and garbled-but-legible Bangla all count.
+## 3. How it was verified
 
-## 3. Results
+**The real path.** `audit-core.js` runs each PDF through `extractResume` → `sanitiseResumeText` → the identity the upload routes build → `analyzeResume`, with `fetch` stubbed. It records the JSON body the OpenAI SDK tried to send, so nothing below the HTTP boundary is mocked. Matching ignores case, punctuation, spacing, numeral alphabet and Bangla vowel-sign order, so a value counts as leaked if the model could still read it.
 
-Items fully masked out of items present in the extracted text.
+**Three ways to fail:** a personal item still in the request; a `keep` phrase gone; or any word removed that is not personal. The last is a word-by-word diff of the text before and after masking, with every removed run matched against the ground truth. It caught over-masking the keep lists did not, e.g. `Jan 2019` read as a registration number and `Check 1234567` losing its label.
 
-| Category | PDF, guest | PDF, logged in | DOCX, guest | Redactor, if echoed |
-|---|---|---|---|---|
-| Candidate name | 1/27 (4%) · 2 partial | 12/27 (44%) · 9 partial | 24/27 (89%) · 1 partial | 0/27 |
-| Email | 26/26 (100%) | 26/26 (100%) | 26/26 (100%) | 26/26 |
-| Phone | 28/37 (76%) | 29/37 (78%) | 28/37 (76%) | 22/37 |
-| Address | 29/54 (54%) | 29/54 (54%) | 31/54 (57%) | 20/54 |
-| Profile URL / handle | 8/19 (42%) | 12/19 (63%) | 11/19 (58%) | 7/19 |
-| Referee details | 8/16 (50%) | 8/16 (50%) | 8/16 (50%) | 4/16 |
-| Government ID | 0/15 | 0/15 | 0/15 | 4/15 |
-| Registration / licence no. | 0/14 | 0/14 | 0/14 | 2/14 |
-| Date of birth | 0/8 | 0/8 | 0/8 | 0/8 |
-| Parent's name | 0/8 | 0/8 · 2 partial | 0/8 · 3 partial | 0/8 |
-| Sensitive (religion, blood group…) | 0/7 | 0/7 | 0/8 | 0/7 |
+**Blind rounds.** Each holdout set was run before any rule was changed for it:
 
-18 of 26 resumes kept everything the review needs. The other eight lost something (F9).
-
-## 4. Findings
-
-Ordered by how much personal information each one lets through.
-
-### F1 — A guest's name is masked on 1 of 27 PDF uploads (DOCX: 24 of 27)
-
-For a guest there is no account name, so the only name source is `inferNameFromHeader`, which reads "the first few lines" of the CV. A PDF has no lines by then:
-
-1. `fileParser.extractFromPDF` joins every text item on a page with `' '` (`fileParser.js:74`). Every PDF, from any producer, becomes one line per page.
-2. `sanitiseResumeText` step 1 (`sanitise.js:41`) joins any remaining single `\n` between two word characters.
-
-So the "first line" is the whole page, it is longer than 50 characters, and the guess returns `null`. It fires on 3 of 26 PDFs, only where a stripped em-dash or icon happened to leave three spaces, and all 3 guesses were wrong:
-
-- `"Priya Raghunathan Registered Nurse"` masked the name, but also masked **every "Registered" and "Nurse" in the CV**, turning her referee into `[NAME] Unit Manager`.
-- `"Rafsan Haque Senior Reporter"` did the same to "Senior" and "Reporter".
-- `"L I A M O"` (a letter-spaced heading) masked the first name and left `C O N N O R`.
-
-DOCX works because mammoth separates paragraphs with `\n\n`, which survives both steps. The unit and integration tests all build their resumes with `\n` between lines, the DOCX shape, so they have never exercised the PDF path. The mock interview (`preparation.js:373`) uses the same extract → sanitise → header-guess path and has the same gap.
-
-### F2 — A logged-in user's name is masked only when the CV spells it exactly like the account (12 of 27)
-
-The known-name pass is a literal, case-insensitive match. Real accounts and CVs differ:
-
-| Resume | Account | CV | Sent |
+| Blind round | Guest | Logged in | What it found |
 |---|---|---|---|
-| civil engineer | `Emeka Obi` | `Chukwuemeka Obi` | `Chukwuemeka` (a word boundary stops `Emeka` matching inside it) |
-| hairdresser, barista | `Jess Tran`, `Valentina Gomez` | `Jessica Tran`, `Valentina Gómez Ramírez` | these CVs are also letter-spaced (last row), but on their own the names mask to `Jessica [NAME]` and `[NAME] Gómez Ramírez` |
-| music teacher | `Siobhan O'Sullivan` | `Siobhán O’Sullivan` | whole name: the fada doesn't match, and the sanitiser turns `’` into a space |
-| truck driver, pilot, doctor, garment supervisor, agriculture officer, physio | shorter name | extra names | `Singh`, `Wei Jie`, `Chowdhury`, `Sheikh`, `Sarkar`, `Wei` |
-| Bangla teacher | `Farzana Yasmin` | `মোছাঃ ফারজানা ইয়াসমিন` | whole name (different script) |
-| the 5 banner layouts | — | letter-spaced heading | `M A R I A I S A B E L S A N T O S`; four sent in full, the electrician's as `C O N N O R` |
+| 12 holdout resumes | 97/111 (87%) | 97/111 (87%) | CNIC, ABN, "Father Name" without the 's, P.O. Box, `-straße`, Malay and Vietnamese streets, `House No. 45`, `Ward No. 7`, place of birth, arm reach; `NVQ Level 4,` read as an address; a sole trader's surname in his business name |
+| 6 Bangladesh resumes | 68/72 (94%) | 69/72 (96%) | `Name (in English):` (a bracketed label), `Brother:` / emergency contact names, a licence label that took the whole line |
 
-The known-phone pass has the same problem. The account stores `07700 900372`, the CV says `07700 900 372`, and the number goes out.
+Both rounds are now at 100%. Snapshots of the results before fixing are kept in `docs/samples/pii_corpus/before/`.
 
-### F3 — Government IDs, dates of birth, parents' names and registration numbers: 0 of 52
+**Standing checks:**
+- `npm test --prefix server` runs all 44 resumes (`scripts/pii-audit/corpus.test.js`, about 5 seconds). I verified it fails when a rule is broken: removing the date-of-birth labels failed 22 items at once.
+- The integration test now asserts that **no service's system prompt is altered** by the mask. The first version of the label rules rewrote the review prompt's own headings, so the guard is there for a reason.
+- New unit tests: `piiMaskFields.test.js` (46), `pdfText.test.js`, `sanitise.test.js`, `maskIdentity.test.js`, and redactor additions.
+- Totals: 283 ai-service tests and 178 server tests, all passing.
 
-No rule targets them. These went out for every resume that had them:
+## 4. What changed in behaviour
 
-- **National IDs:** Bangladesh NID (10, 13 and 17 digits, and in Bengali numerals), Singapore NRIC, Aadhaar, PAN, South African ID (which encodes the date of birth), UK National Insurance number.
-- **Other ID numbers:** passport numbers, driver licence numbers, a DBS certificate number.
-- **Professional register numbers**, each of which a public register maps straight back to a name: AHPRA (nurse, physio), BMDC (doctor), Pharmacy Council, COREN, ICAI, NY Bar, TREC, Working with Children and NDIS screening.
-- **Personal details:** dates of birth, father's and mother's names, religion, blood group, marital status, height and weight.
+Worth knowing before this merges:
 
-A Personal Information block is standard on Bangladeshi CVs, and the international prompt (`systemPrompt.international.txt:173-178`) tells the model to flag these fields for removal. So the model needs to see the **label**, but never the **value**.
+- **The model sees the CV's lines.** Extraction keeps line breaks instead of flattening each page into one line. That is better input for the review too, and all 7 golden system prompts are unchanged.
+- **The sanitiser keeps dashes, curly quotes and bullets** (U+2010–U+2027). pdfjs extracts them correctly, and stripping them turned `2019 – 2023` into two unrelated years and `O’Connor` into two words. Icons and dingbats are still stripped, to a space rather than a paragraph break.
+- **New placeholders:** `[ID]`, `[DATE OF BIRTH]`, `[PERSONAL]`, alongside `[NAME] [EMAIL] [PHONE] [ADDRESS] [URL]`. The review prompt already treats bracketed placeholders as text not to reproduce.
+- **System prompts** get the value rules and known names, but not the label or References rules, which read document structure and would rewrite instructions about CVs.
+- **The redactor** takes the identity and the masked values (`redactPiiDeepWithFindings(feedback, identity, maskedValues)`). New markers: `[redacted-name]`, `[redacted-url]`, `[redacted-personal]`. The stream holdback is 160 characters (was 64), and releases land on a space, never inside a known value.
+- **API additions:**
+  - `extractResume(filePath)` → `{ text, nameHint }`; `extractText` is unchanged.
+  - `withNameHint(identity, hint)`.
+  - `resumeMaskContext(text, identity)`.
+  - `inspectMaskedPii(text, identity, { collectValues, labelledFields, referees })`.
 
-### F4 — Phones: 76–78%
+## 5. What works well and should stay
 
-The `+` forms, Bangladeshi and Australian mobiles, and NANP numbers are all caught. Nine local forms without a `+` leak: two UK mobiles (`07700 900461`, `07700 900 372`), Philippines and Nigeria 4-3-4 (`0917 123 4567`), Mumbai landline `022 2634 5678`, NZ landline `(09) 555 0876`, Singapore 8-digit `9123 4567`, and two Bangladeshi groupings people do write (`017 1122 3344`, `0171-2345678`).
+- The chokepoint design: a request without a masking context throws, and mask logs carry only rule names and counts. The collected values are held in memory and never logged.
+- Deterministic rules with no model calls. The guarantee does not depend on the provider.
+- Placeholders keep the document legible, and labels survive, so the review quality the prompts were written for is preserved.
 
-### F5 — Addresses: 54%
+## 6. Limits
 
-Numbered street lines and AU/BD postcodes are caught. What leaks:
+- **Formats outside the corpus.** The blind rounds show the realistic rate on unseen formats before fixing: 87–94%. The workflow for a new format is to add a resume that shows it to `corpus-holdout.js`, see it fail in `npm test`, and add a general rule. Bangladesh is the priority market and has the most coverage (15 resumes, 3 in Bangla script). The other countries are covered well beyond need, but less deeply.
+- **Bangla PDFs lose some glyphs for good.** Some PDFs have no Unicode mapping for certain conjuncts and rephs (e.g. `ক্ত` in আক্তার, `ক্ষ` in দক্ষিণপাড়া), and no extractor can recover what the file doesn't store. Masking still works: the name comes from the largest type as the PDF holds it, and damaged labels are matched tolerantly. The 3 affected items can only be judged in their extracted spelling, and the test says so. What remains is a **review-quality** problem, since the model reads those words damaged. Bangla DOCX uploads are unaffected.
+- **Third-party names in free text** are not masked unless they are labelled (a referee, a relative, a C/O). "Reported to Mr. X" in a bullet still reaches the model. Doing this would mean guessing at names in prose, which this module deliberately avoids because it destroys employer names.
+- **Scanned PDFs** have no text layer and are rejected before masking, as before.
 
-- **Postcodes elsewhere:** UK, US ZIP, Canadian, Irish Eircode, NZ, Singapore, Indian PIN and South African codes.
-- **Missing street types:** `Way` and `Close`.
-- **Ordinal streets:** `West 57th Street`.
-- **Unit and flat prefixes:** `Apt 12C`, `#05-67`.
-- **Building-name addresses:** `Flat 302, Sai Krupa CHS`, `Flat 5C, Green Valley Apartments`.
-- **Plot-style addresses:** `Plot 15, Admiralty Way`.
-- **Bangladeshi village addresses:** every `Village: … P.O: … Upazila: … District: …` permanent address, which is the most specific location on a rural candidate's CV.
+## 7. Reproducing
 
-### F6 — Profile URLs and handles: 42% guest, 63% logged in
+```sh
+node server/scripts/pii-audit/build-pdfs.js      # rebuild the PDFs (needs Playwright + Chromium)
+npm run pii-audit --prefix server                # full report → docs/samples/pii_corpus/RESULTS.md
+npm test --prefix server                         # includes the 44-resume regression test
+npm test --prefix ai-service                     # mask rules, system-prompt guard
+```
 
-URLs on the listed hosts are caught. None of the 5 bare handles were (`@chefdancook`, `@isa.designs`, `@hairbyjess_bne`, `@rafsan_reports`, `@sarahsellsaustin`). Handles matter most in exactly the non-tech careers this corpus adds: hair, food, design, real estate and journalism. SoundCloud and YouTube URLs leak. The Muck Rack URL was masked only because the wrong header guess in F1 happened to fire on that CV. A custom portfolio domain is masked only when a known name is inside it: `sarahmitchellhomes.com` and `hairbyjess.com.au` are masked for the logged-in accounts `Sarah Mitchell` and `Jess Tran`. Both leak for a guest, even on DOCX, where the header guess `Jessica` isn't a substring of `hairbyjess`.
-
-### F7 — Referee names always leak (7 of 7)
-
-Referee phones and emails are masked when their format is recognised: 8 of 9 were, and the miss was a UK landline, `0161 234 5000`. Referee names never are. That is a third party's personal data, and the candidate can't consent for them.
-
-### F8 — Bangla PDFs are garbled before the mask sees them
-
-pdfjs returns this Bangla CV with pre-base vowel signs out of order, a space between every cluster, and some conjuncts dropped: `মা ছাঃ ফা র জা না ই য়া স িম ন` for `মোছাঃ ফারজানা ইয়াসমিন`, and `মা হা    দ পু র` for `মোহাম্মদপুর`. It is still readable, so the name, `বাসা ২৭, রোড ৪`, `ঢাকা-১২০৭` and both parents' names reach the model. None of the Bangla rules can match them. Digits survive extraction, so the phone number in Bengali numerals *is* masked. This is also a review-quality problem, well beyond privacy: every Bangla PDF reaches the model in this state.
-
-### F9 — Over-masking: eight resumes lose content the review needs
-
-| Resume | Lost | Became | Cause |
-|---|---|---|---|
-| electrician, aged-care worker | `TAFE NSW 2015`, `TAFE SA 2020` | `[ADDRESS]` | the AU postcode rule reads `<Word> <STATE> <year>` as suburb + postcode. NSW postcodes start with 2, so any NSW qualification or job line with a year is exposed. Affects guests too. |
-| nurse, journalist | `Registered Nurse`, `Senior Reporter`, `Staff Reporter` | `[NAME]`, `Staff [NAME]` | the wrong header guess from F1 |
-| head chef | `Line Cook` | `Line [NAME]` | candidate is `Daniel Cook`, and every name word is masked everywhere, case-insensitively |
-| retail manager | `rose to Store Manager` | `[NAME] to Store Manager` | candidate is `Rose Walker` |
-| early childhood | `Box Hill Institute` | `Box [NAME] Institute` | candidate is `Grace Hill` |
-| agriculture officer | `Religion: Islam` | `Religion: [NAME]` | candidate is `Shafiqul Islam` |
-
-### F10 — The inbound redactor would catch even less
-
-If the model echoed values back, the redactor would catch 37% of them overall and **0 of 27 names**. It has no Australian phone or postcode rules. It is the last line of defence for what gets stored and shown, so it should share rules with the mask rather than being maintained separately.
-
-## 5. What works well
-
-- **Email: 26 of 26 masked in every scenario and layout**, including inside Bangla text.
-- The chokepoint design: a request without a masking context throws, and logs carry only rule names and counts.
-- Bangladeshi and Australian mobiles in their common forms, Bengali numerals, and every `+`-prefixed number.
-- `House/Road` and numbered street lines, and AU/BD postcodes.
-- Placeholders keep the document legible (`Mobile: [PHONE] | Email: [EMAIL]`), and in 18 of 26 resumes nothing the review needs was touched.
-
-## 6. Recommendations
-
-In order of value for effort. None of these are implemented yet.
-
-1. **Give the header guess a real signal on PDFs.** Two measured options on this corpus:
-   - Emit `\n\n` at each pdfjs `hasEOL` in `extractFromPDF`: the guess goes from **0 to 14 of 26** correct, and it stops swallowing job titles. One-line change.
-   - Take the largest-font text on page 1 as the name (pdfjs gives each item's transform): **25 of 26**, including sidebar and letter-spaced layouts. Pass it from the server as `extraNames`.
-   Either one also fixes the mock interview.
-2. **Label-anchored value masking** for the personal-details block, in English and Bangla: `Father's/Mother's/Spouse Name`, `Date of Birth`/`DOB`, `NID`/`National ID`, `Passport`, `NRIC`, `Aadhaar`, `PAN`, `ID Number`, `NI number`, `Religion`, `Marital Status`, `Blood Group`, `Height`, `Weight`, and `পিতার নাম`, `মাতার নাম`, `জন্ম তারিখ`, `জাতীয় পরিচয়পত্র`, `ধর্ম`. Keep the label and mask to the end of the value (`Father's Name: [PERSONAL]`), so the reviewer can still say "remove this for international CVs". This single change covers most of F3.
-3. **Port the NID rule** (10/13/17 digits) from `piiRedactor` into `piiMask`. Add passport, NRIC and SA ID shapes, and label-anchored registration and licence numbers (`AHPRA`, `BMDC`, `Reg. No`, `Licence No`, `Membership No`, `WWC`).
-4. **Label-anchored phones and addresses:** after `Mobile:`, `Phone:`, `Tel:`, `Cell:`, `WhatsApp:`, mask the digit run in any grouping. After `Address:`, `Present/Permanent Address:`, `Village:`, `ঠিকানা:`, mask to the end of the field. The label is what makes a bare digit run safe to take, so the rules against false positives on years still hold.
-5. **Fix the AU postcode false positive.** Don't match when the 4 digits are followed by another year or `Present`, or when the word before the state is `TAFE`, `University` or `Institute`.
-6. **Normalise known names the way the text is normalised:** fold diacritics and treat `’`, `'` and `-` alike on both sides. Only match single name words in Capitalised or UPPER case, which fixes `rose to` (not `Line Cook`).
-7. **Bare `@handles`, `Skype:`**, and more hosts (youtube, soundcloud, tiktok, linktr.ee, muckrack).
-8. **Referee names:** mask the name line inside a References section, or the name directly before a referee's phone or email.
-9. **Put this corpus in CI** with a floor per category, so a regression, or a new feature that reads CVs, is caught. The current tests only use DOCX-shaped input.
-10. **Look at Bangla PDF extraction** as a separate review-quality issue (F8).
-
-## 7. Limitations
-
-- The PDFs are generated by Chromium. Word and Canva exports lay out text differently, but the flattening in F1 happens in our own `extractFromPDF`, whatever produced the file, so F1 generalises. F8 may be better or worse with other producers and fonts.
-- All data is fictional. Phone numbers use regulator-reserved fictional ranges where one exists.
-- The resume review path was run end to end. The mock interview was checked by reading the code, which uses the same extraction and header guess. The chatbot, which takes typed text, was not in scope.
-- Match results depend on the harness's normalisation (section 2). Every leak and over-mask listed above was checked by hand against the files in `outbound/`.
+`docs/samples/pii_corpus/outbound/<id>.txt` holds, for each resume, the exact user message that would have been sent as a guest and as a logged-in user.

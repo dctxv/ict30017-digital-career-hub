@@ -1,0 +1,77 @@
+# ae-flight-attendant — Cabin Crew (Flight Attendant) (United Arab Emirates), layout: table-header
+
+Name read from the PDF's largest type: "Angelica Mae Reyes"
+Header name inferred from PDF text: "Angelica Mae Reyes"
+Header name inferred from DOCX text: "Angelica Mae Reyes"
+Extracted PDF text: 20 line(s) before sanitising, 20 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 phone-grouped=1 phone-labelled=2 dashed-id=1 keyword-id=1 field-dob=1 field-personal=2 address-unit=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Senior Cabin Crew
+Mobile: [PHONE]
+Alt: [PHONE]
+Email: [EMAIL]
+[ADDRESS]
+PROFILE
+Senior cabin crew with 6 years on A380 and B777 long-haul, fluent in English, Filipino and conversational
+Arabic.
+EXPERIENCE
+Senior Flight Attendant — Emirates, Dubai 2019 – Present
+Purser-in-charge on 120+ long-haul sectors; commended for inflight medical response.
+Flight Attendant — Cebu Pacific, Manila 2017 – 2019
+PERSONAL PARTICULARS
+Nationality : Filipino
+Emirates ID : [ID]
+Passport : [ID]
+Date of Birth : [DATE OF BIRTH]
+Height : [PERSONAL]
+Arm reach : [PERSONAL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Angelica Reyes","email":"angelica.reyes.crew@gmail.com","phone":"+971501234567"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-grouped=1 phone-labelled=2 dashed-id=1 keyword-id=1 field-dob=1 field-personal=2 address-unit=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Senior Cabin Crew
+Mobile: [PHONE]
+Alt: [PHONE]
+Email: [EMAIL]
+[ADDRESS]
+PROFILE
+Senior cabin crew with 6 years on A380 and B777 long-haul, fluent in English, Filipino and conversational
+Arabic.
+EXPERIENCE
+Senior Flight Attendant — Emirates, Dubai 2019 – Present
+Purser-in-charge on 120+ long-haul sectors; commended for inflight medical response.
+Flight Attendant — Cebu Pacific, Manila 2017 – 2019
+PERSONAL PARTICULARS
+Nationality : Filipino
+Emirates ID : [ID]
+Passport : [ID]
+Date of Birth : [DATE OF BIRTH]
+Height : [PERSONAL]
+Arm reach : [PERSONAL]
+</RESUME>

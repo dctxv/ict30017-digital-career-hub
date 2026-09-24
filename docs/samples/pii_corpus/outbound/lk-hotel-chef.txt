@@ -1,0 +1,73 @@
+# lk-hotel-chef — Chef de Partie (Sri Lanka), layout: bd-traditional
+
+Name read from the PDF's largest type: "W. A. KASUN PERERA"
+Header name inferred from PDF text: "W. A. KASUN PERERA"
+Header name inferred from DOCX text: "W. A. Kasun Perera"
+Extracted PDF text: 18 line(s) before sanitising, 18 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=1 phone-international=1 phone-grouped=1 phone-labelled=2 numbered-id=1 field-dob=1 field-personal=2 field-address=1 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Mobile: [PHONE]
+Home: [PHONE]
+Email: [EMAIL]
+Address: [ADDRESS]
+Objective
+Chef de partie with 7 years in five-star hotel kitchens, seeking a sous chef role in the Maldives or the Gulf.
+Experience
+Chef de Partie (Pastry) — Shangri-La Colombo, Colombo 2019 – Present
+Run the pastry section for 3 outlets and 900 banquet covers.
+Commis Chef — Cinnamon Grand, Colombo 2016 – 2019
+Education
+NVQ Level 4, Professional Cookery — Sri Lanka Institute of Tourism and Hotel Management 2016
+Personal Details
+NIC No : [ID]
+Date of Birth : [DATE OF BIRTH]
+Gender : [PERSONAL]
+Civil Status : [PERSONAL]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Kasun Perera","email":"kasun.perera.chef@gmail.com","phone":"0771234567"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-grouped=1 phone-labelled=2 numbered-id=1 field-dob=1 field-personal=2 field-address=1 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+employer_type: multinational
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Mobile: [PHONE]
+Home: [PHONE]
+Email: [EMAIL]
+Address: [ADDRESS]
+Objective
+Chef de partie with 7 years in five-star hotel kitchens, seeking a sous chef role in the Maldives or the Gulf.
+Experience
+Chef de Partie (Pastry) — Shangri-La Colombo, Colombo 2019 – Present
+Run the pastry section for 3 outlets and 900 banquet covers.
+Commis Chef — Cinnamon Grand, Colombo 2016 – 2019
+Education
+NVQ Level 4, Professional Cookery — Sri Lanka Institute of Tourism and Hotel Management 2016
+Personal Details
+NIC No : [ID]
+Date of Birth : [DATE OF BIRTH]
+Gender : [PERSONAL]
+Civil Status : [PERSONAL]
+</RESUME>

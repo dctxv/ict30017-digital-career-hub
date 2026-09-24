@@ -396,3 +396,68 @@ describe('createStreamRedactor — PII split across chunk boundaries', () => {
     );
   });
 });
+
+/* ── Shared rules and known values ──────────────────────────────────────────
+ * The redactor also runs the outbound mask's value-shape rules and known-name
+ * matching, and masks any value the outbound mask removed from the CV.
+ */
+
+describe('redactPii — shares the outbound mask’s value rules', () => {
+  it('catches formats only the mask used to know', () => {
+    const out = redactPii('Call 0491 570 156 or 017 1122 3344; IG @chefdancook; postcode Hawthorn VIC 3122.');
+    for (const value of ['0491 570 156', '017 1122 3344', '@chefdancook', '3122']) {
+      assert.ok(!out.includes(value), `${value} survived: ${out}`);
+    }
+  });
+
+  it('catches the candidate’s name when given their identity', () => {
+    const out = redactPii('Priya Raghunathan has strong ICU experience.', { extraNames: ['Priya Raghunathan'] });
+    assert.equal(out, '[redacted-name] has strong ICU experience.');
+  });
+
+  it('keeps the host of a profile URL it already reduced', () => {
+    assert.equal(
+      redactPii('Add linkedin.com/in/rafiqul-islam-bd to the header.'),
+      'Add linkedin.com/in/[redacted-username] to the header.'
+    );
+  });
+
+  it('passes the mask’s own placeholders through as the model wrote them', () => {
+    const text = 'Your header shows [NAME] and [PHONE]; keep [EMAIL] on one line.';
+    assert.equal(redactPii(text), text);
+  });
+
+  it('still leaves advice about personal fields untouched', () => {
+    const advice = 'Religion: remove this field for international applications. Date of birth: not needed.';
+    assert.equal(redactPii(advice), advice);
+  });
+});
+
+describe('redactPii — values the outbound mask removed', () => {
+  const known = [
+    { value: 'Md. Abdul Jalil Sheikh', placeholder: '[NAME]' },
+    { value: '15-03-1990', placeholder: '[DATE OF BIRTH]' },
+    { value: 'Islam', placeholder: '[PERSONAL]' },
+    { value: 'Married', placeholder: '[PERSONAL]' },
+    { value: 'B+', placeholder: '[PERSONAL]' },
+  ];
+
+  it('masks any of them echoed back', () => {
+    const out = redactPii('Your father Md. Abdul Jalil Sheikh, born 15-03-1990, Islam.', null, known);
+    for (const { value } of known.slice(0, 3)) assert.ok(!out.includes(value), `${value} survived: ${out}`);
+  });
+
+  it('masks an everyday word only straight after its label', () => {
+    assert.equal(redactPii('Marital status: Married', null, known), 'Marital status: [redacted-personal]');
+    assert.equal(redactPii('Blood group\nB+', null, known), 'Blood group\n[redacted-personal]');
+    const advice = 'Married couples and single parents both apply; use a B+ grade example.';
+    assert.equal(redactPii(advice, null, known), advice);
+  });
+
+  it('applies to streamed output too', () => {
+    const redactor = createStreamRedactor({ knownValues: known });
+    const text = `${'The review is below. '.repeat(10)}Father: Md. Abdul Jalil Sheikh. ${'More text follows here. '.repeat(10)}`;
+    const out = [...text].map((c) => redactor.push(c)).join('') + redactor.flush();
+    assert.ok(!out.includes('Abdul Jalil'), 'streamed echo survived');
+  });
+});

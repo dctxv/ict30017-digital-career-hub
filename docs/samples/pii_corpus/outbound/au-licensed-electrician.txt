@@ -1,11 +1,12 @@
 # au-licensed-electrician — Licensed Electrician (Australia), layout: modern-header
 
-Header name inferred from PDF text: "L I A M O"
-Header name inferred from DOCX text: "Liam O Connor"
-Extracted PDF text: 1 line(s) before sanitising, 16 after
+Name read from the PDF's largest type: "LIAM O’CONNOR"
+Header name inferred from PDF text: null
+Header name inferred from DOCX text: "Liam O’Connor"
+Extracted PDF text: 22 line(s) before sanitising, 22 after
 
 ## Guest — mask log
-[pii-mask] label=AI messages=2 masked=known-name=1 email=1 phone-au=2 address-street=1 address-au-postcode=2
+[pii-mask] label=AI messages=2 masked=email=1 phone-au=2 numbered-id=1 keyword-id=2 address-street=1 referee-name=1 known-name=1
 
 ## Guest — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -17,43 +18,33 @@ rendered_pages_available: false
 
 <RESUME>
 [NAME]
-
-C O N N O R A-Grade Licensed Electrician
-
+A-Grade Licensed Electrician
+[PHONE] [EMAIL] [ADDRESS]
+ABOUT ME
+Licensed electrician with 9 years across domestic, commercial and network work. Safety-first, tidy, and comfortable
+running jobs on my own.
+LICENCES & TICKETS
+NSW Electrical Licence No. [ID] • White Card ([ID]) • NSW Driver Licence [ID] (C, MR) • Test and
+tag • Working at Heights
+EXPERIENCE
+Electrician — Ausgrid, Sydney 2019 – Present
+Service connections, metering and fault finding on the low-voltage network.
+Zero lost-time injuries across five years.
+Apprentice Electrician — Penrith Electrical Services, Penrith 2015 – 2019
+Domestic rewires, switchboard upgrades and solar installs to AS/NZS 3000.
+TRAINING
+Certificate III in Electrotechnology Electrician (UEE30820) — TAFE NSW 2015 – 2019
+REFEREES
+[NAME]
+Field Supervisor, Ausgrid
 [PHONE]
-
-[EMAIL]
-
-[ADDRESS] ABOUT ME Licensed electrician with 9 years across domestic, commercial and network work. Safety-first, tidy, and comfortable running jobs on my own. LICENCES & TICKETS NSW Electrical Licence No. 312456C
-
-White Card (WC-1234567)
-
-NSW Driver Licence 12345678 (C, MR)
-
-Test and tag
-
-Working at Heights EXPERIENCE Electrician
-
-Ausgrid, Sydney 2019
-
-Present Service connections, metering and fault finding on the low-voltage network. Zero lost-time injuries across five years. Apprentice
-
-Electrician
-
-Penrith Electrical Services, Penrith 2015
-
-2019 Domestic rewires, switchboard upgrades and solar installs to AS/NZS 3000. TRAINING Certificate III in Electrotechnology Electrician (UEE30820)
-
-[ADDRESS]
-
-2019 REFEREES Steve Kowalski Field Supervisor, Ausgrid [PHONE]
 </RESUME>
 
 ## Logged in — account identity
 {"fullName":"Liam O'Connor","email":"liam.oconnor.sparky@gmail.com","phone":"0491570006"}
 
 ## Logged in — mask log
-[pii-mask] label=AI messages=2 masked=known-name=2 email=1 phone-au=2 address-street=1 address-au-postcode=2
+[pii-mask] label=AI messages=2 masked=known-email=1 known-phone=1 phone-au=1 numbered-id=1 keyword-id=2 address-street=1 referee-name=1 known-name=1
 
 ## Logged in — user message as sent to the provider
 Please review the resume in the blocks below.
@@ -65,34 +56,24 @@ rendered_pages_available: false
 
 <RESUME>
 [NAME]
-
-C O N N O R A-Grade Licensed Electrician
-
+A-Grade Licensed Electrician
+[PHONE] [EMAIL] [ADDRESS]
+ABOUT ME
+Licensed electrician with 9 years across domestic, commercial and network work. Safety-first, tidy, and comfortable
+running jobs on my own.
+LICENCES & TICKETS
+NSW Electrical Licence No. [ID] • White Card ([ID]) • NSW Driver Licence [ID] (C, MR) • Test and
+tag • Working at Heights
+EXPERIENCE
+Electrician — Ausgrid, Sydney 2019 – Present
+Service connections, metering and fault finding on the low-voltage network.
+Zero lost-time injuries across five years.
+Apprentice Electrician — Penrith Electrical Services, Penrith 2015 – 2019
+Domestic rewires, switchboard upgrades and solar installs to AS/NZS 3000.
+TRAINING
+Certificate III in Electrotechnology Electrician (UEE30820) — TAFE NSW 2015 – 2019
+REFEREES
+[NAME]
+Field Supervisor, Ausgrid
 [PHONE]
-
-[NAME][EMAIL]
-
-[ADDRESS] ABOUT ME Licensed electrician with 9 years across domestic, commercial and network work. Safety-first, tidy, and comfortable running jobs on my own. LICENCES & TICKETS NSW Electrical Licence No. 312456C
-
-White Card (WC-1234567)
-
-NSW Driver Licence 12345678 (C, MR)
-
-Test and tag
-
-Working at Heights EXPERIENCE Electrician
-
-Ausgrid, Sydney 2019
-
-Present Service connections, metering and fault finding on the low-voltage network. Zero lost-time injuries across five years. Apprentice
-
-Electrician
-
-Penrith Electrical Services, Penrith 2015
-
-2019 Domestic rewires, switchboard upgrades and solar installs to AS/NZS 3000. TRAINING Certificate III in Electrotechnology Electrician (UEE30820)
-
-[ADDRESS]
-
-2019 REFEREES Steve Kowalski Field Supervisor, Ausgrid [PHONE]
 </RESUME>

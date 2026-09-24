@@ -1,0 +1,107 @@
+# bd-bank-officer — Senior Officer (Retail Banking) (Bangladesh), layout: bd-traditional
+
+Name read from the PDF's largest type: "SHUVO KUMAR SAHA"
+Header name inferred from PDF text: "SHUVO KUMAR SAHA"
+Header name inferred from DOCX text: "Shuvo Kumar Saha"
+Extracted PDF text: 35 line(s) before sanitising, 35 after
+
+## Guest — mask log
+[pii-mask] label=AI messages=2 masked=email=2 phone-bd=3 phone-trunk=1 phone-labelled=4 national-id-digits=2 field-dob=1 field-family=3 field-personal=2 field-address=1 referee-name=2 known-name=1
+
+## Guest — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Cell: [PHONE]
+Alternate: [PHONE]
+E-mail: [EMAIL]
+Mailing Address: [ADDRESS]
+Career Objective
+Seeking a challenging role in retail banking operations where I can grow deposits and serve customers with
+integrity.
+Employment History
+Senior Officer — BRAC Bank PLC, Gulshan Branch July 2019 – Present
+Grew the branch SME deposit book by BDT 18 crore in 2023.
+KYC and AML reviews for 400+ accounts a year; zero audit exceptions.
+Management Trainee Officer — Dutch-Bangla Bank Limited, Dhaka 2017 – 2019
+Rotations through general banking, remittance and cards.
+Educational Qualification
+MBA (Finance), CGPA 3.65 — University of Dhaka (IBA) 2017
+BBA (Accounting) — Jagannath University 2015
+Personal Details
+Father's Name : [NAME]
+Mother's Name : [NAME]
+Spouse's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+Smart Card No : [ID]
+TIN : [ID]
+Religion : [PERSONAL]
+Blood Group : [PERSONAL]
+Nationality : Bangladeshi
+References
+[NAME]
+Branch Manager, BRAC Bank PLC, Gulshan
+Phone: [PHONE]
+[EMAIL]
+[NAME]
+Associate Professor, IBA, University of Dhaka
+Mobile: [PHONE]
+</RESUME>
+
+## Logged in — account identity
+{"fullName":"Shuvo Kumar Saha","email":"shuvo.saha.bank@gmail.com","phone":"01712000111"}
+
+## Logged in — mask log
+[pii-mask] label=AI messages=2 masked=known-email=1 email=1 known-phone=1 phone-bd=2 phone-trunk=1 phone-labelled=4 national-id-digits=2 field-dob=1 field-family=3 field-personal=2 field-address=1 referee-name=2 known-name=1
+
+## Logged in — user message as sent to the provider
+Please review the resume in the blocks below.
+
+<APPLICATION_CONTEXT>
+(none supplied - infer every field from the resume. Do NOT describe the inference in any feedback, issue, suggestion or action_item text: it is routing information, not advice. Report only the role and industry you inferred, in ats_analysis.inferred_role and ats_analysis.inferred_industry.)
+rendered_pages_available: false
+</APPLICATION_CONTEXT>
+
+<RESUME>
+[NAME]
+Cell: [PHONE]
+Alternate: [PHONE]
+E-mail: [EMAIL]
+Mailing Address: [ADDRESS]
+Career Objective
+Seeking a challenging role in retail banking operations where I can grow deposits and serve customers with
+integrity.
+Employment History
+Senior Officer — BRAC Bank PLC, Gulshan Branch July 2019 – Present
+Grew the branch SME deposit book by BDT 18 crore in 2023.
+KYC and AML reviews for 400+ accounts a year; zero audit exceptions.
+Management Trainee Officer — Dutch-Bangla Bank Limited, Dhaka 2017 – 2019
+Rotations through general banking, remittance and cards.
+Educational Qualification
+MBA (Finance), CGPA 3.65 — University of Dhaka (IBA) 2017
+BBA (Accounting) — Jagannath University 2015
+Personal Details
+Father's Name : [NAME]
+Mother's Name : [NAME]
+Spouse's Name : [NAME]
+Date of Birth : [DATE OF BIRTH]
+Smart Card No : [ID]
+TIN : [ID]
+Religion : [PERSONAL]
+Blood Group : [PERSONAL]
+Nationality : Bangladeshi
+References
+[NAME]
+Branch Manager, BRAC Bank PLC, Gulshan
+Phone: [PHONE]
+[EMAIL]
+[NAME]
+Associate Professor, IBA, University of Dhaka
+Mobile: [PHONE]
+</RESUME>
