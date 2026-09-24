@@ -230,6 +230,15 @@ describe('addresses', () => {
     }
   });
 
+  it('masks a street written as one word, but not an English word ending the same way', () => {
+    assert.equal(maskPii('Musterstraße 12, 10115 Berlin'), MASK.address);
+    assert.equal(maskPii('Keizersgracht 123, Amsterdam'), MASK.address);
+    for (const text of ['B.Sc. in Computer Science & Engineering 2018 – 2022', 'Diploma in Civil Engineering 12 months',
+      'Scout Brigade 12 members', 'Mentoring 3 interns']) {
+      assert.equal(maskPii(text), text);
+    }
+  });
+
   it('does not read a qualification level or a court as an address', () => {
     for (const text of ['NVQ Level 4, Professional Cookery', 'Level 3 Food Hygiene', 'Argued 3 Supreme Court appeals in 2022.']) {
       assert.equal(maskPii(text), text);
@@ -249,6 +258,14 @@ describe('handles and sites', () => {
   it('masks the candidate’s own site when it shares their email domain', () => {
     const out = maskPii('bookings@hairbyjess.com.au · hairbyjess.com.au');
     assertGone(out, 'hairbyjess');
+  });
+
+  it('masks a labelled site, but keeps a skills line that starts with the same word', () => {
+    assertGone(maskPii('Website: www.rafiq-portfolio.com'), 'rafiq-portfolio');
+    assertGone(maskPii('Portfolio: behance'), 'behance');
+    for (const text of ['Web : HTML, CSS, React, Node.js', 'Web: HTML CSS JavaScript', 'Portfolio: Brand identity for 12 clients']) {
+      assert.equal(maskPii(text), text);
+    }
   });
 
   it('leaves a webmail domain mentioned elsewhere alone', () => {
@@ -278,6 +295,17 @@ describe('referees', () => {
 
   it('keeps their roles and organisations, and the headings around them', () => {
     for (const value of ['Branch Manager, BRAC Bank PLC', 'University of Dhaka', 'DECLARATION']) assertKept(out, value);
+  });
+
+  it('masks names written with initials, and two referees printed side by side', () => {
+    const twoColumn = maskPii([
+      'REFERENCES',
+      'Prof. Dr. A.K.M. Ashikur Rahman Mr. Tanvir Hossain',
+      'Professor, Dept. of CSE, BUET Senior Software Engineer, BRAC IT',
+      'Email: akm@cse.buet.ac.bd Email: tanvir@bracit.com',
+    ].join('\n'));
+    for (const value of ['Ashikur', 'Rahman', 'Tanvir', 'Hossain', 'A.K.M.']) assertGone(twoColumn, value);
+    assertKept(twoColumn, 'Professor, Dept. of CSE, BUET Senior Software Engineer, BRAC IT');
   });
 });
 
@@ -324,6 +352,11 @@ describe('known names', () => {
 describe('inferNameFromHeader', () => {
   it('reads a name with a bracketed nickname', () => {
     assert.equal(inferNameFromHeader('ZHANG Wei (David)\nPhysiotherapist'), 'ZHANG Wei (David)');
+  });
+
+  it('does not take a template placeholder for the name', () => {
+    assert.equal(inferNameFromHeader('[CANDIDATE NAME]\nMailing Address:'), null);
+    assert.equal(inferNameFromHeader('[Photo]\nNusrat Jahan\nnusrat@example.com'), 'Nusrat Jahan');
   });
 });
 

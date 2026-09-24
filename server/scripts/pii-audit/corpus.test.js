@@ -1,8 +1,9 @@
 /**
  * Regression test: the PII audit corpus, end to end.
  *
- * Every resume in corpus.js and in both holdout sets in corpus-holdout.js is
- * run through the real upload path (see audit-core.js) and must come out with:
+ * Every resume in corpus.js, both holdout sets in corpus-holdout.js and the
+ * team's own sample CVs in team-samples.js is run through the real upload
+ * path (see audit-core.js) and must come out with:
  *   - every piece of personal information masked, as a guest, logged in, as a
  *     DOCX, and in the inbound redactor if the model echoed the CV back;
  *   - every `keep` phrase still there;
@@ -22,6 +23,7 @@ import path from 'node:path';
 
 import { CORPUS } from './corpus.js';
 import { HOLDOUT, HOLDOUT_BD } from './corpus-holdout.js';
+import { TEAM_SAMPLES } from './team-samples.js';
 import { auditEntry } from './audit-core.js';
 
 /**
@@ -59,7 +61,9 @@ after(async () => {
   await fs.rm(docxDir, { recursive: true, force: true });
 });
 
-for (const [setName, set] of [['corpus', CORPUS], ['holdout', HOLDOUT], ['Bangladesh holdout', HOLDOUT_BD]]) {
+const SETS = [['corpus', CORPUS], ['holdout', HOLDOUT], ['Bangladesh holdout', HOLDOUT_BD], ['team samples', TEAM_SAMPLES]];
+
+for (const [setName, set] of SETS) {
   describe(`PII audit ${setName}`, () => {
     for (const entry of set) {
       it(`${entry.id} (${entry.career}, ${entry.country})`, async () => {
@@ -69,6 +73,8 @@ for (const [setName, set] of [['corpus', CORPUS], ['holdout', HOLDOUT], ['Bangla
           for (const scenario of SCENARIOS) {
             const { status, left } = item[scenario];
             if (status === 'masked') continue;
+            // A team sample is an existing file, so it has no DOCX twin.
+            if (status === 'not run' && entry.file) continue;
             if (status === 'absent' && UNJUDGEABLE.has(`${entry.id}:${item.value}:${scenario}`)) continue;
             assert.fail(`${scenario}: ${item.cat} ${JSON.stringify(item.value)} was ${status}${left?.length ? ` (left: ${left.join(', ')})` : ''}`);
           }

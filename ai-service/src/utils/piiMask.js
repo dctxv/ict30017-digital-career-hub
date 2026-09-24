@@ -780,9 +780,15 @@ function applyFieldRules(text, bump) {
       for (const [s, e] of spans) {
         let value = out.slice(s, e);
         if (rule.token) {
-          // A handle or a site: one token, not the rest of the line.
+          // A handle or a site: one token, not the rest of the line. It must
+          // look like one — a dot, @, slash, underscore or digit, or the only
+          // thing in the field — so a skills line "Web : HTML, CSS, React"
+          // keeps its skills.
           const token = value.match(/^\s*(\S+)/);
           if (!token) continue;
+          const onlyToken = !value.trim().includes(' ');
+          if (!/[.@/_\d]/.test(token[1]) && !onlyToken) continue;
+          if (/,$/.test(token[1])) continue;
           const tokenEnd = s + token.index + token[0].length;
           value = out.slice(s, tokenEnd);
           if (!value.trim() || ONLY_PLACEHOLDERS.test(value)) continue;
@@ -905,8 +911,10 @@ const ADDRESS_ANCHORS = [
     name: 'address-street-suffix',
     // Streets written as one word with the type attached, as German, Dutch
     // and Scandinavian addresses are: "Musterstraße 12", "Keizersgracht 123",
-    // "Storgatan 5".
-    pattern: /(?<![\p{L}\p{N}])\p{Lu}[\p{L}-]*(?:straße|strasse|str\.|weg|allee|platz|gasse|ring|damm|ufer|chaussee|straat|laan|gracht|plein|kade|vej|gade|gatan|vägen|veien|gata)\s+\d+[a-z]?\b/gu,
+    // "Storgatan 5". Only suffixes no English word ends in: '-ring' and
+    // '-gade' took "Engineering 2018" and "Brigade 12". A year is never a
+    // house number.
+    pattern: /(?<![\p{L}\p{N}])\p{Lu}[\p{L}-]*(?:straße|strasse|straat|gracht|gatan|vägen|veien|allee|chaussee|gasse)\s+(?!(?:19|20)\d{2}\b)\d{1,4}[a-z]?\b/gu,
   },
   {
     name: 'address-local-street',
@@ -1047,7 +1055,12 @@ function applyAddressRules(text, bump) {
 const REFEREE_HEADING = /^(?:references?|referees?|professional references|character references|reference persons?|তথ্যসূত্র|রেফারেন্স)[^\S\n]*:?$/iu;
 
 const HONORIFIC = '(?:Mr|Mrs|Ms|Miss|Mx|Dr|Prof|Professor|Engr|Eng|Md|Mst|Mohammad|Hon|Rev|Sir|Dame|Late|Capt|Col|Maj|Justice|Adv|CA|Barrister)';
-const PERSON_NAME = new RegExp(`^((?:${HONORIFIC}\\.?[^\\S\\n]+)*[\\p{Lu}][\\p{L}'’-]+(?:[^\\S\\n]+(?:[\\p{Lu}][\\p{L}'’-]+|[\\p{Lu}]\\.)){1,4})(?=$|[^\\S\\n]*[,–—|(-])`, 'u');
+// A word of a name: capitalised, or initials ("C.", "A.K.M.").
+const NAME_WORD = "(?:[\\p{Lu}][\\p{L}'’-]+|(?:[\\p{Lu}]\\.){1,4})";
+// A name ends at the end of the line, at punctuation, or where a second
+// referee's name begins — a two-column reference block extracts both names
+// onto one line: "Prof. Dr. A.K.M. Ashikur Rahman Mr. Tanvir Hossain".
+const PERSON_NAME = new RegExp(`^((?:${HONORIFIC}\\.?[^\\S\\n]+)*${NAME_WORD}(?:[^\\S\\n]+${NAME_WORD}){1,4})(?=$|[^\\S\\n]*[,–—|(-]|[^\\S\\n]+${HONORIFIC}\\.?[^\\S\\n])`, 'u');
 
 /**
  * Masks the names in a References section.
@@ -1085,11 +1098,16 @@ function applyRefereeRule(text, bump) {
       continue;
     }
     if (entryStart) {
-      const m = trimmed.match(PERSON_NAME);
-      if (m && !PLACEHOLDER.test(m[1])) {
+      // Up to two names: a second referee printed beside the first.
+      let rest = trimmed;
+      for (let k = 0; k < 2; k++) {
+        const m = rest.match(PERSON_NAME);
+        if (!m || PLACEHOLDER.test(m[1])) break;
         note(m[1], MASK.name);
         lines[i] = lines[i].replace(m[1], MASK.name);
         count += 1;
+        rest = rest.slice(m[1].length).trim();
+        if (!new RegExp(`^${HONORIFIC}\\.?[^\\S\\n]`, 'u').test(rest)) break;
       }
       entryStart = false;
     }
@@ -1391,8 +1409,13 @@ export function inferNameFromHeader(text) {
     // simply not name-shaped, the header is behind us, and a name taken from
     // further down the page is a guess at a line that is something else.
     if (DOCUMENT_TITLE.test(line)) continue;
+    // A template's own placeholder — "[CANDIDATE NAME]", "[Photo]" — is not a
+    // name, and stepping over it keeps a real name below it in reach.
+    if (/^\[[^\]]*\]$/.test(line)) continue;
 
     if (line.length > 50) break;
+    // A label — "Mailing Address:" — ends the header like a contact line.
+    if (/:$/.test(line)) break;
     if (CONTACT_TOKEN.test(line)) break;
     if (HEADER_SECTION.test(line)) break;
 

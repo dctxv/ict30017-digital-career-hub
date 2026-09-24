@@ -201,7 +201,8 @@ export function itemsToText(items) {
 
 /* ── Name hint ──────────────────────────────────────────────────────────── */
 
-const DOCUMENT_TITLE = /^(?:curriculum\s*vitae|resume|r[eé]sum[eé]|cv|bio\s*-?\s*data|জীবনবৃত্তান্ত|সিভি)$/iu;
+// A document title, alone or introducing the name: "RESUME", "Resume of".
+const DOCUMENT_TITLE = /^(?:curriculum\s*vitae|resume|r[eé]sum[eé]|cv|bio\s*-?\s*data|জীবনবৃত্তান্ত|সিভি)(?:\s+of)?\b[\s:–-]*/iu;
 
 /**
  * Reads the candidate's name as the largest type on page 1.
@@ -242,7 +243,14 @@ export function nameHintFromItems(items) {
     const start = first > 0 && ONLY_NUL.test(items[first - 1]?.str ?? '') ? first - 1 : first;
     const text = itemsToText(items.slice(start, last + 1)).replace(/\s+/g, ' ').trim();
 
-    if (DOCUMENT_TITLE.test(text)) continue;
+    // "Resume of Sakib Hasan" gives the name; "RESUME" or "Resume of [Photo]"
+    // gives nothing at this size, so the next size down is tried.
+    const title = text.match(DOCUMENT_TITLE);
+    if (title) {
+      const rest = text.slice(title[0].length).trim();
+      if (isNameShaped(rest)) return rest;
+      continue;
+    }
     if (isNameShaped(text)) return text;
     return null;
   }
