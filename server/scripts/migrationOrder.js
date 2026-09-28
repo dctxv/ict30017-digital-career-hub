@@ -6,6 +6,13 @@
  * two can never disagree about what "up to date" means.
  */
 
+/**
+ * Order matters and is not alphabetical: content tables must exist before they
+ * are seeded, and the bilingual columns before the Bangla that fills them. This
+ * list is the authority — the README mirrors it, and mirrored it wrongly before
+ * (add_resume_review_tracking.sql was missing entirely, so the review quota
+ * columns were never created on a machine set up from the documentation).
+ */
 export const MIGRATION_ORDER = Object.freeze([
   'create_users_table.sql',
   'add_login_attempt_tracking.sql',
@@ -31,10 +38,4 @@ export const MIGRATION_ORDER = Object.freeze([
   'seed_full_bangla_content.sql',
   'retranslate_alumni_bios.sql',
   'add_interview_live_mode.sql',
-  // Security features — must come after the base tables above.
-  'add_email_verification_and_2fa.sql',
-  'add_audit_log.sql',
-  'add_session_management_and_password_history.sql',
-  'add_trusted_devices_and_oauth.sql',
-  'add_google_oauth.sql',
 ]);
