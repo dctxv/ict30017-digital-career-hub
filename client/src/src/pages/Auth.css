@@ -1,0 +1,502 @@
+/* Log in, register, and the plan and payment steps that follow registration.
+   All three are the same card on the same tinted field; only its contents change,
+   which is what makes the three-step signup read as one continuous form. */
+
+.auth {
+  background: linear-gradient(180deg, var(--grad-a) 0%, var(--grad-b) 60%, var(--bg) 100%);
+  min-height: calc(100vh - var(--nav-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px 64px;
+}
+
+.auth__card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 34px;
+  box-shadow: 0 10px 30px rgba(27, 67, 50, 0.07);
+}
+
+.auth__card--wide { max-width: 520px; }
+
+.auth__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 22px;
+}
+
+.auth__mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--on-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth__wordmark {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.035em;
+}
+
+.auth__title {
+  font-size: 28px;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+
+.auth__sub {
+  font-size: 15px;
+  color: var(--body-2);
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
+
+/* ── Step indicator ────────────────────────────────────────────────── */
+
+.auth__steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.auth__step-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  transition: background 0.25s ease;
+}
+
+.auth__step-bar--on { background: var(--accent); }
+
+.auth__step-count {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+
+/* ── Password ──────────────────────────────────────────────────────── */
+
+.auth__password { position: relative; display: block; }
+
+.auth__password .input { padding-right: 74px; }
+
+.auth__reveal {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent-text);
+  transition: background var(--transition);
+}
+
+.auth__reveal:hover { background: var(--tint); }
+
+.auth__link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  text-decoration: underline;
+}
+
+.auth__forgot {
+  text-align: right;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.auth__forgot a { color: var(--accent-text); }
+
+/* ── Terms ─────────────────────────────────────────────────────────── */
+
+.auth__agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: var(--body-2);
+  line-height: 1.55;
+}
+
+.auth__agree label { cursor: pointer; }
+.auth__agree a { font-weight: 600; color: var(--accent-text); }
+.auth__agree a:hover { color: var(--accent); }
+
+/* accent-color styles the native tick without replacing the control, so the
+   checkbox keeps its own keyboard behaviour and its announced state. */
+.auth__checkbox {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* ── Divider and alternates ────────────────────────────────────────── */
+
+.auth__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  font-size: 13px;
+  color: var(--muted-2);
+}
+
+.auth__divider::before,
+.auth__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth__switch {
+  font-size: 14.5px;
+  color: var(--body-2);
+  text-align: center;
+  margin-top: 22px;
+}
+
+.auth__switch a { font-weight: 600; color: var(--accent-text); }
+
+.auth__secure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 20px;
+  font-size: 12.5px;
+  color: var(--muted-2);
+}
+
+.auth__secure svg { color: var(--accent); }
+
+.auth__message { margin-bottom: 18px; }
+
+.auth__back {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 10px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--muted);
+  border-radius: var(--radius-md);
+  transition: background var(--transition);
+}
+
+.auth__back:hover { background: var(--hover); }
+
+/* ── Plan cards ────────────────────────────────────────────────────── */
+
+.auth__plans {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.plan {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: inherit;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.plan--on {
+  border: 1.5px solid var(--accent);
+  background: var(--surface-2);
+}
+
+.plan__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plan__name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.plan__price {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.plan__price svg { flex: none; }
+.plan__tick { color: var(--accent); }
+.plan__untick { color: var(--muted-3); }
+
+.plan__perks {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.plan__perk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--body-2);
+}
+
+.plan__perk svg { flex-shrink: 0; color: var(--accent); }
+
+/* ── Payment ───────────────────────────────────────────────────────── */
+
+.pay__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+  margin-bottom: 22px;
+}
+
+.pay__summary-name {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.pay__summary-note {
+  display: block;
+  font-size: 13px;
+  color: var(--body-2);
+  margin-top: 2px;
+}
+
+.pay__summary-price {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.pay__methods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.pay__method {
+  min-height: 46px;
+  padding: 11px 8px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--body);
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+
+.pay__method--on {
+  border: 1.5px solid var(--accent);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.pay__note {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--tint);
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  font-size: 13.5px;
+  color: var(--body-2);
+  line-height: 1.55;
+}
+
+.pay__note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent-text);
+}
+
+/* This is not a payment gateway and must not pretend to be one. The disclosure
+   is part of the form, not a footnote under it. */
+.pay__simulated {
+  margin-bottom: 20px;
+}
+
+@media (max-width: 520px) {
+  .auth { padding: 28px 16px 48px; }
+  .auth__card { padding: 26px 22px; }
+  .auth__title { font-size: 24px; }
+}
+
+/* ── Google OAuth button ──────────────────────────────────────────────────── */
+.auth__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--body-2, #94a3b8);
+  font-size: 13px;
+}
+.auth__divider::before,
+.auth__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border, #e2e8f0);
+}
+
+.btn--google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #fff;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 10px 16px;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.btn--google:hover {
+  background: #f8fafc;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+
+/* ── Input validation states ─────────────────────────────────────────────── */
+.input--error {
+  border-color: #ef4444 !important;
+  outline-color: #ef4444;
+}
+
+.field__error {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.field__ok {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: #22c55e;
+  font-weight: 500;
+}
+
+/* ── Password strength meter ─────────────────────────────────────────────── */
+.pw-strength {
+  margin-top: 10px;
+}
+
+.pw-strength__bars {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.pw-strength__bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--border, #e2e8f0);
+  transition: background 0.2s ease;
+}
+
+.pw-strength__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.pw-requirements {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+
+.pw-req {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted, #94a3b8);
+  transition: color 0.15s;
+}
+
+.pw-req svg {
+  opacity: 0.3;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.pw-req--met {
+  color: #22c55e;
+}
+
+.pw-req--met svg {
+  opacity: 1;
+}
+
+@media (max-width: 420px) {
+  .pw-requirements { grid-template-columns: 1fr; }
+}

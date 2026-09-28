@@ -1,0 +1,72 @@
+/* Terminal failure for a resume analysis. Deliberately narrow and centred: the
+   only useful things on this screen are the cause and the two ways forward. */
+
+.rr-error {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 80px 24px 110px;
+  text-align: center;
+  animation: fadeUp 0.3s ease both;
+}
+
+.rr-error__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  color: var(--warn-text);
+  margin-bottom: 22px;
+}
+
+.rr-error__title {
+  font-size: 26px;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+
+.rr-error__file {
+  font-size: 14px;
+  color: var(--muted-2);
+  margin-bottom: 14px;
+  overflow-wrap: anywhere;
+}
+
+.rr-error__body {
+  font-size: 15.5px;
+  color: var(--body);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.rr-error__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+
+/* Small and muted on purpose. This line is for whoever receives the screenshot,
+   not for the person reading the explanation above it. */
+.rr-error__diagnostic {
+  font-size: 12.5px;
+  color: var(--muted-2);
+}
+
+.rr-error__diagnostic code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--neutral);
+  border-radius: 5px;
+  padding: 2px 7px;
+  color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  .rr-error { padding: 48px 20px 72px; }
+  .rr-error__title { font-size: 22px; }
+  .rr-error__actions .btn { width: 100%; }
+}

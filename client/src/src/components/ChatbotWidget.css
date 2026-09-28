@@ -1,0 +1,240 @@
+/* Floating career chatbot.
+   The panel sits above the trigger rather than replacing it, so the control the
+   user pressed is still where they left it when they want to close again. */
+
+.chat {
+  position: fixed;
+  right: 24px;
+  bottom: 88px;
+  z-index: 70;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: 520px;
+  max-height: calc(100vh - 140px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+  animation: slideUp 0.22s ease both;
+}
+
+/* ── Header ────────────────────────────────────────────────────────── */
+
+.chat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 14px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+
+.chat__identity {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.chat__avatar {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--on-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat__title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.chat__lang {
+  font-size: 12.5px;
+  color: var(--muted-2);
+  margin-top: 1px;
+}
+
+.chat__close {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  transition: background var(--transition), color var(--transition);
+}
+
+.chat__close:hover { background: var(--hover); color: var(--ink); }
+
+/* ── Messages ──────────────────────────────────────────────────────── */
+
+.chat__messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+}
+
+.chat__row { display: flex; }
+.chat__row--user { justify-content: flex-end; }
+.chat__row--assistant { justify-content: flex-start; }
+
+.chat__bubble {
+  max-width: 82%;
+  padding: 11px 14px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  animation: slideUp 0.2s ease both;
+}
+
+.chat__row--user .chat__bubble {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-radius: 14px 14px 4px 14px;
+}
+
+.chat__row--assistant .chat__bubble {
+  background: var(--surface);
+  color: var(--body);
+  border: 1px solid var(--border);
+  border-radius: 14px 14px 14px 4px;
+}
+
+.chat__bubble--thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 14px;
+}
+
+.chat__bubble--thinking span {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--muted-2);
+  animation: dotPulse 1.2s infinite;
+}
+
+.chat__bubble--thinking span:nth-child(2) { animation-delay: 0.18s; }
+.chat__bubble--thinking span:nth-child(3) { animation-delay: 0.36s; }
+
+.chat__error {
+  flex: none;
+  margin: 0 16px 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  color: var(--warn-text);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* ── Composer ──────────────────────────────────────────────────────── */
+
+.chat__composer {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.chat__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  font-size: 14.5px;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.chat__input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.14);
+}
+
+.chat__send {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--on-primary);
+  transition: background var(--transition);
+}
+
+.chat__send:hover:not(:disabled) { background: var(--primary-hover); }
+
+.chat__send:disabled {
+  background: var(--primary-disabled);
+  cursor: not-allowed;
+}
+
+/* ── Trigger ───────────────────────────────────────────────────────── */
+
+.chat__trigger {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 70;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 6px 20px rgba(27, 67, 50, 0.28);
+  transition: background var(--transition), transform var(--transition);
+}
+
+.chat__trigger:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 560px) {
+  .chat {
+    right: 12px;
+    left: 12px;
+    bottom: 80px;
+    width: auto;
+    max-width: none;
+    height: min(70vh, 520px);
+  }
+
+  .chat__trigger { right: 16px; bottom: 16px; }
+}

@@ -21,6 +21,7 @@ import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import pool from '../db.js';
 import { requireAuth, requireActiveAccount } from '../middleware/auth.js';
+import requireReAuth from '../middleware/requireReAuth.js';
 
 const router = express.Router();
 
@@ -391,7 +392,7 @@ router.get('/me/subscription', async (req, res) => {
  * Everything runs in one transaction. A half-deleted account — reviews gone,
  * profile intact — is the worst of both outcomes.
  */
-router.delete('/me', reauthLimiter, async (req, res) => {
+router.delete('/me', reauthLimiter, requireReAuth, async (req, res) => {
   const { password } = req.body ?? {};
 
   try {
@@ -557,6 +558,117 @@ router.post('/me/subscription', async (req, res) => {
     return res.status(500).json({ error: 'Could not change your plan.' });
   } finally {
     client.release();
+  }
+});
+
+/* ── GET /api/users/me/login-history ───────────────────────────────── */
+
+/*
+ * Returns the 50 most recent login events for the Security & Sessions page.
+ * Records are ordered newest first. The login_events table is created by
+ * create_login_events_table.sql; if it does not exist yet the route returns
+ * an empty array rather than a 500, so the page works on databases that
+ * have not run that migration.
+ */
+router.get('/me/login-history', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT event_id, event_type, ip_address, user_agent, created_at
+         FROM login_events
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 50`,
+      [req.user.id]
+    );
+    return res.json(result.rows);
+  } catch (err) {
+    if (err.code === '42P01') {
+      // Table does not exist yet — migration not yet run
+      return res.json([]);
+    }
+    console.error('[users] Login history read failed:', err.message);
+    return res.status(500).json({ error: 'Could not load login history.' });
+  }
+});
+
+/* ── GET /api/users/me/security-score ──────────────────────────────── */
+
+/*
+ * Returns a simple security score (0–100) derived from account attributes.
+ * The score is advisory only — it is displayed as a widget on the Profile
+ * security tab to encourage good security hygiene.
+ *
+ * Scoring breakdown (total 100):
+ *   Password strength (presence only, no policy check here): 30
+ *   Email verified (has logged in at least once):           20
+ *   No recent failed logins (none in last 7 days):         20
+ *   2FA enabled (placeholder, column added when 2FA is):   30
+ */
+router.get('/me/security-score', async (req, res) => {
+  try {
+    const [userResult, failedResult] = await Promise.all([
+      pool.query(
+        `SELECT password_hash, last_login_at
+           FROM users WHERE user_id = $1`,
+        [req.user.id]
+      ),
+      pool.query(
+        `SELECT COUNT(*) AS cnt
+           FROM login_events
+          WHERE user_id = $1
+            AND event_type = 'login_failure'
+            AND created_at > NOW() - INTERVAL '7 days'`,
+        [req.user.id]
+      ).catch(() => ({ rows: [{ cnt: '0' }] })), // Degrade if table absent
+    ]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ error: 'Session is no longer valid.' });
+    }
+
+    const u = userResult.rows[0];
+    const recentFailures = parseInt(failedResult.rows[0].cnt, 10);
+
+    let score = 0;
+    const factors = [];
+
+    // Password set (always true for a non-OAuth account)
+    if (u.password_hash) {
+      score += 30;
+      factors.push({ label: 'Password set', achieved: true, points: 30 });
+    } else {
+      factors.push({ label: 'Password set', achieved: false, points: 30 });
+    }
+
+    // Has logged in before (email confirmed via login)
+    if (u.last_login_at) {
+      score += 20;
+      factors.push({ label: 'Account verified', achieved: true, points: 20 });
+    } else {
+      factors.push({ label: 'Account verified', achieved: false, points: 20 });
+    }
+
+    // No recent failed logins
+    if (recentFailures === 0) {
+      score += 20;
+      factors.push({ label: 'No recent failed logins', achieved: true, points: 20 });
+    } else {
+      factors.push({ label: 'No recent failed logins', achieved: false, points: 20 });
+    }
+
+    // 2FA (column may not exist yet; degrade gracefully)
+    const twoFaEnabled = false; // column not yet in DB; always false until migration adds it
+    if (twoFaEnabled) {
+      score += 30;
+      factors.push({ label: 'Two-factor authentication', achieved: true, points: 30 });
+    } else {
+      factors.push({ label: 'Two-factor authentication', achieved: false, points: 30 });
+    }
+
+    return res.json({ score, factors, recentFailedLogins: recentFailures });
+  } catch (err) {
+    console.error('[users] Security score failed:', err.message);
+    return res.status(500).json({ error: 'Could not compute security score.' });
   }
 });
 

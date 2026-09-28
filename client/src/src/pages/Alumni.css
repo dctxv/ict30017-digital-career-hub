@@ -1,0 +1,118 @@
+/* Alumni network. Centred header — this page is a story to browse rather than a
+   tool to operate, so it opens wider and quieter than the other inner pages. */
+
+.alumni-head {
+  padding: 52px 24px 38px;
+  text-align: center;
+}
+
+.alumni-head .shell { max-width: 760px; }
+
+.alumni-head__title {
+  font-size: 40px;
+  letter-spacing: -0.035em;
+  margin-bottom: 14px;
+}
+
+.alumni-head__sub {
+  font-size: 16.5px;
+  color: var(--body);
+  line-height: 1.7;
+  margin: 0 auto 26px;
+  max-width: 62ch;
+}
+
+.alumni-head__filters { justify-content: center; }
+
+.alumni-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.alumni-card {
+  display: flex;
+  gap: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  transition: box-shadow var(--transition);
+}
+
+.alumni-card:hover { box-shadow: var(--shadow-card); }
+
+.alumni-card__avatar {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: var(--on-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.alumni-card__body { flex: 1; min-width: 0; }
+
+.alumni-card__name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.025em;
+  margin-bottom: 10px;
+}
+
+.alumni-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.alumni-card__bio {
+  font-size: 14.5px;
+  color: var(--body-2);
+  line-height: 1.65;
+}
+
+.alumni-card__contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.alumni-card__contacts a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-size: 13.5px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.alumni-card__contacts a:hover { text-decoration: underline; }
+
+.alumni-card__contacts a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+@media (max-width: 860px) {
+  .alumni-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .alumni-head { padding: 36px 20px 28px; }
+  .alumni-head__title { font-size: 30px; }
+  .alumni-card { gap: 14px; padding: 20px; }
+  .alumni-card__avatar { width: 46px; height: 46px; font-size: 16px; }
+}

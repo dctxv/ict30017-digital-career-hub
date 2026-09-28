@@ -1,0 +1,35 @@
+/* Terms and privacy. A single column of prose, narrower than the content pages
+   because a policy is read rather than scanned. */
+
+.policy {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 24px 88px;
+}
+
+.policy__meta {
+  font-size: 13px;
+  color: var(--muted-2);
+  margin-bottom: 32px;
+}
+
+.policy__section { margin-bottom: 30px; }
+
+.policy__heading {
+  font-size: 19px;
+  letter-spacing: -0.025em;
+  margin-bottom: 10px;
+}
+
+.policy__body {
+  font-size: 15.5px;
+  color: var(--body);
+  line-height: 1.75;
+}
+
+.policy__footer { margin-top: 40px; }
+
+@media (max-width: 640px) {
+  .policy { padding: 28px 20px 64px; }
+  .policy__heading { font-size: 17px; }
+}
