@@ -1,8 +1,16 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { getDocument, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import * as pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs';
 import mammoth from 'mammoth';
 import { itemsToText, nameHintFromItems } from './pdfText.js';
+
+// In Node pdfjs runs its worker in-process, and it finds the worker code by a
+// dynamic import of pdf.worker.mjs. Vercel only bundles files it can see being
+// imported, so on a deployment that file was missing and every PDF failed with
+// "Setting up fake worker failed". Importing it here puts it in the bundle, and
+// pdfjs uses globalThis.pdfjsWorker when it is set instead of importing again.
+globalThis.pdfjsWorker = pdfjsWorker;
 
 const MAGIC_BYTES = {
   '.pdf': Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2D]), // %PDF-
