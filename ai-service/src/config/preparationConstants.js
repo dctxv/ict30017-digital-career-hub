@@ -178,8 +178,8 @@ export const GAP_COMPLETION_PARAMS = Object.freeze({
  * The two ways an interview can be conducted.
  *
  * 'written' is the original: all five questions on one page, typed, submitted
- * together. 'live' delivers them one at a time and lets the candidate dictate
- * the answer with the browser's own speech recognition.
+ * together. 'live' delivers them one at a time and lets the candidate speak
+ * the answer, which is recorded and transcribed by Whisper.
  *
  * They are two presentations of ONE interview, not two features. Both generate
  * questions through generateInterviewQuestions, both are marked by

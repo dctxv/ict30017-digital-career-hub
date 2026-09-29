@@ -43,6 +43,21 @@ export {
 } from './src/services/mockInterview.js';
 export { extractGapsFromReview, normaliseGapList } from './src/services/gapEngine.js';
 
+// Live interview dictation: a recorded answer in, a transcript out, through
+// Whisper on Groq. Separate from the chat client above — its own key, and no
+// masking wrapper, because audio has no text to mask. See the module header.
+export {
+  transcribeAudio,
+  isTranscriptionConfigured,
+  getTranscriptionModel,
+  getTranscriptionClient,
+  audioExtensionFor,
+  formatTranscriptionErrorLog,
+  classifyTranscriptionError,
+  AUDIO_MAX_BYTES,
+  TRANSCRIPTION_ERROR_CODES,
+} from './src/services/transcription.js';
+
 // Gap vocabulary. The server validates stored gaps against these, and the
 // migration's CHECK constraints are written from the same lists.
 export {

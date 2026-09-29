@@ -176,10 +176,10 @@ question is evidence of nothing on its own — do not raise a gap from a blank.`
 /**
  * What changes when the answers were spoken rather than typed.
  *
- * A dictated answer looks worse on the page than the same answer typed. Browser
- * speech recognition drops punctuation, runs sentences together, writes "there"
- * for "their", and mangles exactly the proper nouns an interview answer is
- * built from — employers, tools, qualifications. Marked against the written
+ * A dictated answer looks worse on the page than the same answer typed.
+ * Automatic transcription drops punctuation, runs sentences together, writes
+ * "there" for "their", and mangles exactly the proper nouns an interview answer
+ * is built from — employers, tools, qualifications. Marked against the written
  * rubric unchanged, a live interview scores lower than a written one for the
  * same substance, and the candidate is told their answer was unclear when what
  * was unclear was the transcript.

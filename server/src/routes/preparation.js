@@ -5,18 +5,20 @@
  * TWO MODES, ONE INTERVIEW
  *
  * An interview runs written (five questions on a page, typed, submitted
- * together) or live (one question at a time, dictated in the browser, on a
- * clock). Both are created by POST /interviews and assessed by
+ * together) or live (one question at a time, spoken or typed, on a clock).
+ * Both are created by POST /interviews and assessed by
  * POST /interviews/:id/answers — the same two calls, the same generator, the
  * same evaluator, the same gap reconciliation. The mode is a column, not a
  * branch: nothing below forks on it except the transcript annotation and one
  * prompt block, both of which live in ai-service.
  *
- * POST /interviews/:id/next is the live mode's only addition, and it does two
- * things: it saves the answers so far, so an interview answered over several
- * minutes survives a closed tab, and for premium accounts it may spend one
- * small model call on a question that reacts to what was just said. It never
- * fails the caller — see its own note.
+ * The live mode adds two routes. POST /interviews/:id/next does two things: it
+ * saves the answers so far, so an interview answered over several minutes
+ * survives a closed tab, and for premium accounts it may spend one small model
+ * call on a question that reacts to what was just said. It never fails the
+ * caller — see its own note. POST /interviews/:id/transcribe turns one recorded
+ * answer into text with Whisper; the recording is held in memory for that one
+ * request and never stored.
  *
  * WHY THIS IS ONE ROUTER AND NOT TWO
  *
@@ -59,9 +61,13 @@ import {
   LIVE_FOLLOW_UP_CAP,
   inspectMaskedPii,
   resumeMaskContext,
+  transcribeAudio,
+  formatTranscriptionErrorLog,
+  isTranscriptionConfigured,
 } from 'ai-service';
 import pool from '../db.js';
 import upload from '../middleware/upload.js';
+import { receiveAudio } from '../middleware/audioUpload.js';
 import { extractResume } from '../utils/fileParser.js';
 import { sanitiseResumeText } from '../utils/sanitise.js';
 import { redactPiiDeepWithFindings } from '../utils/piiRedactor.js';
@@ -167,16 +173,18 @@ async function readCandidateProfile(userId) {
  * before live mode existed and the one that needs nothing from the browser, so
  * it is the safe answer to a value this server does not understand.
  *
- * Bangla is forced to written. Speech recognition here is English-only — agreed
- * with the client, because Bengali speech models are a paid API this project
- * has no budget for — and a live interview whose microphone cannot be used is a
- * worse experience than the written one it replaced. The client hides the
- * option in Bangla; this is what makes that true rather than merely displayed.
+ * Bangla is forced to written. Dictation here is English-only by agreement with
+ * the client: Whisper can transcribe Bengali, but its accuracy for Bangladeshi
+ * speakers has not been tested, and a live interview whose transcripts cannot
+ * be trusted is a worse experience than the written one it replaced. The
+ * client hides the option in Bangla; this is what makes that true rather than
+ * merely displayed, and it is also what keeps the transcribe route below
+ * English-only, since it only serves live interviews.
  */
 function readMode(value, language) {
   const mode = INTERVIEW_MODES.includes(value) ? value : 'written';
   if (mode === 'live' && language === 'bn') {
-    console.log('[interview] Live mode requested in Bangla; running written. Speech is English-only.');
+    console.log('[interview] Live mode requested in Bangla; running written. Dictation is English-only.');
     return 'written';
   }
   return mode;
@@ -461,6 +469,10 @@ router.post(
         // regardless of what the client believes.
         followUpsAvailable: mode === 'live' && canAskFollowUps(quota),
         followUpsRemaining: mode === 'live' && canAskFollowUps(quota) ? LIVE_FOLLOW_UP_CAP : 0,
+        // Whether this server can transcribe a recording. Said now, so the
+        // intro card can tell the candidate to type BEFORE the clock starts,
+        // rather than the first recording failing mid-answer.
+        dictationAvailable: mode === 'live' && isTranscriptionConfigured(),
         createdAt: inserted.rows[0].created_at,
       });
     } catch (err) {
@@ -662,6 +674,137 @@ router.post('/interviews/:id/next', preparationRateLimit, async (req, res) => {
   }
 });
 
+/* ── POST /api/preparation/interviews/:id/transcribe ───────────────── */
+
+/*
+ * One recorded answer in, its transcript out.
+ *
+ * The browser records; Whisper, on Groq, transcribes. The recording arrives as
+ * multipart, is held in memory for the length of this request, and is never
+ * written to disk, stored or logged. What comes back is text for the
+ * candidate's editable answer box — nothing is saved here. The answer is saved
+ * by /next and /answers, as whatever the candidate left in the box.
+ *
+ * WHY IT HANGS OFF AN INTERVIEW
+ *
+ * The transcription allowance belongs to the whole server: Groq's free tier is
+ * a few hours of audio a day for every user together. Scoping the route to one
+ * of the caller's own live, unfinished interviews means it transcribes
+ * interview answers and nothing else. A general "turn this audio into text"
+ * endpoint behind a login would be a free transcription service for anyone
+ * with an account, paid for out of every candidate's dictation.
+ *
+ * Its own rate limit rather than preparationRateLimit, because a candidate who
+ * records each answer in two or three parts makes a request per part, and
+ * those must not use up the budget their /next and /answers calls depend on.
+ */
+const transcribeRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 60,
+  keyGenerator: (req) => `user:${req.user?.id ?? 'anonymous'}`,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res, _next, options) => {
+    console.log(`[quota] decision=reject feature=transcribe user=${req.user?.id ?? 'guest'} reason=hourly_burst status=429`);
+    res.status(options.statusCode).json(options.message);
+  },
+  message: { error: 'Too many recordings. Please wait a while and try again.', code: 'TRANSCRIBE_RATE_LIMITED' },
+});
+
+/**
+ * The status for a transcription failure.
+ *
+ * Throttling at Groq is 503, not 429, for the reason statusForCode gives: a 429
+ * is what this server sends when the CALLER has used their allowance, and the
+ * two need different words on screen.
+ */
+function statusForTranscriptionCode(code) {
+  switch (code) {
+    case 'TRANSCRIBE_NOT_CONFIGURED':
+    case 'TRANSCRIBE_AUTH':
+    case 'TRANSCRIBE_MODEL':
+    case 'TRANSCRIBE_BUSY':
+      return 503;
+    case 'TRANSCRIBE_TOO_LARGE':
+      return 413;
+    case 'TRANSCRIBE_BAD_AUDIO':
+      return 422;
+    default:
+      return 502;
+  }
+}
+
+/**
+ * Checked before the upload is read, so a request for somebody else's
+ * interview, a written one or a finished one is refused without buffering up
+ * to ten megabytes of audio first.
+ *
+ * A refusal still lets the upload finish arriving — read and thrown away, not
+ * kept. Answering while the browser is mid-send can reset the connection, and
+ * the candidate would then be told their internet was the problem instead of
+ * the real reason.
+ */
+async function requireOpenLiveInterview(req, res, next) {
+  const refuse = (status, body) => {
+    req.resume();
+    return res.status(status).json(body);
+  };
+
+  const id = Number.parseInt(req.params.id, 10);
+  if (!Number.isInteger(id) || id <= 0) {
+    return refuse(400, { error: 'Invalid interview id.' });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      'SELECT status, mode FROM mock_interviews WHERE interview_id = $1 AND user_id = $2',
+      [id, req.user.id]
+    );
+    if (rows.length === 0) return refuse(404, { error: 'Interview not found.' });
+    if (rows[0].status === 'complete') {
+      return refuse(409, { error: 'This interview has already been assessed.' });
+    }
+    if (rows[0].mode !== 'live') {
+      return refuse(409, { error: 'Dictation is only available in a live interview.' });
+    }
+    res.locals.interviewId = id;
+    return next();
+  } catch (err) {
+    console.error('[transcribe] Interview lookup failed:', err.message);
+    return refuse(500, { error: 'That recording could not be transcribed. Please try again.' });
+  }
+}
+
+router.post(
+  '/interviews/:id/transcribe',
+  transcribeRateLimit,
+  requireOpenLiveInterview,
+  receiveAudio,
+  async (req, res) => {
+    const audio = req.file?.buffer;
+    if (!audio || audio.length === 0) {
+      return res.status(400).json({ error: 'A recording is required.', code: 'TRANSCRIBE_BAD_AUDIO' });
+    }
+
+    const started = Date.now();
+    const result = await transcribeAudio({ audio, mimeType: req.file.mimetype });
+
+    if (!result.ok) {
+      console.error(formatTranscriptionErrorLog(result));
+      return res.status(statusForTranscriptionCode(result.code)).json({ error: result.error, code: result.code });
+    }
+
+    // Sizes and timings only. The transcript is the candidate's words and is
+    // never logged, for the same reason the resume text is not.
+    console.log(
+      `[transcribe] interview=${res.locals.interviewId} user=${req.user.id} bytes=${audio.length}`
+      + ` chars=${result.text.length} model=${result.model} ms=${Date.now() - started}`
+    );
+
+    return res.json({ text: result.text.slice(0, ANSWER_MAX_CHARS) });
+  }
+);
+
 /* ── POST /api/preparation/interviews/:id/answers ──────────────────── */
 
 /*
@@ -852,7 +995,10 @@ router.get('/interviews/:id', async (req, res) => {
       return res.status(404).json({ error: 'Interview not found.' });
     }
 
-    return res.json(result.rows[0]);
+    const row = result.rows[0];
+    // Answered here as well as at the start, because a resumed live interview
+    // goes through the intro card again and it needs the same answer.
+    return res.json({ ...row, dictationAvailable: row.mode === 'live' && isTranscriptionConfigured() });
   } catch (err) {
     console.error('[preparation] Interview read failed:', err.message);
     return res.status(500).json({ error: 'Could not load that interview.' });

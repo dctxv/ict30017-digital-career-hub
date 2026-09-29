@@ -5,18 +5,21 @@ import { test, expect } from '@playwright/test'
  *
  * WHAT CAN AND CANNOT BE AUTOMATED HERE
  *
- * Not the microphone. Web Speech recognition needs a real engine, a real
- * device and a real voice, and headless Chromium has none of the three — the
- * genuine article is verified by hand against Chrome, Edge and Firefox using
+ * Not the microphone, and not Whisper. Headless Chromium has no audio device,
+ * and a real transcription would spend the server's shared Groq allowance on
+ * every run and return different words each time. The genuine article is
+ * verified by hand in Chrome, Edge, Firefox and Safari using
  * docs/qa/live_interview_manual_test.md, and that script is the record.
  *
  * What IS automated is everything around it, which is where the regressions
- * will be: that one question is shown at a time, that a recognised fragment
- * lands in an editable box, that the timings are sent, that the interview
- * still finishes when speech is unavailable, and that the written mode is
- * untouched. The engine is replaced with a stub the spec drives; the component
- * cannot tell the difference, because it only ever talks to the interface the
- * stub implements.
+ * will be: that one question is shown at a time, that a recording is uploaded
+ * and its transcript lands in an editable box, that moving on waits for the
+ * transcript, that the timings are sent, that the interview still finishes
+ * when the browser cannot record or the server cannot transcribe, and that
+ * the written mode is untouched. The browser's recorder and microphone are
+ * replaced with stubs, and the transcribe route is intercepted per test; the
+ * component cannot tell the difference, because it only ever talks to the
+ * interfaces the stubs implement.
  *
  * Assumes the API on :3000 (the fake in e2e/fake-api is enough) and Vite on
  * :5173, as the rest of the suite does.
@@ -32,117 +35,98 @@ const PASSWORD = 'CorrectHorseBattery1'
  */
 const API_ORIGIN = process.env.E2E_API_ORIGIN || 'http://localhost:3000'
 
+const TRANSCRIBE_ROUTE = '**/api/preparation/interviews/*/transcribe'
+
+/** Longer than the hook's MIN_RECORDING_MS, below which a recording is a tap. */
+const SPEAKING_MS = 900
+
 /**
- * A stand-in for the browser's SpeechRecognition.
+ * Stand-ins for MediaRecorder and getUserMedia.
  *
  * Installed before any application script runs, so the availability check sees
- * it on first render. It implements the parts the hook uses and nothing else,
- * and exposes __speak() so a test can make it "hear" something.
+ * them on first render. They implement the parts the hook uses and nothing
+ * else. `window.__denyMicrophone` makes the next getUserMedia fail with that
+ * DOMException name, `window.__hangMicrophone` makes it never settle — a
+ * permission prompt nobody answers — and `window.__tracksStopped` counts the
+ * microphone being released, which is what turns the browser's recording
+ * indicator off.
  */
-const STUB_ENGINE = () => {
-  class FakeRecognition {
-    constructor() {
-      this.lang = ''
-      this.continuous = false
-      this.interimResults = false
-      this.onstart = null
-      this.onresult = null
+const STUB_RECORDER = () => {
+  class FakeMediaRecorder {
+    static isTypeSupported(type) {
+      return type.startsWith('audio/webm')
+    }
+
+    constructor(stream, options = {}) {
+      this.stream = stream
+      this.mimeType = options.mimeType || 'audio/webm'
+      this.state = 'inactive'
+      this.ondataavailable = null
+      this.onstop = null
       this.onerror = null
-      this.onend = null
-      this.running = false
-      // True only while an onend handler is being dispatched. Chrome will not
-      // accept a start() during that window, and a stub that did accept one
-      // let a real bug through: the hook used to restart the session from
-      // inside onend, which Chrome rejects, and the microphone went dead after
-      // the first stretch of silence.
-      this.ending = false
     }
 
     start() {
-      if (this.running || this.ending) {
-        const failure = new Error('recognition has already started')
-        failure.name = 'InvalidStateError'
-        throw failure
-      }
-      this.running = true
-      window.__recognition = this
-      if (this.onstart) this.onstart()
+      this.state = 'recording'
+      window.__recordings = (window.__recordings ?? 0) + 1
     }
 
-    /** The engine closing the session — by request, or on its own. */
-    end() {
-      this.running = false
-      if (!this.onend) return
-      this.ending = true
-      try {
-        this.onend()
-      } finally {
-        this.ending = false
-      }
-    }
-
+    /** As the real one does: a last chunk of data, then stop, asynchronously. */
     stop() {
-      this.end()
+      if (this.state === 'inactive') return
+      this.state = 'inactive'
+      const data = new Blob([new Uint8Array(4096)], { type: this.mimeType })
+      setTimeout(() => {
+        this.ondataavailable?.({ data })
+        this.onstop?.()
+      }, 0)
     }
-
-    abort() {
-      this.running = false
-    }
   }
 
-  window.SpeechRecognition = FakeRecognition
-  window.__speechCalls = []
+  window.MediaRecorder = FakeMediaRecorder
+  window.__tracksStopped = 0
+  window.__denyMicrophone = null
+  window.__hangMicrophone = false
 
-  /**
-   * The engine closing a "continuous" session by itself, which Chrome does
-   * after a few seconds of silence. Nothing asked for it, and the hook is
-   * expected to reopen the microphone rather than let it fall shut.
-   */
-  window.__endSession = () => {
-    const recognition = window.__recognition
-    if (!recognition) return false
-    recognition.end()
-    return true
-  }
+  Object.defineProperty(navigator, 'mediaDevices', {
+    configurable: true,
+    value: {
+      getUserMedia: async () => {
+        if (window.__hangMicrophone) return new Promise(() => {})
+        if (window.__denyMicrophone) {
+          const refused = new Error('Permission denied')
+          refused.name = window.__denyMicrophone
+          throw refused
+        }
+        return {
+          getTracks: () => [{ stop: () => { window.__tracksStopped += 1 } }],
+        }
+      },
+    },
+  })
+}
 
-  /** Deliver a final result, as the real engine would. */
-  window.__speak = (text) => {
-    const recognition = window.__recognition
-    if (!recognition?.onresult) return false
-    recognition.onresult({
-      resultIndex: 0,
-      results: Object.assign(
-        [[{ transcript: text }]],
-        { 0: Object.assign([{ transcript: text }], { isFinal: true }) },
-      ),
+/**
+ * Intercepts the transcribe route with a fixed answer, and records what was
+ * uploaded. `hold` returns a release function instead of answering at once,
+ * for the tests about what happens while a transcript is on its way.
+ */
+async function answerTranscriptions(page, reply, { hold = false } = {}) {
+  const uploads = []
+  let release = null
+  const released = hold ? new Promise(resolve => { release = resolve }) : null
+
+  await page.route(TRANSCRIBE_ROUTE, async (route) => {
+    const request = route.request()
+    uploads.push({
+      contentType: request.headers()['content-type'] ?? '',
+      body: request.postDataBuffer()?.toString('latin1') ?? '',
     })
-    return true
-  }
+    if (released) await released
+    await route.fulfill(typeof reply === 'function' ? reply() : { json: reply })
+  })
 
-  /**
-   * Deliver an interim result — a phrase the engine is still revising, which
-   * is what it sends for the second or two before it settles on wording.
-   */
-  window.__speakInterim = (text) => {
-    const recognition = window.__recognition
-    if (!recognition?.onresult) return false
-    recognition.onresult({
-      resultIndex: 0,
-      results: Object.assign(
-        [[{ transcript: text }]],
-        { 0: Object.assign([{ transcript: text }], { isFinal: false }) },
-      ),
-    })
-    return true
-  }
-
-  /** Deliver an error, as the real engine does when permission is refused. */
-  window.__speechError = (code) => {
-    const recognition = window.__recognition
-    if (!recognition?.onerror) return false
-    recognition.onerror({ error: code })
-    return true
-  }
+  return { uploads, release: () => release?.() }
 }
 
 /** Registers an account and signs in, which every route here requires. */
@@ -173,18 +157,31 @@ async function startLiveInterview(page) {
   await expect(page.locator('.live-intro')).toBeVisible({ timeout: 20000 })
 }
 
+/** Signs in, starts a live interview and begins it. */
+async function beginLiveInterview(page) {
+  await signIn(page)
+  await startLiveInterview(page)
+  await page.getByRole('button', { name: /begin/i }).click()
+}
+
+/** Records for long enough to count as speech, then stops. */
+async function recordAnAnswer(page) {
+  await page.getByRole('button', { name: /record answer/i }).click()
+  await expect(page.locator('.live__listening')).toBeVisible()
+  await page.waitForTimeout(SPEAKING_MS)
+  await page.getByRole('button', { name: /stop recording/i }).click()
+}
+
 test.use({ viewport: { width: 1280, height: 900 } })
 
 test.describe('live interview', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(STUB_ENGINE)
+    await page.addInitScript(STUB_RECORDER)
   })
 
-  test('asks one question at a time and dictation fills an editable answer', async ({ page }) => {
-    await signIn(page)
-    await startLiveInterview(page)
-
-    await page.getByRole('button', { name: /begin/i }).click()
+  test('asks one question at a time and a recording fills an editable answer', async ({ page }) => {
+    const { uploads } = await answerTranscriptions(page, { text: 'I led the migration and it shipped on time.' })
+    await beginLiveInterview(page)
 
     // One question, and only one. This is the whole point of the mode: five
     // questions on a page is a form.
@@ -192,18 +189,19 @@ test.describe('live interview', () => {
     await expect(page.locator('.live__question')).toContainText(/tight deadline/i)
     await expect(page.locator('.live__progress')).toContainText('1')
 
-    // Dictate. The stub delivers a final result exactly as the engine would.
-    await page.locator('.live__mic-btn').click()
-    await expect(page.locator('.live__listening')).toBeVisible()
-    await page.evaluate(() => window.__speak('i led the migration and it shipped on time'))
+    await recordAnAnswer(page)
 
     const answer = page.locator('#live-answer')
-    // Capitalised by appendTranscript, and in a real textarea rather than a
-    // read-only panel — speech recognition makes mistakes and the candidate is
-    // marked on this text.
-    await expect(answer).toHaveValue(/^I led the migration and it shipped on time/)
+    await expect(answer).toHaveValue('I led the migration and it shipped on time.')
 
-    // Editable, which is the requirement the read-only version would have failed.
+    // The recording went up as multipart audio, in the type the recorder made.
+    expect(uploads).toHaveLength(1)
+    expect(uploads[0].contentType).toMatch(/multipart\/form-data/)
+    expect(uploads[0].body).toMatch(/name="audio"/)
+    expect(uploads[0].body).toMatch(/Content-Type: audio\/webm/)
+
+    // Editable, which is the requirement a read-only transcript would fail:
+    // transcription makes mistakes and the candidate is marked on this text.
     await answer.fill('I led the migration and it shipped two days early.')
     await expect(answer).toHaveValue(/two days early/)
 
@@ -218,129 +216,173 @@ test.describe('live interview', () => {
     await expect(page.locator('#live-answer')).toHaveValue('')
   })
 
-  test('keeps listening when the engine closes the session by itself', async ({ page }) => {
-    await signIn(page)
-    await startLiveInterview(page)
-    await page.getByRole('button', { name: /begin/i }).click()
+  test('releases the microphone when the recording stops', async ({ page }) => {
+    await answerTranscriptions(page, { text: 'An answer.' })
+    await beginLiveInterview(page)
 
-    await page.locator('.live__mic-btn').click()
-    await expect(page.locator('.live__listening')).toBeVisible()
+    await recordAnAnswer(page)
+    await expect(page.locator('#live-answer')).toHaveValue('An answer.')
 
-    // A few seconds of silence while the candidate reads the question. Chrome
-    // ends a continuous session here, and it is not an error — nothing has
-    // gone wrong and the user has not asked for anything.
-    await page.evaluate(() => window.__endSession())
-
-    // The microphone stays on across the gap, and the button does not flick
-    // back to "Start speaking". This is the regression: the session used to be
-    // reopened synchronously from inside onend, which the engine rejects, and
-    // the failure was swallowed as "already running" — so silence switched the
-    // microphone off for good and nothing said afterwards was ever heard.
-    await expect(page.locator('.live__listening')).toBeVisible()
-    await expect(page.locator('.live__mic-btn')).toContainText(/stop/i)
-
-    // And the reopened session actually hears.
-    await expect.poll(
-      () => page.evaluate(() => window.__speak('i rewrote the import to stream the file')),
-    ).toBe(true)
-    await expect(page.locator('#live-answer')).toHaveValue(/rewrote the import to stream the file/)
+    // Without this the browser's recording indicator stays lit after the
+    // candidate pressed stop, which is alarming and fair enough.
+    expect(await page.evaluate(() => window.__tracksStopped)).toBeGreaterThan(0)
+    await expect(page.locator('.live__listening')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /record answer/i })).toBeEnabled()
   })
 
-  test('shows the words in the answer box while they are still being said', async ({ page }) => {
-    await signIn(page)
-    await startLiveInterview(page)
-    await page.getByRole('button', { name: /begin/i }).click()
+  test('does not move on until the recording has been written down', async ({ page }) => {
+    const pending = await answerTranscriptions(page, { text: 'Recorded and read back.' }, { hold: true })
+    await beginLiveInterview(page)
 
-    await page.locator('.live__mic-btn').click()
-    await expect(page.locator('.live__listening')).toBeVisible()
+    const next = page.getByRole('button', { name: /next question/i })
 
-    const answer = page.locator('#live-answer')
+    // Recording: leaving now would lose the answer.
+    await page.getByRole('button', { name: /record answer/i }).click()
+    await expect(next).toBeDisabled()
+    await expect(page.locator('.live__foot')).toContainText(/finish recording/i)
 
-    // Still being revised by the engine. It belongs in the box the candidate
-    // is watching: parked in a line underneath, the box looked dead for the
-    // two or three seconds before a phrase settles, which reads as the
-    // microphone not working at all.
-    await page.evaluate(() => window.__speakInterim('i led the migration'))
-    await expect(answer).toHaveValue(/I led the migration/)
+    // Transcribing: leaving now would drop the answer, unread, into a question
+    // that is already behind the candidate.
+    await page.waitForTimeout(SPEAKING_MS)
+    await page.getByRole('button', { name: /stop recording/i }).click()
+    await expect(page.getByRole('button', { name: /writing it down/i })).toBeDisabled()
+    await expect(next).toBeDisabled()
 
-    // Revised, not appended — the engine replaces provisional text wholesale,
-    // so the earlier guess must not be left behind in front of it.
-    await page.evaluate(() => window.__speakInterim('i led the migration project'))
-    await expect(answer).toHaveValue('I led the migration project')
-
-    // Settled. The same words, now committed, with nothing duplicated.
-    await page.evaluate(() => window.__speak('i led the migration project and it shipped'))
-    await expect(answer).toHaveValue('I led the migration project and it shipped')
+    pending.release()
+    await expect(page.locator('#live-answer')).toHaveValue('Recorded and read back.')
+    await expect(next).toBeEnabled()
   })
 
-  test('lets the candidate type over a phrase still in the air', async ({ page }) => {
-    await signIn(page)
-    await startLiveInterview(page)
-    await page.getByRole('button', { name: /begin/i }).click()
-
-    await page.locator('.live__mic-btn').click()
-    await page.evaluate(() => window.__speakInterim('somthing the engine misheard'))
+  test('keeps what was typed while a recording was being written down', async ({ page }) => {
+    const pending = await answerTranscriptions(page, { text: 'And then we shipped it.' }, { hold: true })
+    await beginLiveInterview(page)
 
     const answer = page.locator('#live-answer')
-    await expect(answer).toHaveValue(/misheard/)
+    await answer.fill('I rewrote the import.')
+    await recordAnAnswer(page)
 
-    // Typing wins. The preview must not be re-appended on the next render and
-    // start fighting the cursor.
-    await answer.fill('I typed this instead.')
-    await expect(answer).toHaveValue('I typed this instead.')
+    // Typed after pressing stop, before the transcript came back. Appending to
+    // the answer as it was when stop was pressed would silently lose this.
+    await answer.fill('I rewrote the import to stream the file.')
+    pending.release()
+
+    await expect(answer).toHaveValue('I rewrote the import to stream the file. And then we shipped it.')
+  })
+
+  test('keeps a spoken answer when another tab is opened while it is written down', async ({ page }) => {
+    const pending = await answerTranscriptions(page, { text: 'Said before looking at my plan.' }, { hold: true })
+    await beginLiveInterview(page)
+
+    await recordAnAnswer(page)
+    await expect(page.getByRole('button', { name: /writing it down/i })).toBeVisible()
+
+    // The interview unmounts while the plan is open. The transcript used to be
+    // thrown away with it, and minutes of speaking with it.
+    await page.getByRole('tab', { name: /my plan/i }).click()
+    await expect(page.locator('.live__question')).toHaveCount(0)
+    pending.release()
     await page.waitForTimeout(300)
-    await expect(answer).toHaveValue('I typed this instead.')
+
+    await page.getByRole('tab', { name: /mock interview/i }).click()
+    await expect(page.locator('#live-answer')).toHaveValue('Said before looking at my plan.')
   })
 
-  test('does not cry wolf while the candidate is still thinking', async ({ page }) => {
-    await signIn(page)
-    await startLiveInterview(page)
-    await page.getByRole('button', { name: /begin/i }).click()
+  test('a microphone prompt nobody answers does not trap the candidate', async ({ page }) => {
+    await beginLiveInterview(page)
 
-    await page.locator('.live__mic-btn').click()
-    await expect(page.locator('.live__listening')).toBeVisible()
+    await page.evaluate(() => { window.__hangMicrophone = true })
+    await page.getByRole('button', { name: /record answer/i }).click()
 
-    // Chrome gives up after about eight seconds of quiet and reports
-    // no-speech. Reading the question takes longer than that, so the first
-    // couple say nothing about the microphone and must stay quiet — the
-    // warning used to appear during every normal pause, which made a working
-    // microphone look broken and a broken one indistinguishable.
-    for (let i = 0; i < 2; i += 1) {
-      await page.evaluate(() => { window.__speechError('no-speech'); window.__endSession() })
-      await expect(page.locator('.live__speech-warn')).toHaveCount(0)
-      await expect(page.locator('.live__listening')).toBeVisible()
-    }
-
-    // Sustained silence is worth saying, and it names the thing that is
-    // actually usually wrong.
-    await page.evaluate(() => { window.__speechError('no-speech'); window.__endSession() })
-    await expect(page.locator('.live__speech-warn')).toContainText(/default/i)
-
-    // And it goes the moment a word arrives.
-    await page.evaluate(() => window.__speak('here is my answer'))
-    await expect(page.locator('.live__speech-warn')).toHaveCount(0)
+    // Nothing has been recorded, so there is nothing to wait for. Locking the
+    // interview behind a prompt the candidate may have dismissed would leave a
+    // reload as the only way out.
+    await page.locator('#live-answer').fill('Typed while the prompt sat there.')
+    await page.getByRole('button', { name: /next question/i }).click()
+    await expect(page.locator('.live__progress')).toContainText('2')
   })
 
-  test('keeps every fragment when two arrive at once', async ({ page }) => {
+  test('a full answer stops offering the record button', async ({ page }) => {
+    await beginLiveInterview(page)
+
+    await page.locator('#live-answer').fill('x'.repeat(2500))
+    await expect(page.getByRole('button', { name: /record answer/i })).toBeDisabled()
+  })
+
+  test('says so when a transcript does not fit in the answer', async ({ page }) => {
+    await answerTranscriptions(page, { text: 'This sentence is longer than the room that is left in the box.' })
+    await beginLiveInterview(page)
+
+    await page.locator('#live-answer').fill('y'.repeat(2480))
+    await recordAnAnswer(page)
+
+    await expect(page.locator('.live__speech-warn')).toContainText(/limit/i)
+    expect((await page.locator('#live-answer').inputValue()).length).toBe(2500)
+  })
+
+  test('marks a recorded answer as spoken and a typed one as typed', async ({ page }) => {
+    await answerTranscriptions(page, { text: 'A spoken answer.' })
     await signIn(page)
-    await startLiveInterview(page)
-    await page.getByRole('button', { name: /begin/i }).click()
 
-    await page.locator('.live__mic-btn').click()
-    await expect(page.locator('.live__listening')).toBeVisible()
-
-    // Two final results in the same tick, which dictation produces constantly.
-    // Appending by reading the current answer out of a closure lost the first
-    // of them — React batches the two updates, so the second overwrote it and
-    // a whole spoken sentence vanished from an answer about to be marked.
-    await page.evaluate(() => {
-      window.__speak('i owned the rollout')
-      window.__speak('and wrote the runbook for it')
+    const saved = []
+    await page.route('**/api/preparation/interviews/*/next', async (route) => {
+      saved.push(route.request().postDataJSON())
+      await route.continue()
     })
 
-    const answer = page.locator('#live-answer')
-    await expect(answer).toHaveValue(/i owned the rollout/i)
-    await expect(answer).toHaveValue(/wrote the runbook for it/i)
+    await startLiveInterview(page)
+    await page.getByRole('button', { name: /begin/i }).click()
+
+    await recordAnAnswer(page)
+    await expect(page.locator('#live-answer')).toHaveValue('A spoken answer.')
+    await page.getByRole('button', { name: /next question/i }).click()
+    await expect(page.locator('.live__progress')).toContainText('2')
+
+    await page.locator('#live-answer').fill('A typed answer.')
+    await page.getByRole('button', { name: /next question/i }).click()
+    await expect(page.locator('.live__progress')).toContainText('3')
+
+    // The evaluator is told which answers were dictated, so it does not mark
+    // down transcription noise in them.
+    expect(saved[0].answers.find(entry => entry.index === 1).source).toBe('speech')
+    expect(saved[1].answers.find(entry => entry.index === 2).source).toBe('typed')
+  })
+
+  test('says so when nothing was heard, and keeps the button', async ({ page }) => {
+    await answerTranscriptions(page, { text: '' })
+    await beginLiveInterview(page)
+
+    await recordAnAnswer(page)
+
+    // Nearly always the wrong microphone, which is what the message names.
+    await expect(page.locator('.live__speech-warn')).toContainText(/default/i)
+    await expect(page.locator('#live-answer')).toHaveValue('')
+    await expect(page.getByRole('button', { name: /record answer/i })).toBeEnabled()
+  })
+
+  test('does not send an accidental tap to be transcribed', async ({ page }) => {
+    const { uploads } = await answerTranscriptions(page, { text: 'Should never arrive.' })
+    await beginLiveInterview(page)
+
+    await page.getByRole('button', { name: /record answer/i }).click()
+    await page.getByRole('button', { name: /stop recording/i }).click()
+
+    await expect(page.getByRole('button', { name: /record answer/i })).toBeEnabled()
+    await page.waitForTimeout(300)
+    expect(uploads).toHaveLength(0)
+    await expect(page.locator('#live-answer')).toHaveValue('')
+  })
+
+  test('a busy transcription service is a line of text, not the end of dictation', async ({ page }) => {
+    await answerTranscriptions(page, () => ({
+      status: 503,
+      json: { error: 'Speech to text is busy right now.', code: 'TRANSCRIBE_BUSY' },
+    }))
+    await beginLiveInterview(page)
+
+    await recordAnAnswer(page)
+
+    await expect(page.locator('.live__speech-warn')).toContainText(/busy/i)
+    await expect(page.getByRole('button', { name: /record answer/i })).toBeEnabled()
   })
 
   test('sends the time taken with each answer', async ({ page }) => {
@@ -377,11 +419,10 @@ test.describe('live interview', () => {
     expect(untouched.seconds).toBeUndefined()
   })
 
-  test('falls back to typing when the browser has no speech recognition', async ({ page }) => {
-    // Firefox's situation, reproduced in Chromium by removing the engine.
+  test('falls back to typing when the browser cannot record', async ({ page }) => {
+    // An old or in-app browser, reproduced in Chromium by removing the recorder.
     await page.addInitScript(() => {
-      delete window.SpeechRecognition
-      delete window.webkitSpeechRecognition
+      delete window.MediaRecorder
     })
 
     await signIn(page)
@@ -389,8 +430,8 @@ test.describe('live interview', () => {
 
     // Said on the intro card, BEFORE the interview starts, so somebody can
     // choose the written mode instead of finding out mid-answer.
-    await expect(page.locator('.live-intro .live-notice')).toContainText(/does not support speech to text/i)
-    await expect(page.locator('.live-intro .live-notice')).toContainText(/Chrome, Edge and Opera/i)
+    await expect(page.locator('.live-intro .live-notice')).toContainText(/cannot record from a microphone/i)
+    await expect(page.locator('.live-intro .live-notice')).toContainText(/Chrome, Edge, Firefox and Safari/i)
 
     await page.getByRole('button', { name: /begin/i }).click()
 
@@ -399,21 +440,56 @@ test.describe('live interview', () => {
     await expect(page.locator('.live-notice')).toBeVisible()
     await expect(page.locator('#live-answer')).toBeEditable()
 
-    await page.locator('#live-answer').fill('Typed because this browser cannot listen.')
+    await page.locator('#live-answer').fill('Typed because this browser cannot record.')
     await page.getByRole('button', { name: /next question/i }).click()
     await expect(page.locator('.live__progress')).toContainText('2')
   })
 
-  test('explains a denied microphone and keeps the interview going', async ({ page }) => {
+  test('says up front when the server cannot transcribe', async ({ page }) => {
     await signIn(page)
+
+    // A server with no Groq key says so when the interview starts.
+    await page.route('**/api/preparation/interviews', async (route) => {
+      if (route.request().method() !== 'POST') return route.continue()
+      const response = await route.fetch()
+      const body = await response.json()
+      await route.fulfill({ response, json: { ...body, dictationAvailable: false } })
+    })
+
     await startLiveInterview(page)
+    await expect(page.locator('.live-intro .live-notice')).toContainText(/not been set up/i)
+
     await page.getByRole('button', { name: /begin/i }).click()
+    await expect(page.locator('.live__mic-btn')).toHaveCount(0)
+    await expect(page.locator('#live-answer')).toBeEditable()
+  })
 
-    await page.locator('.live__mic-btn').click()
-    await expect(page.locator('.live__listening')).toBeVisible()
+  test('stops offering the microphone when the server turns out not to be set up', async ({ page }) => {
+    await answerTranscriptions(page, () => ({
+      status: 503,
+      json: { error: 'Speech to text is not set up on this server.', code: 'TRANSCRIBE_NOT_CONFIGURED' },
+    }))
+    await beginLiveInterview(page)
 
-    // What the engine reports when the user, or the operating system, says no.
-    await page.evaluate(() => window.__speechError('not-allowed'))
+    await recordAnAnswer(page)
+
+    await expect(page.locator('.live__mic-btn')).toHaveCount(0)
+    await expect(page.locator('.live-notice')).toContainText(/not been set up/i)
+
+    // And not offered again on the next question, where it would only fail the
+    // same way.
+    await page.locator('#live-answer').fill('Typing instead.')
+    await page.getByRole('button', { name: /next question/i }).click()
+    await expect(page.locator('.live__progress')).toContainText('2')
+    await expect(page.locator('.live__mic-btn')).toHaveCount(0)
+  })
+
+  test('explains a denied microphone and keeps the interview going', async ({ page }) => {
+    await beginLiveInterview(page)
+
+    // What getUserMedia throws when the user, or the operating system, says no.
+    await page.evaluate(() => { window.__denyMicrophone = 'NotAllowedError' })
+    await page.getByRole('button', { name: /record answer/i }).click()
 
     // The button goes, because it can no longer do anything, and the remedy is
     // named — it is a browser setting this page cannot open.
@@ -425,12 +501,11 @@ test.describe('live interview', () => {
     await page.locator('#live-answer').fill('Typing instead, which works the same.')
     await page.getByRole('button', { name: /next question/i }).click()
     await expect(page.locator('.live__progress')).toContainText('2')
+    await expect(page.locator('.live__mic-btn')).toHaveCount(0)
   })
 
   test('runs to the end and shows the same results screen as the written mode', async ({ page }) => {
-    await signIn(page)
-    await startLiveInterview(page)
-    await page.getByRole('button', { name: /begin/i }).click()
+    await beginLiveInterview(page)
 
     for (let i = 1; i <= 5; i += 1) {
       await expect(page.locator('.live__progress')).toContainText(String(i))

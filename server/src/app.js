@@ -8,7 +8,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
 import { getAllowedOrigins } from './config/origins.js';
-import { assertModelConfig, getModel } from 'ai-service';
+import { assertModelConfig, getModel, isTranscriptionConfigured, getTranscriptionModel } from 'ai-service';
 import { localiseResponses } from './i18n/index.js';
 import { checkContentSchema } from './schemaCheck.js';
 
@@ -24,6 +24,12 @@ try {
 } catch (err) {
   console.error(`[startup] ${err.message}`);
   process.exit(1);
+}
+
+// A warning, not a failure. Without a Groq key the live interview cannot
+// transcribe, and the candidate is told to type instead; nothing else needs it.
+if (!isTranscriptionConfigured()) {
+  console.warn('[startup] GROQ_API_KEY is not set. Live interview dictation is off until it is added to server/.env.');
 }
 
 const allowedOrigins = getAllowedOrigins();
@@ -60,6 +66,8 @@ app.get('/api/health', async (req, res) => {
   const ai = {
     keyConfigured: Boolean(process.env.GOOGLE_AI_API_KEY),
     models: { free: getModel('free'), premium: getModel('premium') },
+    // Live interview dictation, which has its own provider and key.
+    transcription: { keyConfigured: isTranscriptionConfigured(), model: getTranscriptionModel() },
   };
   try {
     await pool.query('SELECT 1');

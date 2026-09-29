@@ -851,39 +851,41 @@ export default {
   'prep.textOnly': 'The questions and your feedback are always written text — nothing is read aloud to you. No video in this version.',
 
   /* ── Live interview ──────────────────────────────────────────────────
-   * One question at a time, answered out loud through the browser's own
-   * speech recognition. Dictation is English only — agreed with the client,
-   * because Bengali speech models are a paid API this project has no budget
-   * for — so the mode is not offered at all while the interface is in Bangla.
-   * These strings are still translated, because a live interview run in
-   * English can be reopened later by a user who has since switched.
+   * One question at a time, answered out loud: the browser records, and
+   * Whisper (on Groq) transcribes the recording on the server. Dictation is
+   * English only by agreement with the client, so the mode is not offered at
+   * all while the interface is in Bangla. These strings are still translated,
+   * because a live interview run in English can be reopened later by a user
+   * who has since switched.
    */
   'prep.modeLabel': 'How would you like to answer?',
   'prep.modeWritten': 'Written',
   'prep.modeWrittenHint': 'All five questions on one page. Type your answers and submit them together.',
   'prep.modeLive': 'Live',
-  'prep.modeLiveHint': 'One question at a time. Speak your answer and your browser writes it down, or type it.',
+  'prep.modeLiveHint': 'One question at a time. Record your answer and it is written down for you, or type it.',
   'prep.modeLiveBadge': 'Speech to text',
   'prep.modeEnglishOnly': 'Speech to text is English only.',
   'prep.modeWrittenShort': 'Written',
   'prep.modeLiveShort': 'Live',
 
   'prep.howLive1': 'You get one question at a time. Speak your answer, or type it — whichever you prefer.',
-  'prep.howLive2': 'What you say appears as you speak so you can read it back. Correct anything it got wrong before you move on.',
+  'prep.howLive2': 'Press record, answer, then press stop. What you said appears in the answer box a few seconds later — read it back and correct anything it got wrong before you move on.',
   'prep.howLive3': 'When you finish the last question the whole interview is assessed together, exactly as the written one is.',
-  'prep.liveNoAudio': 'No audio is recorded or uploaded. Your browser does the transcription, and only the text you choose to submit reaches us.',
+  'prep.liveAudioPrivacy': 'When you record an answer, the audio is sent to our speech-to-text service (Whisper, run by Groq) to be written down. We do not keep the recording, and only the text you choose to submit is saved.',
 
   'prep.liveProgress': 'Question {current} of {total}',
   'prep.liveBegin': 'Begin',
   'prep.liveFollowUp': 'Follow-up',
   'prep.liveFollowUpNote': 'Asked in response to what you just said',
   'prep.liveElapsed': 'Time on this answer',
-  'prep.liveStart': 'Start speaking',
-  'prep.liveStop': 'Stop',
-  'prep.liveListening': 'Listening',
+  'prep.liveStart': 'Record answer',
+  'prep.liveStop': 'Stop recording',
+  'prep.liveRecording': 'Recording',
+  'prep.liveTranscribing': 'Writing it down…',
   'prep.liveAnswerLabel': 'Your answer',
-  'prep.liveAnswerPlaceholder': 'Speak your answer, or type it here.',
+  'prep.liveAnswerPlaceholder': 'Record your answer, or type it here.',
   'prep.liveTranscriptHint': 'Speech to text makes mistakes. Read your answer back and fix anything it got wrong — you are marked on this text.',
+  'prep.liveStopFirst': 'Finish recording before you move on, so you can read your answer back.',
   'prep.liveNext': 'Next question',
   'prep.liveFinish': 'Finish and get feedback',
   'prep.liveThinking': 'Preparing the next question…',
@@ -898,14 +900,21 @@ export default {
   'prep.liveFollowUpsPremium': 'Follow-up questions that react to your answers are part of the premium plan.',
 
   'prep.speech.unavailableTitle': 'Speech to text is not available',
-  'prep.speech.unsupported': 'This browser does not support speech to text. Chrome, Edge and Opera do. Type your answers instead — nothing else about the interview changes.',
+  'prep.speech.unsupported': 'This browser cannot record from a microphone. Current versions of Chrome, Edge, Firefox and Safari can. Type your answers instead — nothing else about the interview changes.',
   'prep.speech.insecure': 'Speech to text needs a secure (HTTPS) connection and this page is not on one. Type your answers instead — nothing else about the interview changes.',
+  'prep.speech.notConfigured': 'Speech to text has not been set up on this site yet. Type your answers instead — nothing else about the interview changes.',
   'prep.speech.denied': 'Microphone access was blocked. To speak your answers, allow the microphone for this site in your browser settings and reload the page. In the meantime you can type them.',
+  'prep.speech.blocked': 'This page is not allowed to use the microphone where it is open — for example, inside another site or app. Open the site directly in your browser to speak your answers, or type them.',
   'prep.speech.noMicrophone': 'No microphone was found. Connect one and reload the page, or type your answers instead.',
-  'prep.speech.network': 'Speech to text lost its connection. Try again, or type your answer.',
-  'prep.speech.noSpeech': 'Nothing has been picked up for a while. Your browser listens through whichever microphone your computer is set to use by default, so if you have more than one — a headset and a webcam, say — check the right one is selected in your sound settings. Or just type your answer.',
-  'prep.speech.languageUnsupported': 'This browser cannot transcribe English speech. Type your answers instead.',
-  'prep.speech.generic': 'Speech to text stopped unexpectedly. Try again, or type your answer.',
+  'prep.speech.micBusy': 'Your microphone is being used by another app. Close it and try again, or type your answer.',
+  'prep.speech.network': 'Your recording could not be sent. Check your connection and try again, or type your answer.',
+  'prep.speech.noSpeech': 'Nothing was heard in that recording. Your browser records from whichever microphone your computer is set to use by default, so if you have more than one — a headset and a webcam, say — check the right one is selected in your sound settings. Or just type your answer.',
+  'prep.speech.busy': 'Speech to text is busy right now. Wait a moment and record again, or type your answer.',
+  'prep.speech.tooLong': 'That recording was too long to write down. Record your answer in shorter parts, or type it.',
+  'prep.speech.tooMany': 'You have recorded a lot in the last hour. Type your answers for now, or try again later.',
+  'prep.speech.limitReached': 'Recording stops by itself after {minutes} minutes, which is about as much as one answer can hold. Read it back before you move on.',
+  'prep.speech.truncated': 'Your answer has reached the {max}-character limit, so the end of that recording was cut off. Read it back and shorten it if you need to.',
+  'prep.speech.generic': 'That recording could not be written down. Try again, or type your answer.',
 
   'prep.durationSeconds': '{seconds}s',
   'prep.durationMinutes': '{minutes}m {seconds}s',

@@ -148,6 +148,28 @@ export const BANGLA_MESSAGES = {
   'This interview has already been assessed.':
     'এই ইন্টারভিউটির মূল্যায়ন আগেই হয়ে গেছে।',
   'Could not assess this interview.': 'এই ইন্টারভিউটির মূল্যায়ন করা যায়নি।',
+
+  /* ── Live interview dictation ────────────────────────────── */
+  'Too many recordings. Please wait a while and try again.':
+    'অনেক বেশি রেকর্ডিং পাঠানো হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।',
+  'Dictation is only available in a live interview.':
+    'মুখে বলে উত্তর দেওয়া কেবল লাইভ ইন্টারভিউতেই সম্ভব।',
+  'A recording is required.': 'একটি রেকর্ডিং প্রয়োজন।',
+  'Speech to text is not set up on this server.':
+    'এই সার্ভারে স্পিচ টু টেক্সট চালু করা হয়নি।',
+  'Speech to text is busy right now. Please try again in a moment.':
+    'স্পিচ টু টেক্সট এখন ব্যস্ত। একটু পরে আবার চেষ্টা করুন।',
+  'That recording is too long to transcribe.':
+    'রেকর্ডিংটি লিখে নেওয়ার জন্য বেশি দীর্ঘ।',
+  'That recording is not in an audio format this server accepts.':
+    'রেকর্ডিংটি এমন অডিও ফরম্যাটে যা এই সার্ভার গ্রহণ করে না।',
+  'That recording could not be read.': 'রেকর্ডিংটি পড়া যায়নি।',
+  'Speech to text is temporarily unavailable. Please try again.':
+    'স্পিচ টু টেক্সট সাময়িকভাবে বন্ধ আছে। আবার চেষ্টা করুন।',
+  'Speech to text could not be reached. Please try again.':
+    'স্পিচ টু টেক্সট সেবার সঙ্গে যোগাযোগ করা যায়নি। আবার চেষ্টা করুন।',
+  'That recording could not be transcribed. Please try again.':
+    'রেকর্ডিংটি লিখে নেওয়া যায়নি। আবার চেষ্টা করুন।',
   'Could not load your interview history.': 'আপনার ইন্টারভিউয়ের ইতিহাস লোড করা যায়নি।',
   'Could not load that interview.': 'ইন্টারভিউটি লোড করা যায়নি।',
 };

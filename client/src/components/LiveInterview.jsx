@@ -21,15 +21,19 @@
  *
  * THE TRANSCRIPT IS A DRAFT, NOT A RECORD
  *
- * Browser speech recognition is free, private and wrong a fair amount of the
- * time. So what it produces lands in an ordinary editable textarea rather than
- * a read-only panel: the candidate is marked on this text and must be able to
- * fix it. Interim results are shown separately and never written into the box,
- * because text that rewrites itself under the cursor cannot be edited.
+ * The candidate records an answer, presses stop, and Whisper's transcript of it
+ * lands in an ordinary editable textarea rather than a read-only panel.
+ * Transcription is good and still wrong some of the time — a mangled employer,
+ * a misheard tool — and the candidate is marked on this text, so they must be
+ * able to fix it. That is also why moving on is blocked while a recording is
+ * running or being transcribed: the answer should be read back before it is
+ * left behind.
  *
- * NO AUDIO LEAVES THE BROWSER. There is no recorder here, nothing to upload
- * and nothing to store — recognition is the browser's own, and what reaches
- * the server is the text the candidate read and chose to submit.
+ * THE AUDIO GOES TO THE SERVER, AND NO FURTHER THAN IT NEEDS TO. Each recording
+ * is sent to be transcribed (Whisper, on Groq), held in memory for that one
+ * request and never stored. What is saved is the text the candidate read,
+ * corrected and chose to submit. The intro card says this before anything is
+ * recorded.
  *
  * WHY THERE IS AN OUTER AND AN INNER COMPONENT
  *
@@ -43,12 +47,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 import {
-  Mic, MicOff, Clock, ArrowRight, AlertTriangle, Keyboard,
+  Mic, Square, LoaderCircle, Clock, ArrowRight, AlertTriangle, Keyboard,
   Target, Sparkles, CheckCircle2, ShieldCheck,
 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
-import { appendTranscript } from '../utils/speech'
-import { useSpeechRecognition } from './useSpeechRecognition'
+import { appendTranscript, dictationAvailability, MAX_RECORDING_SECONDS } from '../utils/speech'
+import { useDictation } from './useDictation'
 import { useAnswerDuration } from './useAnswerDuration'
 import './LiveInterview.css'
 
@@ -104,12 +108,13 @@ export function LiveIntro({ interview, availability, onBegin }) {
 
       <p className="live-intro__privacy">
         <ShieldCheck size={15} />
-        {t('prep.liveNoAudio')}
+        {t('prep.liveAudioPrivacy')}
       </p>
 
       {/* Said before the interview starts rather than discovered at question
-          one, so somebody on Firefox can choose the written mode instead of
-          finding out mid-answer that the button does nothing. */}
+          one, so somebody whose browser cannot record — or whose server cannot
+          transcribe — can choose the written mode instead of finding out
+          mid-answer that the button does nothing. */}
       {!availability.available && <SpeechNotice reasonKey={availability.reason} />}
 
       <p className={`live-intro__followups${interview.followUpsAvailable ? '' : ' live-intro__followups--off'}`}>
@@ -138,10 +143,11 @@ export function LiveIntro({ interview, availability, onBegin }) {
  * Mounted fresh per question — see the note at the top of the file. Everything
  * it owns is deliberately scoped to the question on screen, and everything that
  * must outlive it (the answers, which question we are on, how long each one
- * took) is passed in from the page.
+ * took, whether the microphone has been ruled out) is passed in from the page.
  */
 function LiveQuestion({
-  question, position, total, answer, onAnswerChange, onSpeechSource,
+  interviewId, question, position, total, answer, onAnswerChange, onTranscript,
+  serverReady, blockedKey, onDictationBlocked,
   isLast, onNext, onFinish, submitting, loadingNext, error,
 }) {
   const { t, n } = useLanguage()
@@ -150,6 +156,9 @@ function LiveQuestion({
   const [elapsed, setElapsed] = useState(0)
   const [confirming, setConfirming] = useState(false)
   const startedAtRef = useRef(null)
+  // Whether this browser can record and this server can transcribe. Neither
+  // changes while the page is open, so it is worked out once.
+  const [availability] = useState(() => dictationAvailability({ serverReady }))
 
   /*
    * The clock.
@@ -169,49 +178,43 @@ function LiveQuestion({
   }, [])
 
   /*
-   * A recognised fragment joins the answer as it stands right now.
+   * A transcript is handed to the page, which appends it to this question's
+   * answer as it stands when the transcript arrives. The page rather than this
+   * component, because the transcript can arrive after this component has gone
+   * — the candidate opened another tab while it was being written down — and
+   * appending there rather than to the `answer` this closure holds keeps
+   * whatever the candidate typed while they waited.
    *
-   * Appended through an updater rather than by reading `answer` from this
-   * closure, and that is not a style preference. Recognition events are not
-   * React events, so two finals arriving in the same tick are batched: the
-   * second would read the same pre-batch `answer` as the first and overwrite
-   * it, dropping a whole spoken fragment. Dictation delivers finals in quick
-   * succession all the time, which made this a sentence going missing rather
-   * than a rare race.
+   * The check for a full box is only for the message. The page does the
+   * trimming, against the answer as it really is.
    */
-  const { listening, interim, error: speechError, start, stop, clearInterim, availability } = useSpeechRecognition({
-    onResult: (chunk) => {
-      onAnswerChange(previous => appendTranscript(previous ?? '', chunk).slice(0, ANSWER_MAX))
-      // Recorded the moment speech contributes anything, and never unset: an
-      // answer that was dictated and then tidied up by hand still carries
-      // transcription artefacts, and the evaluator needs to know that.
-      onSpeechSource()
+  const dictation = useDictation({
+    interviewId,
+    onResult: (text) => {
+      const truncated = appendTranscript(answer ?? '', text).length > ANSWER_MAX
+      onTranscript(text)
+      return { truncated }
     },
+    // A refused microphone or a server that cannot transcribe will be the same
+    // on the next question, so the page stops offering the button for the rest
+    // of the interview rather than letting it fail again five times.
+    onFatalError: (described) => onDictationBlocked(described.key),
   })
-
-  /*
-   * What the box shows while somebody is speaking.
-   *
-   * The words appear as they are said, in the answer itself, which is the
-   * thing a candidate is watching. Provisional text used to be parked in a
-   * line underneath instead, on the reasoning that text replacing itself under
-   * the cursor cannot be edited — true, but it made the box look dead for the
-   * two or three seconds before the engine settles a phrase, which reads as
-   * the microphone not working at all.
-   *
-   * Only the SHOWN value carries it. `answer` — what gets submitted, what the
-   * character cap counts, what survives a reload — changes only when the
-   * engine settles a fragment, so nothing provisional can be submitted and a
-   * phrase the engine later revises does not leave a trace behind.
-   */
-  const displayedAnswer = interim
-    ? appendTranscript(answer ?? '', interim).slice(0, ANSWER_MAX)
-    : (answer ?? '')
+  const { recording, transcribing, error: speechError } = dictation
 
   const answered = (answer ?? '').trim().length > 0
-  const fatalSpeechError = speechError?.fatal === true
-  const micOffered = availability.available && !fatalSpeechError
+  // Nothing more a recording could add. Offering the button anyway would spend
+  // the shared allowance on words the box then cuts off.
+  const answerFull = (answer ?? '').length >= ANSWER_MAX
+  const blocked = blockedKey ?? (speechError?.fatal ? speechError.key : null)
+  const micOffered = availability.available && !blocked
   const busy = submitting || loadingNext
+  // Moving on waits for a recording to be stopped and written down, so a
+  // spoken answer is read back before it is left behind. Not for the
+  // microphone prompt, though: a prompt the candidate never answers would
+  // otherwise leave them unable to move on at all.
+  const capturing = recording || transcribing
+  const locked = busy || capturing
   const progress = total > 0 ? ((position + 1) / total) * 100 : 0
 
   /** Seconds spent on this question, measured at the moment the button is hit. */
@@ -220,13 +223,7 @@ function LiveQuestion({
     Math.round((Date.now() - (startedAtRef.current ?? Date.now())) / 1000),
   )
 
-  const leave = (handler) => {
-    // The microphone closes before anything else happens. A recognition event
-    // arriving after we have moved on would append the last question's audio to
-    // the next question's answer.
-    stop()
-    handler(secondsTaken())
-  }
+  const leave = (handler) => handler(secondsTaken())
 
   return (
     <div className="card live">
@@ -277,33 +274,42 @@ function LiveQuestion({
         {micOffered ? (
           <button
             type="button"
-            className={`live__mic-btn${listening ? ' live__mic-btn--on' : ''}`}
-            onClick={listening ? stop : start}
-            disabled={busy}
-            aria-pressed={listening}
+            className={`live__mic-btn${recording ? ' live__mic-btn--on' : ''}`}
+            onClick={recording ? dictation.stop : dictation.start}
+            // Pressable only to start from rest or to stop a recording. While
+            // the microphone is opening or the answer is being transcribed
+            // there is nothing a press could sensibly do, and a full answer
+            // has no room for more.
+            disabled={busy || (!recording && (dictation.busy || answerFull))}
+            aria-pressed={recording}
           >
-            {listening ? <MicOff size={18} /> : <Mic size={18} />}
-            {listening ? t('prep.liveStop') : t('prep.liveStart')}
+            {transcribing
+              ? <LoaderCircle size={18} className="live__spin" />
+              : recording ? <Square size={15} /> : <Mic size={18} />}
+            {transcribing ? t('prep.liveTranscribing') : recording ? t('prep.liveStop') : t('prep.liveStart')}
           </button>
         ) : (
-          <SpeechNotice reasonKey={fatalSpeechError ? speechError.key : availability.reason} />
+          <SpeechNotice reasonKey={blocked ?? availability.reason} />
         )}
 
-        {listening && (
-          <span className="live__listening" role="status">
+        {recording && (
+          <span className="live__listening">
             <span className="live__pulse" aria-hidden="true" />
-            {t('prep.liveListening')}
+            {/* The word is the live region; the running count beside it is not,
+                or a screen reader would read out every second. */}
+            <span role="status">{t('prep.liveRecording')}</span>
+            <span className="live__rec-time" aria-hidden="true">{formatDuration(dictation.seconds)}</span>
           </span>
         )}
       </div>
 
-      {/* A non-fatal hiccup: silence, or a dropped connection. The button is
-          still there and trying again is reasonable, so this is a line of text
-          rather than the full notice. */}
-      {speechError && !fatalSpeechError && (
+      {/* A non-fatal hiccup: nothing heard, a busy service, a dropped
+          connection. The button is still there and trying again is
+          reasonable, so this is a line of text rather than the full notice. */}
+      {speechError && !speechError.fatal && (
         <p className="live__speech-warn" role="status">
           <AlertTriangle size={14} />
-          {t(`prep.speech.${speechError.key}`)}
+          {t(`prep.speech.${speechError.key}`, { minutes: n(MAX_RECORDING_SECONDS / 60), max: n(ANSWER_MAX) })}
         </p>
       )}
 
@@ -316,15 +322,9 @@ function LiveQuestion({
         rows={6}
         maxLength={ANSWER_MAX}
         placeholder={t('prep.liveAnswerPlaceholder')}
-        value={displayedAnswer}
+        value={answer ?? ''}
         disabled={busy}
-        onChange={(event) => {
-          // Typing wins over a phrase still in the air. Without this the
-          // preview would be re-appended on the next render and fight whatever
-          // was just typed.
-          clearInterim()
-          onAnswerChange(event.target.value)
-        }}
+        onChange={(event) => onAnswerChange(event.target.value)}
       />
 
       <p className="live__hint">{t('prep.liveTranscriptHint')}</p>
@@ -332,13 +332,19 @@ function LiveQuestion({
       {error && <p className="notice notice--error" role="alert">{error}</p>}
 
       <footer className="live__foot">
-        {!answered && (
-          <p className="live__warn">
-            <AlertTriangle size={14} />
-            {t('prep.liveBlankWarning')}
-          </p>
+        {capturing ? (
+          <p className="live__warn live__warn--quiet">{t('prep.liveStopFirst')}</p>
+        ) : (
+          <>
+            {!answered && (
+              <p className="live__warn">
+                <AlertTriangle size={14} />
+                {t('prep.liveBlankWarning')}
+              </p>
+            )}
+            {answered && !isLast && <p className="live__warn live__warn--quiet">{t('prep.liveNoGoingBack')}</p>}
+          </>
         )}
-        {answered && !isLast && <p className="live__warn live__warn--quiet">{t('prep.liveNoGoingBack')}</p>}
 
         {confirming ? (
           /* An inline confirm rather than a browser dialog. This is the last
@@ -351,7 +357,7 @@ function LiveQuestion({
                 type="button"
                 className="btn btn--primary"
                 onClick={() => leave(onFinish)}
-                disabled={busy}
+                disabled={locked}
               >
                 {submitting ? t('prep.assessing') : t('prep.liveConfirmYes')}
                 <CheckCircle2 size={16} />
@@ -370,8 +376,8 @@ function LiveQuestion({
           <button
             type="button"
             className="btn btn--primary btn--lg live__next"
-            onClick={isLast ? () => { stop(); setConfirming(true) } : () => leave(onNext)}
-            disabled={busy}
+            onClick={isLast ? () => setConfirming(true) : () => leave(onNext)}
+            disabled={locked}
           >
             {loadingNext ? t('prep.liveThinking') : isLast ? t('prep.liveFinish') : t('prep.liveNext')}
             <ArrowRight size={17} />
@@ -390,9 +396,13 @@ function LiveQuestion({
  * @param {Record<number, string>} props.answers shared with the page, so leaving
  *   the tab mid-interview does not discard what has been said
  * @param {Function} props.setAnswers
- * @param {object} props.live position, per-answer metadata and whether the
- *   candidate has begun — held by the page for the same reason
+ * @param {object} props.live position, per-answer metadata, whether the
+ *   candidate has begun and whether dictation has been ruled out — held by the
+ *   page for the same reason
  * @param {Function} props.setLive
+ * @param {(interviewId: number, index: number, text: string) => void} props.onTranscript
+ *   adds a transcript to one question's answer; held by the page, because a
+ *   transcript can arrive after this component has unmounted
  * @param {Function} props.onAdvance called with the full answer payload; the
  *   page saves it and may add a follow-up question
  * @param {Function} props.onFinish called with the same payload, to submit
@@ -401,7 +411,7 @@ function LiveQuestion({
  * @param {string} props.error
  */
 export default function LiveInterview({
-  interview, answers, setAnswers, live, setLive,
+  interview, answers, setAnswers, live, setLive, onTranscript,
   onAdvance, onFinish, submitting, loadingNext, error,
 }) {
   const questions = interview.questions ?? []
@@ -457,27 +467,21 @@ export default function LiveInterview({
   return (
     <LiveQuestion
       /* The key is load-bearing, not a list warning silencer. It is what makes
-         every question a fresh clock, a fresh draft and a released microphone. */
+         every question a fresh clock, a fresh draft and a released microphone,
+         and what drops a transcript still in flight for the question before. */
       key={questionIndex}
+      interviewId={interview.interviewId}
       question={question}
       position={position}
       total={questions.length}
       answer={answers[questionIndex] ?? ''}
-      /* Takes a value from the textarea and an updater from dictation. The
-         updater form is what lets a recognised fragment append to whatever is
-         in the box at the moment it lands, rather than to a copy captured a
-         render earlier — see the note at its call site. */
-      onAnswerChange={next => setAnswers(current => ({
-        ...current,
-        [questionIndex]: typeof next === 'function' ? next(current[questionIndex] ?? '') : next,
-      }))}
-      onSpeechSource={() => setLive(current => ({
-        ...current,
-        meta: {
-          ...current.meta,
-          [questionIndex]: { ...(current.meta?.[questionIndex] ?? {}), source: 'speech' },
-        },
-      }))}
+      onAnswerChange={value => setAnswers(current => ({ ...current, [questionIndex]: value }))}
+      /* Bound to this interview and this question here, so a transcript that
+         arrives late can only ever join the answer it was spoken for. */
+      onTranscript={text => onTranscript(interview.interviewId, questionIndex, text)}
+      serverReady={interview.dictationAvailable}
+      blockedKey={live.dictationBlocked ?? null}
+      onDictationBlocked={key => setLive(current => ({ ...current, dictationBlocked: key }))}
       isLast={position >= questions.length - 1}
       onNext={(seconds) => {
         const payload = buildPayload(seconds)

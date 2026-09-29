@@ -2,101 +2,214 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
-  getSpeechRecognition,
-  speechAvailability,
-  describeSpeechError,
+  getMediaRecorder,
+  recorderAvailability,
+  dictationAvailability,
+  pickRecordingType,
+  describeMicrophoneError,
+  describeTranscriptionError,
   appendTranscript,
-  isAlreadyStarted,
-  SPEECH_LANGUAGE,
+  MAX_RECORDING_SECONDS,
+  MIN_RECORDING_MS,
 } from './speech.js'
 
 /**
- * The pure half of the speech module.
+ * The pure half of the dictation module.
  *
- * The hook itself needs a browser and a microphone and is covered by the manual
- * script in docs/qa. What is testable here is the part that decides WHAT the
- * user is told, and that is the part most likely to be wrong in a way nobody
- * notices: a Firefox user sent to enable HTTPS, or a denied permission that
- * leaves the button offering a microphone it cannot open.
+ * The hook itself needs a browser and a microphone and is covered by the e2e
+ * spec (against a stubbed recorder) and the manual script in docs/qa. What is
+ * testable here is the part that decides WHAT the user is told, and that is the
+ * part most likely to be wrong in a way nobody notices: a visitor on plain http
+ * told their browser is unsupported, or a server with no key leaving a button
+ * that can never work.
  */
 
-test('getSpeechRecognition finds the constructor under either name', async (t) => {
-  await t.test('the standard name', () => {
-    const win = { SpeechRecognition: function Standard() {}, isSecureContext: true }
-    assert.equal(getSpeechRecognition(win), win.SpeechRecognition)
-  })
+/** A window that can record, with whatever is overridden. */
+function recordingWindow(overrides = {}) {
+  return {
+    MediaRecorder: function Recorder() {},
+    isSecureContext: true,
+    navigator: { mediaDevices: { getUserMedia: async () => ({}) } },
+    ...overrides,
+  }
+}
 
-  await t.test('the webkit prefix, which is what Chrome and Edge actually ship', () => {
-    const win = { webkitSpeechRecognition: function Prefixed() {}, isSecureContext: true }
-    assert.equal(getSpeechRecognition(win), win.webkitSpeechRecognition)
-  })
-
-  await t.test('neither', () => {
-    assert.equal(getSpeechRecognition({ isSecureContext: true }), null)
+test('getMediaRecorder', async (t) => {
+  await t.test('finds the constructor', () => {
+    const win = recordingWindow()
+    assert.equal(getMediaRecorder(win), win.MediaRecorder)
   })
 
   await t.test('no window at all, as in this test runner', () => {
-    assert.equal(getSpeechRecognition(undefined), null)
+    assert.equal(getMediaRecorder(undefined), null)
   })
 })
 
-test('speechAvailability', async (t) => {
-  const Recognition = function Recognition() {}
-
-  await t.test('available on a secure page in a supporting browser', () => {
-    const result = speechAvailability({ webkitSpeechRecognition: Recognition, isSecureContext: true })
-    assert.deepEqual(result, { available: true, reason: 'ok' })
+test('recorderAvailability', async (t) => {
+  await t.test('available on a secure page in a browser that can record', () => {
+    assert.deepEqual(recorderAvailability(recordingWindow()), { available: true, reason: 'ok' })
   })
 
-  await t.test('unsupported wins over insecure', () => {
-    // A Firefox user on http has two problems and can only fix one of them by
-    // changing browser. Telling them to enable HTTPS would be advice for a
-    // problem they do not have.
-    const result = speechAvailability({ isSecureContext: false })
-    assert.deepEqual(result, { available: false, reason: 'unsupported' })
+  await t.test('unsupported without a recorder, even on an insecure page', () => {
+    // A browser that cannot record has two problems and can only fix one of
+    // them by changing browser. Telling it to enable HTTPS would be advice for
+    // a problem it does not have.
+    const win = recordingWindow({ MediaRecorder: undefined, isSecureContext: false })
+    assert.deepEqual(recorderAvailability(win), { available: false, reason: 'unsupported' })
   })
 
-  await t.test('insecure when the engine exists but the page is not secure', () => {
-    // The case that passes every local test and fails on the deployed site.
-    const result = speechAvailability({ webkitSpeechRecognition: Recognition, isSecureContext: false })
-    assert.deepEqual(result, { available: false, reason: 'insecure' })
+  await t.test('insecure on plain http, where the browser hides getUserMedia', () => {
+    // The trap: on http most browsers remove navigator.mediaDevices outright.
+    // Checked the other way round, every http visitor would be told their
+    // browser is unsupported and go looking for a different one.
+    const win = recordingWindow({ isSecureContext: false, navigator: {} })
+    assert.deepEqual(recorderAvailability(win), { available: false, reason: 'insecure' })
+  })
+
+  await t.test('unsupported when there is a recorder but no way to open the microphone', () => {
+    const win = recordingWindow({ navigator: {} })
+    assert.deepEqual(recorderAvailability(win), { available: false, reason: 'unsupported' })
   })
 
   await t.test('a missing isSecureContext is not treated as insecure', () => {
-    // Only an explicit false counts. An older browser that does not define the
-    // property should not be told its connection is the problem.
-    const result = speechAvailability({ webkitSpeechRecognition: Recognition })
-    assert.deepEqual(result, { available: true, reason: 'ok' })
+    const win = recordingWindow({ isSecureContext: undefined })
+    assert.deepEqual(recorderAvailability(win), { available: true, reason: 'ok' })
+  })
+
+  await t.test('no window at all', () => {
+    assert.deepEqual(recorderAvailability(undefined), { available: false, reason: 'unsupported' })
   })
 })
 
-test('describeSpeechError', async (t) => {
-  await t.test('a denied permission is fatal, so the button stops offering', () => {
-    assert.deepEqual(describeSpeechError('not-allowed'), { key: 'denied', fatal: true })
-    assert.deepEqual(describeSpeechError('service-not-allowed'), { key: 'denied', fatal: true })
+test('dictationAvailability', async (t) => {
+  await t.test('available when the browser can record and the server can transcribe', () => {
+    assert.deepEqual(dictationAvailability({ serverReady: true, win: recordingWindow() }), { available: true, reason: 'ok' })
+  })
+
+  await t.test('not configured when the server has no Groq key', () => {
+    assert.deepEqual(
+      dictationAvailability({ serverReady: false, win: recordingWindow() }),
+      { available: false, reason: 'notConfigured' },
+    )
+  })
+
+  await t.test('the browser is named first: a server fix would not help it', () => {
+    const win = recordingWindow({ MediaRecorder: undefined })
+    assert.equal(dictationAvailability({ serverReady: false, win }).reason, 'unsupported')
+  })
+
+  await t.test('an interview that does not say is taken as ready', () => {
+    // Only an explicit false turns the button off, so an interview object from
+    // before the field existed still offers it and the server has the last word.
+    assert.equal(dictationAvailability({ win: recordingWindow() }).available, true)
+  })
+})
+
+test('pickRecordingType', async (t) => {
+  await t.test('prefers Opus in webm, which Chrome, Edge and Firefox record best', () => {
+    const Recorder = { isTypeSupported: () => true }
+    assert.equal(pickRecordingType(Recorder), 'audio/webm;codecs=opus')
+  })
+
+  await t.test('falls through to mp4, which is what Safari records', () => {
+    const Recorder = { isTypeSupported: type => type === 'audio/mp4' }
+    assert.equal(pickRecordingType(Recorder), 'audio/mp4')
+  })
+
+  await t.test('lets the browser choose when it supports none of the list', () => {
+    assert.equal(pickRecordingType({ isTypeSupported: () => false }), '')
+  })
+
+  await t.test('lets the browser choose when it cannot be asked', () => {
+    assert.equal(pickRecordingType({}), '')
+    assert.equal(pickRecordingType(null), '')
+  })
+
+  await t.test('survives a browser that throws on the question', () => {
+    assert.equal(pickRecordingType({ isTypeSupported: () => { throw new Error('nope') } }), '')
+  })
+})
+
+test('describeMicrophoneError', async (t) => {
+  const named = name => Object.assign(new Error(name), { name })
+
+  await t.test('a refused permission is fatal, so the button stops offering', () => {
+    assert.deepEqual(describeMicrophoneError(named('NotAllowedError')), { key: 'denied', fatal: true })
+    // What older Chrome threw before the name was standardised.
+    assert.deepEqual(describeMicrophoneError(named('PermissionDeniedError')), { key: 'denied', fatal: true })
+  })
+
+  await t.test('a page that may not use the microphone is not sent to browser settings', () => {
+    // An iframe without allow="microphone", or a Permissions-Policy. No
+    // browser setting fixes either, so the message must not claim one does.
+    assert.deepEqual(describeMicrophoneError(named('SecurityError')), { key: 'blocked', fatal: true })
   })
 
   await t.test('no microphone is fatal for the same reason', () => {
-    assert.deepEqual(describeSpeechError('audio-capture'), { key: 'noMicrophone', fatal: true })
+    assert.deepEqual(describeMicrophoneError(named('NotFoundError')), { key: 'noMicrophone', fatal: true })
   })
 
-  await t.test('silence and network trouble are not fatal', () => {
-    assert.equal(describeSpeechError('no-speech').fatal, false)
-    assert.equal(describeSpeechError('network').fatal, false)
+  await t.test('a microphone held by another app is worth trying again', () => {
+    assert.deepEqual(describeMicrophoneError(named('NotReadableError')), { key: 'micBusy', fatal: false })
   })
 
-  await t.test('an abort we caused is not an error to report', () => {
-    assert.equal(describeSpeechError('aborted'), null)
+  await t.test('anything else still says something', () => {
+    assert.deepEqual(describeMicrophoneError(new TypeError('odd')), { key: 'generic', fatal: false })
+    assert.deepEqual(describeMicrophoneError(undefined), { key: 'generic', fatal: false })
+  })
+})
+
+test('describeTranscriptionError', async (t) => {
+  const apiError = (status, code) => Object.assign(new Error('x'), { status, code })
+
+  await t.test('a server that cannot transcribe is fatal: nothing will work until it is fixed', () => {
+    for (const code of ['TRANSCRIBE_NOT_CONFIGURED', 'TRANSCRIBE_AUTH', 'TRANSCRIBE_MODEL']) {
+      assert.deepEqual(describeTranscriptionError(apiError(503, code)), { key: 'notConfigured', fatal: true })
+    }
   })
 
-  await t.test('an unknown code still says something', () => {
-    assert.deepEqual(describeSpeechError('something-new'), { key: 'generic', fatal: false })
+  await t.test('a busy provider is worth a retry', () => {
+    assert.deepEqual(describeTranscriptionError(apiError(503, 'TRANSCRIBE_BUSY')), { key: 'busy', fatal: false })
+  })
+
+  await t.test('an oversized recording says so', () => {
+    assert.deepEqual(describeTranscriptionError(apiError(413, 'TRANSCRIBE_TOO_LARGE')), { key: 'tooLong', fatal: false })
+  })
+
+  await t.test('the caller\'s own hourly limit is told apart from the provider being busy', () => {
+    assert.deepEqual(describeTranscriptionError(apiError(429, 'TRANSCRIBE_RATE_LIMITED')), { key: 'tooMany', fatal: false })
+    assert.deepEqual(describeTranscriptionError(apiError(429, null)), { key: 'tooMany', fatal: false })
+  })
+
+  await t.test('a request that never got an answer is the connection', () => {
+    assert.deepEqual(describeTranscriptionError(new TypeError('Failed to fetch')), { key: 'network', fatal: false })
+  })
+
+  await t.test('anything else is worth one more go', () => {
+    assert.deepEqual(describeTranscriptionError(apiError(502, 'TRANSCRIBE_UNAVAILABLE')), { key: 'generic', fatal: false })
+    assert.deepEqual(describeTranscriptionError(apiError(422, 'TRANSCRIBE_BAD_AUDIO')), { key: 'generic', fatal: false })
+  })
+})
+
+test('recording limits', async (t) => {
+  await t.test('the longest recording fits the answer box', () => {
+    // About 130 spoken words a minute, 6 characters a word: a longer recording
+    // would produce more text than the 2,500 character answer can hold.
+    assert.ok(MAX_RECORDING_SECONDS * (130 / 60) * 6 <= 2500)
+  })
+
+  await t.test('a tap is shorter than any answer', () => {
+    assert.ok(MIN_RECORDING_MS < 1000)
   })
 })
 
 test('appendTranscript', async (t) => {
   await t.test('capitalises the opening fragment', () => {
     assert.equal(appendTranscript('', 'i led the migration'), 'I led the migration')
+  })
+
+  await t.test('passes a punctuated Whisper sentence through untouched', () => {
+    assert.equal(appendTranscript('', 'I led the migration.'), 'I led the migration.')
   })
 
   await t.test('joins mid-sentence without inventing a capital', () => {
@@ -117,14 +230,13 @@ test('appendTranscript', async (t) => {
     assert.equal(appendTranscript('he said "go."', 'we went'), 'he said "go." We went')
   })
 
-  await t.test('collapses the whitespace recognition arrives with', () => {
+  await t.test('collapses the whitespace a transcript arrives with', () => {
     assert.equal(appendTranscript('First part', '  second   part  '), 'First part second part')
   })
 
   await t.test('an empty chunk leaves the answer exactly as it was', () => {
-    // Recognition fires with nothing in it more often than you would expect,
-    // and an answer that gained a trailing space on every silence would be a
-    // very annoying bug to find.
+    // An answer that gained a trailing space on every silent recording would be
+    // a very annoying bug to find.
     assert.equal(appendTranscript('Already typed', '   '), 'Already typed')
     assert.equal(appendTranscript('Already typed', null), 'Already typed')
   })
@@ -134,34 +246,5 @@ test('appendTranscript', async (t) => {
     // punctuation they did not choose.
     const result = appendTranscript('I managed the rollout', 'then I trained the team')
     assert.equal(result, 'I managed the rollout then I trained the team')
-  })
-})
-
-test('dictation is English only, as agreed with the client', () => {
-  assert.equal(SPEECH_LANGUAGE, 'en-US')
-})
-
-test('isAlreadyStarted separates a harmless start() from a broken one', async (t) => {
-  await t.test('what Chrome throws when a session is already open', () => {
-    const cause = new Error('recognition has already started')
-    cause.name = 'InvalidStateError'
-    assert.equal(isAlreadyStarted(cause), true)
-  })
-
-  await t.test('an engine that says so only in the message', () => {
-    assert.equal(isAlreadyStarted(new Error('already running')), true)
-  })
-
-  await t.test('anything else, which means the microphone is NOT open', () => {
-    // The distinction the old catch collapsed. Treating this as "already
-    // running" is how the interface went on showing "Listening" over a dead
-    // engine, which is worse than saying nothing.
-    assert.equal(isAlreadyStarted(new Error('service unavailable')), false)
-    assert.equal(isAlreadyStarted(new TypeError('not a function')), false)
-  })
-
-  await t.test('nothing thrown at all', () => {
-    assert.equal(isAlreadyStarted(undefined), false)
-    assert.equal(isAlreadyStarted(null), false)
   })
 })

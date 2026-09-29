@@ -47,12 +47,13 @@ Three moving parts at run time, and you start two of them:
 | Part | What it is | How it starts |
 |---|---|---|
 | PostgreSQL | The database. Holds accounts, content, review history, chat transcripts, gaps and interviews. | Installed once, runs as a service |
-| API server | `server/` — Node.js. Talks to PostgreSQL and to Google AI Studio. | `npm run dev` in `server/` |
+| API server | `server/` — Node.js. Talks to PostgreSQL, to Google AI Studio, and to Groq for live interview dictation. | `npm run dev` in `server/` |
 | Front end | `client/` — Vite dev server. Serves the React app and proxies `/api` to the API server. | `npm run dev` in `client/` |
 
 The AI itself is not something you install. Every AI feature calls Google AI
-Studio over the internet using one API key, so the machine needs internet
-access while the site is in use.
+Studio over the internet using one API key, and live interview dictation sends
+recordings to Whisper on Groq with a second, optional key. The machine needs
+internet access while the site is in use.
 
 ---
 
@@ -97,6 +98,11 @@ cd ict30017-digital-career-hub
 The key is free and takes under a minute. One key serves every AI feature.
 Keep it private: anyone holding it can spend the project's daily allowance.
 
+**Optional: a Groq key, for live interview dictation.** Go to
+https://console.groq.com/keys, sign in, click **Create API Key** and copy it.
+It is also free. Without it everything still works, but the live interview's
+record button is replaced by a note asking candidates to type.
+
 ### Step 4 — Create the configuration file
 
 Copy the example and open the copy in any text editor:
@@ -108,11 +114,12 @@ notepad server\.env
 
 (macOS / Linux: `cp server/.env.example server/.env`.)
 
-Only **two** lines need a real value:
+Only **two** lines need a real value, plus a third if you want dictation:
 
 ```
 GOOGLE_AI_API_KEY=paste_your_key_here
 DB_PASSWORD=the_postgres_password_from_step_1
+GROQ_API_KEY=paste_your_groq_key_here
 ```
 
 And one line should be changed from its placeholder to any random text of 32
@@ -301,7 +308,10 @@ message — follows the language toggle.
 ## 5. How the AI is wired
 
 One key, one provider, four features. Everything below lives in `ai-service/`
-and is called by the routes in `server/src/routes/`.
+and is called by the routes in `server/src/routes/`. The one exception is live
+interview dictation, which sends recordings to Whisper on Groq with its own
+key, through `ai-service/src/services/transcription.js` — see "Two modes:
+written and live" below.
 
 ```
                          server/.env
@@ -410,7 +420,7 @@ Run from the directory named.
 | Where | Command | Does |
 |---|---|---|
 | `server` | `npm install` | Install server and ai-service dependencies (once) |
-| `server` | `npm run check` | Verify the whole setup, including one live model request. `-- --no-ai` skips the request |
+| `server` | `npm run check` | Verify the whole setup, including one live model request and a Groq model lookup. `-- --no-ai` skips both |
 | `server` | `npm run migrate` | Apply outstanding database migrations. `-- --status` lists them |
 | `server` | `npm run dev` | Start the API with auto-restart on file change |
 | `server` | `npm start` | Start the API without auto-restart |
@@ -493,6 +503,26 @@ maps to the table in Section 5.
   Google project.
 - **`AI_UNREACHABLE`** — the machine cannot reach Google. Check the internet
   connection, and any proxy or firewall.
+
+### Live interview dictation does not work
+
+The intro card or the question says **"Speech to text has not been set up on
+this site yet"**: `GROQ_API_KEY` is missing from `server/.env`, or Groq
+rejected it. Add or replace the key and restart the server. `npm run check`
+reports which.
+
+Otherwise look for `[transcribe-upstream]` in the server terminal. The second
+line is the fix.
+
+- **`TRANSCRIBE_AUTH`** — Groq rejected the key. Create a new one at
+  https://console.groq.com/keys.
+- **`TRANSCRIBE_MODEL`** — Groq no longer serves the Whisper model. Set
+  `WHISPER_MODEL` in `server/.env` to one it lists.
+- **`TRANSCRIBE_BUSY`** — the free tier's limit for the minute, hour or day is
+  spent across the whole server. Wait, or upgrade the Groq plan.
+
+If the record button is missing and the notice names HTTPS, the site is being
+served over plain `http` — see "Microphone access needs HTTPS" in Section 5.
 
 ### `Cannot find package 'dotenv' imported from ai-service`
 
@@ -637,11 +667,28 @@ The interview runs one of two ways, chosen on the setup panel.
 together. Unchanged.
 
 **Live** delivers one question at a time, large and alone on the screen, with
-a running clock and no way back. The answer can be dictated: recognition is
-the browser's own Web Speech API, so no audio is recorded, none is uploaded,
-and no speech service is paid for. What it transcribes lands in an ordinary
-editable box, because recognition makes mistakes and the candidate is marked
-on that text.
+a running clock and no way back. The answer can be spoken: the candidate
+presses **Record answer**, speaks, presses **Stop recording**, and a few
+seconds later the transcript appears in an ordinary editable box, because
+transcription makes mistakes and the candidate is marked on that text. The
+page will not move on while a recording is running or being transcribed, so
+every spoken answer is seen before it is left behind.
+
+**How speech becomes text.** The browser only records (MediaRecorder). The
+recording is posted to `POST /api/preparation/interviews/:id/transcribe`,
+which passes it to Whisper (`whisper-large-v3-turbo`) on Groq's free tier and
+returns the text. This replaced the browser's built-in Web Speech recognition
+at the client's request: that only existed in Chrome, Edge and Opera, and
+Whisper gives every browser the same recogniser.
+
+**What happens to the audio.** It leaves the browser, which it did not before,
+and the intro card says so. The server holds each recording in memory for
+that one request — never on disk, never in the database, never in a log — and
+sends it to Groq to be transcribed. The PII mask that protects every other AI
+call cannot reach audio: a name spoken aloud reaches Groq as sound. The
+transcript is not stored either. What is saved is whatever the candidate
+leaves in the answer box, and that text goes through the mask when the
+interview is assessed like any other answer.
 
 They are two presentations of ONE interview. The same call writes the
 questions, the same call marks them, and the same gaps reach the same board.
@@ -652,13 +699,12 @@ run-on sentences, homophones, a mangled employer name. The rubric itself does
 not move, or a score would mean something different in each mode and the
 history on the profile page would stop being comparable.
 
-**Browser support.** Chrome, Edge and Opera implement Web Speech recognition.
-Firefox does not, and Safari's support is not reliable enough to claim. Those
-browsers get the same one-question-at-a-time interview and type their answers;
-nothing about the questions or the marking changes. The page says which of the
-three reasons applies — no engine, no HTTPS, or permission refused — because
-the remedy differs and a single "speech is unavailable" would send everyone to
-the wrong one.
+**Browser support.** Anything current that can record: Chrome, Edge, Firefox
+and Safari, on desktop and phone. Chrome, Edge and Firefox record Opus in
+webm; Safari records AAC in mp4; the server accepts both. A browser that
+cannot record, a page not on HTTPS, a server with no Groq key and a refused
+microphone each get their own notice, because the remedy differs — and in
+every case the interview carries on and the candidate types instead.
 
 **Microphone access needs HTTPS.** A secure context is required, and
 `localhost` counts as one — which is the trap: dictation works all through
@@ -669,10 +715,22 @@ serve the app over HTTPS and confirm the microphone prompt appears; the page
 will say "Speech to text needs a secure (HTTPS) connection" rather than fail
 silently if it does not.
 
-**English only.** Dictation is fixed to `en-US`, agreed with the client:
-Bengali speech models are a paid API this project has no budget for. The live
-mode is therefore not offered at all while the interface is in Bangla, and the
-server forces written for a Bangla interview regardless of what is sent.
+**The free tier is shared.** Groq's free Whisper allowance is per key, so it
+is shared by every user of the server: roughly 20 requests a minute, 2,000 a
+day, two hours of audio an hour and eight a day (check Groq's rate-limit page
+for current figures). A five-question interview answered aloud is around ten
+minutes of audio, so that is about a dozen interviews an hour. Enough for
+demonstrations and a class; not enough for a public launch without upgrading.
+To protect it, the route only transcribes answers to the caller's own live,
+unfinished interview, each recording stops at three minutes, and each user is
+limited to 60 recordings an hour.
+
+**English only.** Whisper is told the audio is English (`language: 'en'`),
+agreed with the client. Whisper can transcribe Bengali, but its accuracy for
+Bangladeshi speakers has not been tested and the candidate is marked on the
+text. The live mode is therefore not offered at all while the interface is in
+Bangla, and the server forces written for a Bangla interview regardless of
+what is sent.
 
 **Follow-up questions are premium.** A live interview can ask up to two
 questions that react to what was just said. Each costs a model call, so a free
@@ -683,10 +741,14 @@ advertisement and the answers so far, never in the CV: that was parsed in
 memory and deleted, and nothing in the system can read it again.
 
 **Testing it.** The automated coverage is in `client/e2e/live-interview.spec.js`
-(the engine is stubbed — headless browsers have no microphone) and
-`ai-service/tests/liveInterview.test.js`. The parts that need a real browser
-and a real voice are in `docs/qa/live_interview_manual_test.md`, which must be
-run by hand against Chrome, Edge and Firefox before release.
+(the recorder and microphone are stubbed and the transcribe route intercepted —
+headless browsers have no microphone, and real transcriptions would spend the
+shared allowance), `ai-service/tests/liveInterview.test.js`,
+`ai-service/tests/transcription.test.js` and
+`server/src/routes/transcribe.test.js`. The parts that need a real browser, a
+real voice and a real Groq key are in `docs/qa/live_interview_manual_test.md`,
+which must be run by hand against Chrome, Edge, Firefox and Safari before
+release.
 
 **Not in this version, and deliberately:** video, live coding, text to speech
 (the questions and feedback are written, and nothing is read aloud), Bangla

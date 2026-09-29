@@ -19,7 +19,7 @@
  * TWO MODES THROUGH ONE PIPELINE
  *
  * The interview runs written — five questions on a page, typed, submitted
- * together — or live, one question at a time and dictated. They share the
+ * together — or live, one question at a time, spoken or typed. They share the
  * setup panel, the start call, the submit call and the results screen; what
  * differs is one component in the middle. Everything the live mode needs to
  * survive a tab switch (which question, how long each answer took, whether it
@@ -39,7 +39,7 @@ import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import { CANDIDATE_STAGE_OPTIONS } from '../utils/reviewContext'
 import { validateResumeFile, ACCEPTED_EXTENSIONS } from '../utils/resumeFile'
-import { speechAvailability } from '../utils/speech'
+import { dictationAvailability, appendTranscript } from '../utils/speech'
 import { fetchProfile } from '../api/account'
 import {
   fetchGaps, fetchGapSummary, setGapStatus, fetchInterviewQuota,
@@ -543,10 +543,11 @@ function InterviewSetup({ quota, openGapCount, onStart, starting, error, profile
   /*
    * The live mode is not offered in Bangla, and this is where that decision is
    * made visible rather than merely enforced. Dictation is English only —
-   * agreed with the client, because Bengali speech models are a paid API with
-   * no budget behind them — and an option that appears and then cannot use the
-   * microphone is worse than one that was never offered. The server forces
-   * written for a Bangla interview regardless of what is sent.
+   * agreed with the client; Whisper can transcribe Bengali, but not yet
+   * accurately enough for Bangladeshi speakers to be marked on the result —
+   * and an option that appears and then cannot use the microphone is worse
+   * than one that was never offered. The server forces written for a Bangla
+   * interview regardless of what is sent.
    */
   const liveOffered = lang !== 'bn'
   const [modeInput, setModeInput] = useState('written')
@@ -771,7 +772,7 @@ function InterviewSetup({ quota, openGapCount, onStart, starting, error, profile
           <li>{t(mode === 'live' ? 'prep.howLive3' : 'prep.how3')}</li>
         </ol>
         <p className="prep-explain__note">{t('prep.textOnly')}</p>
-        {mode === 'live' && <p className="prep-explain__note">{t('prep.liveNoAudio')}</p>}
+        {mode === 'live' && <p className="prep-explain__note">{t('prep.liveAudioPrivacy')}</p>}
       </div>
     </>
   )
@@ -1096,12 +1097,45 @@ export default function Preparation() {
    * component unmounts the moment the plan tab is opened, and which question
    * you were on is as painful to lose as the answer you were writing.
    *
-   *   position  index into interview.questions of the question on screen
-   *   meta      per answer: how long it took, and whether it was spoken
-   *   started   whether the candidate has pressed Begin, so the clock does not
-   *             run while a microphone permission prompt is still open
+   *   position          index into interview.questions of the question on screen
+   *   meta              per answer: how long it took, and whether it was spoken
+   *   started           whether the candidate has pressed Begin, so the clock
+   *                     does not run while a microphone permission prompt is
+   *                     still open
+   *   dictationBlocked  set when the microphone was refused or the server
+   *                     cannot transcribe, so later questions stop offering it
    */
   const [live, setLive] = useState({ position: 0, meta: {}, started: false })
+
+  /*
+   * A transcript for one question of one interview.
+   *
+   * Here rather than in the live interview component because a transcript can
+   * arrive after that component has unmounted: the candidate presses Stop and
+   * opens the plan tab while it is being written down. It is appended to the
+   * answer as it stands when it lands, not as it stood when Stop was pressed,
+   * so anything typed in between is kept — and it is dropped if a different
+   * interview has been opened since, rather than written into that one.
+   */
+  const openInterviewIdRef = useRef(null)
+  useEffect(() => {
+    openInterviewIdRef.current = interview?.interviewId ?? null
+  }, [interview])
+
+  const addSpokenAnswer = useCallback((interviewId, index, text) => {
+    if (openInterviewIdRef.current !== interviewId) return
+    setAnswers(current => ({
+      ...current,
+      [index]: appendTranscript(current[index] ?? '', text).slice(0, ANSWER_MAX),
+    }))
+    // Recorded the moment speech contributes anything, and never unset: an
+    // answer that was dictated and then tidied up by hand still carries
+    // transcription artefacts, and the evaluator needs to know that.
+    setLive(current => ({
+      ...current,
+      meta: { ...current.meta, [index]: { ...(current.meta?.[index] ?? {}), source: 'speech' } },
+    }))
+  }, [])
   const [loadingNext, setLoadingNext] = useState(false)
   const [evaluation, setEvaluation] = useState(null)
   const [foundGaps, setFoundGaps] = useState(null)
@@ -1290,6 +1324,9 @@ export default function Preparation() {
         // server's call on the next turn, and promising one on a card the
         // server may decline would be a promise this page cannot keep.
         followUpsAvailable: false,
+        // Whether the server can transcribe right now, asked again rather than
+        // remembered: a key may have been added, or removed, since.
+        dictationAvailable: full.dictationAvailable,
       })
 
       // What the server holds (written only when an assessment failed, or on
@@ -1320,7 +1357,9 @@ export default function Preparation() {
         ),
         // Shown again on a resumed interview. The microphone may need
         // permission a second time, and the clock should not start before it
-        // has been granted.
+        // has been granted. A dictationBlocked from before is not carried
+        // over either: a reload is exactly how a candidate recovers from a
+        // refused microphone.
         started: false,
       })
 
@@ -1440,6 +1479,7 @@ export default function Preparation() {
                 setAnswers={setAnswers}
                 live={live}
                 setLive={setLive}
+                onTranscript={addSpokenAnswer}
                 onAdvance={advanceLive}
                 onFinish={({ payload }) => submit(payload)}
                 submitting={submitting}
@@ -1449,7 +1489,7 @@ export default function Preparation() {
             ) : (
               <LiveIntro
                 interview={interview}
-                availability={speechAvailability()}
+                availability={dictationAvailability({ serverReady: interview.dictationAvailable })}
                 onBegin={() => {
                   setLive(current => ({ ...current, started: true }))
                   window.scrollTo({ top: 0 })

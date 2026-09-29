@@ -5,7 +5,8 @@
  *
  *   cd server
  *   npm run check            everything, including one real AI request per model
- *   npm run check -- --no-ai skip the AI request (costs nothing, proves less)
+ *                            and a Groq model lookup for speech to text
+ *   npm run check -- --no-ai skip both (costs nothing, proves less)
  *
  * Why this exists: the server prints "Server running" before it has touched
  * the database or the model provider, so a machine with a wrong password, an
@@ -80,6 +81,7 @@ const PLACEHOLDERS = new Set([
   'your_model_here',
   'replace_with_a_random_32plus_char_secret',
   'your_db_password_here',
+  'your_groq_api_key_here',
 ]);
 
 function isSet(name) {
@@ -110,6 +112,13 @@ if (!fs.existsSync(ENV_PATH)) {
     else fail(`${name} is set`, process.env[name] ? 'still the placeholder value' : 'missing', fix);
   }
 
+  // Optional: only live interview dictation needs it, and the app runs without.
+  if (isSet('GROQ_API_KEY')) pass('GROQ_API_KEY is set');
+  else warn('GROQ_API_KEY is set', process.env.GROQ_API_KEY ? 'still the placeholder value' : 'missing', [
+    'Live interview dictation is off without it; everything else works.',
+    'Create a free key at https://console.groq.com/keys and paste it in with no quotes.',
+  ]);
+
   if (process.env.DATABASE_URL?.trim()) {
     pass('Database connection', 'DATABASE_URL (hosted database; DB_* values are ignored)');
   } else {
@@ -129,6 +138,8 @@ heading('AI model configuration');
 const {
   assertModelConfig, getModel, TIERS, getGroqClient,
   classifyAiError, formatAiErrorLog,
+  isTranscriptionConfigured, getTranscriptionModel, getTranscriptionClient,
+  classifyTranscriptionError,
 } = await import('ai-service');
 
 let modelsOk = false;
@@ -266,6 +277,35 @@ if (flags['no-ai']) {
       // this beside the server log.
       console.log(formatAiErrorLog('check-setup', classified).split('\n').map((l) => `        ${l}`).join('\n'));
     }
+  }
+}
+
+/* ── 6. Speech to text, live ──────────────────────────────────────────── */
+
+heading('Speech to text (Whisper on Groq)');
+
+if (flags['no-ai']) {
+  warn('Groq key and model', 'skipped (--no-ai)');
+} else if (!isTranscriptionConfigured()) {
+  warn('Groq key and model', 'not checked: GROQ_API_KEY is not set', 'Live interview dictation stays off until it is.');
+} else {
+  // Looks the model up rather than transcribing anything. That proves the key
+  // is accepted and the model is still served, and spends none of the day's
+  // audio allowance, which a real transcription would.
+  const model = getTranscriptionModel();
+  const started = Date.now();
+  try {
+    await getTranscriptionClient().models.retrieve(model);
+    pass(`Groq serves ${model}`, `key accepted in ${Date.now() - started} ms`);
+  } catch (err) {
+    // A warning, like a missing key: the app runs without dictation, so a
+    // broken Groq setup is worth fixing but not worth failing the check over.
+    const classified = classifyTranscriptionError(err);
+    warn(`Groq serves ${model}`, `${classified.code}${classified.status ? ` (HTTP ${classified.status})` : ''}`, [
+      classified.hint,
+      `Detail: ${classified.detail.slice(0, 200)}`,
+      'Live interview dictation stays off until this passes; everything else works.',
+    ]);
   }
 }
 

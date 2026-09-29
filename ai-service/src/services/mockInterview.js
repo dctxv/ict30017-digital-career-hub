@@ -13,11 +13,12 @@
  *
  * The written mode is the original: five questions on a page, typed, submitted
  * together. The live mode delivers them one at a time and lets the candidate
- * dictate with the browser's own speech recognition — no speech API is called
- * from here, and none is paid for, which is what made it possible at all. Voice
+ * speak the answer: the browser records it and services/transcription.js turns
+ * it into text with Whisper, on Groq's free tier. Nothing in this module sees
+ * audio — it only ever receives the text the candidate chose to submit. Voice
  * was ruled out on the original call because BILINGUAL delivery needed Bengali
- * speech models nobody could fund; English-only recognition in the browser is a
- * different proposition and is what the client agreed to.
+ * speech models nobody could fund; English-only dictation is a different
+ * proposition and is what the client agreed to.
  *
  * The modes differ in presentation and in nothing else. Both generate through
  * generateInterviewQuestions, both are marked by evaluateInterview against the

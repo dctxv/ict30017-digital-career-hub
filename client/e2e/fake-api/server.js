@@ -376,7 +376,7 @@ function handleReset(req, res) {
  * Enough of the preparation API for the live interview spec to run.
  *
  * The gap board is served empty on purpose. The spec is about how an interview
- * is CONDUCTED — one question at a time, dictated, timed, no way back — and a
+ * is CONDUCTED — one question at a time, recorded, timed, no way back — and a
  * populated board would only add fixtures to the parts of the page it never
  * touches.
  *
@@ -460,6 +460,9 @@ function handleInterviewStart(req, res) {
       // Declined for a free account, which is what this fake serves.
       followUpsAvailable: false,
       followUpsRemaining: 0,
+      // As if a Groq key were configured. The spec overrides this per test to
+      // cover the server that has none.
+      dictationAvailable: mode === 'live',
       createdAt: new Date().toISOString(),
     })
   })
@@ -478,6 +481,28 @@ async function handleInterviewNext(req, res, id) {
   interview.answers = Array.isArray(answers) ? answers : []
 
   return send(res, 200, { question: null, reason: 'premium_only', followUpsRemaining: 0 })
+}
+
+/**
+ * A fixed transcript for any recording. The spec intercepts this route when it
+ * needs particular words or a particular failure; this is what a run against
+ * the fake gets otherwise, so the record button does something visible.
+ */
+const FAKE_TRANSCRIPT = 'I led the data migration for a team of four, and we finished two days early.'
+
+async function handleInterviewTranscribe(req, res, id) {
+  const user = currentUser(req)
+  if (!user) return send(res, 401, { error: 'Authentication required.' })
+
+  const interview = interviews.get(id)
+  if (!interview) return send(res, 404, { error: 'Interview not found.' })
+  if (interview.mode !== 'live') {
+    return send(res, 409, { error: 'Dictation is only available in a live interview.' })
+  }
+
+  // Drained rather than parsed; no assertion depends on the audio itself.
+  await readBody(req)
+  return send(res, 200, { text: FAKE_TRANSCRIPT })
 }
 
 async function handleInterviewAnswers(req, res, id) {
@@ -588,6 +613,7 @@ const ROUTES = [
  */
 const ID_ROUTES = [
   ['POST', /^\/api\/preparation\/interviews\/(\d+)\/next$/, handleInterviewNext],
+  ['POST', /^\/api\/preparation\/interviews\/(\d+)\/transcribe$/, handleInterviewTranscribe],
   ['POST', /^\/api\/preparation\/interviews\/(\d+)\/answers$/, handleInterviewAnswers],
   ['GET', /^\/api\/preparation\/interviews\/(\d+)$/, handleInterviewRead],
 ];

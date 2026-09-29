@@ -222,10 +222,28 @@
   50% { opacity: 0.35; transform: scale(0.7); }
 }
 
+/* How long this recording has run. Tabular so the line does not shift as the
+   seconds tick over. */
+.live__rec-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* The button's icon while the recording is being transcribed. */
+.live__spin {
+  animation: live-spin 0.9s linear infinite;
+}
+
+@keyframes live-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Somebody who asked for less motion still needs to know the microphone is
-   open, so the dot stays and only the animation goes. */
+   open, so the dot stays and only the animation goes. The spinner's label says
+   "Writing it down…" on its own, so it can stand still too. */
 @media (prefers-reduced-motion: reduce) {
   .live__pulse { animation: none; }
+  .live__spin { animation: none; }
   .live__fill { transition: none; }
 }
 

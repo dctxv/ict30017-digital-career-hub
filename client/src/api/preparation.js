@@ -33,7 +33,11 @@ async function request(url, options = {}) {
   }
 
   if (!response.ok) {
-    throw new ApiError(data?.error ?? null, response.status)
+    const failure = new ApiError(data?.error ?? null, response.status)
+    // The machine-readable reason, where the server gives one. The dictation
+    // hook picks its message from this rather than from the sentence.
+    failure.code = data?.code ?? null
+    throw failure
   }
 
   return data
@@ -113,6 +117,31 @@ export function requestNextQuestion(interviewId, { afterIndex, answers, language
     method: 'POST',
     body: JSON.stringify({ afterIndex, answers, language }),
   })
+}
+
+/**
+ * Sends one recorded answer to be transcribed, and returns the text.
+ *
+ * Scoped to the interview on purpose: the server only transcribes answers to
+ * the caller's own live, unfinished interview. Nothing is stored — the text
+ * comes back for the answer box, and is saved later as whatever the candidate
+ * leaves there.
+ *
+ * @param {number} interviewId
+ * @param {Blob} recording what MediaRecorder produced, with its type set
+ * @param {{signal?: AbortSignal}} [options] aborted when the question unmounts,
+ *   so a transcript cannot land in the next question's answer
+ * @returns {Promise<string>} possibly empty, which means nothing was heard
+ */
+export async function transcribeRecording(interviewId, recording, { signal } = {}) {
+  const form = new FormData()
+  form.append('audio', recording, 'answer')
+  const data = await request(`/api/preparation/interviews/${interviewId}/transcribe`, {
+    method: 'POST',
+    body: form,
+    signal,
+  })
+  return typeof data?.text === 'string' ? data.text : ''
 }
 
 /**
