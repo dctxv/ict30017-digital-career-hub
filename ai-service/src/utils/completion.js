@@ -18,7 +18,7 @@
  * server can map it to a 503.
  */
 
-import { getGroqClient, getModel } from './aiClient.js';
+import { getAiClient, getModel } from './aiClient.js';
 import { parseAIJSON } from './aiJson.js';
 import { classifyAiError, formatAiErrorLog } from './aiErrors.js';
 
@@ -56,7 +56,7 @@ export async function requestJson({
   language = 'en',
   maskContext,
 }) {
-  const client = getGroqClient();
+  const client = getAiClient();
   const model = getModel(tier);
 
   let raw;

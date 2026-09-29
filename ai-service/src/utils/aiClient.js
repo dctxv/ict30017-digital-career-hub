@@ -162,7 +162,11 @@ export function withOutboundMasking(client) {
   });
 }
 
-export function getGroqClient() {
+/**
+ * The Google AI Studio chat client, masked. Every AI feature except dictation
+ * goes through this; dictation has its own client in services/transcription.js.
+ */
+export function getAiClient() {
   if (!_client) {
     if (!process.env.GOOGLE_AI_API_KEY) {
       throw new Error(
@@ -191,6 +195,20 @@ export function getGroqClient() {
   }
   return _client;
 }
+
+/**
+ * The old name for getAiClient, kept so branches written against it still run.
+ *
+ * It dates from when chat went through Groq. Chat has been on Google AI Studio
+ * since, and Groq now serves something else entirely — Whisper, for live
+ * interview dictation — so the name had become actively misleading. Several
+ * open branches still call it, though, and an import of a name that no longer
+ * exists stops the server at startup, so it stays as an alias until those have
+ * merged. New code should call getAiClient.
+ *
+ * @deprecated use getAiClient
+ */
+export const getGroqClient = getAiClient;
 
 /* ── Model resolution ──────────────────────────────────────────────────────
  *

@@ -20,10 +20,12 @@
  * across the whole server, and 25 MB a file. See the README's live interview
  * section before planning anything bigger than a class demo.
  *
- * Note that `getGroqClient()` in utils/aiClient.js is NOT this. It is the
- * Google AI Studio chat client, named for the provider the project started on.
- * This module has its own client because it has its own key and base URL, and
- * because it must not inherit the outbound masking wrapper — see below.
+ * This module has its own client rather than using getAiClient() from
+ * utils/aiClient.js, which is the Google AI Studio chat client. It has its own
+ * key and base URL, and it must not inherit the outbound masking wrapper — see
+ * below. (getGroqClient, still exported from there as a deprecated alias, is
+ * that chat client too, named for the provider chat started on. It does not
+ * talk to Groq.)
  *
  * THE ONE PAYLOAD THE PII MASK CANNOT REACH
  *

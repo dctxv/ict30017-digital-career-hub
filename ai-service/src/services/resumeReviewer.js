@@ -1,4 +1,4 @@
-import { getGroqClient, getModel } from '../utils/aiClient.js';
+import { getAiClient, getModel } from '../utils/aiClient.js';
 import { inferNameFromHeader } from '../utils/piiMask.js';
 import { parseAIJSON } from '../utils/aiJson.js';
 import { classifyAiError, formatAiErrorLog } from '../utils/aiErrors.js';
@@ -389,7 +389,7 @@ export async function analyzeResumeStream(resumeText, { onToken, jobRole, jobAd,
     throw new Error('Resume text cannot be empty.');
   }
 
-  const client = getGroqClient();
+  const client = getAiClient();
   const model = getModel(tier);
 
   // A bare marketMode still works; a full context object takes precedence.
@@ -473,7 +473,7 @@ export async function analyzeResume(resumeText, { jobRole, jobAd, marketMode = '
     throw new Error('Resume text cannot be empty.');
   }
 
-  const client = getGroqClient();
+  const client = getAiClient();
   const model = getModel(tier);
 
   // A bare marketMode still works; a full context object takes precedence.

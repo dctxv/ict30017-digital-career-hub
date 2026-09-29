@@ -1,7 +1,9 @@
 export { analyzeResume, analyzeResumeStream, resumeMaskContext } from './src/services/resumeReviewer.js';
 export { streamChatbotResponse } from './src/services/chatbot.js';
 export {
-  assertModelConfig, getModel, TIERS, getGroqClient, unwrapProviderErrors,
+  assertModelConfig, getModel, TIERS, getAiClient, unwrapProviderErrors,
+  // Deprecated alias of getAiClient, for branches written before the rename.
+  getGroqClient,
   // The outbound PII masking chokepoint. Exported so a harness that builds its
   // own client can be held to the same guarantee as the server.
   withOutboundMasking, MissingMaskContextError,

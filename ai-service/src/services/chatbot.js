@@ -3,7 +3,7 @@
  * Responsibility: Stream Bangladesh-focused career guidance responses from the shared AI client.
  */
 
-import { getGroqClient, getModel } from '../utils/aiClient.js';
+import { getAiClient, getModel } from '../utils/aiClient.js';
 import {
   enforceSlidingWindow,
   estimateTokens,
@@ -138,7 +138,7 @@ export async function* streamChatbotResponse(conversationHistory, newUserMessage
     throw new Error('Chat message cannot be empty.');
   }
 
-  const client = getGroqClient();
+  const client = getAiClient();
   const model = getModel(tier);
   const messages = buildChatMessages(conversationHistory, newUserMessage, language);
 

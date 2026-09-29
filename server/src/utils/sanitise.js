@@ -1,4 +1,4 @@
-// Groq context limit headroom: 12,000 chars ≈ ~3,000 tokens, leaving room for the system prompt.
+// Context headroom for the model: 12,000 chars ≈ ~3,000 tokens, leaving room for the system prompt.
 const MAX_CHARS = 12000;
 
 // Phrases that attempt to override the AI system prompt.

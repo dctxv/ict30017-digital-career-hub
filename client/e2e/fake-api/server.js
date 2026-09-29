@@ -4,11 +4,11 @@
  * Why this exists
  * ---------------
  * The e2e suite needs the API on :3000, and the real one needs PostgreSQL, a
- * JWT secret, a Groq key and a reachable model provider. That makes the suite
- * unrunnable on a fresh checkout and non-deterministic when it does run: the
- * live happy path asserts on real model output, and admin-nav.spec.js shells
- * out to psql to promote a user because there is deliberately no API that can
- * mint an admin.
+ * JWT secret, a Google AI Studio key and a reachable model provider. That makes
+ * the suite unrunnable on a fresh checkout and non-deterministic when it does
+ * run: the live happy path asserts on real model output, and admin-nav.spec.js
+ * shells out to psql to promote a user because there is deliberately no API
+ * that can mint an admin.
  *
  * This serves the same contract from memory. The assertions in the specs are
  * unchanged and still real — only the dependencies behind them are doubles.

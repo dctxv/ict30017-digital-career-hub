@@ -136,7 +136,7 @@ heading('AI model configuration');
 // Imported after dotenv so ai-service resolves the same file. Its own loader
 // also reads server/.env, so the order only matters for the messages above.
 const {
-  assertModelConfig, getModel, TIERS, getGroqClient,
+  assertModelConfig, getModel, TIERS, getAiClient,
   classifyAiError, formatAiErrorLog,
   isTranscriptionConfigured, getTranscriptionModel, getTranscriptionClient,
   classifyTranscriptionError,
@@ -251,7 +251,7 @@ if (flags['no-ai']) {
   fail('Live model request', 'not attempted', 'Fix the configuration failures above first.');
 } else {
   const models = [...new Set(TIERS.map((t) => getModel(t)))];
-  const client = getGroqClient();
+  const client = getAiClient();
   for (const model of models) {
     const started = Date.now();
     try {

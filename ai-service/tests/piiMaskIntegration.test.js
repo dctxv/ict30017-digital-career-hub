@@ -287,11 +287,11 @@ describe('a call site that forgets the mask cannot send anything', () => {
     // Not "sends unmasked" and not "sends with weaker masking" — the request
     // does not happen. This is the property that makes the control hard to
     // bypass, so it is asserted against the real client rather than a stub.
-    const { getGroqClient } = await import('../src/utils/aiClient.js');
+    const { getAiClient } = await import('../src/utils/aiClient.js');
     const sentBefore = sentBodies.length;
 
     await assert.rejects(
-      () => getGroqClient().chat.completions.create({
+      () => getAiClient().chat.completions.create({
         model: 'gemini-test',
         messages: [{ role: 'user', content: 'rahim.uddin@gmail.com' }],
       }),
@@ -299,5 +299,18 @@ describe('a call site that forgets the mask cannot send anything', () => {
     );
 
     assert.equal(sentBodies.length, sentBefore, 'nothing may reach the wire');
+  });
+});
+
+describe('the deprecated getGroqClient name', () => {
+  it('is the same masked client as getAiClient, from the module and the package', async () => {
+    // Kept for open branches written before the rename. If this alias drifted
+    // to anything else — or disappeared — one of them merging would either
+    // stop the server at startup or route around the mask.
+    const aiClient = await import('../src/utils/aiClient.js');
+    const pkg = await import('../index.js');
+    assert.equal(aiClient.getGroqClient, aiClient.getAiClient);
+    assert.equal(pkg.getGroqClient, aiClient.getAiClient);
+    assert.equal(pkg.getAiClient, aiClient.getAiClient);
   });
 });

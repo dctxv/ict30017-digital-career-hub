@@ -209,7 +209,7 @@ function clientFor(provider) {
     const apiKey = process.env.GOOGLE_AI_API_KEY;
     if (!apiKey) throw new Error('GOOGLE_AI_API_KEY is not set in server/.env');
     // Wrapped like the production client. This harness builds its own clients
-    // rather than calling getGroqClient, so without this it would be the one
+    // rather than calling getAiClient, so without this it would be the one
     // path that sends resume fixtures to a provider unmasked — and it sends
     // them to TWO providers, one of which production never touches.
     clients.google = withOutboundMasking(new OpenAI({
