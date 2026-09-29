@@ -25,6 +25,9 @@ build/
 .vite/
 *.local
 
+# Vercel CLI: `vercel dev` cache and lock, and `vercel link`'s project/team ids
+.vercel/
+
 # Uploads (runtime user content)
 uploads/
 
