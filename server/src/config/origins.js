@@ -20,8 +20,27 @@ const DEFAULT_ALLOWED_ORIGINS = Object.freeze([
 ]);
 
 /**
+ * The hostnames Vercel assigns this deployment: its unique URL, its branch URL
+ * and the project's production domain. Each preview deployment gets a new URL,
+ * so these cannot be listed in ALLOWED_ORIGINS ahead of time. They are still
+ * exact origins, set by the platform, so the list stays explicit. Empty off
+ * Vercel.
+ *
+ * @returns {string[]}
+ */
+function vercelOrigins() {
+  return [
+    process.env.VERCEL_URL,
+    process.env.VERCEL_BRANCH_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  ]
+    .filter(Boolean)
+    .map((host) => `https://${host}`);
+}
+
+/**
  * Resolves the allowlist from ALLOWED_ORIGINS, falling back to the local
- * development defaults above.
+ * development defaults above, plus the deployment's own origins on Vercel.
  *
  * @returns {string[]} trusted origins, never empty
  */
@@ -31,7 +50,8 @@ export function getAllowedOrigins() {
     .map((o) => o.trim())
     .filter(Boolean);
 
-  return configured?.length ? configured : [...DEFAULT_ALLOWED_ORIGINS];
+  const base = configured?.length ? configured : [...DEFAULT_ALLOWED_ORIGINS];
+  return [...new Set([...base, ...vercelOrigins()])];
 }
 
 export { DEFAULT_ALLOWED_ORIGINS };

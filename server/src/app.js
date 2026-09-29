@@ -11,6 +11,7 @@ import { getAllowedOrigins } from './config/origins.js';
 import { assertModelConfig, getModel, isTranscriptionConfigured, getTranscriptionModel } from 'ai-service';
 import { localiseResponses } from './i18n/index.js';
 import { checkContentSchema } from './schemaCheck.js';
+import { UPLOADS_DIR } from './middleware/upload.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,6 +36,14 @@ if (!isTranscriptionConfigured()) {
 const allowedOrigins = getAllowedOrigins();
 
 const app = express();
+// On Vercel every request arrives through the platform's proxy, which sets
+// X-Forwarded-For to the real client address. Without this req.ip is the proxy,
+// so the IP-keyed rate limiters (login, chat, guest resume review) would put
+// every visitor in one bucket and one person's attempts would lock out everyone.
+// Left off locally, where there is no proxy and the header could be forged.
+if (process.env.VERCEL) {
+  app.set('trust proxy', 1);
+}
 app.use(helmet());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
@@ -47,10 +56,9 @@ app.use(cookieParser());
 // that both are covered without either knowing about it.
 app.use(localiseResponses);
 
-// Ensure uploads/ exists at startup
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Ensure the uploads directory exists at startup
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
 // Health check — returns no user data.
