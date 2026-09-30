@@ -170,6 +170,17 @@ export default {
   'auth.cardNamePlaceholder': 'As printed on the card',
   'auth.paymentSimulated': "No payment gateway is connected yet. No money is charged and no card or mobile number is stored — only the method you chose is recorded against the subscription.",
   'auth.payNow': 'Activate Premium',
+  'auth.checkoutProgress': 'Checkout progress',
+  'auth.checkoutDetails': 'Details',
+  'auth.checkoutContinue': 'Continue to details',
+  'auth.checkoutPayingWith': 'Paying with',
+  'auth.checkoutChange': 'Change',
+  'auth.checkoutPrivacy': 'Payment details stay in this form and are never sent or stored.',
+  'auth.pay.invalidMobile': 'Enter a valid 11-digit Bangladesh mobile number.',
+  'auth.pay.invalidCard': 'Enter a valid card number.',
+  'auth.pay.invalidExpiry': 'Enter a valid, unexpired date in MM / YY format.',
+  'auth.pay.invalidCvc': 'Enter a valid 3 or 4 digit CVC.',
+  'auth.pay.invalidName': 'Enter the name shown on the card.',
 
   // Forgot / reset password flow.
   'auth.emailRequired': "Enter your account's email address.",
