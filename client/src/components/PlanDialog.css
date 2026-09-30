@@ -22,6 +22,23 @@
   animation: slideUp 0.2s ease both;
 }
 
+.plan-dialog__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.plan-dialog__heading-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 12px;
+  color: var(--accent-text);
+  background: var(--tint);
+}
+
 .plan-dialog__title {
   font-size: 21px;
   letter-spacing: -0.025em;
@@ -33,6 +50,26 @@
   color: var(--body-2);
   line-height: 1.6;
   margin-bottom: 20px;
+}
+
+.plan-dialog__steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.plan-dialog__step {
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--border);
+  color: var(--muted-3);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.plan-dialog__step--on {
+  border-color: var(--accent);
+  color: var(--accent-text);
 }
 
 .plan-dialog__summary {
@@ -120,7 +157,51 @@
 
 .plan-dialog__method--on svg { color: var(--accent); }
 
+.plan-dialog__details { margin-bottom: 4px; }
+
+.plan-dialog__chosen {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--body-2);
+  font-size: 13px;
+}
+
+.plan-dialog__chosen svg { color: var(--accent-text); flex: none; }
+.plan-dialog__chosen strong { color: var(--ink); }
+.plan-dialog__chosen button {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.plan-dialog__field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.plan-dialog__error { margin-bottom: 14px; }
+
 .plan-dialog__disclosure { margin-bottom: 20px; }
+
+.plan-dialog__privacy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: -8px 0 18px;
+  color: var(--muted-3);
+  font-size: 12px;
+}
 
 .plan-dialog__actions {
   display: flex;
@@ -133,4 +214,5 @@
   .plan-dialog { padding: 16px; align-items: flex-start; }
   .plan-dialog__card { padding: 22px 20px; }
   .plan-dialog__methods { grid-template-columns: 1fr; }
+  .plan-dialog__field-grid { grid-template-columns: 1fr 1fr; }
 }

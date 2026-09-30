@@ -589,6 +589,17 @@ export default {
   'auth.cardNamePlaceholder': 'কার্ডে যেভাবে ছাপা আছে',
   'auth.payNow': 'Premium চালু করুন',
   'auth.paymentSimulated': 'এখনো কোনো পেমেন্ট গেটওয়ে যুক্ত করা হয়নি। কোনো টাকা কাটা হয় না এবং কার্ড বা মোবাইল নম্বর সংরক্ষণ করা হয় না — শুধু আপনি যে মাধ্যমটি বেছে নিয়েছেন তা সাবস্ক্রিপশনের সাথে লেখা থাকে।',
+  'auth.checkoutProgress': 'চেকআউটের অগ্রগতি',
+  'auth.checkoutDetails': 'বিস্তারিত তথ্য',
+  'auth.checkoutContinue': 'বিস্তারিত তথ্যে যান',
+  'auth.checkoutPayingWith': 'পেমেন্ট মাধ্যম',
+  'auth.checkoutChange': 'পরিবর্তন করুন',
+  'auth.checkoutPrivacy': 'পেমেন্টের তথ্য এই ফর্মেই থাকে; কোথাও পাঠানো বা সংরক্ষণ করা হয় না।',
+  'auth.pay.invalidMobile': 'সঠিক ১১ সংখ্যার বাংলাদেশি মোবাইল নম্বর লিখুন।',
+  'auth.pay.invalidCard': 'সঠিক কার্ড নম্বর লিখুন।',
+  'auth.pay.invalidExpiry': 'MM / YY ফরম্যাটে সঠিক ও মেয়াদোত্তীর্ণ নয় এমন তারিখ লিখুন।',
+  'auth.pay.invalidCvc': 'সঠিক ৩ বা ৪ সংখ্যার CVC লিখুন।',
+  'auth.pay.invalidName': 'কার্ডে থাকা নামটি লিখুন।',
 
   /* ── Results ─────────────────────────────────────────────────── */
   'results.meta': '{market} মান অনুযায়ী বিশ্লেষণ করা হয়েছে',
