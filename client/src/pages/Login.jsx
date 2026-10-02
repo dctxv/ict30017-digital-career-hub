@@ -4,7 +4,6 @@ import { Compass, ShieldCheck } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import CaptchaWidget from '../components/CaptchaWidget'
 import './Auth.css'
 
 export default function Login() {
@@ -12,7 +11,6 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
-  const [captchaToken, setCaptchaToken] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuth()
@@ -38,7 +36,7 @@ export default function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ ...form, captchaToken }),
+        body: JSON.stringify(form),
       })
       const data = await response.json()
 
@@ -114,8 +112,6 @@ export default function Login() {
           <p className="auth__forgot">
             <Link to="/forgot-password">{t('auth.forgotPassword')}</Link>
           </p>
-
-          <CaptchaWidget onVerify={token => setCaptchaToken(token)} onExpire={() => setCaptchaToken('')} />
 
           <button type="submit" className="btn btn--primary btn--lg btn--full" disabled={loading}>
             {loading ? t('auth.loggingIn') : t('auth.logIn')}
