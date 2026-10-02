@@ -67,9 +67,11 @@ function heading(text) {
 
 heading('Node.js');
 {
-  const major = Number(process.versions.node.split('.')[0]);
-  if (major >= 20) pass('Node.js version', `v${process.versions.node}`);
-  else fail('Node.js version', `v${process.versions.node}`, 'Install Node.js 20 or newer from https://nodejs.org and reopen the terminal.');
+  // 22.12 is the floor: Vite 8 needs it, and the test scripts' quoted globs
+  // (node --test "src/**/*.test.js") are not expanded by Node 20.
+  const [major, minor] = process.versions.node.split('.').map(Number);
+  if (major > 22 || (major === 22 && minor >= 12)) pass('Node.js version', `v${process.versions.node}`);
+  else fail('Node.js version', `v${process.versions.node}`, 'Install Node.js 22.12 or newer (the 22 LTS) from https://nodejs.org and reopen the terminal.');
 }
 
 /* ── 2. server/.env ───────────────────────────────────────────────────── */

@@ -66,7 +66,7 @@ differences are one-liners and are noted where they occur.
 
 | Software | Version | Where |
 |---|---|---|
-| Node.js | 20 or newer (22 is what the project is tested on) | https://nodejs.org — pick the LTS installer, accept the defaults |
+| Node.js | 22.12 or newer; CI uses the version in `.nvmrc` | https://nodejs.org — pick the 22 LTS installer, accept the defaults |
 | PostgreSQL | 16 or newer | https://www.postgresql.org/download/windows/ — the EDB installer |
 | Git | any | https://git-scm.com/download/win |
 
