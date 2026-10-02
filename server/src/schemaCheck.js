@@ -68,6 +68,17 @@ const REQUIRED_COLUMNS = [
   // warning at startup instead.
   ['mock_interviews', 'mode'],
   ['mock_interviews', 'follow_up_count'],
+  // add_email_verification_and_2fa.sql. POST /api/auth/login reads
+  // email_verified and writes the otp_* columns on every attempt, so without
+  // them nobody can sign in.
+  ['users', 'email_verified'],
+  ['users', 'otp_code_hash'],
+  ['users', 'otp_expiry'],
+  ['users', 'otp_attempts'],
+  // add_session_management_and_password_history.sql. Every sign-in records a
+  // session, and /api/auth/me checks it for revocation.
+  ['user_sessions', 'session_id_hash'],
+  ['user_sessions', 'revoked_at'],
 ];
 
 // Named rather than listed one by one: the runner knows the full order, and a

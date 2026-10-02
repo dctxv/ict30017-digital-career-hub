@@ -52,13 +52,13 @@ router.get('/stats', async (req, res) => {
 // Recent security events from the audit_log table.
 router.get('/audit-logs', async (req, res) => {
   try {
-    const limit  = Math.min(parseInt(req.query.limit  || '50', 10), 200);
-    const offset = parseInt(req.query.offset || '0', 10);
+    const limit  = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
     const filter = req.query.event_type || null;
 
     const result = await pool.query(
       `SELECT
-         a.log_id,
+         a.audit_id AS log_id,
          a.created_at,
          COALESCE(a.event_type, a.action) AS event_type,
          COALESCE(a.email, u.email)       AS email,

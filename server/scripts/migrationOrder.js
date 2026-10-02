@@ -38,4 +38,15 @@ export const MIGRATION_ORDER = Object.freeze([
   'seed_full_bangla_content.sql',
   'retranslate_alumni_bios.sql',
   'add_interview_live_mode.sql',
+  // Security work (PR #31). Email verification and login codes, sessions, the
+  // OAuth columns, then the security-event columns on audit_log, which must
+  // follow create_audit_log_table.sql above.
+  'add_email_verification_and_2fa.sql',
+  'add_session_management_and_password_history.sql',
+  'add_trusted_devices_and_oauth.sql',
+  'add_google_oauth.sql',
+  'add_pending_email_change.sql',
+  'add_audit_log.sql',
+  'relax_audit_log_for_security_events.sql',
+  'create_login_events_table.sql',
 ]);

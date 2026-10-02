@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { logInThroughForm } from './login.js'
 
 /**
  * The live interview, end to end in a browser.
@@ -137,10 +138,7 @@ async function signIn(page) {
   })
   expect(res.ok()).toBeTruthy()
 
-  await page.goto('/login')
-  await page.getByPlaceholder('you@example.com').fill(email)
-  await page.locator('input[type="password"]').first().fill(PASSWORD)
-  await page.getByRole('button', { name: /^log in$/i }).click()
+  await logInThroughForm(page, email, PASSWORD)
   await expect(page).toHaveURL(/\/$/, { timeout: 10000 })
   return email
 }

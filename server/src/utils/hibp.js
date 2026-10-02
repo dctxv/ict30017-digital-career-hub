@@ -8,14 +8,19 @@ import crypto from 'crypto';
  * Returns the number of times the password appeared in breaches (0 = safe).
  * Falls back to 0 on network error so a HIBP outage never blocks registration.
  */
+const HIBP_TIMEOUT_MS = 3000;
+
 export async function isPwned(password) {
   try {
     const hash = crypto.createHash('sha1').update(password).digest('hex').toUpperCase();
     const prefix = hash.slice(0, 5);
     const suffix = hash.slice(5);
 
+    // Bounded: registration waits on this, and on a serverless function a
+    // stalled request would hold the signup open until the platform kills it.
     const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
       headers: { 'Add-Padding': 'true' },
+      signal: AbortSignal.timeout(HIBP_TIMEOUT_MS),
     });
 
     if (!res.ok) return 0;
@@ -26,7 +31,7 @@ export async function isPwned(password) {
 
     return parseInt(match.split(':')[1], 10) || 0;
   } catch {
-    // Network error or HIBP down — fail open so registration is not blocked.
+    // Network error, timeout or HIBP down — fail open so registration is not blocked.
     return 0;
   }
 }

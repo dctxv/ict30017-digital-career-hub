@@ -5,12 +5,14 @@ import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import pool from '../db.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, optionalAuth, hashSessionId, isSessionRevoked } from '../middleware/auth.js';
 import { isPwned } from '../utils/hibp.js';
-import { sendPasswordResetEmail, sendVerificationEmail, sendOtpEmail } from '../services/emailService.js';
-import { logEvent } from '../utils/audit.js';
+import {
+  sendPasswordResetEmail, sendVerificationEmail, sendOtpEmail,
+  emailChecksEnabled, clientOrigin,
+} from '../services/emailService.js';
+import { logEvent, getClientIp } from '../utils/audit.js';
 import { validatePasswordPolicy } from '../utils/password.js';
-import passport from 'passport';
 
 const router = express.Router();
 
@@ -241,19 +243,36 @@ router.post('/register', registerLimiter, async (req, res) => {
       console.error('[auth] Could not store verification token:', err.message);
     });
 
-    // Send the verification email (fail-open: a broken SMTP config does not abort registration).
-    const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
-    const verifyUrl = `${clientOrigin}/verify-email?token=${rawVerifyToken}&email=${encodeURIComponent(normalisedEmail)}`;
-    sendVerificationEmail(normalisedEmail, full_name.trim(), verifyUrl).catch((err) => {
-      console.error('[auth] Could not send verification email:', err.message);
-    });
-
     // Audit log for registration.
     logEvent(pool, { userId: newUser.user_id, eventType: 'register', email: normalisedEmail, req });
 
-    res.status(201).json({
+    /*
+     * With email delivery configured the address has to be confirmed before the
+     * account can sign in, so the response says so and no session is issued.
+     * Awaited so a serverless function does not freeze before the message is
+     * handed to SMTP; a failed send does not undo the account, because the
+     * verification page can send a fresh link.
+     */
+    if (emailChecksEnabled()) {
+      const verifyUrl = `${clientOrigin()}/verify-email?token=${rawVerifyToken}&email=${encodeURIComponent(normalisedEmail)}`;
+      await sendVerificationEmail(normalisedEmail, full_name.trim(), verifyUrl).catch((err) => {
+        console.error('[auth] Could not send verification email:', err.message);
+      });
+      return res.status(201).json({
+        message: 'User registered successfully',
+        user: publicUser(newUser),
+        verificationRequired: true,
+      });
+    }
+
+    // No email delivery: nothing further can be checked, so the new account is
+    // signed in straight away. Registering proved the password just as a login
+    // would, and it spares the client a second round trip through the captcha.
+    const user = await startSession(req, res, newUser);
+    return res.status(201).json({
       message: 'User registered successfully',
-      user: newUser,
+      user,
+      verificationRequired: false,
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -326,7 +345,7 @@ router.post('/login', loginLimiter, async (req, res) => {
     // Block login until email is verified. email_verified may be null for
     // accounts created before the column was added — those are grandfathered in
     // so existing users are not locked out.
-    if (user.email_verified === false) {
+    if (emailChecksEnabled() && user.email_verified === false) {
       return res.status(403).json({
         error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
         code: 'EMAIL_NOT_VERIFIED',
@@ -349,7 +368,8 @@ router.post('/login', loginLimiter, async (req, res) => {
         'UPDATE users SET failed_login_attempts = $1, lockout_until = $2 WHERE user_id = $3',
         [attempts, lockout, user.user_id]
       ).catch(() => {}); // Degrade gracefully if columns missing
-      logEvent(pool, { eventType: 'login_failed_bad_password', email: normalisedEmail, req });
+      logEvent(pool, { userId: user.user_id, eventType: 'login_failure', email: normalisedEmail, req });
+      recordLoginEvent(req, user, 'login_failure');
       return res.status(401).json(genericError);
     }
 
@@ -359,22 +379,35 @@ router.post('/login', loginLimiter, async (req, res) => {
       [user.user_id]
     ).catch(() => {});
 
+    // No way to deliver a code: the password is the whole check, as it was
+    // before two-step login existed. app.js warns about this at startup.
+    if (!emailChecksEnabled()) {
+      const sessionUser = await startSession(req, res, user);
+      return res.json({ user: sessionUser });
+    }
+
     // --- Two-factor: send OTP, do not issue JWT yet ---
-    const otpCode = String(Math.floor(100000 + Math.random() * 900000)); // 6-digit
+    // crypto.randomInt rather than Math.random: the code is a credential.
+    const otpCode = String(crypto.randomInt(100000, 1000000));
     const otpHash = await bcrypt.hash(otpCode, 10);
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     await pool.query(
       'UPDATE users SET otp_code_hash = $1, otp_expiry = $2, otp_attempts = 0 WHERE user_id = $3',
       [otpHash, otpExpiry, user.user_id]
-    ).catch((err) => {
-      console.error('[auth] Could not store OTP:', err.message);
-    });
+    );
 
-    sendOtpEmail(user.email, otpCode).catch((err) => {
+    // Awaited: the user cannot continue without this message, so a failed send
+    // is reported instead of leaving them waiting for a code that never comes.
+    try {
+      await sendOtpEmail(user.email, otpCode);
+    } catch (err) {
       console.error('[auth] Could not send OTP email:', err.message);
-      // In dev with no SMTP, log it so manual testing still works.
-    });
+      return res.status(503).json({
+        error: 'We could not send your login code. Please try again in a few minutes.',
+        code: 'OTP_SEND_FAILED',
+      });
+    }
 
     logEvent(pool, { userId: user.user_id, eventType: 'otp_sent', email: user.email, req });
 
@@ -385,12 +418,70 @@ router.post('/login', loginLimiter, async (req, res) => {
   }
 });
 
-// Helper shared by /verify-otp and the OAuth callback to issue the JWT cookie.
-function issueJwt(res, user) {
+// The account fields the client keeps for the navbar and route guards. The
+// same shape GET /me returns.
+function publicUser(user) {
+  return {
+    id: user.user_id,
+    full_name: user.full_name,
+    email: user.email,
+    role: user.role,
+    tier: user.tier,
+  };
+}
+
+// Best effort: the login history on the Profile page reads login_events.
+function recordLoginEvent(req, user, eventType) {
+  pool.query(
+    `INSERT INTO login_events (user_id, email, event_type, ip_address, user_agent)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [user.user_id, user.email, eventType, getClientIp(req), req.headers['user-agent'] ?? null]
+  ).catch((err) => {
+    if (err.code !== '42P01') console.error('[auth] Could not record login event:', err.message);
+  });
+}
+
+/*
+ * Signs the user in: records a session, stamps the last login, and sets the
+ * JWT cookie. Shared by password login (when no code is required), /verify-otp
+ * and registration.
+ *
+ * The session id travels in the token as `sid` and is stored only as its
+ * SHA-256 hash, so revoking the row from the Security panel ends this exact
+ * token at its next /me or account request rather than at its expiry.
+ */
+async function startSession(req, res, user) {
+  const sid = crypto.randomBytes(32).toString('hex');
+  const clientIp = getClientIp(req);
+
+  await pool.query(
+    `INSERT INTO user_sessions (session_id_hash, user_id, expires_at, ip_address, user_agent)
+     VALUES ($1, $2, NOW() + INTERVAL '1 hour', $3, $4)`,
+    [hashSessionId(sid), user.user_id, clientIp, req.headers['user-agent'] ?? null]
+  ).catch((err) => {
+    console.error('[auth] Could not record session:', err.message);
+  });
+
+  await pool.query(
+    'UPDATE users SET last_login_at = NOW(), last_login_ip = $2 WHERE user_id = $1',
+    [user.user_id, clientIp]
+  ).catch(() => {});
+
+  recordLoginEvent(req, user, 'login_success');
+  logEvent(pool, { userId: user.user_id, eventType: 'login_success', email: user.email, req });
+
+  issueJwt(res, user, sid);
+  return publicUser(user);
+}
+
+// Issues the JWT cookie for a signed-in user.
+function issueJwt(res, user, sid) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET is not configured.');
+  // email travels in the token so the audit log can record who made an
+  // administrative change without a lookup.
   const token = jwt.sign(
-    { id: user.user_id, role: user.role, email: user.email },
+    { id: user.user_id, role: user.role, email: user.email, sid },
     secret,
     { expiresIn: '1h', algorithm: 'HS256' }
   );
@@ -411,8 +502,8 @@ const otpLimiter = makeAuthLimiter({
 
 router.post('/verify-otp', otpLimiter, async (req, res) => {
   try {
-    const { email, otp } = req.body;
-    if (!email || !otp) {
+    const { email, otp } = req.body ?? {};
+    if (typeof email !== 'string' || !otp) {
       return res.status(400).json({ error: 'Email and OTP code are required.' });
     }
 
@@ -453,48 +544,14 @@ router.post('/verify-otp', otpLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Incorrect code. Please try again.' });
     }
 
-    // Valid — clear OTP fields, record login, issue JWT.
+    // Valid — clear the code so it cannot be used twice, then sign in.
     await pool.query(
-      `UPDATE users
-          SET otp_code_hash = NULL, otp_expiry = NULL, otp_attempts = 0,
-              last_login_at = NOW(), last_login_ip = $2
-        WHERE user_id = $1`,
-      [user.user_id, req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? req.socket.remoteAddress]
-    ).catch(() => {});
+      'UPDATE users SET otp_code_hash = NULL, otp_expiry = NULL, otp_attempts = 0 WHERE user_id = $1',
+      [user.user_id]
+    );
 
-    pool.query(
-      `INSERT INTO login_events (user_id, email, event_type, ip_address, user_agent)
-       VALUES ($1, $2, 'login_success', $3, $4)`,
-      [user.user_id, user.email,
-       req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? req.socket.remoteAddress,
-       req.headers['user-agent'] ?? null]
-    ).catch(() => {});
-
-    logEvent(pool, { userId: user.user_id, eventType: 'login_success', email: user.email, req });
-
-    // Record session in user_sessions so Security & Sessions page shows active logins
-    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? req.socket.remoteAddress;
-    const sessionHash = crypto.createHash('sha256')
-      .update(crypto.randomBytes(32))
-      .digest('hex');
-    pool.query(
-      `INSERT INTO user_sessions (session_id_hash, user_id, expires_at, ip_address, user_agent)
-       VALUES ($1, $2, NOW() + INTERVAL '1 hour', $3, $4)
-       ON CONFLICT DO NOTHING`,
-      [sessionHash, user.user_id, clientIp, req.headers['user-agent'] ?? null]
-    ).catch(() => {});
-
-    issueJwt(res, user);
-
-    return res.json({
-      user: {
-        id: user.user_id,
-        full_name: user.full_name,
-        email: user.email,
-        role: user.role,
-        tier: user.tier,
-      },
-    });
+    const sessionUser = await startSession(req, res, user);
+    return res.json({ user: sessionUser });
   } catch (error) {
     console.error('Verify-OTP error:', error);
     return res.status(500).json({ error: 'Verification failed.' });
@@ -521,8 +578,7 @@ router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
     );
 
     // Send the reset link by email.
-    const origin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
-    const resetUrl = `${origin}/reset-password?token=${rawToken}&email=${encodeURIComponent(normalisedEmail)}`;
+    const resetUrl = `${clientOrigin()}/reset-password?token=${rawToken}&email=${encodeURIComponent(normalisedEmail)}`;
     await sendPasswordResetEmail(normalisedEmail, resetUrl);
 
     return res.json(GENERIC_RESPONSE);
@@ -609,6 +665,12 @@ router.get('/me', requireAuth, async (req, res) => {
       return res.status(401).json({ error: 'Session is no longer valid.' });
     }
 
+    // Signed out from another device in the Security panel. Every page load
+    // asks this, so a revoked session ends at the next navigation.
+    if (await isSessionRevoked(req.user)) {
+      return res.status(401).json({ error: 'Session is no longer valid.' });
+    }
+
     const user = result.rows[0];
     return res.json({
       user: {
@@ -626,7 +688,14 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/logout', (req, res) => {
+router.post('/logout', optionalAuth, async (req, res) => {
+  // Close this session's row too, so it leaves the Security panel's list.
+  if (req.user?.sid) {
+    await pool.query(
+      'UPDATE user_sessions SET revoked_at = NOW() WHERE session_id_hash = $1 AND user_id = $2 AND revoked_at IS NULL',
+      [hashSessionId(req.user.sid), req.user.id]
+    ).catch(() => {});
+  }
   res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'strict' });
   res.clearCookie('jwt', { httpOnly: true, secure: true, sameSite: 'strict' });
   res.clearCookie('access_token', { httpOnly: true, secure: true, sameSite: 'strict' });
@@ -700,51 +769,13 @@ router.post('/reauth', requireAuth, reauthLimiter, async (req, res) => {
 // ── Google OAuth ──────────────────────────────────────────────────────────────
 
 /*
- * GET /google — redirect the browser to Google's consent screen.
- * The client links directly to this URL; no AJAX involved.
+ * Google sign-in lives in routes/oauth.js, mounted at /api/oauth, which only
+ * registers the strategy when GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are
+ * set. These paths are kept as redirects for anything that links to the old
+ * location; calling passport here directly answered 500 "Unknown strategy"
+ * whenever the credentials were absent.
  */
-router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
-
-/*
- * GET /google/callback — Google redirects here after the user consents.
- *
- * On success: issue the same JWT cookie the password login issues, then
- * redirect back to the client. On failure: redirect to /login with an error
- * flag the client can display.
- */
-router.get('/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: '/login?error=google_failed' }),
-  (req, res) => {
-    try {
-      const secret = process.env.JWT_SECRET;
-      if (!secret) throw new Error('JWT_SECRET is not configured.');
-
-      const user = req.user;
-      const token = jwt.sign(
-        { id: user.user_id, email: user.email, role: user.role },
-        secret,
-        { expiresIn: '1h', algorithm: 'HS256' }
-      );
-
-      const isProduction = process.env.NODE_ENV === 'production';
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'strict' : 'lax',
-        maxAge: 60 * 60 * 1000, // 1 hour
-      });
-
-      const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
-      res.redirect(`${clientOrigin}/auth/callback`);
-    } catch (err) {
-      console.error('[auth] Google callback error:', err.message);
-      const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
-      res.redirect(`${clientOrigin}/login?error=google_failed`);
-    }
-  }
-);
+router.get('/google', (req, res) => res.redirect('/api/oauth/google'));
 
 // POST /verify-email — confirm the email verification token sent at registration.
 router.post('/verify-email', async (req, res) => {
@@ -766,7 +797,7 @@ router.post('/verify-email', async (req, res) => {
       return res.status(400).json({ error: 'Verification link is invalid or has expired.' });
     }
     if (new Date() > new Date(user.verification_token_expiry)) {
-      return res.status(400).json({ error: 'Verification link has expired. Please register again.' });
+      return res.status(400).json({ error: 'Verification link has expired. Please request a new one.' });
     }
     const tokenValid = await bcrypt.compare(token, user.verification_token_hash);
     if (!tokenValid) {
@@ -808,9 +839,8 @@ router.post('/resend-verification', async (req, res) => {
       'UPDATE users SET verification_token_hash = $1, verification_token_expiry = $2 WHERE user_id = $3',
       [verifyTokenHash, verifyExpiry, user.user_id]
     );
-    const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
-    const verifyUrl = `${clientOrigin}/verify-email?token=${rawVerifyToken}&email=${encodeURIComponent(normalisedEmail)}`;
-    sendVerificationEmail(normalisedEmail, user.full_name || '', verifyUrl).catch((err) => {
+    const verifyUrl = `${clientOrigin()}/verify-email?token=${rawVerifyToken}&email=${encodeURIComponent(normalisedEmail)}`;
+    await sendVerificationEmail(normalisedEmail, user.full_name || '', verifyUrl).catch((err) => {
       console.error('[auth] Could not resend verification email:', err.message);
     });
     return res.json({ message: 'If that email belongs to an unverified account, a new link has been sent.' });
@@ -832,7 +862,10 @@ router.get('/sessions', requireAuth, async (req, res) => {
         ORDER BY last_seen_at DESC`,
       [req.user.id]
     );
-    return res.json({ sessions: result.rows });
+    const currentId = req.user.sid ? hashSessionId(req.user.sid) : null;
+    return res.json({
+      sessions: result.rows.map((row) => ({ ...row, current: row.id === currentId })),
+    });
   } catch (err) {
     if (err.code === '42P01') {
       return res.json({ sessions: [] });
@@ -872,13 +905,14 @@ router.post('/sessions/revoke/:id', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /sessions — revoke all sessions except the current one.
+// DELETE /sessions — revoke every session except the one making the request.
 router.delete('/sessions', requireAuth, async (req, res) => {
   try {
     await pool.query(
       `UPDATE user_sessions SET revoked_at = NOW()
-        WHERE user_id = $1 AND revoked_at IS NULL`,
-      [req.user.id]
+        WHERE user_id = $1 AND revoked_at IS NULL
+          AND session_id_hash IS DISTINCT FROM $2`,
+      [req.user.id, req.user.sid ? hashSessionId(req.user.sid) : null]
     );
     return res.json({ message: 'All sessions revoked.' });
   } catch (err) {
@@ -887,13 +921,14 @@ router.delete('/sessions', requireAuth, async (req, res) => {
   }
 });
 
-// POST /sessions/revoke-all — revoke all sessions (matches client apiPost calls).
+// POST /sessions/revoke-all — same, in the form the Profile page calls.
 router.post('/sessions/revoke-all', requireAuth, async (req, res) => {
   try {
     await pool.query(
       `UPDATE user_sessions SET revoked_at = NOW()
-        WHERE user_id = $1 AND revoked_at IS NULL`,
-      [req.user.id]
+        WHERE user_id = $1 AND revoked_at IS NULL
+          AND session_id_hash IS DISTINCT FROM $2`,
+      [req.user.id, req.user.sid ? hashSessionId(req.user.sid) : null]
     );
     return res.json({ message: 'All sessions revoked.' });
   } catch (err) {

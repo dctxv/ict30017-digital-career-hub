@@ -22,6 +22,7 @@
  *      chasing their own credentials over a deployment problem.
  */
 
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import pool from '../db.js';
 
@@ -69,7 +70,42 @@ function verify(token) {
   return {
     id: String(payload.id ?? payload.userId ?? payload.sub),
     role: payload.role ?? 'student',
+    // The session this token belongs to (user_sessions). Absent on tokens
+    // issued before sessions were recorded, which then cannot be revoked
+    // individually and simply run out at their expiry.
+    ...(typeof payload.sid === 'string' ? { sid: payload.sid } : {}),
   };
+}
+
+/**
+ * The value stored in user_sessions.session_id_hash for a token's sid claim.
+ * The raw sid only ever lives inside the signed cookie.
+ */
+export function hashSessionId(sid) {
+  return crypto.createHash('sha256').update(sid).digest('hex');
+}
+
+/**
+ * Whether the caller's session was revoked from the Security panel or the admin
+ * dashboard. A token with no sid, a session row that was never written, or a
+ * database without the user_sessions table all count as live: revocation is an
+ * extra control on top of the token's own one hour expiry, not a precondition
+ * for being signed in.
+ */
+export async function isSessionRevoked(user) {
+  if (!user?.sid) return false;
+  try {
+    const result = await pool.query(
+      'SELECT revoked_at FROM user_sessions WHERE session_id_hash = $1 AND user_id = $2',
+      [hashSessionId(user.sid), user.id]
+    );
+    return result.rows.length > 0 && result.rows[0].revoked_at !== null;
+  } catch (err) {
+    if (err.code !== '42P01') {
+      console.error('[auth] Session revocation check failed:', err.message);
+    }
+    return false;
+  }
 }
 
 /**
@@ -136,6 +172,9 @@ export async function requireActiveAccount(req, res, next) {
   try {
     const result = await pool.query('SELECT is_active FROM users WHERE user_id = $1', [req.user.id]);
     if (result.rows.length === 0 || result.rows[0].is_active === false) {
+      return res.status(401).json({ error: 'Session is no longer valid.' });
+    }
+    if (await isSessionRevoked(req.user)) {
       return res.status(401).json({ error: 'Session is no longer valid.' });
     }
     return next();

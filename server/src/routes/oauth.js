@@ -4,7 +4,7 @@
  * Flow:
  *   1. User clicks "Continue with Google/GitHub" on the login page.
  *   2. Browser follows /api/auth/oauth/google (GET) → redirect to provider.
- *   3. Provider authenticates and redirects back to /api/auth/oauth/google/callback.
+ *   3. Provider authenticates and redirects back to /api/oauth/google/callback.
  *   4. We exchange the code, find or create the user, issue a JWT session,
  *      and redirect to the frontend.
  *
@@ -13,8 +13,8 @@
  *   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
  *
  * The redirect URIs you register with each provider must match:
- *   Google:  http://localhost:3000/api/auth/oauth/google/callback  (dev)
- *   GitHub:  http://localhost:3000/api/auth/oauth/github/callback  (dev)
+ *   Google:  http://localhost:3000/api/oauth/google/callback  (dev)
+ *   GitHub:  http://localhost:3000/api/oauth/github/callback  (dev)
  */
 
 import express from 'express';
@@ -24,14 +24,16 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import pool from '../db.js';
 import { logEvent, getClientIp } from '../utils/audit.js';
+import { clientOrigin } from '../services/emailService.js';
 
 const router = express.Router();
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+// One answer for where the client lives, shared with the email links.
 function clientUrl() {
-  return process.env.CLIENT_URL || 'http://localhost:5173';
+  return clientOrigin();
 }
 
 function serverUrl() {
@@ -117,7 +119,7 @@ if (GOOGLE_ID && GOOGLE_SECRET) {
     {
       clientID: GOOGLE_ID,
       clientSecret: GOOGLE_SECRET,
-      callbackURL: `${serverUrl()}/api/auth/oauth/google/callback`,
+      callbackURL: `${serverUrl()}/api/oauth/google/callback`,
       scope: ['profile', 'email'],
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -145,7 +147,7 @@ if (GITHUB_ID && GITHUB_SECRET) {
       {
         clientID: GITHUB_ID,
         clientSecret: GITHUB_SECRET,
-        callbackURL: `${serverUrl()}/api/auth/oauth/github/callback`,
+        callbackURL: `${serverUrl()}/api/oauth/github/callback`,
         scope: ['user:email'],
       },
       async (accessToken, refreshToken, profile, done) => {
@@ -184,7 +186,7 @@ async function finishOAuthLogin(req, res, user) {
   try {
     const sid = await createSession(user.user_id, req);
     const token = jwt.sign(
-      { id: user.user_id, role: user.role, sid },
+      { id: user.user_id, role: user.role, email: user.email, sid },
       getJwtSecret(),
       { expiresIn: '1h', algorithm: 'HS256' }
     );

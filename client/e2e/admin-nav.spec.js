@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { logInThroughForm } from './login.js'
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { join, dirname } from 'node:path'
@@ -97,10 +98,7 @@ test(FAKE_API
     expect(sql(`SELECT role FROM users WHERE email = '${email}'`)).toBe('admin')
   }
 
-  await page.goto('/login')
-  await page.getByPlaceholder('you@example.com').fill(email)
-  await page.locator('input[type="password"]').first().fill(PASSWORD)
-  await page.getByRole('button', { name: /^log in$/i }).click()
+  await logInThroughForm(page, email, PASSWORD)
   // Login.jsx sends an admin straight to the dashboard and everyone else to
   // "/", so this lands on /admin rather than the home page.
   await expect(page).toHaveURL(/\/admin/, { timeout: 10000 })

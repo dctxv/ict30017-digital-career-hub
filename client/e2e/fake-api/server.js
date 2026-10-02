@@ -213,16 +213,45 @@ async function handleRegister(req, res) {
   }
 
   const user = createUser(body);
-  return send(res, 201, { message: 'User registered successfully', user: publicUser(user) });
+
+  // The real API signs a new account straight in when no email check applies
+  // (no SMTP configured), which is the case this double stands in for.
+  const token = randomUUID();
+  sessions.set(token, user.email);
+  return send(
+    res,
+    201,
+    { message: 'User registered successfully', user: publicUser(user), verificationRequired: false },
+    { 'Set-Cookie': SESSION_COOKIE(token) }
+  );
+}
+
+/*
+ * Mirrors the captcha check in server/src/routes/auth.js: a token from
+ * CaptchaWidget, at least a second old and at most five minutes. Kept here so
+ * a login form that stops sending it fails the e2e suite, as it failed the
+ * real site when the check first shipped.
+ */
+function captchaProblem(token) {
+  if (typeof token !== 'string' || !token.startsWith('local-captcha-')) {
+    return 'Please complete the CAPTCHA.';
+  }
+  const age = Date.now() - Number.parseInt(token.split('-')[2], 10);
+  if (!Number.isFinite(age)) return 'Invalid CAPTCHA. Please try again.';
+  if (age < 1000) return 'Submission too fast. Please try again.';
+  if (age > 5 * 60 * 1000) return 'CAPTCHA expired. Please verify again.';
+  return null;
 }
 
 async function handleLogin(req, res) {
-  const { email, password } = await readJson(req);
+  const { email, password, captchaToken } = await readJson(req);
   const generic = { error: 'Invalid email or password.' };
 
   if (!email || !password) {
     return send(res, 400, { error: 'Email and password are required.' });
   }
+  const captcha = captchaProblem(captchaToken);
+  if (captcha) return send(res, 400, { error: captcha });
 
   const user = usersByEmail.get(String(email).trim().toLowerCase());
   if (!user || user.password !== password) return send(res, 401, generic);

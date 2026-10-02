@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLanguage } from '../context/LanguageContext'
 import './CaptchaWidget.css'
 
 export default function CaptchaWidget({ onVerify, onExpire }) {
+  const { t } = useLanguage()
   const [checked, setChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const timerRef = useRef(null)
@@ -25,7 +27,17 @@ export default function CaptchaWidget({ onVerify, onExpire }) {
 
   return (
     <div className="captcha-widget" role="group" aria-label="CAPTCHA verification">
-      <div className="captcha-widget__box" onClick={handleClick}>
+      {/* A real button, so the check can be reached and ticked from the
+          keyboard; the login form cannot be submitted without it. */}
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={checked}
+        aria-busy={loading}
+        aria-label={t('auth.captchaLabel')}
+        className="captcha-widget__box"
+        onClick={handleClick}
+      >
         <span className="captcha-widget__checkbox" aria-hidden="true">
           {loading && <span className="captcha-widget__spinner" />}
           {!loading && checked && (
@@ -34,7 +46,7 @@ export default function CaptchaWidget({ onVerify, onExpire }) {
             </svg>
           )}
         </span>
-        <span className="captcha-widget__label">I&rsquo;m not a robot</span>
+        <span className="captcha-widget__label">{t('auth.captchaLabel')}</span>
         <span className="captcha-widget__brand">
           <svg className="captcha-widget__logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
             <circle cx="32" cy="32" r="30" fill="#4A90D9" />
@@ -43,7 +55,7 @@ export default function CaptchaWidget({ onVerify, onExpire }) {
           <span className="captcha-widget__brand-name">reCAPTCHA</span>
           <span className="captcha-widget__brand-sub">Privacy · Terms</span>
         </span>
-      </div>
+      </button>
     </div>
   )
 }

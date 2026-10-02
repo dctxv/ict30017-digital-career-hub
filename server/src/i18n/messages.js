@@ -38,6 +38,36 @@ export const BANGLA_MESSAGES = {
   'Password is too long.': 'পাসওয়ার্ডটি অনেক লম্বা।',
   'An account with this email already exists. Try logging in instead.':
     'এই ইমেইলে একটি অ্যাকাউন্ট আগে থেকেই আছে। বরং লগ ইন করে দেখুন।',
+
+  /* ── Captcha, email verification and login code ──────────── */
+  'Invalid request.': 'অনুরোধটি সঠিক নয়।',
+  'Please complete the CAPTCHA.': 'অনুগ্রহ করে CAPTCHA পূরণ করুন।',
+  'Invalid CAPTCHA. Please try again.': 'CAPTCHA সঠিক নয়। আবার চেষ্টা করুন।',
+  'Submission too fast. Please try again.': 'খুব দ্রুত জমা দেওয়া হয়েছে। আবার চেষ্টা করুন।',
+  'CAPTCHA expired. Please verify again.': 'CAPTCHA-র মেয়াদ শেষ। আবার যাচাই করুন।',
+  'Please verify your email address before logging in. Check your inbox for the verification link.':
+    'লগ ইন করার আগে আপনার ইমেইল ঠিকানা যাচাই করুন। যাচাইয়ের লিংকটি আপনার ইনবক্সে দেখুন।',
+  'Account temporarily locked due to too many failed attempts. Try again later.':
+    'অনেকবার ভুল চেষ্টার কারণে অ্যাকাউন্টটি সাময়িকভাবে বন্ধ। পরে আবার চেষ্টা করুন।',
+  'We could not send your login code. Please try again in a few minutes.':
+    'আপনার লগ ইন কোড পাঠানো যায়নি। কয়েক মিনিট পরে আবার চেষ্টা করুন।',
+  'Email and OTP code are required.': 'ইমেইল ও কোড দুটোই দিতে হবে।',
+  'Invalid or expired code.': 'কোডটি সঠিক নয় বা মেয়াদ শেষ হয়ে গেছে।',
+  'No pending verification. Please log in again.': 'যাচাইয়ের অপেক্ষায় কোনো কোড নেই। আবার লগ ইন করুন।',
+  'Code has expired. Please log in again to get a new one.':
+    'কোডের মেয়াদ শেষ হয়ে গেছে। নতুন কোড পেতে আবার লগ ইন করুন।',
+  'Too many incorrect attempts. Please log in again.': 'অনেকবার ভুল হয়েছে। আবার লগ ইন করুন।',
+  'Incorrect code. Please try again.': 'কোডটি ভুল। আবার চেষ্টা করুন।',
+  'Too many OTP attempts. Please try again in 15 minutes.':
+    'অনেকবার কোড চেষ্টা করা হয়েছে। ১৫ মিনিট পরে আবার চেষ্টা করুন।',
+  'Verification failed.': 'যাচাই করা যায়নি।',
+  'Token and email are required.': 'টোকেন ও ইমেইল দুটোই দিতে হবে।',
+  'Verification link is invalid or has expired.': 'যাচাইয়ের লিংকটি সঠিক নয় বা মেয়াদ শেষ হয়ে গেছে।',
+  'Verification link has expired. Please request a new one.':
+    'যাচাইয়ের লিংকের মেয়াদ শেষ। নতুন লিংক চেয়ে নিন।',
+  'Email verified successfully. You can now log in.': 'ইমেইল যাচাই হয়েছে। এখন লগ ইন করতে পারেন।',
+  'If that email belongs to an unverified account, a new link has been sent.':
+    'ইমেইলটি যাচাই না হওয়া কোনো অ্যাকাউন্টের হলে একটি নতুন লিংক পাঠানো হয়েছে।',
   'Account temporarily locked due to too many failed attempts. Try again later.':
     'বারবার ভুল চেষ্টার কারণে অ্যাকাউন্টটি সাময়িকভাবে বন্ধ রাখা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।',
   'Login failed.': 'লগ ইন করা যায়নি।',
