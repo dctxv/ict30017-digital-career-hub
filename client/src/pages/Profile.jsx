@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   User, Gauge, History, Lock, Shield, ChevronDown, CheckCircle2, ShieldAlert,
-  FileText, Download, ShieldCheck, Target, Monitor, Smartphone, Globe,
-  LogOut, AlertTriangle, Clock, RefreshCw, CheckCircle, XCircle,
+  FileText, Download, ShieldCheck, Target,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import ConfirmPasswordDialog from '../components/ConfirmPasswordDialog'
@@ -90,41 +89,6 @@ export default function Profile() {
   const [planOpen, setPlanOpen] = useState(false)
   const [passwords, setPasswords] = useState({ current: '', next: '', confirm: '' })
 
-  // Security tab state
-  const [secScore, setSecScore]       = useState(null)
-  const [sessions, setSessions]       = useState(null)
-  const [loginHistory, setLoginHistory] = useState(null)
-  const [secBusy, setSecBusy]         = useState(false)
-  const [secMsg, setSecMsg]           = useState('')
-
-  const fetchSecurityData = useCallback(async () => {
-    setSecBusy(true)
-    setSecMsg('')
-    try {
-      const [scoreRes, sessRes, histRes] = await Promise.all([
-        fetch('/api/users/me/security-score', { credentials: 'include' }).then(r => r.json()),
-        fetch('/api/auth/sessions',           { credentials: 'include' }).then(r => r.json()),
-        fetch('/api/users/me/login-history',  { credentials: 'include' }).then(r => r.json()),
-      ])
-      if (!scoreRes.error) setSecScore(scoreRes)
-      if (!sessRes.error)  setSessions(sessRes.sessions || [])
-      if (Array.isArray(histRes)) setLoginHistory(histRes)
-    } catch { /* silently degrade */ }
-    finally { setSecBusy(false) }
-  }, [])
-
-  const revokeSession = useCallback(async (id) => {
-    await fetch(`/api/auth/sessions/revoke/${id}`, { method: 'POST', credentials: 'include' })
-    setSessions(prev => prev ? prev.filter(s => s.id !== id) : prev)
-  }, [])
-
-  const revokeAllSessions = useCallback(async () => {
-    setSecBusy(true)
-    await fetch('/api/auth/sessions/revoke-all', { method: 'POST', credentials: 'include' })
-    setSecMsg('All other devices signed out.')
-    await fetchSecurityData()
-  }, [fetchSecurityData])
-
   useEffect(() => {
     let cancelled = false
     fetchProfile()
@@ -157,13 +121,6 @@ export default function Profile() {
       .catch(() => {})
     return () => { cancelled = true }
   }, [lang])
-
-  // Load security data the first time the security tab is opened
-  useEffect(() => {
-    if (tab === 'security' && sessions === null) {
-      fetchSecurityData()
-    }
-  }, [tab, sessions, fetchSecurityData])
 
   const disciplineOptions = disciplines.length > 0
     ? disciplines.map(row => ({ value: row.name, label: (lang === 'bn' && row.name_bn) || row.name }))
@@ -692,57 +649,6 @@ export default function Profile() {
 
           {tab === 'security' && (
             <>
-              {/* ── Security Score ── */}
-              {secScore && (
-                <div className="card">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <div>
-                      <p className="card__title" style={{ marginBottom: 2 }}>Security Score</p>
-                      <p className="card__sub" style={{ margin: 0 }}>How well your account is protected</p>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{
-                        width: 64, height: 64, borderRadius: '50%',
-                        background: `conic-gradient(${secScore.score >= 70 ? '#22c55e' : secScore.score >= 40 ? '#f59e0b' : '#ef4444'} ${secScore.score * 3.6}deg, var(--border, #e2e8f0) 0deg)`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        position: 'relative',
-                      }}>
-                        <div style={{
-                          width: 48, height: 48, borderRadius: '50%',
-                          background: 'var(--card-bg, #fff)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '1rem', fontWeight: 700,
-                          color: secScore.score >= 70 ? '#22c55e' : secScore.score >= 40 ? '#f59e0b' : '#ef4444',
-                        }}>
-                          {secScore.score}
-                        </div>
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--color-muted)', marginTop: 4 }}>/ 100</div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {secScore.factors?.map(f => (
-                      <div key={f.label} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem' }}>
-                        {f.achieved
-                          ? <CheckCircle size={15} color="#22c55e" />
-                          : <XCircle size={15} color="#ef4444" />}
-                        <span style={{ flex: 1 }}>{f.label}</span>
-                        <span style={{ color: f.achieved ? '#22c55e' : '#94a3b8', fontSize: '0.75rem', fontWeight: 600 }}>
-                          {f.achieved ? `+${f.points}` : `0/${f.points}`}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {secScore.recentFailedLogins > 0 && (
-                    <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.75rem', background: '#f59e0b22', borderRadius: 8, fontSize: '0.82rem', color: '#f59e0b' }}>
-                      <AlertTriangle size={14} />
-                      {secScore.recentFailedLogins} failed login attempt{secScore.recentFailedLogins > 1 ? 's' : ''} in the last 7 days
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ── Change Password ── */}
               <form className="card" onSubmit={submitPassword}>
                 <p className="card__title">{t('profile.passwordTitle')}</p>
                 <p className="card__sub">{t('profile.passwordSub')}</p>
@@ -797,115 +703,6 @@ export default function Profile() {
                 </div>
               </form>
 
-              {/* ── Active Sessions ── */}
-              <div className="card">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <div>
-                    <p className="card__title" style={{ marginBottom: 2 }}>Active Sessions</p>
-                    <p className="card__sub" style={{ margin: 0 }}>Devices currently signed in to your account</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button type="button" onClick={fetchSecurityData} disabled={secBusy}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: '0.25rem' }}>
-                      <RefreshCw size={14} />
-                    </button>
-                    {sessions && sessions.length > 1 && (
-                      <button type="button" onClick={revokeAllSessions} disabled={secBusy}
-                        className="btn btn--outline"
-                        style={{ fontSize: '0.78rem', padding: '0.3rem 0.75rem', color: '#ef4444', borderColor: '#ef4444' }}>
-                        Sign out all other devices
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {secMsg && <p style={{ fontSize: '0.8rem', color: '#22c55e', marginBottom: '0.5rem' }}>{secMsg}</p>}
-                {secBusy && !sessions && <p style={{ color: 'var(--color-muted)', fontSize: '0.85rem' }}>Loading…</p>}
-                {sessions && sessions.length === 0 && (
-                  <p style={{ color: 'var(--color-muted)', fontSize: '0.85rem' }}>No active sessions found.</p>
-                )}
-                {sessions && sessions.map((s, i) => {
-                  const ua = s.user_agent || ''
-                  const isMobile = /mobile|android|iphone|ipad/i.test(ua)
-                  const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/)?.[0]?.split('/')[0] || 'Browser'
-                  const os = ua.match(/\(([^)]+)\)/)?.[1]?.split(';')[0] || ''
-                  const isFirst = i === 0
-                  return (
-                    <div key={s.id} style={{
-                      display: 'flex', alignItems: 'center', gap: '0.75rem',
-                      padding: '0.75rem 0',
-                      borderTop: i > 0 ? '1px solid var(--border, #e2e8f0)' : 'none',
-                    }}>
-                      <div style={{
-                        width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-                        background: isFirst ? '#6366f122' : 'var(--border, #e2e8f0)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        {isMobile ? <Smartphone size={16} color={isFirst ? '#6366f1' : '#94a3b8'} />
-                          : <Monitor size={16} color={isFirst ? '#6366f1' : '#94a3b8'} />}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          {browser} {os && <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>· {os}</span>}
-                          {isFirst && <span style={{ background: '#6366f122', color: '#6366f1', borderRadius: 999, padding: '1px 7px', fontSize: '0.7rem', fontWeight: 600 }}>This device</span>}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-muted)', marginTop: 2, display: 'flex', gap: '0.75rem' }}>
-                          {s.ip_address && <span><Globe size={10} style={{ marginRight: 3 }} />{s.ip_address}</span>}
-                          <span><Clock size={10} style={{ marginRight: 3 }} />Last seen {formatDateTime(s.last_seen_at)}</span>
-                        </div>
-                      </div>
-                      {!isFirst && (
-                        <button type="button" onClick={() => revokeSession(s.id)}
-                          style={{ background: 'none', border: '1px solid #ef4444', color: '#ef4444', borderRadius: 6, padding: '0.3rem 0.6rem', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}>
-                          <LogOut size={11} /> Sign out
-                        </button>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* ── Login History ── */}
-              <div className="card">
-                <p className="card__title">Login History</p>
-                <p className="card__sub">Recent sign-in activity on your account</p>
-                {secBusy && !loginHistory && <p style={{ color: 'var(--color-muted)', fontSize: '0.85rem' }}>Loading…</p>}
-                {loginHistory && loginHistory.length === 0 && (
-                  <p style={{ color: 'var(--color-muted)', fontSize: '0.85rem' }}>No login history available.</p>
-                )}
-                {loginHistory && loginHistory.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                    {loginHistory.slice(0, 20).map((ev, i) => {
-                      const isFailure = ev.event_type === 'login_failure'
-                      const ua = ev.user_agent || ''
-                      const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/)?.[0]?.split('/')[0] || 'Unknown'
-                      return (
-                        <div key={ev.event_id || i} style={{
-                          display: 'flex', alignItems: 'center', gap: '0.75rem',
-                          padding: '0.6rem 0',
-                          borderTop: i > 0 ? '1px solid var(--border, #e2e8f0)' : 'none',
-                          fontSize: '0.82rem',
-                        }}>
-                          {isFailure
-                            ? <AlertTriangle size={14} color="#ef4444" style={{ flexShrink: 0 }} />
-                            : <CheckCircle size={14} color="#22c55e" style={{ flexShrink: 0 }} />}
-                          <div style={{ flex: 1 }}>
-                            <span style={{ fontWeight: 500, color: isFailure ? '#ef4444' : 'inherit' }}>
-                              {isFailure ? 'Failed login' : 'Signed in'}
-                            </span>
-                            <span style={{ color: 'var(--color-muted)', marginLeft: '0.4rem' }}>via {browser}</span>
-                            {ev.ip_address && <span style={{ color: 'var(--color-muted)', marginLeft: '0.4rem' }}>· {ev.ip_address}</span>}
-                          </div>
-                          <span style={{ color: 'var(--color-muted)', fontSize: '0.75rem', flexShrink: 0 }}>
-                            {formatDateTime(ev.created_at)}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* ── Account info ── */}
               <div className="card">
                 <p className="card__title">{t('profile.sessionTitle')}</p>
                 <dl className="pf-rows">
@@ -920,10 +717,6 @@ export default function Profile() {
                   <div className="pf-row">
                     <dt>{t('profile.role')}</dt>
                     <dd>{profile?.role ?? user?.role ?? '—'}</dd>
-                  </div>
-                  <div className="pf-row">
-                    <dt>2FA</dt>
-                    <dd style={{ color: '#22c55e', fontWeight: 600 }}>✓ Email OTP enabled</dd>
                   </div>
                 </dl>
               </div>

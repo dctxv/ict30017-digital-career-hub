@@ -11,14 +11,11 @@ import Resources from './pages/Resources'
 import Alumni from './pages/Alumni'
 import CareerPaths from './pages/CareerPaths'
 import AdminDashboard from './pages/AdminDashboard'
-import SecurityDashboard from './pages/SecurityDashboard'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-import VerifyEmail from './pages/VerifyEmail'
 import Policy from './pages/Policy'
 import NotFound from './pages/NotFound'
 import ChatbotWidget from './components/ChatbotWidget'
-import CookieBanner from './components/CookieBanner'
 import RequireAuth from './components/RequireAuth'
 import GuestOnly from './components/GuestOnly'
 import SessionWatcher from './components/SessionWatcher'
@@ -47,7 +44,6 @@ export default function App() {
                   locked-out user needs answered with the not-found page. */}
               <Route path="/forgot-password" element={<GuestOnly><ForgotPassword /></GuestOnly>} />
               <Route path="/reset-password" element={<GuestOnly><ResetPassword /></GuestOnly>} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
 
               <Route path="/resume-review" element={<ResumeReview />} />
               <Route path="/resources" element={<Resources />} />
@@ -76,10 +72,6 @@ export default function App() {
                 path="/admin"
                 element={<RequireAuth requiredRole="admin"><AdminDashboard /></RequireAuth>}
               />
-              <Route
-                path="/security"
-                element={<RequireAuth requiredRole="admin"><SecurityDashboard /></RequireAuth>}
-              />
 
               {/* Anything else. Previously an unknown path rendered an empty
                   page with no navigation on it, which is indistinguishable from
@@ -88,7 +80,6 @@ export default function App() {
             </Routes>
 
             <ChatbotWidget />
-            <CookieBanner />
           </BrowserRouter>
         </AuthProvider>
       </LanguageProvider>

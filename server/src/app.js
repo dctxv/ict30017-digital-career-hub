@@ -96,8 +96,6 @@ import alumniRoutes from './routes/alumni.js';
 import usersRouter from './routes/users.js';
 import preparationRouter from './routes/preparation.js';
 import newsRouter from './routes/news.js';
-import oauthRouter from './routes/oauth.js';
-import securityRouter from './routes/security.js';
 
 app.use('/api/resume', resumeRouter);
 app.use('/api/auth', authRouter);
@@ -114,10 +112,6 @@ app.use('/api/users', usersRouter);
 app.use('/api/preparation', preparationRouter);
 // Public, cached career-news feed. The provider key never reaches the browser.
 app.use('/api/news', newsRouter);
-// Google OAuth flow
-app.use('/api/oauth', oauthRouter);
-// Admin security dashboard
-app.use('/api/security', securityRouter);
 
 // Error handler
 app.use((err, req, res, next) => {
