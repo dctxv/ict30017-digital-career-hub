@@ -5,6 +5,10 @@
 }
 
 .captcha-widget__box {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   display: flex;
   align-items: center;
   background: #f9f9f9;
@@ -116,4 +120,9 @@
 [data-theme="dark"] .captcha-widget__brand-name,
 [data-theme="dark"] .captcha-widget__brand-sub {
   color: #666;
+}
+
+.captcha-widget__box:focus-visible {
+  outline: 2px solid #4a90d9;
+  outline-offset: 2px;
 }

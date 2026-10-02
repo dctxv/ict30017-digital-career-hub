@@ -121,8 +121,9 @@ export default function Profile() {
   const revokeAllSessions = useCallback(async () => {
     setSecBusy(true)
     await fetch('/api/auth/sessions/revoke-all', { method: 'POST', credentials: 'include' })
-    setSecMsg('All other devices signed out.')
+    // After the refresh, which clears the message as it starts.
     await fetchSecurityData()
+    setSecMsg('All other devices signed out.')
   }, [fetchSecurityData])
 
   useEffect(() => {
@@ -158,12 +159,6 @@ export default function Profile() {
     return () => { cancelled = true }
   }, [lang])
 
-  // Load security data the first time the security tab is opened
-  useEffect(() => {
-    if (tab === 'security' && sessions === null) {
-      fetchSecurityData()
-    }
-  }, [tab, sessions, fetchSecurityData])
 
   const disciplineOptions = disciplines.length > 0
     ? disciplines.map(row => ({ value: row.name, label: (lang === 'bn' && row.name_bn) || row.name }))
@@ -388,7 +383,11 @@ export default function Profile() {
                 type="button"
                 role="tab"
                 className={`pf-tab${tab === item.key ? ' pf-tab--on' : ''}`}
-                onClick={() => { setTab(item.key); setSaved(false); setError('') }}
+                onClick={() => {
+                  setTab(item.key); setSaved(false); setError('')
+                  // Security data loads the first time its tab is opened.
+                  if (item.key === 'security' && sessions === null) fetchSecurityData()
+                }}
                 aria-selected={tab === item.key}
                 aria-controls="pf-panel"
               >
@@ -709,7 +708,7 @@ export default function Profile() {
                       }}>
                         <div style={{
                           width: 48, height: 48, borderRadius: '50%',
-                          background: 'var(--card-bg, #fff)',
+                          background: 'var(--surface)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '1rem', fontWeight: 700,
                           color: secScore.score >= 70 ? '#22c55e' : secScore.score >= 40 ? '#f59e0b' : '#ef4444',
@@ -717,7 +716,7 @@ export default function Profile() {
                           {secScore.score}
                         </div>
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--color-muted)', marginTop: 4 }}>/ 100</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: 4 }}>/ 100</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -806,7 +805,7 @@ export default function Profile() {
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button type="button" onClick={fetchSecurityData} disabled={secBusy}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: '0.25rem' }}>
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '0.25rem' }}>
                       <RefreshCw size={14} />
                     </button>
                     {sessions && sessions.length > 1 && (
@@ -819,16 +818,18 @@ export default function Profile() {
                   </div>
                 </div>
                 {secMsg && <p style={{ fontSize: '0.8rem', color: '#22c55e', marginBottom: '0.5rem' }}>{secMsg}</p>}
-                {secBusy && !sessions && <p style={{ color: 'var(--color-muted)', fontSize: '0.85rem' }}>Loading…</p>}
+                {secBusy && !sessions && <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Loading…</p>}
                 {sessions && sessions.length === 0 && (
-                  <p style={{ color: 'var(--color-muted)', fontSize: '0.85rem' }}>No active sessions found.</p>
+                  <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>No active sessions found.</p>
                 )}
                 {sessions && sessions.map((s, i) => {
                   const ua = s.user_agent || ''
                   const isMobile = /mobile|android|iphone|ipad/i.test(ua)
                   const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/)?.[0]?.split('/')[0] || 'Browser'
                   const os = ua.match(/\(([^)]+)\)/)?.[1]?.split(';')[0] || ''
-                  const isFirst = i === 0
+                  // The server marks the session this browser is using. Older
+                  // sessions without a marker fall back to the most recent.
+                  const isFirst = sessions.some(x => x.current) ? Boolean(s.current) : i === 0
                   return (
                     <div key={s.id} style={{
                       display: 'flex', alignItems: 'center', gap: '0.75rem',
@@ -845,10 +846,10 @@ export default function Profile() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          {browser} {os && <span style={{ color: 'var(--color-muted)', fontWeight: 400 }}>· {os}</span>}
+                          {browser} {os && <span style={{ color: 'var(--muted)', fontWeight: 400 }}>· {os}</span>}
                           {isFirst && <span style={{ background: '#6366f122', color: '#6366f1', borderRadius: 999, padding: '1px 7px', fontSize: '0.7rem', fontWeight: 600 }}>This device</span>}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-muted)', marginTop: 2, display: 'flex', gap: '0.75rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 2, display: 'flex', gap: '0.75rem' }}>
                           {s.ip_address && <span><Globe size={10} style={{ marginRight: 3 }} />{s.ip_address}</span>}
                           <span><Clock size={10} style={{ marginRight: 3 }} />Last seen {formatDateTime(s.last_seen_at)}</span>
                         </div>
@@ -868,9 +869,9 @@ export default function Profile() {
               <div className="card">
                 <p className="card__title">Login History</p>
                 <p className="card__sub">Recent sign-in activity on your account</p>
-                {secBusy && !loginHistory && <p style={{ color: 'var(--color-muted)', fontSize: '0.85rem' }}>Loading…</p>}
+                {secBusy && !loginHistory && <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Loading…</p>}
                 {loginHistory && loginHistory.length === 0 && (
-                  <p style={{ color: 'var(--color-muted)', fontSize: '0.85rem' }}>No login history available.</p>
+                  <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>No login history available.</p>
                 )}
                 {loginHistory && loginHistory.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -892,10 +893,10 @@ export default function Profile() {
                             <span style={{ fontWeight: 500, color: isFailure ? '#ef4444' : 'inherit' }}>
                               {isFailure ? 'Failed login' : 'Signed in'}
                             </span>
-                            <span style={{ color: 'var(--color-muted)', marginLeft: '0.4rem' }}>via {browser}</span>
-                            {ev.ip_address && <span style={{ color: 'var(--color-muted)', marginLeft: '0.4rem' }}>· {ev.ip_address}</span>}
+                            <span style={{ color: 'var(--muted)', marginLeft: '0.4rem' }}>via {browser}</span>
+                            {ev.ip_address && <span style={{ color: 'var(--muted)', marginLeft: '0.4rem' }}>· {ev.ip_address}</span>}
                           </div>
-                          <span style={{ color: 'var(--color-muted)', fontSize: '0.75rem', flexShrink: 0 }}>
+                          <span style={{ color: 'var(--muted)', fontSize: '0.75rem', flexShrink: 0 }}>
                             {formatDateTime(ev.created_at)}
                           </span>
                         </div>
@@ -923,7 +924,9 @@ export default function Profile() {
                   </div>
                   <div className="pf-row">
                     <dt>2FA</dt>
-                    <dd style={{ color: '#22c55e', fontWeight: 600 }}>✓ Email OTP enabled</dd>
+                    {secScore?.twoFactor
+                      ? <dd style={{ color: '#22c55e', fontWeight: 600 }}>✓ Email login code on</dd>
+                      : <dd style={{ color: 'var(--muted)' }}>Off: this site cannot send email yet</dd>}
                   </div>
                 </dl>
               </div>

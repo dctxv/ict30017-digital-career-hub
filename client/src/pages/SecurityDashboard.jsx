@@ -20,10 +20,11 @@ function formatDate(iso) {
   return new Date(iso).toLocaleString()
 }
 
-function StatCard({ icon: Icon, label, value, color = '#6366f1', sub }) {
+function StatCard({ icon, label, value, color = '#6366f1', sub }) {
+  const Icon = icon
   return (
     <div style={{
-      background: 'var(--card-bg)',
+      background: 'var(--surface)',
       border: '1px solid var(--border)',
       borderRadius: 12,
       padding: '1.25rem 1.5rem',
@@ -40,7 +41,7 @@ function StatCard({ icon: Icon, label, value, color = '#6366f1', sub }) {
         <Icon size={20} color={color} />
       </div>
       <div>
-        <div style={{ fontSize: '1.6rem', fontWeight: 700, lineHeight: 1, color: 'var(--text)' }}>
+        <div style={{ fontSize: '1.6rem', fontWeight: 700, lineHeight: 1, color: 'var(--body)' }}>
           {value ?? '—'}
         </div>
         <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 2 }}>{label}</div>
@@ -53,7 +54,7 @@ function StatCard({ icon: Icon, label, value, color = '#6366f1', sub }) {
 function Badge({ type }) {
   const map = {
     register:       { color: '#22c55e', label: 'register' },
-    login:          { color: '#6366f1', label: 'login' },
+    login_success:  { color: '#6366f1', label: 'login' },
     login_failure:  { color: '#f59e0b', label: 'login fail' },
     otp_sent:       { color: '#06b6d4', label: 'OTP sent' },
     otp_verified:   { color: '#22c55e', label: 'OTP ok' },
@@ -104,6 +105,9 @@ export default function SecurityDashboard() {
     }
   }, [])
 
+  // The fetch's own state updates land after the request settles; only the
+  // loading flag is set synchronously, which is the point of the effect.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchAll() }, [fetchAll])
 
   async function unlockAccount(userId) {
@@ -129,7 +133,7 @@ export default function SecurityDashboard() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--body)' }}>
       <Navbar />
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1rem' }}>
 
@@ -147,7 +151,7 @@ export default function SecurityDashboard() {
             style={{
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.5rem 1rem', borderRadius: 8, border: '1px solid var(--border)',
-              background: 'var(--card-bg)', color: 'var(--text)', cursor: 'pointer', fontSize: '0.85rem',
+              background: 'var(--surface)', color: 'var(--body)', cursor: 'pointer', fontSize: '0.85rem',
             }}
           >
             <RefreshCw size={14} /> Refresh
@@ -195,11 +199,11 @@ export default function SecurityDashboard() {
         {!loading && tab === 'audit' && (
           <div>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-              {['', 'login_failure', 'otp_failed', 'register', 'login'].map(f => (
+              {['', 'login_failure', 'otp_failed', 'register', 'login_success'].map(f => (
                 <button key={f} onClick={() => setLogFilter(f)} style={{
                   padding: '0.3rem 0.75rem', borderRadius: 999, fontSize: '0.75rem',
                   border: '1px solid var(--border)',
-                  background: logFilter === f ? '#6366f1' : 'var(--card-bg)',
+                  background: logFilter === f ? '#6366f1' : 'var(--surface)',
                   color: logFilter === f ? '#fff' : 'var(--muted)',
                   cursor: 'pointer',
                 }}>
@@ -210,7 +214,7 @@ export default function SecurityDashboard() {
             <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                 <thead>
-                  <tr style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
+                  <tr style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
                     {['Time', 'Event', 'Email', 'IP', 'Details'].map(h => (
                       <th key={h} style={{ padding: '0.7rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--muted)', fontSize: '0.75rem' }}>{h}</th>
                     ))}
@@ -224,7 +228,7 @@ export default function SecurityDashboard() {
                     <>
                       <tr key={log.log_id || i} style={{
                         borderBottom: '1px solid var(--border)',
-                        background: i % 2 === 0 ? 'transparent' : 'var(--card-bg)',
+                        background: i % 2 === 0 ? 'transparent' : 'var(--surface)',
                       }}>
                         <td style={{ padding: '0.6rem 1rem', color: 'var(--muted)', whiteSpace: 'nowrap' }} title={formatDate(log.created_at)}>
                           {timeAgo(log.created_at)}
@@ -247,7 +251,7 @@ export default function SecurityDashboard() {
                       </tr>
                       {expandedLog === (log.log_id || i) && log.metadata && (
                         <tr key={`meta-${i}`} style={{ borderBottom: '1px solid var(--border)' }}>
-                          <td colSpan={5} style={{ padding: '0.5rem 1rem 0.75rem', background: 'var(--card-bg)' }}>
+                          <td colSpan={5} style={{ padding: '0.5rem 1rem 0.75rem', background: 'var(--surface)' }}>
                             <pre style={{ margin: 0, fontSize: '0.72rem', color: 'var(--muted)', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
                               {JSON.stringify(log.metadata, null, 2)}
                             </pre>
@@ -274,7 +278,7 @@ export default function SecurityDashboard() {
               <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                   <thead>
-                    <tr style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
+                    <tr style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
                       {['Email', 'Name', 'Failed Attempts', 'Locked Until', 'Action'].map(h => (
                         <th key={h} style={{ padding: '0.7rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--muted)', fontSize: '0.75rem' }}>{h}</th>
                       ))}
@@ -282,7 +286,7 @@ export default function SecurityDashboard() {
                   </thead>
                   <tbody>
                     {locked.map((acc, i) => (
-                      <tr key={acc.user_id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'var(--card-bg)' }}>
+                      <tr key={acc.user_id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'var(--surface)' }}>
                         <td style={{ padding: '0.7rem 1rem' }}>{acc.email}</td>
                         <td style={{ padding: '0.7rem 1rem', color: 'var(--muted)' }}>{acc.full_name || '—'}</td>
                         <td style={{ padding: '0.7rem 1rem' }}>
@@ -322,7 +326,7 @@ export default function SecurityDashboard() {
               <div style={{ border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                   <thead>
-                    <tr style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
+                    <tr style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
                       {['User', 'IP', 'Last Seen', 'Expires', 'Browser', 'Action'].map(h => (
                         <th key={h} style={{ padding: '0.7rem 1rem', textAlign: 'left', fontWeight: 600, color: 'var(--muted)', fontSize: '0.75rem' }}>{h}</th>
                       ))}
@@ -330,7 +334,7 @@ export default function SecurityDashboard() {
                   </thead>
                   <tbody>
                     {sessions.map((s, i) => (
-                      <tr key={s.id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'var(--card-bg)' }}>
+                      <tr key={s.id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'var(--surface)' }}>
                         <td style={{ padding: '0.7rem 1rem' }}>
                           <div style={{ fontWeight: 500 }}>{s.email}</div>
                           <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{s.full_name}</div>

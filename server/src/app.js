@@ -12,6 +12,7 @@ import { assertModelConfig, getModel, isTranscriptionConfigured, getTranscriptio
 import { localiseResponses } from './i18n/index.js';
 import { checkContentSchema } from './schemaCheck.js';
 import { UPLOADS_DIR } from './middleware/upload.js';
+import { emailMode } from './services/emailService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -31,6 +32,14 @@ try {
 // transcribe, and the candidate is told to type instead; nothing else needs it.
 if (!isTranscriptionConfigured()) {
   console.warn('[startup] GROQ_API_KEY is not set. Live interview dictation is off until it is added to server/.env.');
+}
+
+// Email verification at signup and the emailed login code need a way to reach
+// the user. Without one they are switched off rather than locking everyone out.
+if (emailMode() === 'off') {
+  console.warn('[startup] SMTP_HOST is not set. Email verification and the emailed login code are off, so sign-in is by password alone. Set the SMTP_* variables to turn them on, or EMAIL_TRANSPORT=console to print emails to this log in development.');
+} else if (emailMode() === 'console') {
+  console.warn('[startup] EMAIL_TRANSPORT=console: emails, including login codes, are printed to this log instead of being sent.');
 }
 
 const allowedOrigins = getAllowedOrigins();

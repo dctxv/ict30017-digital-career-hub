@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { logInThroughForm } from './login.js'
 
 /**
  * Verifies the auth session defects: C1 (navbar never reflected the session),
@@ -28,10 +29,7 @@ async function registerAndLogin(page, { plan = 'free' } = {}) {
   })
   expect(res.ok(), 'registration should succeed').toBeTruthy()
 
-  await page.goto('/login')
-  await page.getByPlaceholder('you@example.com').fill(email)
-  await page.locator('input[type="password"]').first().fill(PASSWORD)
-  await page.getByRole('button', { name: /^log in$/i }).click()
+  await logInThroughForm(page, email, PASSWORD)
   await expect(page).toHaveURL(/\/$/, { timeout: 10000 })
   return email
 }
