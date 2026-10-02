@@ -367,3 +367,23 @@
   .auth__card { padding: 26px 22px; }
   .auth__title { font-size: 24px; }
 }
+
+/* Login code step. */
+.auth__otp {
+  font-size: 1.25rem;
+  letter-spacing: 0.35em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* "Start over" on the code step: a button that reads as the switch link. */
+.auth__link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent-text);
+  cursor: pointer;
+}
+.auth__link-button:hover { text-decoration: underline; }

@@ -1,25 +1,34 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './CookieBanner.css'
 
-export default function CookieBanner() {
-  const [visible, setVisible] = useState(false)
+// Shown until a choice is stored. If localStorage is blocked the banner is
+// skipped, since the choice could not be remembered anyway.
+function needsConsent() {
+  try {
+    return !localStorage.getItem('cookieConsent')
+  } catch {
+    return false
+  }
+}
 
-  useEffect(() => {
-    try {
-      const consent = localStorage.getItem('cookieConsent')
-      if (!consent) setVisible(true)
-    } catch {
-      // localStorage blocked — skip banner
-    }
-  }, [])
+function remember(choice) {
+  try {
+    localStorage.setItem('cookieConsent', choice)
+  } catch {
+    // Blocked storage: the banner closes for this visit only.
+  }
+}
+
+export default function CookieBanner() {
+  const [visible, setVisible] = useState(needsConsent)
 
   function accept() {
-    try { localStorage.setItem('cookieConsent', 'accepted') } catch {}
+    remember('accepted')
     setVisible(false)
   }
 
   function decline() {
-    try { localStorage.setItem('cookieConsent', 'declined') } catch {}
+    remember('declined')
     setVisible(false)
   }
 

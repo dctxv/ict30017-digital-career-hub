@@ -21,6 +21,7 @@ import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import pool from '../db.js';
 import { requireAuth, requireActiveAccount } from '../middleware/auth.js';
+import { emailChecksEnabled } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -131,6 +132,78 @@ router.get('/me', async (req, res) => {
   } catch (err) {
     console.error('[users] Profile read failed:', err.message);
     return res.status(500).json({ error: 'Could not load your profile.' });
+  }
+});
+
+/* ── GET /api/users/me/security-score ──────────────────────────────── */
+
+/*
+ * An advisory 0–100 score for the security tab of the account page. Each
+ * factor is something the account holder can see and, where it is theirs to
+ * change, act on. "Email login code" reflects the server: it is on whenever
+ * the deployment can deliver email, for every account alike.
+ */
+router.get('/me/security-score', async (req, res) => {
+  try {
+    const [userResult, failedResult] = await Promise.all([
+      pool.query(
+        'SELECT password_hash, email_verified FROM users WHERE user_id = $1',
+        [req.user.id]
+      ),
+      pool.query(
+        `SELECT COUNT(*) AS cnt
+           FROM login_events
+          WHERE user_id = $1
+            AND event_type = 'login_failure'
+            AND created_at > NOW() - INTERVAL '7 days'`,
+        [req.user.id]
+      ).catch(() => ({ rows: [{ cnt: '0' }] })),
+    ]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ error: 'Session is no longer valid.' });
+    }
+
+    const account = userResult.rows[0];
+    const recentFailedLogins = Number.parseInt(failedResult.rows[0].cnt, 10) || 0;
+    const twoFactor = emailChecksEnabled();
+
+    const factors = [
+      { label: 'Password set', achieved: Boolean(account.password_hash), points: 30 },
+      { label: 'Email address verified', achieved: account.email_verified === true, points: 20 },
+      { label: 'No failed logins in the last 7 days', achieved: recentFailedLogins === 0, points: 20 },
+      { label: 'Email login code', achieved: twoFactor, points: 30 },
+    ];
+    const score = factors.reduce((sum, f) => sum + (f.achieved ? f.points : 0), 0);
+
+    return res.json({ score, factors, recentFailedLogins, twoFactor });
+  } catch (err) {
+    console.error('[users] Security score failed:', err.message);
+    return res.status(500).json({ error: 'Could not compute security score.' });
+  }
+});
+
+/* ── GET /api/users/me/login-history ───────────────────────────────── */
+
+/*
+ * The 50 most recent sign-ins and failed attempts, newest first. An empty list
+ * rather than a 500 on a database without the login_events table.
+ */
+router.get('/me/login-history', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT event_id, event_type, ip_address, user_agent, created_at
+         FROM login_events
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 50`,
+      [req.user.id]
+    );
+    return res.json(result.rows);
+  } catch (err) {
+    if (err.code === '42P01') return res.json([]);
+    console.error('[users] Login history read failed:', err.message);
+    return res.status(500).json({ error: 'Could not load login history.' });
   }
 });
 

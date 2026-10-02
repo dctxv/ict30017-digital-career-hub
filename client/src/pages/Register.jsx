@@ -123,8 +123,9 @@ export default function Register() {
    *
    * Registration previously ended by clearing the form and printing "account
    * created", leaving the user on a blank signup page to find the login link
-   * themselves. The register endpoint issues no cookie, so the session is
-   * established by logging in with the credentials just accepted.
+   * themselves. When no email check applies, the register endpoint sets the
+   * session cookie itself; when one does, the user is sent to log in once the
+   * address is confirmed.
    */
   const createAccount = async () => {
     setMessage('')
@@ -134,6 +135,7 @@ export default function Register() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           full_name: form.fullName,
           email: form.email,
@@ -162,22 +164,30 @@ export default function Register() {
         return
       }
 
-      const session = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: form.email, password: form.password }),
-      })
+      // Where email delivery is configured the address must be confirmed
+      // before the first sign-in, so the user is sent to the login page with
+      // the instructions rather than signed in.
+      if (data.verificationRequired) {
+        navigate('/login', {
+          state: {
+            messageKey: 'auth.verifyEmailSent',
+            messageVars: { email: data.user?.email ?? form.email },
+            email: data.user?.email ?? form.email,
+            from: location.state?.from,
+          },
+        })
+        return
+      }
 
-      if (!session.ok) {
+      if (!data.user?.id) {
         // The account exists; only the automatic sign-in failed. Saying so is
         // better than an error that implies nothing was created.
         setMessage(t('auth.createdPleaseLogIn'))
         return
       }
 
-      const sessionData = await session.json()
-      login(sessionData.user)
+      // Otherwise the register response has already set the session cookie.
+      login(data.user)
       // Same contract as the login page: a caller that sent the user here to
       // reach something (the results page offering the preparation plan) gets
       // them back there; otherwise the new account is the natural landing.

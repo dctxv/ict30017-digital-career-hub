@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { logInThroughForm } from './login.js'
 import { readFileSync } from 'node:fs'
 
 /**
@@ -27,10 +28,7 @@ test('a signed in user uploads a real resume and sees real AI feedback', async (
   })
   expect(res.ok()).toBeTruthy()
 
-  await page.goto('/login')
-  await page.getByPlaceholder('you@example.com').fill(email)
-  await page.locator('input[type="password"]').first().fill(PASSWORD)
-  await page.getByRole('button', { name: /^log in$/i }).click()
+  await logInThroughForm(page, email, PASSWORD)
   await expect(page).toHaveURL(/\/$/, { timeout: 10000 })
 
   await page.goto('/resume-review')

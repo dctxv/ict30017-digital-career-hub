@@ -259,7 +259,8 @@ servers running. `live-happy-path.spec.js` makes a real model call.
 **Register an account** at http://localhost:5173/register. Passwords must be
 at least 12 characters. Pick Free or Premium — no payment is taken either way;
 Premium only lifts the daily limits. Registration signs you in and opens your
-profile.
+profile (or, when email is set up, sends a verification link first; see
+*Signing in, and email* below).
 
 **Free-tier daily limits**, per account, reset each calendar day:
 
@@ -288,16 +289,24 @@ Log out and in again. An **Admin** entry appears in the navigation and
 http://localhost:5173/admin lets you edit disciplines, career paths, resources
 and alumni in both languages. Every admin write is recorded in `audit_log`.
 
-**Password reset does not send email.** No mail service is connected. When
-someone uses "Forgot password", the reset token is printed in the API server
-terminal:
+**Signing in, and email.** The login form has an "I am not a robot" check,
+and what happens after the password depends on whether the server can send
+email:
 
-```
-[auth] Password reset token for user@example.com: <token>
-```
+| Setup | Registration | Login | Forgot password |
+|---|---|---|---|
+| No `SMTP_HOST` (the default) | Signs you straight in | Password alone | Link cannot be delivered |
+| `EMAIL_TRANSPORT=console` (development only) | Sends a verification link | Password, then a 6-digit code | Link sent |
+| `SMTP_*` set | Sends a verification link | Password, then a 6-digit code | Link sent |
 
-Open http://localhost:5173/reset-password, enter the email, that token and the
-new password. Connecting a real mail provider is a future step.
+With `EMAIL_TRANSPORT=console` nothing is actually sent: every email, links
+and codes included, is printed in the API server terminal, so the whole flow
+can be tried without a mail account. The server says at startup which mode it
+is in. The variables are in `server/.env.example`.
+
+An account created while email was off is unverified, so once SMTP is turned
+on its owner is asked to verify at the next login; the login page links to a
+page that sends a fresh link.
 
 **Language and theme** are the two toggles in the navigation bar. Everything —
 the interface, the content, the AI feedback, the chatbot and every error
