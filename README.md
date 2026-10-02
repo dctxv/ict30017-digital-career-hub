@@ -1,5 +1,7 @@
 # Digital Career Hub with AI-Powered Resume Review
 
+[![CI](https://github.com/dctxv/ict30017-digital-career-hub/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/dctxv/ict30017-digital-career-hub/actions/workflows/ci.yml)
+
 A web platform that helps Bangladeshi students and job seekers get career-ready:
 curated career paths and resources, an AI resume review tuned to how hiring
 actually works in Bangladesh, a bilingual (English / Bangla) career chatbot, and
@@ -66,7 +68,7 @@ differences are one-liners and are noted where they occur.
 
 | Software | Version | Where |
 |---|---|---|
-| Node.js | 20 or newer (22 is what the project is tested on) | https://nodejs.org — pick the LTS installer, accept the defaults |
+| Node.js | 22.12 or newer; CI uses the version in `.nvmrc` | https://nodejs.org — pick the 22 LTS installer, accept the defaults |
 | PostgreSQL | 16 or newer | https://www.postgresql.org/download/windows/ — the EDB installer |
 | Git | any | https://git-scm.com/download/win |
 

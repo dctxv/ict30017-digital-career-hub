@@ -21,7 +21,14 @@ const PDF = readFileSync('../docs/database/BD_Resume_Test_01.pdf')
 test.use({ viewport: { width: 1280, height: 900 } })
 test.setTimeout(120000)
 
-test('a signed in user uploads a real resume and sees real AI feedback', async ({ page }) => {
+// Against the fake API (E2E_FAKE_API=1, as in CI) the analysis is the fake's
+// canned review rather than model output: CI has no AI key. The browser path
+// it exercises — upload, quota, language prompt, streamed result — is the same.
+const TITLE = 'a signed in user uploads a real resume and sees real AI feedback'
+
+test(process.env.E2E_FAKE_API === '1'
+  ? `${TITLE} (mocked: fake API returns a canned review, no AI key in CI)`
+  : TITLE, async ({ page }) => {
   const email = `ui.${Date.now()}@example.com`
   const res = await page.request.post('http://localhost:3000/api/auth/register', {
     data: { full_name: 'UI Tester', email, password: PASSWORD, plan: 'free' },

@@ -18,9 +18,15 @@ import { fileURLToPath } from 'node:url'
  *
  * If psql or the database is unreachable the test skips with a reason rather
  * than failing the suite on an environment problem.
+ *
+ * Against the fake API (E2E_FAKE_API=1, as in CI) there is no database to
+ * promote in, so the role is set through the fake's test-only
+ * /api/test/promote instead, and the test name says so. Everything after the
+ * promotion — the login, the redirect, the navigation entry — is unchanged.
  */
 
 const PASSWORD = 'CorrectHorseBattery1'
+const FAKE_API = process.env.E2E_FAKE_API === '1'
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
 function loadServerEnv() {
@@ -32,9 +38,17 @@ function loadServerEnv() {
   )
 }
 
-/** Runs one SQL statement via psql; returns null when psql cannot be reached. */
+/**
+ * Runs one SQL statement via psql; returns null when psql, the database or
+ * server/.env (where the credentials come from) is unavailable.
+ */
 function sql(query) {
-  const env = loadServerEnv()
+  let env
+  try {
+    env = loadServerEnv()
+  } catch {
+    return null
+  }
   const candidates = [
     process.env.PSQL_PATH,
     'C:/Program Files/PostgreSQL/18/bin/psql.exe',
@@ -57,7 +71,11 @@ function sql(query) {
 
 test.use({ viewport: { width: 1280, height: 900 } })
 
-test('an admin sees the Admin navigation entry and can reach the dashboard', async ({ page }) => {
+const TITLE = 'an admin sees the Admin navigation entry and can reach the dashboard'
+
+test(FAKE_API
+  ? `${TITLE} (mocked: admin role set through the fake API's /api/test/promote, no database in CI)`
+  : TITLE, async ({ page }) => {
   const email = `e2e.admin.${Date.now()}@example.com`
 
   const registered = await page.request.post('http://localhost:3000/api/auth/register', {
@@ -65,12 +83,20 @@ test('an admin sees the Admin navigation entry and can reach the dashboard', asy
   })
   expect(registered.ok(), 'admin seed registration should succeed').toBeTruthy()
 
-  // Two plain statements rather than UPDATE...RETURNING: psql appends the
-  // command tag ("UPDATE 1") to RETURNING output even under -tAc, which made a
-  // single-call assertion compare against "admin\nUPDATE 1".
-  const updated = sql(`UPDATE users SET role = 'admin' WHERE email = '${email}'`)
-  test.skip(updated === null, 'psql not reachable in this environment, cannot seed an admin')
-  expect(sql(`SELECT role FROM users WHERE email = '${email}'`)).toBe('admin')
+  if (FAKE_API) {
+    const promoted = await page.request.post('http://localhost:3000/api/test/promote', {
+      data: { email, role: 'admin' },
+    })
+    expect(promoted.ok(), 'the fake API should promote the seeded user').toBeTruthy()
+    expect((await promoted.json()).role).toBe('admin')
+  } else {
+    // Two plain statements rather than UPDATE...RETURNING: psql appends the
+    // command tag ("UPDATE 1") to RETURNING output even under -tAc, which made a
+    // single-call assertion compare against "admin\nUPDATE 1".
+    const updated = sql(`UPDATE users SET role = 'admin' WHERE email = '${email}'`)
+    test.skip(updated === null, 'psql, the database or server/.env not reachable in this environment, cannot seed an admin')
+    expect(sql(`SELECT role FROM users WHERE email = '${email}'`)).toBe('admin')
+  }
 
   await logInThroughForm(page, email, PASSWORD)
   // Login.jsx sends an admin straight to the dashboard and everyone else to

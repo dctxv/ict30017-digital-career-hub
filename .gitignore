@@ -50,3 +50,10 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Test output. Playwright writes test-results/ wherever it is started from, and
+# CI writes coverage/ in each package; both are uploaded as workflow artifacts,
+# never committed.
+test-results/
+playwright-report/
+coverage/
