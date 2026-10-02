@@ -1,0 +1,157 @@
+# Continuous integration (PPST-23).
+#
+# Three jobs, all on the Node version pinned in .nvmrc, none needing secrets:
+#   client  lint and unit tests for the React front end
+#   unit    ai-service and server unit tests with coverage, one matrix entry each
+#   e2e     the Playwright suite in Chromium against the fake API
+#
+# No job reads a repository secret, a .env file, a database or the network
+# beyond npm and the Playwright browser download. Unit tests stub every
+# external call; the e2e suite runs against client/e2e/fake-api/server.js.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  client:
+    name: Client lint and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npx eslint .
+
+      - name: Unit tests
+        # Runs even when lint fails, so one job reports both.
+        if: success() || failure()
+        run: npm test
+
+  unit:
+    name: Unit tests and coverage (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ai-service meets the 70% line target across every source file, so
+          # it is enforced there. The server does not yet (most routes are
+          # never loaded by a test), so its numbers are reported only.
+          - package: ai-service
+            src: src,index.js
+            cov_include: ''
+            cov_exclude: --test-coverage-exclude='tests/**'
+            tests: tests/*.test.js
+            min: '70'
+          - package: server
+            src: src,scripts
+            cov_include: --test-coverage-include='src/**' --test-coverage-include='scripts/**'
+            cov_exclude: --test-coverage-exclude='**/*.test.js'
+            tests: '"src/**/*.test.js" "scripts/**/*.test.js"'
+            min: ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+
+      - name: Install (root workspace)
+        run: npm ci
+
+      - name: Test with coverage
+        working-directory: ${{ matrix.package }}
+        run: |
+          mkdir -p coverage
+          node --test --experimental-test-coverage \
+            ${{ matrix.cov_include }} ${{ matrix.cov_exclude }} \
+            --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=tap --test-reporter-destination=coverage/tests.tap \
+            --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \
+            ${{ matrix.tests }}
+
+      - name: Coverage summary
+        if: success() || failure()
+        run: |
+          node .github/scripts/coverage-summary.mjs \
+            --package ${{ matrix.package }} \
+            --root ${{ matrix.package }} \
+            --src ${{ matrix.src }} \
+            --lcov ${{ matrix.package }}/coverage/lcov.info \
+            --tap ${{ matrix.package }}/coverage/tests.tap \
+            ${{ matrix.min && format('--min {0}', matrix.min) || '' }}
+
+      - name: Upload coverage
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.package }}
+          path: ${{ matrix.package }}/coverage/
+          retention-days: 30
+          if-no-files-found: warn
+
+  e2e:
+    name: Playwright e2e (Chromium, fake API)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: client
+    env:
+      # Read by admin-nav and live-happy-path, which then use the fake API's
+      # test hooks and say so in their test names.
+      E2E_FAKE_API: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright
+        # playwright.config.js starts the fake API and Vite when CI is set.
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: client/playwright-report/
+          retention-days: 30
+          if-no-files-found: warn
