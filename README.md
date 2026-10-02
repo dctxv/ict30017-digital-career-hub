@@ -1,5 +1,7 @@
 # Digital Career Hub with AI-Powered Resume Review
 
+[![CI](https://github.com/dctxv/ict30017-digital-career-hub/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/dctxv/ict30017-digital-career-hub/actions/workflows/ci.yml)
+
 A web platform that helps Bangladeshi students and job seekers get career-ready:
 curated career paths and resources, an AI resume review tuned to how hiring
 actually works in Bangladesh, a bilingual (English / Bangla) career chatbot, and
