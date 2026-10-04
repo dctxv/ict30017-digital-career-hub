@@ -24,7 +24,6 @@ const PERKS = ['auth.premiumPerk1', 'auth.premiumPerk2', 'auth.premiumPerk3']
 export default function PlanDialog({ busy, onCancel, onConfirm }) {
   const { t } = useLanguage()
   const [method, setMethod] = useState('bkash')
-  const [step, setStep] = useState('method')
   const [error, setError] = useState('')
   const [details, setDetails] = useState({
     mobile: '', cardNumber: '', expiry: '', cvc: '', cardName: '',
@@ -36,14 +35,8 @@ export default function PlanDialog({ busy, onCancel, onConfirm }) {
     setError('')
   }
 
-  const continueToDetails = () => {
-    setError('')
-    setStep('details')
-  }
-
   const submitCheckout = event => {
     event.preventDefault()
-    if (step === 'method') { continueToDetails(); return }
     const problem = paymentErrorKey(method, details)
     if (problem) { setError(t(problem)); return }
     onConfirm(method)
@@ -75,13 +68,6 @@ export default function PlanDialog({ busy, onCancel, onConfirm }) {
           </span>
         </div>
 
-        <div className="plan-dialog__steps" aria-label={t('auth.checkoutProgress')}>
-          <span className="plan-dialog__step plan-dialog__step--on">1. {t('auth.payMethod')}</span>
-          <span className={`plan-dialog__step${step === 'details' ? ' plan-dialog__step--on' : ''}`}>
-            2. {t('auth.checkoutDetails')}
-          </span>
-        </div>
-
         <div className="plan-dialog__summary">
           <span>
             <span className="plan-dialog__tier">{t('auth.tierPremium')}</span>
@@ -96,36 +82,30 @@ export default function PlanDialog({ busy, onCancel, onConfirm }) {
           ))}
         </ul>
 
-        {step === 'method' ? (
-          <>
-            <p className="field__label">{t('auth.payMethod')}</p>
-            <div className="plan-dialog__methods">
-              {PAYMENT_METHODS.map(option => (
-                <button
-                  key={option}
-                  type="button"
-                  className={`plan-dialog__method${method === option ? ' plan-dialog__method--on' : ''}`}
-                  onClick={() => { setMethod(option); setError('') }}
-                  aria-pressed={method === option}
-                >
-                  {method === option ? <CheckCircle2 size={16} /> : <Circle size={16} />}
-                  {t(`auth.pay.${option}`)}
-                </button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="plan-dialog__details">
-            <p className="plan-dialog__chosen">
-              {method === 'card' ? <CreditCard size={17} /> : <Smartphone size={17} />}
-              <span>{t('auth.checkoutPayingWith')}</span>
-              <strong>{t(`auth.pay.${method}`)}</strong>
-              <button type="button" onClick={() => { setStep('method'); setError('') }}>
-                {t('auth.checkoutChange')}
-              </button>
-            </p>
+        <p className="field__label">{t('auth.payMethod')}</p>
+        <div className="plan-dialog__methods">
+          {PAYMENT_METHODS.map(option => (
+            <button
+              key={option}
+              type="button"
+              className={`plan-dialog__method${method === option ? ' plan-dialog__method--on' : ''}`}
+              onClick={() => { setMethod(option); setError('') }}
+              aria-pressed={method === option}
+            >
+              {method === option ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+              {t(`auth.pay.${option}`)}
+            </button>
+          ))}
+        </div>
 
-            {method !== 'card' ? (
+        <div className="plan-dialog__details" aria-live="polite">
+          <p className="plan-dialog__chosen">
+            {method === 'card' ? <CreditCard size={17} /> : <Smartphone size={17} />}
+            <span>{t('auth.checkoutPayingWith')}</span>
+            <strong>{t(`auth.pay.${method}`)}</strong>
+          </p>
+
+          {method !== 'card' ? (
               <div className="field">
                 <label className="field__label" htmlFor="upgrade-mobile">
                   {t(`auth.pay.${method}Number`)}
@@ -142,7 +122,7 @@ export default function PlanDialog({ busy, onCancel, onConfirm }) {
                 />
                 <span className="field__hint">{t(`auth.pay.${method}Note`)}</span>
               </div>
-            ) : (
+          ) : (
               <>
                 <div className="field">
                   <label className="field__label" htmlFor="upgrade-card">{t('auth.cardNumber')}</label>
@@ -195,9 +175,8 @@ export default function PlanDialog({ busy, onCancel, onConfirm }) {
                   />
                 </div>
               </>
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
         {error && <p className="notice notice--error plan-dialog__error" role="alert">{error}</p>}
 
@@ -212,15 +191,13 @@ export default function PlanDialog({ busy, onCancel, onConfirm }) {
           <button
             type="button"
             className="btn btn--outline"
-            onClick={step === 'details' ? () => { setStep('method'); setError('') } : onCancel}
+            onClick={onCancel}
             disabled={busy}
           >
-            {step === 'details' ? t('auth.backStep') : t('common.cancel')}
+            {t('common.cancel')}
           </button>
           <button type="submit" className="btn btn--primary" disabled={busy}>
-            {busy
-              ? t('profile.upgrading')
-              : step === 'method' ? t('auth.checkoutContinue') : t('auth.payNow')}
+            {busy ? t('profile.upgrading') : t('auth.payNow')}
           </button>
         </div>
       </form>
