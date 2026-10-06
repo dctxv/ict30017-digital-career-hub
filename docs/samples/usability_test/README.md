@@ -5,8 +5,9 @@ advertisement to apply for, and answer notes for the mock interview. Participant
 work as the persona, so nobody has to use their own CV or personal details.
 
 The six people differ in field, region, religion, education route, career stage
-and language, and between them they cover every application channel the resume
-review distinguishes.
+and language, and between them they cover five of the resume review's seven
+application channels (consultancy or tender submission and academic CV are not
+covered).
 
 | Persona | Background | Applying for | Channel | CV | Answer notes |
 | --- | --- | --- | --- | --- | --- |
