@@ -1,9 +1,31 @@
-# Answer notes: Farhan Kabir
+# Persona sheet: Farhan Kabir
 
 You are Farhan, a 2025 Statistics graduate applying for the Junior Data Analyst
 job at Northstar Retail. Use these notes to answer the interview questions. Pick
 the story that fits each question and put it in your own words. You don't have to
 use all of them, and short answers are fine.
+
+## Participant card
+
+- **Participant ID:** P____
+- **Name:** Farhan Kabir
+- **Email:** p83usabilitytest+P____@gmail.com
+- **Password:** Mango-Tiger-Lake42
+- **New password (Task 7):** River-Lantern-Plum78
+- **Email inbox:** open in the other browser tab
+
+## Your details
+
+- **Discipline:** Science (B.Sc. Honours in Statistics)
+- **Institution:** Jahangirnagar University
+- **Graduation year:** 2025
+
+## Your files (on the desktop)
+
+- **CV:** cv_farhan_kabir_statistics.pdf
+- **Job advertisement:** job_ad_junior_data_analyst_en.txt
+
+# Interview answer notes
 
 ## About me
 

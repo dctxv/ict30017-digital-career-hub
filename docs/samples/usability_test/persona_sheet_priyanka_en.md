@@ -1,8 +1,30 @@
-# Answer notes: Priyanka Das
+# Persona sheet: Priyanka Das
 
 You are Priyanka, an Accounts Assistant at a tea company in Sylhet with four years'
 experience, applying for the Accounts Officer job at Meridian Pharmaceuticals in
 Dhaka. Use these notes to answer the interview questions in your own words.
+
+## Participant card
+
+- **Participant ID:** P____
+- **Name:** Priyanka Das
+- **Email:** p83usabilitytest+P____@gmail.com
+- **Password:** Mango-Tiger-Lake42
+- **New password (Task 7):** River-Lantern-Plum78
+- **Email inbox:** open in the other browser tab
+
+## Your details
+
+- **Discipline:** Finance (BBA in Accounting)
+- **Institution:** Shahjalal University of Science and Technology
+- **Graduation year:** 2022
+
+## Your files (on the desktop)
+
+- **CV:** cv_priyanka_das_accounting.pdf
+- **Job advertisement:** job_ad_accounts_officer_en.txt
+
+# Interview answer notes
 
 ## About me
 

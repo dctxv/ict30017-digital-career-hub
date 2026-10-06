@@ -1,9 +1,31 @@
-# Answer notes: Rumana Akter
+# Persona sheet: Rumana Akter
 
 You are Rumana, a former English teacher from Narayanganj who took a break from
 work to look after her young child and is now returning to work. You are applying
 for the Customer Service Executive job at PayNest. Use these notes to answer the
 interview questions in your own words.
+
+## Participant card
+
+- **Participant ID:** P____
+- **Name:** Rumana Akter
+- **Email:** p83usabilitytest+P____@gmail.com
+- **Password:** Mango-Tiger-Lake42
+- **New password (Task 7):** River-Lantern-Plum78
+- **Email inbox:** open in the other browser tab
+
+## Your details
+
+- **Discipline:** Arts (MA in English)
+- **Institution:** Government Tolaram College
+- **Graduation year:** 2015
+
+## Your files (on the desktop)
+
+- **CV:** cv_rumana_akter_customer_service.docx
+- **Job advertisement:** job_ad_customer_service_en.txt
+
+# Interview answer notes
 
 ## About me
 

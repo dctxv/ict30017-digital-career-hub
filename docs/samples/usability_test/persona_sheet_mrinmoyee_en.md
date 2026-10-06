@@ -1,8 +1,30 @@
-# Answer notes: Mrinmoyee Chakma
+# Persona sheet: Mrinmoyee Chakma
 
 You are Mrinmoyee, a community development worker from Rangamati, applying for the
 Field Coordinator job with BrightPath International in Bandarban. Use these notes
 to answer the interview questions in your own words.
+
+## Participant card
+
+- **Participant ID:** P____
+- **Name:** Mrinmoyee Chakma
+- **Email:** p83usabilitytest+P____@gmail.com
+- **Password:** Mango-Tiger-Lake42
+- **New password (Task 7):** River-Lantern-Plum78
+- **Email inbox:** open in the other browser tab
+
+## Your details
+
+- **Discipline:** Arts (BSS Honours in Anthropology)
+- **Institution:** University of Chittagong
+- **Graduation year:** 2023
+
+## Your files (on the desktop)
+
+- **CV:** cv_mrinmoyee_chakma_development.pdf
+- **Job advertisement:** job_ad_field_coordinator_en.txt
+
+# Interview answer notes
 
 ## About me
 

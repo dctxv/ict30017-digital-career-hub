@@ -1,7 +1,9 @@
 # Usability test personas
 
 Six fictional job seekers for the ICT30017 usability test. Each has a CV, a job
-advertisement to apply for, and answer notes for the mock interview. Participants
+advertisement to apply for, and a persona sheet: a participant card with the
+account details to use, the profile details, and answer notes for the mock
+interview. Participants
 work as the persona, so nobody has to use their own CV or personal details.
 
 The six people differ in field, region, religion, education route, career stage
@@ -9,7 +11,7 @@ and language, and between them they cover five of the resume review's seven
 application channels (consultancy or tender submission and academic CV are not
 covered).
 
-| Persona | Background | Applying for | Channel | CV | Answer notes |
+| Persona | Background | Applying for | Channel | CV | Persona sheet |
 | --- | --- | --- | --- | --- | --- |
 | Farhan Kabir | Dhaka, Muslim, 24. B.Sc. Statistics, Jahangirnagar University 2025. Fresher with a 4-month internship | Junior Data Analyst, Northstar Retail | Emailing a PDF directly | PDF | English |
 | Priyanka Das | Sylhet, Hindu, 26. BBA Accounting, SUST 2022. Four years as an accounts assistant at a tea company | Accounts Officer, Meridian Pharmaceuticals | Company online application | PDF | English |
@@ -25,7 +27,7 @@ For each persona:
 - `cv_<name>_<field>.pdf` or `.docx`: the file the participant uploads
 - `cv_<name>_<field>.txt`: the source text of that CV
 - `job_ad_<role>_en.txt`: the advertisement, for the mock interview
-- `answers_<name>_<lang>.md` and `.docx`: answer notes to print for the interview
+- `persona_sheet_<name>_<lang>.md` and `.docx`: the sheet to print and hand over
 
 ## What each CV is meant to surface
 
@@ -46,16 +48,38 @@ to say. Facilitators can use this to check the site's feedback makes sense.
 - **Rumana**: an unexplained gap from 2022 to 2023, a vague objective and
   "Reference: Available on request".
 
+## Which persona each participant gets
+
+Each participant works as one persona and uses that persona's one CV, in the
+resume review and again in the mock interview. Rotate by Participant ID so PDF
+and DOCX uploads alternate:
+
+| Participant | Persona | CV format | Interview language |
+| --- | --- | --- | --- |
+| P01, P07 | Farhan Kabir | PDF | English |
+| P02, P08 | Rumana Akter | DOCX | English |
+| P03, P09 | Priyanka Das | PDF | English |
+| P04, P10 | Md. Abdur Rahim | DOCX | Bangla |
+| P05, P11 | Mrinmoyee Chakma | PDF | English |
+| P06, P12 | Mohammad Ismail Hossain | DOCX | Bangla |
+
+Give Rahim and Ismail only to participants who are comfortable answering in
+Bangla; otherwise swap in the next English persona.
+
 ## Before a session
 
-- Use one test account with a real email address you can receive the login code
-  at, set to the premium tier so the daily limits do not run out.
-- Set that account's profile to match the persona (discipline, institution and
-  graduation year), because the mock interview reads them.
-- Put the persona's CV and job advertisement on the desktop, and print their
-  answer notes.
-- For Rahim and Ismail, the participant may switch the site to Bangla; set it
-  back to English before the next session.
+- Create one Gmail account for the whole test (for example
+  `p83usabilitytest@gmail.com`) and keep it signed in, in a second browser tab.
+  Each participant registers with `p83usabilitytest+P01@gmail.com`,
+  `+P02` and so on: Gmail delivers them all to the one inbox, while the site
+  treats each as a separate account. Write the ID into the card before printing.
+- Every participant creates a new account, so a free account's daily limits are
+  enough and nobody sees the previous participant's history.
+- Put the persona's CV and job advertisement on the desktop, print their persona
+  sheet, and sign out of the site.
+- Set the site back to English before the next session.
+- Afterwards, the test accounts can be removed in the database:
+  `DELETE FROM users WHERE email LIKE 'p83usabilitytest+%';`
 
 ## Notes
 
