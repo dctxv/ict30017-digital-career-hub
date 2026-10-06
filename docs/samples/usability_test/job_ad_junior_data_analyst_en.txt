@@ -1,0 +1,48 @@
+Northstar Retail Ltd.
+Junior Data Analyst
+
+Vacancy: 02
+Job Location: Gulshan-1, Dhaka
+Employment Status: Full-time
+Salary: BDT 30,000 - 40,000 (negotiable)
+Application Deadline: 15 November 2026
+
+Job Context
+Northstar Retail runs 28 grocery and household outlets across Dhaka and
+Chattogram, plus a home delivery service. Our small data team turns sales and
+stock data into reports that store and category managers use every week. We
+are hiring two junior analysts to grow with the team.
+
+Job Responsibilities
+- Write SQL queries to pull sales, stock and delivery data from our database
+- Clean and check data in Excel or Python before it is reported
+- Build and update dashboards in Power BI for store and category managers
+- Prepare a weekly sales summary and explain the main changes to managers
+- Help with ad hoc questions, such as which products sell slowly in which outlets
+- Keep clear notes so that another analyst can repeat your work
+
+Educational Requirements
+- B.Sc. or BBA in Statistics, Economics, Mathematics, Computer Science or a
+  related subject
+
+Experience Requirements
+- 0 to 1 year. Fresh graduates with internship or project experience are
+  encouraged to apply.
+
+Additional Requirements
+- Working knowledge of SQL (SELECT, JOIN, GROUP BY) is required
+- Experience with Power BI or Tableau
+- Strong Excel skills, including pivot tables and lookups
+- Python (pandas) is a plus
+- Able to explain numbers clearly to non-technical managers, in Bangla and English
+- Careful with detail; you check your own work before it goes out
+
+Compensation and Other Benefits
+- Two festival bonuses, mobile bill, lunch facilities
+- Weekly two holidays
+- Paid training on Power BI in the first three months
+
+Read Before Apply
+Email your CV as a single PDF to careers@northstar-retail.example with the subject
+line "Junior Data Analyst". Shortlisted candidates will take a short Excel and SQL
+test before the interview.

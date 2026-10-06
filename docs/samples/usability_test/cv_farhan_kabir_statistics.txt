@@ -1,0 +1,99 @@
+FARHAN KABIR
+Flat 4B, House 21, Road 3, Dhanmondi, Dhaka-1205
+Mobile: 01700-000111
+Email: farhan.kabir.sample@example.com
+
+
+CAREER OBJECTIVE
+
+To obtain a challenging position in a reputed organization where I can utilize
+my skills and knowledge for the betterment of the organization and build my
+career.
+
+
+EDUCATIONAL QUALIFICATION
+
+Bachelor of Science (B.Sc.) Honours in Statistics
+Jahangirnagar University, Savar, Dhaka
+Session: 2020-2021 (Graduated 2025)
+Result: CGPA 3.38/4.00
+
+Higher Secondary Certificate (H.S.C)
+Notre Dame College, Dhaka
+Group: Science
+Year of Passing: 2020
+GPA: 5.00/5.00
+
+Secondary School Certificate (S.S.C)
+Dhanmondi Model High School, Dhaka
+Group: Science
+Year of Passing: 2018
+GPA: 4.89/5.00
+
+
+UNDERGRADUATE THESIS
+
+Factors Affecting Household Electricity Consumption in Dhaka City
+  - Designed a questionnaire and surveyed 220 households in Mirpur and Mohammadpur
+    with two classmates
+  - Cleaned the survey data in Excel and ran multiple regression in SPSS and R
+  - Found household size and air conditioner use explained most of the
+    difference in monthly bills
+  - Supervisor grade: A-
+
+
+INTERNSHIP
+
+MIS Intern
+Shapla Microfinance Foundation, Savar, Dhaka
+Duration: January 2025 - April 2025 (4 months)
+  - Entered loan collection data from 12 field offices into Excel
+  - Prepared monthly reports with pivot tables and charts for branch managers
+  - Checked the data for duplicate and missing entries before each report
+
+
+TRAINING
+
+Data Analysis with Python (online course, 8 weeks), 2024
+SQL for Beginners (online course, in progress), 2025
+
+
+COMPUTER SKILLS
+
+Spreadsheet : MS Excel (pivot tables, VLOOKUP, charts)
+Statistics  : SPSS, R (basic)
+Programming : Python (basic, pandas)
+Office      : MS Word, MS PowerPoint
+
+
+EXTRA-CURRICULAR ACTIVITIES
+
+  - Member, Jahangirnagar University Statistics Club (2021-2025)
+  - Volunteer, Departmental Statistics Fest 2023
+  - Regular blood donor, Sandhani JU Unit
+
+
+LANGUAGE PROFICIENCY
+
+Bangla  : Native
+English : Good in reading and writing, moderate in speaking
+
+
+PERSONAL INFORMATION
+
+Date of Birth   : 09 August 2002
+Father's Name   : Md. Humayun Kabir
+Mother's Name   : Shahnaz Parvin
+Nationality     : Bangladeshi by birth
+Religion        : Islam
+Marital Status  : Single
+Blood Group     : B+
+NID No.         : 1234567890123
+
+
+REFERENCE
+
+Dr. Mahmuda Akter
+Professor, Department of Statistics
+Jahangirnagar University
+Email: mahmuda.akter.sample@example.com
