@@ -58,6 +58,8 @@ export default function App() {
                   links pointed at nothing until now. */}
               <Route path="/terms" element={<Policy kind="terms" />} />
               <Route path="/privacy" element={<Policy kind="privacy" />} />
+              <Route path="/about" element={<Policy kind="about" />} />
+              <Route path="/disclaimer" element={<Policy kind="disclaimer" />} />
 
               {/* The account area and saved reviews belong to one person, so
                   both wait for the server to confirm the session rather than

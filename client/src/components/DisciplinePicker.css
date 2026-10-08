@@ -1,0 +1,113 @@
+/* The discipline combobox: a search field over a fixed-height, scrolling list,
+   so a list of well over a hundred subjects never runs the length of the page. */
+
+.dp { position: relative; }
+
+.dp__control { position: relative; }
+
+.dp__icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  margin-top: -8px;
+  color: var(--muted-2);
+  pointer-events: none;
+}
+
+.dp__input {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+/* The placeholder doubles as the current choice while the field is being
+   searched, so it reads as content rather than a faint hint. */
+.dp__input::placeholder { color: var(--muted); }
+
+.dp__clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+}
+
+.dp__clear:hover,
+.dp__clear:focus-visible {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.dp__list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.dp__group {
+  position: sticky;
+  top: -6px;
+  margin: 0;
+  padding: 8px 10px 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  background: var(--surface);
+}
+
+.dp__group-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dp__option {
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 14.5px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.dp__option--active { background: var(--hover); }
+
+.dp__option--selected {
+  font-weight: 600;
+  color: var(--accent-text);
+  background: var(--tint);
+}
+
+.dp__option--custom {
+  font-weight: 600;
+  color: var(--accent-text);
+  border-bottom: 1px solid var(--rule);
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 4px;
+}
+
+.dp__empty {
+  padding: 12px 10px;
+  font-size: 14px;
+  color: var(--muted);
+}

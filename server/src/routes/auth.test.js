@@ -201,12 +201,35 @@ test('login refuses a request without a captcha token', async () => {
   assert.match((await res.json()).error, /CAPTCHA/);
 });
 
-test('login refuses a captcha token issued less than a second ago', async () => {
+test('login refuses a captcha submitted the instant it was ticked', async () => {
   await register();
   const res = await post('/login', {
-    email: 'student@example.com', password: PASSWORD, captchaToken: `local-captcha-${Date.now()}-x`,
+    email: 'student@example.com', password: PASSWORD,
+    captchaToken: `local-captcha-${Date.now()}-x`, captchaElapsedMs: 40,
   });
   assert.equal(res.status, 400);
+  assert.match((await res.json()).error, /too fast/);
+});
+
+test('login accepts a captcha ticked on a device whose clock runs ahead of the server', async () => {
+  // The browser stamped the token a minute "in the future". Comparing that
+  // against the server clock used to refuse every attempt as too fast.
+  await register();
+  const res = await post('/login', {
+    email: 'student@example.com', password: PASSWORD,
+    captchaToken: `local-captcha-${Date.now() + 60_000}-x`, captchaElapsedMs: 1500,
+  });
+  assert.equal(res.status, 200);
+});
+
+test('login refuses a captcha ticked more than five minutes ago', async () => {
+  await register();
+  const res = await post('/login', {
+    email: 'student@example.com', password: PASSWORD,
+    captchaToken: `local-captcha-${Date.now()}-x`, captchaElapsedMs: 6 * 60 * 1000,
+  });
+  assert.equal(res.status, 400);
+  assert.match((await res.json()).error, /expired/);
 });
 
 // ── No email delivery: password alone ─────────────────────────────────────

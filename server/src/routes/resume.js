@@ -298,6 +298,9 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
 
   try {
     if (!req.file) {
+      // The quota gate runs after the upload, so a request with no file has
+      // already claimed a review by the time it gets here.
+      await refundIfClaimed(req, res, 'no_file');
       return res.status(400).json({
         error: 'No file uploaded. Please attach a PDF or DOCX resume.',
       });
@@ -344,7 +347,7 @@ router.post('/analyze', optionalAuth, resumeRateLimit, upload.single('resume'), 
       const status = statusForAiErrorCode(feedback.code);
       console.log(`[quota] decision=reject user=${req.user?.id ?? 'guest'} reason=${feedback.code} tier=${resolveTier(res)} status=${status}`);
       // The user got nothing, so the slot goes back. Without this a
-      // misconfigured server spent all three daily reviews in a minute.
+      // misconfigured server spent the whole daily allowance in a minute.
       await refundIfClaimed(req, res, feedback.code);
       return res.status(status).json({ error: feedback.error, code: feedback.code });
     }
@@ -434,6 +437,7 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
 
   try {
     if (!req.file) {
+      await refundIfClaimed(req, res, 'no_file');
       res.status(400).json({
         error: 'No file uploaded. Please attach a PDF or DOCX resume.',
       });
@@ -486,11 +490,13 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
       // This is the provider refusing us, not the caller running out. The
       // code travels in the frame so the error screen can name the cause.
       console.log(`[quota] decision=reject user=${req.user?.id ?? 'guest'} reason=${feedback.code} tier=${resolveTier(res)} status=${statusForAiErrorCode(feedback.code)}`);
+      // Refunded before the frame goes out: the error screen re-reads the
+      // allowance as soon as it renders, and must not see the failed attempt.
+      await refundIfClaimed(req, res, feedback.code);
       // SSE frames bypass res.json, so the localising middleware never sees
       // them. These two sites translate explicitly for that reason.
       writeFrame({ error: feedback.code, message: translateMessage(feedback.error, language) });
       res.end();
-      await refundIfClaimed(req, res, feedback.code);
       return;
     }
 
@@ -536,13 +542,13 @@ router.post('/analyze-stream', optionalAuth, resumeRateLimit, upload.single('res
     // not parse, a database write, a bug. The message is enough to find it;
     // the full object was forty lines of SDK internals.
     console.error('[resume-stream] Error during analysis:', err.message);
+    await refundIfClaimed(req, res, 'analysis_failed');
     if (res.headersSent) {
       writeFrame({ error: 'INTERNAL', message: translateMessage('Analysis failed.', resolveLanguage(req)) });
       res.end();
     } else {
       res.status(500).json({ error: 'Analysis failed.' });
     }
-    await refundIfClaimed(req, res, 'analysis_failed');
 
   } finally {
     if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {

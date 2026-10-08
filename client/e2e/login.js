@@ -7,9 +7,9 @@ import { expect } from '@playwright/test'
  * endpoint sets the session cookie when no email check applies), and the login
  * page redirects a signed-in visitor away, so the cookie jar is cleared first.
  *
- * The server refuses a captcha token less than a second old, as a guard
- * against scripted submissions; a person takes longer than that to reach the
- * button, and this waits the same.
+ * The server refuses a captcha submitted within a quarter of a second of being
+ * ticked, as a guard against scripted submissions; a person takes longer than
+ * that to reach the button, and this waits the same.
  */
 export async function logInThroughForm(page, email, password) {
   await page.context().clearCookies()
@@ -20,7 +20,7 @@ export async function logInThroughForm(page, email, password) {
   const captcha = page.getByRole('checkbox', { name: /not a robot/i })
   await captcha.click()
   await expect(captcha).toHaveAttribute('aria-checked', 'true')
-  await page.waitForTimeout(1100)
+  await page.waitForTimeout(400)
 
   await page.getByRole('button', { name: /^log in$/i }).click()
 }

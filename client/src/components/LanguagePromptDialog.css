@@ -43,36 +43,49 @@
   margin-bottom: 16px;
 }
 
+.lang-prompt__card:focus { outline: none; }
+
+/* Two equal, solid actions. Nothing is pre-selected: pressing one is the
+   choice and the submission at once. */
 .lang-prompt__option {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 76px;
-  padding: 14px 10px;
+  gap: 4px;
+  min-height: 104px;
+  padding: 18px 12px;
   border-radius: var(--radius-lg);
   font-family: inherit;
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--body);
-  transition: border-color var(--transition), background var(--transition), color var(--transition);
+  border: 1.5px solid var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
 }
 
-.lang-prompt__option svg { flex: none; color: var(--muted-3); }
+.lang-prompt__option:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.lang-prompt__option:active { transform: translateY(1px); }
+
+.lang-prompt__option:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
 
 .lang-prompt__native {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--on-primary);
 }
 
-.lang-prompt__option--on {
-  border: 1.5px solid var(--accent);
-  background: var(--surface-2);
+.lang-prompt__other {
+  font-size: 13px;
+  color: var(--on-primary-dim);
 }
-
-.lang-prompt__option--on svg { color: var(--accent); }
 
 .lang-prompt__cancel {
   width: 100%;

@@ -8,6 +8,7 @@ import {
 import Navbar from '../components/Navbar'
 import ConfirmPasswordDialog from '../components/ConfirmPasswordDialog'
 import PlanDialog from '../components/PlanDialog'
+import DisciplinePicker from '../components/DisciplinePicker'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import {
@@ -15,7 +16,7 @@ import {
   deleteAccount, fetchSubscription, fetchReviewHistory, fetchReviewQuota, fetchChatQuota,
   upgradePlan, cancelPlan,
 } from '../api/account'
-import { fetchGapSummary } from '../api/preparation'
+import { fetchGapSummary, fetchInterviewQuota } from '../api/preparation'
 import './Profile.css'
 
 const TABS = [
@@ -25,8 +26,6 @@ const TABS = [
   { key: 'security', icon: Lock, labelKey: 'profile.tabSecurity' },
   { key: 'privacy', icon: Shield, labelKey: 'profile.tabPrivacy' },
 ]
-
-const FALLBACK_DISCIPLINES = ['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
 
 const EDITABLE = ['full_name', 'email', 'discipline', 'institution', 'graduation_year']
 
@@ -76,11 +75,11 @@ export default function Profile() {
   const [tab, setTab] = useState('account')
   const [profile, setProfile] = useState(null)
   const [draft, setDraft] = useState(null)
-  const [disciplines, setDisciplines] = useState([])
   const [subscription, setSubscription] = useState(null)
   const [history, setHistory] = useState([])
   const [reviewQuota, setReviewQuota] = useState(null)
   const [chatQuota, setChatQuota] = useState(null)
+  const [interviewQuota, setInterviewQuota] = useState(null)
   const [gapSummary, setGapSummary] = useState(null)
 
   const [saved, setSaved] = useState(false)
@@ -142,6 +141,7 @@ export default function Profile() {
     fetchSubscription().then(setSubscription).catch(() => setSubscription(null))
     fetchReviewQuota().then(setReviewQuota).catch(() => {})
     fetchChatQuota().then(setChatQuota).catch(() => {})
+    fetchInterviewQuota().then(setInterviewQuota).catch(() => {})
     fetchReviewHistory()
       .then(rows => setHistory(Array.isArray(rows) ? rows : []))
       .catch(() => setHistory([]))
@@ -150,19 +150,6 @@ export default function Profile() {
     fetchGapSummary().then(setGapSummary).catch(() => {})
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-    fetch(`/api/disciplines?lang=${lang}`)
-      .then(response => (response.ok ? response.json() : []))
-      .then(data => { if (!cancelled) setDisciplines(Array.isArray(data) ? data : []) })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [lang])
-
-
-  const disciplineOptions = disciplines.length > 0
-    ? disciplines.map(row => ({ value: row.name, label: (lang === 'bn' && row.name_bn) || row.name }))
-    : FALLBACK_DISCIPLINES.map(name => ({ value: name, label: name }))
 
   const dirty = useMemo(() => {
     if (!profile || !draft) return false
@@ -292,16 +279,18 @@ export default function Profile() {
    * server about what the account is now.
    */
   const refreshPlan = async () => {
-    const [profileRow, subscriptionRow, reviews, chats] = await Promise.all([
+    const [profileRow, subscriptionRow, reviews, chats, interviews] = await Promise.all([
       fetchProfile().catch(() => null),
       fetchSubscription().catch(() => null),
       fetchReviewQuota().catch(() => null),
       fetchChatQuota().catch(() => null),
+      fetchInterviewQuota().catch(() => null),
     ])
     if (profileRow) { setProfile(profileRow); setDraft(profileRow) }
     setSubscription(subscriptionRow)
     if (reviews) setReviewQuota(reviews)
     if (chats) setChatQuota(chats)
+    if (interviews) setInterviewQuota(interviews)
     await refresh()
   }
 
@@ -419,15 +408,11 @@ export default function Profile() {
 
                 <div className="field">
                   <label className="field__label" htmlFor="pf-discipline">{t('profile.discipline')}</label>
-                  <span className="select-wrap">
-                    <select id="pf-discipline" className="select" value={draft?.discipline ?? ''} onChange={set('discipline')}>
-                      <option value="">{t('auth.disciplinePlaceholder')}</option>
-                      {disciplineOptions.map(option => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
-                    <ChevronDown size={16} className="select-wrap__chevron" />
-                  </span>
+                  <DisciplinePicker
+                    id="pf-discipline"
+                    value={draft?.discipline ?? ''}
+                    onChange={discipline => set('discipline')({ target: { value: discipline } })}
+                  />
                 </div>
 
                 <div className="field">
@@ -539,6 +524,12 @@ export default function Profile() {
                     used={reviewQuota?.used ?? 0}
                     limit={reviewQuota?.limit ?? 0}
                     unlimited={Boolean(reviewQuota?.unlimited)}
+                  />
+                  <UsageMeter
+                    label={t('profile.interviewsToday')}
+                    used={interviewQuota?.used ?? 0}
+                    limit={interviewQuota?.limit ?? 0}
+                    unlimited={Boolean(interviewQuota?.unlimited)}
                   />
                   <UsageMeter
                     label={t('profile.chatsToday')}

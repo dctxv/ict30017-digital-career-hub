@@ -8,12 +8,11 @@
  * two answer the same question about different resources and a second design
  * would be a second thing to keep in step.
  *
- * The number is lower than the review allowance for a reason that is arithmetic
- * rather than product. A review is one model call and a mock interview is two,
- * plus the gap extraction the review fires afterwards. At two interviews and
- * three reviews a free account can spend ten calls a day, which is the ceiling
- * this project's free provider tier can actually sustain across a class of
- * students demonstrating at once.
+ * The number is set by arithmetic rather than product. A review is one model
+ * call plus the gap extraction it fires afterwards, and a mock interview is two.
+ * At one of each a free account spends four calls a day, which keeps a class of
+ * students demonstrating at once inside what this project's free provider tier
+ * can actually sustain.
  *
  * The claim is made when the interview is CREATED, not when it is submitted.
  * Charging on submission would let someone generate questions endlessly and
@@ -24,7 +23,7 @@
 import pool from '../db.js';
 
 /** Free tier allowance, per user, per calendar day. */
-export const FREE_DAILY_INTERVIEW_LIMIT = 2;
+export const FREE_DAILY_INTERVIEW_LIMIT = 1;
 
 const UNLIMITED_TIERS = new Set(['premium']);
 const UNLIMITED_ROLES = new Set(['admin']);
@@ -188,7 +187,9 @@ export async function enforceDailyInterviewLimit(req, res, next) {
       return res.status(429).json({
         // Worded to match the review's rejection exactly, so the Bangla pattern
         // in i18n/messages.js can be the same shape rather than a second rule.
-        error: `You have used all ${FREE_DAILY_INTERVIEW_LIMIT} of your free mock interviews for today. Your allowance resets tomorrow.`,
+        error: FREE_DAILY_INTERVIEW_LIMIT === 1
+          ? 'You have used your free mock interview for today. Your allowance resets tomorrow.'
+          : `You have used all ${FREE_DAILY_INTERVIEW_LIMIT} of your free mock interviews for today. Your allowance resets tomorrow.`,
         limit: FREE_DAILY_INTERVIEW_LIMIT,
         used: claim.used,
         remaining: 0,

@@ -64,7 +64,7 @@ function describeQuota(quota, isAuthenticated, t, n) {
   if (!quota) return t('review.quotaFallback')
   if (quota.unlimited) return t('review.quotaUnlimited')
   if (!quota.authenticated || !isAuthenticated) {
-    return t('review.quotaAnonymous', { limit: n(quota.limit) })
+    return t(quota.limit === 1 ? 'review.quotaAnonymousOne' : 'review.quotaAnonymous', { limit: n(quota.limit) })
   }
   if (quota.remaining === 0) return t('review.quotaExhausted')
   const key = quota.remaining === 1 ? 'review.quotaRemainingOne' : 'review.quotaRemainingMany'

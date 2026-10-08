@@ -43,7 +43,7 @@ import { FAKE_FEEDBACK } from './feedback.js';
 const PORT = Number(process.env.PORT) || 3000;
 
 /** Matches middleware/reviewQuota.js — the one place the limit is stated. */
-const FREE_DAILY_REVIEW_LIMIT = 3;
+const FREE_DAILY_REVIEW_LIMIT = 1;
 
 /* ── State ──────────────────────────────────────────────────────────────── */
 
@@ -228,29 +228,32 @@ async function handleRegister(req, res) {
 
 /*
  * Mirrors the captcha check in server/src/routes/auth.js: a token from
- * CaptchaWidget, at least a second old and at most five minutes. Kept here so
- * a login form that stops sending it fails the e2e suite, as it failed the
- * real site when the check first shipped.
+ * CaptchaWidget, with the time since it was ticked measured by the browser,
+ * between a quarter of a second and five minutes. The elapsed time is required
+ * here (the real server falls back for older bundles) so a login form that
+ * stops sending it fails the e2e suite instead of quietly reintroducing the
+ * clock-skew refusals.
  */
-function captchaProblem(token) {
+function captchaProblem(token, elapsedMs) {
   if (typeof token !== 'string' || !token.startsWith('local-captcha-')) {
     return 'Please complete the CAPTCHA.';
   }
-  const age = Date.now() - Number.parseInt(token.split('-')[2], 10);
+  if (!Number.isFinite(Number.parseInt(token.split('-')[2], 10))) return 'Invalid CAPTCHA. Please try again.';
+  const age = Number(elapsedMs);
   if (!Number.isFinite(age)) return 'Invalid CAPTCHA. Please try again.';
-  if (age < 1000) return 'Submission too fast. Please try again.';
+  if (age < 250) return 'Submission too fast. Please try again.';
   if (age > 5 * 60 * 1000) return 'CAPTCHA expired. Please verify again.';
   return null;
 }
 
 async function handleLogin(req, res) {
-  const { email, password, captchaToken } = await readJson(req);
+  const { email, password, captchaToken, captchaElapsedMs } = await readJson(req);
   const generic = { error: 'Invalid email or password.' };
 
   if (!email || !password) {
     return send(res, 400, { error: 'Email and password are required.' });
   }
-  const captcha = captchaProblem(captchaToken);
+  const captcha = captchaProblem(captchaToken, captchaElapsedMs);
   if (captcha) return send(res, 400, { error: captcha });
 
   const user = usersByEmail.get(String(email).trim().toLowerCase());
@@ -322,7 +325,7 @@ function claimReview(user) {
 }
 
 const QUOTA_SPENT = {
-  error: `You have used all ${FREE_DAILY_REVIEW_LIMIT} of your free resume reviews for today. Your allowance resets tomorrow.`,
+  error: 'You have used your free resume review for today. Your allowance resets tomorrow.',
   limit: FREE_DAILY_REVIEW_LIMIT,
   used: FREE_DAILY_REVIEW_LIMIT,
   remaining: 0,
@@ -622,7 +625,7 @@ const ROUTES = [
   ['GET', '/api/preparation/quota', (req, res) =>
     currentUser(req)
       ? send(res, 200, {
-        authenticated: true, tier: 'free', limit: 2, used: 0, remaining: 2, unlimited: false,
+        authenticated: true, tier: 'free', limit: 1, used: 0, remaining: 1, unlimited: false,
       })
       : send(res, 401, { error: 'Authentication required.' })],
   ['GET', '/api/preparation/interviews', (req, res) =>

@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { CheckCircle2, Circle } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 import './LanguagePromptDialog.css'
 
@@ -19,10 +18,22 @@ import './LanguagePromptDialog.css'
  *
  * Selecting a language both confirms and submits — there is no separate
  * "Confirm" step, since the two buttons already are the only two valid
- * answers.
+ * answers. They are drawn as two equal actions for that reason: an earlier
+ * version showed radio-style ticks with the current language already ticked,
+ * which read as a form waiting for a Done button that did not exist, and made
+ * English look chosen before anyone had chosen. Neither button is highlighted
+ * or focused on open; focus starts on the dialog so Tab reaches both evenly.
  */
+
+const OPTIONS = [
+  { code: 'en', name: 'English', other: 'ইংরেজি' },
+  { code: 'bn', name: 'বাংলা', other: 'Bangla' },
+]
 export default function LanguagePromptDialog({ titleKey, subKey, onSelect, onCancel }) {
-  const { t, lang } = useLanguage()
+  const { t } = useLanguage()
+  const cardRef = useRef(null)
+
+  useEffect(() => { cardRef.current?.focus() }, [])
 
   useEffect(() => {
     const onKey = (event) => { if (event.key === 'Escape') onCancel() }
@@ -38,28 +49,23 @@ export default function LanguagePromptDialog({ titleKey, subKey, onSelect, onCan
       aria-labelledby="lang-prompt-title"
       onMouseDown={event => { if (event.target === event.currentTarget) onCancel() }}
     >
-      <div className="lang-prompt__card">
+      <div className="lang-prompt__card" tabIndex={-1} ref={cardRef}>
         <h2 className="lang-prompt__title" id="lang-prompt-title">{t(titleKey)}</h2>
         <p className="lang-prompt__sub">{t(subKey)}</p>
 
         <div className="lang-prompt__options">
-          <button
-            type="button"
-            className={`lang-prompt__option${lang === 'en' ? ' lang-prompt__option--on' : ''}`}
-            onClick={() => onSelect('en')}
-            autoFocus
-          >
-            {lang === 'en' ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-            <span className="lang-prompt__native">English</span>
-          </button>
-          <button
-            type="button"
-            className={`lang-prompt__option${lang === 'bn' ? ' lang-prompt__option--on' : ''}`}
-            onClick={() => onSelect('bn')}
-          >
-            {lang === 'bn' ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-            <span className="lang-prompt__native">বাংলা</span>
-          </button>
+          {OPTIONS.map(option => (
+            <button
+              key={option.code}
+              type="button"
+              lang={option.code}
+              className="lang-prompt__option"
+              onClick={() => onSelect(option.code)}
+            >
+              <span className="lang-prompt__native">{option.name}</span>
+              <span className="lang-prompt__other" aria-hidden="true">{option.other}</span>
+            </button>
+          ))}
         </div>
 
         <button type="button" className="lang-prompt__cancel" onClick={onCancel}>

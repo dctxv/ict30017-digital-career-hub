@@ -9,6 +9,16 @@ import './Auth.css'
 
 const OTP_LENGTH = 6
 
+/*
+ * Milliseconds since the captcha was ticked. CaptchaWidget stamps the token
+ * with this browser's clock, so subtracting on the same clock gives a duration
+ * no amount of skew against the server can distort.
+ */
+function captchaElapsed(token) {
+  const issuedAt = Number.parseInt(token.split('-')[2], 10)
+  return Number.isFinite(issuedAt) ? Math.max(0, Date.now() - issuedAt) : undefined
+}
+
 export default function Login() {
   const location = useLocation()
   const [show, setShow] = useState(false)
@@ -65,7 +75,10 @@ export default function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ ...form, captchaToken }),
+        // The elapsed time is measured here, on the same clock that stamped the
+        // token, so a device whose clock disagrees with the server's is not
+        // refused as "too fast".
+        body: JSON.stringify({ ...form, captchaToken, captchaElapsedMs: captchaElapsed(captchaToken) }),
       })
       const data = await response.json()
 

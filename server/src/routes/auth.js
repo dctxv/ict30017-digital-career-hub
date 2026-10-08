@@ -288,9 +288,43 @@ router.post('/register', registerLimiter, async (req, res) => {
 const MAX_FAILED_ATTEMPTS = 10;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 
+/*
+ * Captcha timing bounds. The floor only has to stop a script that ticks and
+ * submits in the same breath; the widget already spins for 800 ms before it
+ * issues a token, so a person who ticks the box and goes straight for the
+ * button clears it comfortably.
+ */
+const CAPTCHA_MIN_AGE_MS = 250;
+const CAPTCHA_MAX_AGE_MS = 5 * 60 * 1000;
+
+/**
+ * How long ago the captcha was ticked, in milliseconds, or null when the token
+ * is malformed.
+ *
+ * The token carries the moment it was issued, read off the browser's clock,
+ * and this used to be compared against the server's clock. Any device running
+ * even a second ahead of the server then produced a negative age and was told
+ * "Submission too fast" on every attempt, however long the person waited —
+ * which is what ordinary logins kept running into. The browser now sends the
+ * elapsed time measured on its own clock, which skew cannot touch. A client
+ * built before that falls back to the old comparison, with the floor widened
+ * to absorb a little skew rather than refusing it outright.
+ */
+function captchaAge(captchaToken, elapsedMs) {
+  const issuedAt = parseInt(captchaToken.split('-')[2], 10);
+  if (!issuedAt || Number.isNaN(issuedAt)) return null;
+
+  const elapsed = Number(elapsedMs);
+  if (Number.isFinite(elapsed) && elapsed >= 0) return elapsed;
+
+  // Legacy client: treat a token that appears to come from slightly in the
+  // future as just issued, not as an attack.
+  return Math.max(Date.now() - issuedAt, CAPTCHA_MIN_AGE_MS);
+}
+
 router.post('/login', loginLimiter, async (req, res) => {
   try {
-    const { email, password, captchaToken, _hp } = req.body;
+    const { email, password, captchaToken, captchaElapsedMs, _hp } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
@@ -305,16 +339,14 @@ router.post('/login', loginLimiter, async (req, res) => {
     if (!captchaToken || !captchaToken.startsWith('local-captcha-')) {
       return res.status(400).json({ error: 'Please complete the CAPTCHA.' });
     }
-    const parts = captchaToken.split('-');
-    const issuedAt = parseInt(parts[2], 10);
-    if (!issuedAt || isNaN(issuedAt)) {
+    const age = captchaAge(captchaToken, captchaElapsedMs);
+    if (age === null) {
       return res.status(400).json({ error: 'Invalid CAPTCHA. Please try again.' });
     }
-    const age = Date.now() - issuedAt;
-    if (age < 1000) {
+    if (age < CAPTCHA_MIN_AGE_MS) {
       return res.status(400).json({ error: 'Submission too fast. Please try again.' });
     }
-    if (age > 5 * 60 * 1000) {
+    if (age > CAPTCHA_MAX_AGE_MS) {
       return res.status(400).json({ error: 'CAPTCHA expired. Please verify again.' });
     }
 

@@ -6,6 +6,7 @@ import {
   ExternalLink, Newspaper, RefreshCw,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import SiteFooter from '../components/SiteFooter'
 import { useLanguage } from '../context/LanguageContext'
 import { openChatbot } from '../components/chatbotBus'
 import './Home.css'
@@ -205,6 +206,7 @@ export default function Home() {
         </div>
       </section>
 
+      <SiteFooter />
     </div>
   )
 }

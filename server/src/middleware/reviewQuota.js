@@ -19,7 +19,7 @@ import fs from 'fs';
 import pool from '../db.js';
 
 /** Free tier allowance, per user, per calendar day. */
-export const FREE_DAILY_REVIEW_LIMIT = 3;
+export const FREE_DAILY_REVIEW_LIMIT = 1;
 
 /** Tiers that bypass the daily cap entirely. */
 const UNLIMITED_TIERS = new Set(['premium']);
@@ -138,9 +138,9 @@ async function claimReview(userId) {
  *
  * The claim is made before the model is called, so a rejected API key, a
  * throttled provider or an unreadable response used to cost the user one of
- * their three daily reviews for nothing — on a misconfigured server, all three
- * inside a minute, and the fourth attempt after the fix was refused as over
- * quota. Same shape as refundInterview, for the same reason.
+ * their daily reviews for nothing — on a misconfigured server, the whole
+ * allowance inside a minute, and the next attempt after the fix was refused as
+ * over quota. Same shape as refundInterview, for the same reason.
  *
  * Only decrements today's counter, so a claim from yesterday is never touched.
  * A failed refund is logged and swallowed: the user is already being told the
@@ -232,7 +232,9 @@ export async function enforceDailyReviewLimit(req, res, next) {
       });
       discardUpload(req);
       return res.status(429).json({
-        error: `You have used all ${FREE_DAILY_REVIEW_LIMIT} of your free resume reviews for today. Your allowance resets tomorrow.`,
+        error: FREE_DAILY_REVIEW_LIMIT === 1
+          ? 'You have used your free resume review for today. Your allowance resets tomorrow.'
+          : `You have used all ${FREE_DAILY_REVIEW_LIMIT} of your free resume reviews for today. Your allowance resets tomorrow.`,
         limit: FREE_DAILY_REVIEW_LIMIT,
         used: claim.used,
         remaining: 0,

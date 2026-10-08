@@ -39,6 +39,12 @@ export const BANGLA_MESSAGES = {
   'An account with this email already exists. Try logging in instead.':
     'এই ইমেইলে একটি অ্যাকাউন্ট আগে থেকেই আছে। বরং লগ ইন করে দেখুন।',
 
+  /* ── Daily allowances (the singular form; plurals are patterns below) ── */
+  'You have used your free resume review for today. Your allowance resets tomorrow.':
+    'আপনি আজকের ফ্রি রিজিউমে রিভিউটি ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।',
+  'You have used your free mock interview for today. Your allowance resets tomorrow.':
+    'আপনি আজকের ফ্রি মক ইন্টারভিউটি ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।',
+
   /* ── Captcha, email verification and login code ──────────── */
   'Invalid request.': 'অনুরোধটি সঠিক নয়।',
   'Please complete the CAPTCHA.': 'অনুগ্রহ করে CAPTCHA পূরণ করুন।',

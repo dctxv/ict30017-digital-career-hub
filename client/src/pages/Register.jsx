@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Compass, ShieldCheck, Check, CheckCircle2, Circle, Smartphone, ChevronDown, Info,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import DisciplinePicker from '../components/DisciplinePicker'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import './Auth.css'
@@ -23,7 +24,6 @@ import './Auth.css'
 
 const PASSWORD_MIN_LENGTH = 12
 const PAYMENT_METHODS = ['bkash', 'nagad', 'card']
-const FALLBACK_DISCIPLINES = ['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
 
 const FREE_PERKS = ['auth.freePerk1', 'auth.freePerk2', 'auth.freePerk3']
 const PREMIUM_PERKS = ['auth.premiumPerk1', 'auth.premiumPerk2', 'auth.premiumPerk3']
@@ -69,7 +69,6 @@ export default function Register() {
   const [agreed, setAgreed] = useState(false)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
-  const [disciplines, setDisciplines] = useState([])
 
   const [form, setForm] = useState({
     fullName: '', email: '', password: '', confirmPassword: '',
@@ -80,23 +79,6 @@ export default function Register() {
   const set = (key) => (event) => setForm(current => ({ ...current, [key]: event.target.value }))
   const setPay = (key) => (event) => setPayment(current => ({ ...current, [key]: event.target.value }))
 
-  /*
-   * discipline is the field that earns its place: every content table filters
-   * by it, so without it a Computer Science student and an Accounting student
-   * see the same unfiltered resources and career paths. It stays optional all
-   * the same — a required field here costs completed registrations, and the
-   * column is nullable for exactly that reason.
-   */
-  useEffect(() => {
-    let cancelled = false
-    fetch(`/api/disciplines?lang=${lang}`)
-      .then(response => (response.ok ? response.json() : []))
-      .then(data => { if (!cancelled) setDisciplines(Array.isArray(data) ? data : []) })
-      // Optional field, so a failed load degrades to not offering it rather
-      // than blocking the form.
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [lang])
 
   const validateDetails = () => {
     if (!form.fullName || !form.email || !form.password || !form.confirmPassword) {
@@ -208,12 +190,6 @@ export default function Register() {
 
   const stepIndex = step === 'payment' ? 2 : step === 'plan' ? 1 : 0
 
-  const disciplineOptions = disciplines.length > 0
-    ? disciplines.map(row => ({
-        value: row.name,
-        label: (lang === 'bn' && row.name_bn) || row.name,
-      }))
-    : FALLBACK_DISCIPLINES.map(name => ({ value: name, label: name }))
 
   const title = step === 'plan' ? t('auth.choosePlanTitle')
     : step === 'payment' ? t('auth.paymentTitle')
@@ -323,17 +299,13 @@ export default function Register() {
                 <label className="field__label" htmlFor="reg-discipline">
                   {t('auth.disciplineLabel')} <span className="optional">{t('common.optional')}</span>
                 </label>
-                <span className="select-wrap">
-                  <select id="reg-discipline" className="select" value={form.discipline} onChange={set('discipline')}>
-                    <option value="">{t('auth.disciplinePlaceholder')}</option>
-                    {/* value is the English name, which is the key every content
-                        table stores; the label follows the language toggle. */}
-                    {disciplineOptions.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={16} className="select-wrap__chevron" />
-                </span>
+                {/* Optional, and free text on the server: the list is there to
+                    search, but a subject it does not have can still be typed. */}
+                <DisciplinePicker
+                  id="reg-discipline"
+                  value={form.discipline}
+                  onChange={discipline => setForm(current => ({ ...current, discipline }))}
+                />
               </div>
 
               <div className="field-grid">
