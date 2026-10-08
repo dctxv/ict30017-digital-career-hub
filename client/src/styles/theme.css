@@ -79,6 +79,16 @@
   --shadow-lift: 0 8px 24px rgba(27, 67, 50, 0.09);
   --shadow-modal: 0 24px 60px rgba(17, 24, 39, 0.22);
 
+  /* Resume annotation marks, one per category. The same in both themes: they
+     are drawn over the document page, which stays white in dark mode. --mark
+     is the one a component reads; each category sets it to its own colour. */
+  --mark-heading: #E8590C;
+  --mark-grammar: #E03131;
+  --mark-content: #E0A800;
+  --mark-format: #7048E8;
+  --mark-keyword: #2F9E44;
+  --mark: var(--mark-format);
+
   /* Resource type accents */
   --type-guide: #D8F3DC;
   --type-article: #DBEAFE;
@@ -110,6 +120,14 @@
 
 [data-theme='dark'] {
   color-scheme: dark;
+
+  /* Unchanged from light, for the reason given there. */
+  --mark-heading: #E8590C;
+  --mark-grammar: #E03131;
+  --mark-content: #E0A800;
+  --mark-format: #7048E8;
+  --mark-keyword: #2F9E44;
+  --mark: var(--mark-format);
 
   --bg: #0E1512;
   --surface: #16211C;

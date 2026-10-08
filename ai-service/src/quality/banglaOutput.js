@@ -42,6 +42,8 @@ const NARRATIVE = [
   ['content_quality.weaknesses', (r) => r?.content_quality?.weaknesses ?? []],
   ['formatting.issues[].issue',  (r) => (r?.formatting?.issues ?? []).map((i) => i?.issue)],
   ['formatting.issues[].suggestion', (r) => (r?.formatting?.issues ?? []).map((i) => i?.suggestion)],
+  ['content_quality.weak_bullets[].issue',      (r) => (r?.content_quality?.weak_bullets ?? []).map((b) => b?.issue)],
+  ['content_quality.weak_bullets[].suggestion', (r) => (r?.content_quality?.weak_bullets ?? []).map((b) => b?.suggestion)],
   ['action_items',               (r) => r?.action_items ?? []],
   ['ats_analysis.ats_tips',      (r) => r?.ats_analysis?.ats_tips ?? []],
   ['job_match.recommendations',  (r) => r?.job_match?.recommendations ?? []],

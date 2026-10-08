@@ -36,6 +36,8 @@ Leave these in English exactly as you would for an English review:
 - language_grammar.issues[].original and .corrected — these quote the CV and
   give the replacement text the candidate will paste back into an English
   document, so Bangla there would be actively wrong
+- every "quote" and "quotes" value — copied from the CV exactly as written,
+  never translated
 - ats_analysis.keyword_hits, keyword_gaps, and the original / recommended
   heading names, plus job_match keyword lists — these are matched literally
   against English job adverts and applicant tracking systems

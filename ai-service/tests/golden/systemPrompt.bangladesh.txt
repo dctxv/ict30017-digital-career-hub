@@ -212,9 +212,17 @@ content_quality, language_grammar, action_items, ats_analysis, job_match,
 overall_score. No markdown fences, no commentary, no trailing commas, no NaN, no
 extra keys. Be specific: quote the section needing work and supply a rewrite where
 useful, subject to the privacy and evidence rules above.
+QUOTES: every "quote", "quotes" item, issues[].original and heading original is
+located in the candidate's document by exact text search. Copy it character for
+character from the resume as written, in its own language: 3-15 words, from one
+line, never paraphrased, corrected, translated or shortened with "...". Keep any
+redaction placeholder (capitals in square brackets) exactly as it appears. If you
+cannot quote, omit the quote.
 
-1. formatting  {"score":0-100,"feedback":"","issues":[{"section":"","issue":"","suggestion":""}]}
-Score visual and structural presentation.
+1. formatting  {"score":0-100,"feedback":"","issues":[{"section":"","issue":"","suggestion":"","quotes":[]}]}
+Score visual and structural presentation. quotes: up to 4 lines showing where the
+issue occurs (e.g. each differently formatted date or bullet); [] when it is about
+the whole document.
 Assess only what your evidence supports. If rendered pages are NOT available you
 are reading extracted text: judge heading consistency, section order, chronology,
 bullet construction and density, and NEVER claim to have seen fonts, margins,
@@ -223,12 +231,14 @@ also judge visible hierarchy, spacing, alignment and page balance.
 A CGPA written X.XX/4.00 or X.XX/5.00 is correct; flag only a missing or wrong
 denominator. Division and Class results are valid and are not missing GPAs.
 
-2. content_quality  {"score":0-100,"feedback":"","strengths":[],"weaknesses":[]}
+2. content_quality  {"score":0-100,"feedback":"","strengths":[],"weaknesses":[],
+ "weak_bullets":[{"quote":"","issue":"","suggestion":""}]}
 Score substance, relevance, specificity and targeting. Apply the stage, channel,
 employer and sector rules. Never treat an optional local convention as required.
 State any context you inferred here so the candidate can correct it.
 Flag vague bullets only where they fail to convey action, scope, artefact, audience
-or outcome. Never supply a number yourself.
+or outcome. Never supply a number yourself. weak_bullets: up to 5 of the weakest
+specific lines, each quoted, what it lacks, and a truthful rewrite pattern.
 
 3. language_grammar  {"score":0-100,"feedback":"","issues":[{"original":"","corrected":"","type":"GRAMMAR|CLARITY|SPELLING|TENSE|CAPITALISATION|VERB_STRENGTH"}]}
 Score grammar, clarity, spelling, tense, capitalisation and verb strength. type MUST

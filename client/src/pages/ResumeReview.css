@@ -136,6 +136,21 @@
 
 .rr-file-error { margin-top: 12px; }
 
+.rr-privacy { margin-top: 14px; }
+.rr-privacy__icon { flex: none; margin-top: 2px; }
+.rr-privacy__title { display: block; margin-bottom: 2px; }
+
+/* The one-line ATS definition under its coverage item: quieter than the
+   description above it, because it explains a term rather than a feature. */
+.rr-cover__explain {
+  margin-top: 8px;
+  padding-left: 10px;
+  border-left: 2px solid var(--border-accent);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--body-2);
+}
+
 /* ── Market and context choices ────────────────────────────────────── */
 
 .rr-choices {

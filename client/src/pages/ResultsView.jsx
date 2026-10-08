@@ -1,10 +1,11 @@
 /*
  * ResultsView.jsx
  *
- * The analysis beside the document it is about. The feedback column carries the
- * score, the priority actions and the section cards; the aside keeps the
- * uploaded PDF in view so a suggestion about the skills section can be checked
- * against the skills section without leaving the page.
+ * The analysis beside the document it is about. With the uploaded file still
+ * in hand, the page opens on the resume itself with each finding marked where
+ * it occurs (components/AnnotatedResume.jsx); the full report — score, priority
+ * actions and section cards — is a tab away. A saved review or the sample has
+ * no file, so it shows the report alone.
  *
  * Everything rendered here comes from the model's validated response. Where the
  * response has no value — no job advert supplied, so no job_match; a stream cut
@@ -15,26 +16,17 @@
 
 import { useEffect, useRef, useState } from 'react'
 import html2pdf from 'html2pdf.js'
-import { Document, Page, pdfjs } from 'react-pdf'
 import {
-  FileText, FileSearch, RotateCcw, Download, Maximize2, X, Upload,
+  FileText, FileSearch, RotateCcw, Download, Upload, Highlighter, ListChecks,
   BookOpen, MessageCircle, Lightbulb, ArrowRight, TriangleAlert, ChevronDown, ChevronUp,
   Target,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import 'react-pdf/dist/Page/AnnotationLayer.css'
-import 'react-pdf/dist/Page/TextLayer.css'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
 import { openChatbot } from '../components/chatbotBus'
+import AnnotatedResume from '../components/AnnotatedResume'
 import './ResultsView.css'
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString()
-
-const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 
@@ -111,6 +103,7 @@ function ContentBody({ section }) {
   const { t } = useLanguage()
   const strengths = Array.isArray(section.strengths) ? section.strengths.filter(Boolean) : []
   const weaknesses = Array.isArray(section.weaknesses) ? section.weaknesses.filter(Boolean) : []
+  const weakBullets = Array.isArray(section.weak_bullets) ? section.weak_bullets.filter(item => item?.quote) : []
 
   return (
     <>
@@ -135,6 +128,21 @@ function ContentBody({ section }) {
               <li key={index} className="rv-list__item rv-list__item--warn">{item}</li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {weakBullets.length > 0 && (
+        <div className="rv-group-block">
+          <GroupLabel tone="warn" count={weakBullets.length}>{t('results.weakBullets')}</GroupLabel>
+          <div className="rv-rewrites">
+            {weakBullets.map((item, index) => (
+              <div key={index} className="rv-rewrite">
+                <span className="rv-rewrite__before">{item.quote}</span>
+                {item.issue && <span className="rv-rewrite__note">{item.issue}</span>}
+                {item.suggestion && <span className="rv-rewrite__after">{item.suggestion}</span>}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </>
@@ -245,6 +253,9 @@ function AtsCard({ ats }) {
       sub={inferred || null}
       score={typeof ats.ats_score === 'number' ? ats.ats_score : undefined}
     >
+      <p className="rv-explain">
+        <strong>{t('review.atsWhat')}</strong> {t('review.atsWhatBody')}
+      </p>
       {(hits.length > 0 || gaps.length > 0) && (
         <div className="rv-keywords">
           {hits.length > 0 && (
@@ -367,70 +378,6 @@ function JobMatchCard({ match }) {
   )
 }
 
-/* ── Document preview ────────────────────────────────────────────────── */
-
-/*
- * The File is handed to <Document> as-is. react-pdf detects a Blob (a File is
- * one) and loads it itself, so nothing here creates or revokes an object URL —
- * which is what previously broke the preview.
- *
- * The old shape built the URL in a useMemo and revoked it in a separate cleanup
- * effect, on the reasoning that an object URL is a pure function of the File.
- * It is not: createObjectURL allocates a resource that must be released, so it
- * is a side effect wearing a value's clothes, and React treats a memo as a
- * discardable hint with no guarantee it will survive.
- *
- * In development that failed every time. StrictMode mounts twice: the memo
- * created URL A, the simulated unmount revoked A, the remount re-ran the effect
- * but the memo handed back the cached, already-dead A. pdf.js fetched a revoked
- * blob and reported "Unexpected server response (0)". A production build was
- * fine, which is exactly the split that gets misread as a bad PDF rather than a
- * bug. Owning no resource is the fix that cannot regress.
- */
-function DocumentPreview({ file, feedback, width, onNumPages }) {
-  const { t } = useLanguage()
-  const [error, setError] = useState(null)
-  const [pages, setPages] = useState(0)
-
-  const isDocx = file?.type === DOCX_MIME
-  const source = file || feedback?.fileUrl || null
-
-  if (isDocx) {
-    return (
-      <div className="rv-preview__fallback">
-        <span className="rv-preview__fallback-icon"><FileText size={19} /></span>
-        <p className="rv-preview__fallback-title">{t('results.docxTitle')}</p>
-        <p className="rv-preview__fallback-body">{t('results.docxBody')}</p>
-      </div>
-    )
-  }
-
-  if (!source) return null
-
-  return (
-    <>
-      {error && (
-        <p className="notice notice--error rv-preview__error">
-          {t('results.pdfFailed', { message: error })}
-        </p>
-      )}
-
-      <Document
-        file={source}
-        onLoadSuccess={({ numPages }) => { setPages(numPages); onNumPages?.(numPages); setError(null) }}
-        onLoadError={event => setError(event.message || t('results.pdfUnknownError'))}
-        loading={<p className="rv-preview__loading">{t('results.pdfLoading')}</p>}
-      >
-        {Array.from({ length: pages }, (_, index) => (
-          <div key={index} className="rv-preview__page">
-            <Page pageNumber={index + 1} width={width || undefined} renderTextLayer renderAnnotationLayer />
-          </div>
-        ))}
-      </Document>
-    </>
-  )
-}
-
 /* ── Page ────────────────────────────────────────────────────────────── */
 
 export default function ResultsView({
@@ -439,33 +386,13 @@ export default function ResultsView({
 }) {
   const { t, n } = useLanguage()
   const { isAuthenticated } = useAuth()
-  const [expanded, setExpanded] = useState(false)
-  const [previewWidth, setPreviewWidth] = useState(null)
-  const previewRef = useRef(null)
   const swapInputRef = useRef(null)
+  const hasDocument = Boolean(uploadedFile || feedback?.fileUrl)
+  const [tab, setTab] = useState(hasDocument ? 'resume' : 'report')
+  const [pendingDownload, setPendingDownload] = useState(false)
+  const shownTab = hasDocument ? tab : 'report'
 
-  // react-pdf renders at a fixed pixel width, so it has to be told what the
-  // column is currently worth. A ResizeObserver keeps that true through a
-  // window resize and through the aside collapsing under the feedback column.
-  useEffect(() => {
-    const element = previewRef.current
-    if (!element) return undefined
-    const observer = new ResizeObserver(() => {
-      const width = element.clientWidth
-      setPreviewWidth(width > 32 ? width - 32 : width)
-    })
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
-
-  useEffect(() => {
-    if (!expanded) return undefined
-    const onKey = event => { if (event.key === 'Escape') setExpanded(false) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [expanded])
-
-  const downloadPdf = () => {
+  const saveReport = () => {
     const element = document.querySelector('.rv-feedback')
     if (!element) return
     html2pdf().set({
@@ -477,8 +404,25 @@ export default function ResultsView({
     }).from(element).save()
   }
 
+  // The download is the report, which is only in the page on its own tab. From
+  // the marked-up resume the tab is switched first and the save follows once
+  // the report has rendered.
+  const downloadPdf = () => {
+    if (shownTab === 'report') { saveReport(); return }
+    setTab('report')
+    setPendingDownload(true)
+  }
+
+  useEffect(() => {
+    if (!pendingDownload || shownTab !== 'report') return undefined
+    const frame = requestAnimationFrame(() => {
+      setPendingDownload(false)
+      saveReport()
+    })
+    return () => cancelAnimationFrame(frame)
+  })
+
   const overall = typeof feedback?.overall_score === 'number' ? feedback.overall_score : null
-  const hasPreview = Boolean(uploadedFile || feedback?.fileUrl)
 
   const marketLabel = marketMode === 'international'
     ? t('review.marketInternational')
@@ -540,6 +484,39 @@ export default function ResultsView({
         </div>
       </section>
 
+      {hasDocument && (
+        <div className="rv-tabs" role="tablist" aria-label={t('annot.viewLabel')}>
+          {[
+            ['resume', 'annot.tabResume', <Highlighter key="icon" size={15} aria-hidden="true" />],
+            ['report', 'annot.tabReport', <ListChecks key="icon" size={15} aria-hidden="true" />],
+          ].map(([key, labelKey, icon]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={shownTab === key}
+              className={`rv-tabs__tab${shownTab === key ? ' rv-tabs__tab--on' : ''}`}
+              onClick={() => setTab(key)}
+            >
+              {icon}
+              {t(labelKey)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {shownTab === 'resume' && (
+        <AnnotatedResume
+          file={uploadedFile}
+          fileUrl={feedback?.fileUrl}
+          feedback={feedback}
+          isLoading={isLoading}
+          onOpenReport={() => { setTab('report'); window.scrollTo({ top: 0 }) }}
+          onUploadNew={onUploadNew}
+        />
+      )}
+
+      {shownTab === 'report' && (
       <section className="rv-body">
         <div className="rv-feedback">
           {/* Partial failure only. A total failure never reaches this view:
@@ -621,28 +598,14 @@ export default function ResultsView({
         </div>
 
         <aside className="rv-aside">
-          <div className="rv-preview">
-            <div className="rv-preview__head">
-              <span className="rv-preview__label">
-                <FileText size={16} />
-                {t('results.yourResume')}
-              </span>
-              {hasPreview && (
-                <button type="button" className="btn btn--outline btn--sm" onClick={() => setExpanded(true)}>
-                  <Maximize2 size={13} />
-                  {t('results.viewFull')}
-                </button>
-              )}
-            </div>
-
-            {hasPreview ? (
-              <>
-                <div className="rv-preview__doc" ref={previewRef}>
-                  <DocumentPreview file={uploadedFile} feedback={feedback} width={previewWidth} />
-                </div>
-                <p className="rv-preview__hint">{t('results.compareHint')}</p>
-              </>
-            ) : (
+          {!hasDocument && (
+            <div className="rv-preview">
+              <div className="rv-preview__head">
+                <span className="rv-preview__label">
+                  <FileText size={16} />
+                  {t('results.yourResume')}
+                </span>
+              </div>
               <div className="rv-preview__fallback">
                 <span className="rv-preview__fallback-icon"><FileSearch size={19} /></span>
                 <p className="rv-preview__fallback-body">{t('results.noPreviewHint')}</p>
@@ -650,8 +613,8 @@ export default function ResultsView({
                   {t('results.uploadNew')}
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="card card--tinted rv-next">
             <p className="card__title">{t('results.whatNext')}</p>
@@ -704,20 +667,6 @@ export default function ResultsView({
           </div>
         </aside>
       </section>
-
-      {expanded && hasPreview && (
-        <div className="rv-modal" role="dialog" aria-modal="true" aria-label={displayFilename(filename)}>
-          <div className="rv-modal__bar">
-            <p className="rv-modal__name">{displayFilename(filename)}</p>
-            <button type="button" className="btn btn--outline btn--sm" onClick={() => setExpanded(false)}>
-              <X size={15} />
-              {t('results.closePreview')}
-            </button>
-          </div>
-          <div className="rv-modal__doc">
-            <DocumentPreview file={uploadedFile} feedback={feedback} width={820} />
-          </div>
-        </div>
       )}
     </div>
   )

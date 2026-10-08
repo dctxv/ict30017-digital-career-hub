@@ -4,10 +4,22 @@ import { ATS_LIST_CAP, ATS_GAP_CAP } from '../config/reviewConstants.js';
 // Coerce scores to integers — the AI sometimes returns floats like 72.5
 const Score = z.number().min(0).max(100).transform(Math.round);
 
+/*
+ * Verbatim lines from the resume, used to place an issue on the preview.
+ * Optional and forgiving: a quote the model got wrong costs one highlight, not
+ * the review, so bad entries are dropped rather than failing validation.
+ */
+const Quote = z.string().transform((value) => value.trim()).pipe(z.string().max(300));
+const QuoteList = z.array(z.unknown()).optional().transform((list) => (list ?? [])
+  .filter((item) => typeof item === 'string' && item.trim().length >= 2)
+  .map((item) => item.trim().slice(0, 300))
+  .slice(0, 4));
+
 const FormattingIssueSchema = z.object({
   section:    z.string(),
   issue:      z.string(),
   suggestion: z.string(),
+  quotes:     QuoteList,
 });
 
 const FormattingSchema = z.object({
@@ -16,11 +28,24 @@ const FormattingSchema = z.object({
   issues:   z.array(FormattingIssueSchema),
 });
 
+const WeakBulletSchema = z.object({
+  quote:      Quote,
+  issue:      z.string(),
+  suggestion: z.string().optional().default(''),
+});
+
 const ContentQualitySchema = z.object({
   score:      Score,
   feedback:   z.string(),
   strengths:  z.array(z.string()),
   weaknesses: z.array(z.string()),
+  // Each entry validated on its own, so one malformed bullet is dropped rather
+  // than failing the whole section.
+  weak_bullets: z.array(z.unknown()).optional().transform((list) => (list ?? [])
+    .map((item) => WeakBulletSchema.safeParse(item))
+    .filter((result) => result.success && result.data.quote.length >= 2)
+    .map((result) => result.data)
+    .slice(0, 5)),
 });
 
 const LanguageIssueSchema = z.object({

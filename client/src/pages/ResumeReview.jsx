@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  UploadCloud, FileCheck2, Sparkles, CheckCircle2, Eye, ChevronDown, ChevronUp,
+  UploadCloud, FileCheck2, Sparkles, CheckCircle2, Eye, ChevronDown, ChevronUp, ShieldCheck,
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import ResumeAnalysisError from './ResumeAnalysisError'
@@ -195,6 +195,18 @@ function UploadView({
             </p>
           )}
 
+          {/* Said before the upload rather than buried in the privacy page:
+              this is the moment someone decides whether to send their CV.
+              Worded to match what the outbound mask actually does — it is
+              automatic, so "remove", not "guarantee". */}
+          <div className="notice notice--ok rr-privacy">
+            <ShieldCheck size={18} className="rr-privacy__icon" aria-hidden="true" />
+            <span>
+              <strong className="rr-privacy__title">{t('review.privacyTitle')}</strong>
+              {t('review.privacyBody')}
+            </span>
+          </div>
+
           <div className="card rr-card">
             <p className="card__title">{t('review.marketTitle')}</p>
             <div className="rr-choices">
@@ -317,6 +329,11 @@ function UploadView({
                   <div>
                     <p className="rr-cover__title">{t(`review.covers${name}`)}</p>
                     <p className="rr-cover__desc">{t(`review.covers${name}Desc`)}</p>
+                    {name === 'Ats' && (
+                      <p className="rr-cover__explain">
+                        <strong>{t('review.atsWhat')}</strong> {t('review.atsWhatBody')}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
