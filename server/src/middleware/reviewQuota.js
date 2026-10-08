@@ -19,7 +19,7 @@ import fs from 'fs';
 import pool from '../db.js';
 
 /** Free tier allowance, per user, per calendar day. */
-export const FREE_DAILY_REVIEW_LIMIT = 1;
+export const FREE_DAILY_REVIEW_LIMIT = 10;
 
 /** Tiers that bypass the daily cap entirely. */
 const UNLIMITED_TIERS = new Set(['premium']);

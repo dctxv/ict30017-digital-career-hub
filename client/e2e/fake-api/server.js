@@ -43,7 +43,7 @@ import { FAKE_FEEDBACK } from './feedback.js';
 const PORT = Number(process.env.PORT) || 3000;
 
 /** Matches middleware/reviewQuota.js — the one place the limit is stated. */
-const FREE_DAILY_REVIEW_LIMIT = 1;
+const FREE_DAILY_REVIEW_LIMIT = 10;
 
 /* ── State ──────────────────────────────────────────────────────────────── */
 
@@ -325,7 +325,7 @@ function claimReview(user) {
 }
 
 const QUOTA_SPENT = {
-  error: 'You have used your free resume review for today. Your allowance resets tomorrow.',
+  error: `You have used all ${FREE_DAILY_REVIEW_LIMIT} of your free resume reviews for today. Your allowance resets tomorrow.`,
   limit: FREE_DAILY_REVIEW_LIMIT,
   used: FREE_DAILY_REVIEW_LIMIT,
   remaining: 0,
@@ -625,7 +625,7 @@ const ROUTES = [
   ['GET', '/api/preparation/quota', (req, res) =>
     currentUser(req)
       ? send(res, 200, {
-        authenticated: true, tier: 'free', limit: 1, used: 0, remaining: 1, unlimited: false,
+        authenticated: true, tier: 'free', limit: 10, used: 0, remaining: 10, unlimited: false,
       })
       : send(res, 401, { error: 'Authentication required.' })],
   ['GET', '/api/preparation/interviews', (req, res) =>

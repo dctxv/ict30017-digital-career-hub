@@ -8,11 +8,12 @@
  * two answer the same question about different resources and a second design
  * would be a second thing to keep in step.
  *
- * The number is set by arithmetic rather than product. A review is one model
- * call plus the gap extraction it fires afterwards, and a mock interview is two.
- * At one of each a free account spends four calls a day, which keeps a class of
- * students demonstrating at once inside what this project's free provider tier
- * can actually sustain.
+ * Matches the review allowance. Cost is the thing to watch when changing it: a
+ * review is one model call plus the gap extraction it fires afterwards, and a
+ * mock interview is two, so ten of each lets one free account spend up to forty
+ * calls a day against the provider's shared free tier. A failed call is refunded,
+ * so a busy provider costs the user nothing, but a class using the full
+ * allowance at once will hit the provider's per-minute limit.
  *
  * The claim is made when the interview is CREATED, not when it is submitted.
  * Charging on submission would let someone generate questions endlessly and
@@ -23,7 +24,7 @@
 import pool from '../db.js';
 
 /** Free tier allowance, per user, per calendar day. */
-export const FREE_DAILY_INTERVIEW_LIMIT = 1;
+export const FREE_DAILY_INTERVIEW_LIMIT = 10;
 
 const UNLIMITED_TIERS = new Set(['premium']);
 const UNLIMITED_ROLES = new Set(['admin']);

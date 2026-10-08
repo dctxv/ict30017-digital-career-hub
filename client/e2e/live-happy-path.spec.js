@@ -47,7 +47,7 @@ test(process.env.E2E_FAKE_API === '1'
 
   // The counter is bound to the server, so it must show the real allowance.
   // It renders only once a file has been accepted.
-  await expect(page.locator('.rr-quota')).toContainText(/1 of 1|remaining today/i)
+  await expect(page.locator('.rr-quota')).toContainText(/10 of 10|remaining today/i)
   await analyseInEnglish(page)
 
   // Real analysis, so allow generous time.
