@@ -22,6 +22,7 @@ export default {
   'common.or': 'or',
   'common.optional': '(optional)',
   'common.yes': 'Yes',
+  'common.no': 'No',
   'common.perMonth': 'per month',
   'common.serverUnreachable': 'Could not connect to server.',
   'common.sessionExpired': 'Your session has expired. Please log in again to continue.',
