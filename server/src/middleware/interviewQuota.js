@@ -22,11 +22,11 @@
  */
 
 import pool from '../db.js';
+import { readTierLimit } from '../utils/tierLimits.js';
 
 /** Free tier allowance, per user, per calendar day. */
 export const FREE_DAILY_INTERVIEW_LIMIT = 10;
 
-const UNLIMITED_TIERS = new Set(['premium']);
 const UNLIMITED_ROLES = new Set(['admin']);
 
 function isGuest(req) {
@@ -71,14 +71,15 @@ export async function readInterviewQuota(userId) {
   if (result.rows.length === 0 || result.rows[0].is_active === false) return null;
 
   const { role, tier, used } = result.rows[0];
-  const unlimited = UNLIMITED_TIERS.has(tier) || UNLIMITED_ROLES.has(role);
+  const configuredLimit = await readTierLimit(tier, 'interview');
+  const unlimited = configuredLimit === null || UNLIMITED_ROLES.has(role);
 
   return {
     tier,
     role,
-    limit: unlimited ? null : FREE_DAILY_INTERVIEW_LIMIT,
+    limit: unlimited ? null : configuredLimit,
     used: Number(used),
-    remaining: unlimited ? null : Math.max(0, FREE_DAILY_INTERVIEW_LIMIT - Number(used)),
+    remaining: unlimited ? null : Math.max(0, configuredLimit - Number(used)),
     unlimited,
   };
 }
@@ -90,7 +91,7 @@ export async function readInterviewQuota(userId) {
  * a stale count and each claim the last slot. A zero row count means "over
  * quota" rather than "user missing"; the caller distinguishes the two.
  */
-async function claimInterview(userId) {
+async function claimInterview(userId, limit) {
   const result = await pool.query(
     `UPDATE users
         SET mock_interview_count = CASE
@@ -105,7 +106,7 @@ async function claimInterview(userId) {
           OR COALESCE(mock_interview_count, 0) < $2
         )
       RETURNING mock_interview_count`,
-    [userId, FREE_DAILY_INTERVIEW_LIMIT]
+    [userId, limit]
   );
 
   if (result.rows.length > 0) {
@@ -115,7 +116,7 @@ async function claimInterview(userId) {
   const exists = await pool.query('SELECT user_id FROM users WHERE user_id = $1', [userId]);
   if (exists.rows.length === 0) return { allowed: false, missingUser: true };
 
-  return { allowed: false, used: FREE_DAILY_INTERVIEW_LIMIT };
+  return { allowed: false, used: limit };
 }
 
 /**
@@ -170,7 +171,7 @@ export async function enforceDailyInterviewLimit(req, res, next) {
       return next();
     }
 
-    const claim = await claimInterview(req.user.id);
+    const claim = await claimInterview(req.user.id, quota.limit);
 
     if (claim.missingUser) {
       logQuota('reject', req, { reason: 'user_row_missing_on_claim', status: 401 });
@@ -182,16 +183,16 @@ export async function enforceDailyInterviewLimit(req, res, next) {
         reason: 'daily_limit_reached',
         tier: quota.tier,
         used: claim.used,
-        limit: FREE_DAILY_INTERVIEW_LIMIT,
+        limit: quota.limit,
         status: 429,
       });
       return res.status(429).json({
         // Worded to match the review's rejection exactly, so the Bangla pattern
         // in i18n/messages.js can be the same shape rather than a second rule.
-        error: FREE_DAILY_INTERVIEW_LIMIT === 1
-          ? 'You have used your free mock interview for today. Your allowance resets tomorrow.'
-          : `You have used all ${FREE_DAILY_INTERVIEW_LIMIT} of your free mock interviews for today. Your allowance resets tomorrow.`,
-        limit: FREE_DAILY_INTERVIEW_LIMIT,
+        error: quota.limit === 1
+          ? 'You have used your mock interview for today. Your allowance resets tomorrow.'
+          : `You have used all ${quota.limit} of your mock interviews for today. Your allowance resets tomorrow.`,
+        limit: quota.limit,
         used: claim.used,
         remaining: 0,
       });
@@ -201,13 +202,13 @@ export async function enforceDailyInterviewLimit(req, res, next) {
       reason: 'within_daily_limit',
       tier: quota.tier,
       used: claim.used,
-      limit: FREE_DAILY_INTERVIEW_LIMIT,
+      limit: quota.limit,
     });
 
     res.locals.interviewQuota = {
       ...quota,
       used: claim.used,
-      remaining: Math.max(0, FREE_DAILY_INTERVIEW_LIMIT - claim.used),
+      remaining: Math.max(0, quota.limit - claim.used),
       claimed: true,
     };
 

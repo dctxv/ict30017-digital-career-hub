@@ -49,4 +49,5 @@ export const MIGRATION_ORDER = Object.freeze([
   'add_audit_log.sql',
   'relax_audit_log_for_security_events.sql',
   'create_login_events_table.sql',
+  'add_tier_limits_and_paid_status.sql',
 ]);

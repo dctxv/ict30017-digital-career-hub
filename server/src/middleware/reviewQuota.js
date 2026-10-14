@@ -17,12 +17,10 @@
 import fs from 'fs';
 
 import pool from '../db.js';
+import { readTierLimit } from '../utils/tierLimits.js';
 
 /** Free tier allowance, per user, per calendar day. */
 export const FREE_DAILY_REVIEW_LIMIT = 10;
-
-/** Tiers that bypass the daily cap entirely. */
-const UNLIMITED_TIERS = new Set(['premium']);
 
 /** Roles that bypass the daily cap regardless of tier. */
 const UNLIMITED_ROLES = new Set(['admin']);
@@ -80,14 +78,15 @@ export async function readReviewQuota(userId) {
   if (result.rows.length === 0 || result.rows[0].is_active === false) return null;
 
   const { role, tier, used } = result.rows[0];
-  const unlimited = UNLIMITED_TIERS.has(tier) || UNLIMITED_ROLES.has(role);
+  const configuredLimit = await readTierLimit(tier, 'resume');
+  const unlimited = configuredLimit === null || UNLIMITED_ROLES.has(role);
 
   return {
     tier,
     role,
-    limit: unlimited ? null : FREE_DAILY_REVIEW_LIMIT,
+    limit: unlimited ? null : configuredLimit,
     used: Number(used),
-    remaining: unlimited ? null : Math.max(0, FREE_DAILY_REVIEW_LIMIT - Number(used)),
+    remaining: unlimited ? null : Math.max(0, configuredLimit - Number(used)),
     unlimited,
   };
 }
@@ -104,7 +103,7 @@ export async function readReviewQuota(userId) {
  * @param {string|number} userId
  * @returns {Promise<{allowed: boolean, used?: number, missingUser?: boolean}>}
  */
-async function claimReview(userId) {
+async function claimReview(userId, limit) {
   const result = await pool.query(
     `UPDATE users
      SET
@@ -120,7 +119,7 @@ async function claimReview(userId) {
          OR COALESCE(resume_review_count, 0) < $2
        )
      RETURNING resume_review_count`,
-    [userId, FREE_DAILY_REVIEW_LIMIT]
+    [userId, limit]
   );
 
   if (result.rows.length > 0) {
@@ -130,7 +129,7 @@ async function claimReview(userId) {
   const exists = await pool.query('SELECT user_id FROM users WHERE user_id = $1', [userId]);
   if (exists.rows.length === 0) return { allowed: false, missingUser: true };
 
-  return { allowed: false, used: FREE_DAILY_REVIEW_LIMIT };
+  return { allowed: false, used: limit };
 }
 
 /**
@@ -214,7 +213,7 @@ export async function enforceDailyReviewLimit(req, res, next) {
       return next();
     }
 
-    const claim = await claimReview(req.user.id);
+    const claim = await claimReview(req.user.id, quota.limit);
 
     if (claim.missingUser) {
       logQuota('reject', req, { reason: 'user_row_missing_on_claim', status: 401 });
@@ -227,15 +226,15 @@ export async function enforceDailyReviewLimit(req, res, next) {
         reason: 'daily_limit_reached',
         tier: quota.tier,
         used: claim.used,
-        limit: FREE_DAILY_REVIEW_LIMIT,
+        limit: quota.limit,
         status: 429,
       });
       discardUpload(req);
       return res.status(429).json({
-        error: FREE_DAILY_REVIEW_LIMIT === 1
-          ? 'You have used your free resume review for today. Your allowance resets tomorrow.'
-          : `You have used all ${FREE_DAILY_REVIEW_LIMIT} of your free resume reviews for today. Your allowance resets tomorrow.`,
-        limit: FREE_DAILY_REVIEW_LIMIT,
+        error: quota.limit === 1
+          ? 'You have used your resume review for today. Your allowance resets tomorrow.'
+          : `You have used all ${quota.limit} of your resume reviews for today. Your allowance resets tomorrow.`,
+        limit: quota.limit,
         used: claim.used,
         remaining: 0,
       });
@@ -245,13 +244,13 @@ export async function enforceDailyReviewLimit(req, res, next) {
       reason: 'within_daily_limit',
       tier: quota.tier,
       used: claim.used,
-      limit: FREE_DAILY_REVIEW_LIMIT,
+      limit: quota.limit,
     });
 
     res.locals.reviewQuota = {
       ...quota,
       used: claim.used,
-      remaining: Math.max(0, FREE_DAILY_REVIEW_LIMIT - claim.used),
+      remaining: Math.max(0, quota.limit - claim.used),
       // Tells the route a slot was actually taken, so it knows whether there
       // is anything to give back if the analysis fails.
       claimed: true,

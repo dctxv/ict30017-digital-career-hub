@@ -19,6 +19,7 @@ import { useLanguage } from '../context/LanguageContext'
 import { sampleReview } from '../data/sampleReview'
 import { streamResumeReview } from '../api/reviewResume'
 import LanguagePromptDialog from '../components/LanguagePromptDialog'
+import AtsTooltip from '../components/AtsTooltip'
 import './ResumeReview.css'
 
 const CONTEXT_FIELDS = [
@@ -330,9 +331,7 @@ function UploadView({
                     <p className="rr-cover__title">{t(`review.covers${name}`)}</p>
                     <p className="rr-cover__desc">{t(`review.covers${name}Desc`)}</p>
                     {name === 'Ats' && (
-                      <p className="rr-cover__explain">
-                        <strong>{t('review.atsWhat')}</strong> {t('review.atsWhatBody')}
-                      </p>
+                      <AtsTooltip />
                     )}
                   </div>
                 </div>

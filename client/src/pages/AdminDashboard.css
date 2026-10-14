@@ -340,6 +340,21 @@
   font-size: 15px;
 }
 
+.admin-plans { display: grid; gap: 24px; padding-top: 28px; }
+.admin-tier-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.admin-tier-card { padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface-2); }
+.admin-tier-card--basic { border-color: var(--border-accent); }
+.admin-tier-card--premium { background: var(--tint); border-color: var(--accent); }
+.admin-tier-card__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.admin-tier-card__heading h3 { font-size: 18px; }
+.admin-tier-card__heading span, .admin-tier-pill { display: inline-flex; padding: 4px 9px; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent-text); font-size: 11.5px; font-weight: 700; text-transform: capitalize; }
+.admin-tier-card .form-label { margin-bottom: 14px; }
+.admin-tier-card .form-input { margin-top: 7px; }
+.admin-tier-card .btn-primary { width: 100%; gap: 7px; margin-top: 4px; }
+.admin-accounts-heading { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+.admin-account-search { display: flex; align-items: center; gap: 8px; min-width: 260px; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); }
+.admin-account-search input { width: 100%; border: 0; outline: 0; color: var(--ink); background: transparent; font: inherit; }
+
 /* ── Responsive ────────────────────────────────────────────────────── */
 
 @media (max-width: 1000px) {
@@ -349,10 +364,13 @@
   /* Sticking a full-width editor above the list would pin most of the viewport
      to a form the user is not currently filling in. */
   .admin-form-card { position: static; }
+  .admin-tier-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
   .admin-header { padding: 28px 20px 0; }
   .admin-title { font-size: 24px; }
   .form-row { grid-template-columns: 1fr; }
+  .admin-accounts-heading { display: block; }
+  .admin-account-search { min-width: 0; margin-bottom: 18px; }
 }
