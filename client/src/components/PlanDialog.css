@@ -52,26 +52,6 @@
   margin-bottom: 20px;
 }
 
-.plan-dialog__steps {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.plan-dialog__step {
-  padding: 8px 10px;
-  border-bottom: 2px solid var(--border);
-  color: var(--muted-3);
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.plan-dialog__step--on {
-  border-color: var(--accent);
-  color: var(--accent-text);
-}
-
 .plan-dialog__summary {
   display: flex;
   align-items: center;
@@ -173,16 +153,6 @@
 
 .plan-dialog__chosen svg { color: var(--accent-text); flex: none; }
 .plan-dialog__chosen strong { color: var(--ink); }
-.plan-dialog__chosen button {
-  margin-left: auto;
-  border: 0;
-  background: none;
-  color: var(--accent-text);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
 .plan-dialog__field-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
