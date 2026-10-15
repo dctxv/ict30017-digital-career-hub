@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import Navbar from '../components/Navbar'
+import AdminPlansPanel from '../components/AdminPlansPanel'
 import { useLanguage } from '../context/LanguageContext'
 import './AdminDashboard.css'
 
@@ -346,6 +347,7 @@ export default function AdminDashboard() {
           <button className={`admin-tab ${activeTab === 'career-paths' ? 'active' : ''}`} onClick={() => setActiveTab('career-paths')}>{t('admin.tabCareerPaths')}</button>
           <button className={`admin-tab ${activeTab === 'resources' ? 'active' : ''}`} onClick={() => setActiveTab('resources')}>{t('admin.tabResources')}</button>
           <button className={`admin-tab ${activeTab === 'alumni' ? 'active' : ''}`} onClick={() => setActiveTab('alumni')}>{t('admin.tabAlumni')}</button>
+          <button className={`admin-tab ${activeTab === 'plans' ? 'active' : ''}`} onClick={() => setActiveTab('plans')}>{t('admin.tabPlans')}</button>
         </div>
 
         <div className="admin-panel">
@@ -755,6 +757,12 @@ export default function AdminDashboard() {
                 </table>
               </div>
             </div>
+          )}
+          {activeTab === 'plans' && (
+            <AdminPlansPanel
+              onMessage={(text) => notify(text)}
+              onError={(text) => { setMessage(''); setError(text) }}
+            />
           )}
         </div>
       </div>
