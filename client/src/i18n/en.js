@@ -306,7 +306,7 @@ export default {
   'review.jobAdPlaceholder': 'Paste the job description here…',
 
   'review.quotaFallback': 'Free plan',
-  'review.quotaUnlimited': 'Premium plan — unlimited resume reviews',
+  'review.quotaUnlimited': 'Unlimited resume reviews on your plan',
   'review.quotaAnonymous': 'Free plan — {limit} resume reviews per day. Log in to track how many you have left.',
   'review.quotaAnonymousOne': 'Free plan — {limit} resume review per day. Log in to track whether you have used it.',
   'review.quotaExhausted': 'Free plan — no resume reviews left today. Your allowance resets tomorrow.',
@@ -956,7 +956,7 @@ export default {
   'prep.charCount': '{used} of {max} characters',
 
   'prep.quotaFallback': 'Free plan',
-  'prep.quotaUnlimited': 'Premium plan — unlimited mock interviews',
+  'prep.quotaUnlimited': 'Unlimited mock interviews on your plan',
   'prep.quotaExhausted': 'Free plan — no mock interviews left today. Your quota resets tomorrow.',
   'prep.quotaRemainingOne': 'Free plan — {remaining} of {limit} mock interview left today',
   'prep.quotaRemainingMany': 'Free plan — {remaining} of {limit} mock interviews left today',

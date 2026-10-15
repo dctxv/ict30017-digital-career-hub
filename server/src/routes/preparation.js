@@ -240,7 +240,9 @@ function readAnswers(submitted) {
  * reason.
  */
 function canAskFollowUps(quota) {
-  return Boolean(quota) && (quota.unlimited === true || quota.tier === 'premium');
+  // Premium or an admin account, not "unlimited": an admin can now make any
+  // plan's allowance unlimited, and that must not hand out a Premium feature.
+  return Boolean(quota) && (quota.tier === 'premium' || quota.role === 'admin');
 }
 
 /** Maps an ai-service failure code onto the status the client expects. */

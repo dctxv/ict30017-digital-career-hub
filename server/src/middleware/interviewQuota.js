@@ -24,9 +24,6 @@
 import pool from '../db.js';
 import { readTierLimit } from '../utils/tierLimits.js';
 
-/** Free tier allowance, per user, per calendar day. */
-export const FREE_DAILY_INTERVIEW_LIMIT = 10;
-
 const UNLIMITED_ROLES = new Set(['admin']);
 
 function isGuest(req) {
@@ -100,6 +97,9 @@ async function claimInterview(userId, limit) {
             END,
             mock_interview_reset_date = CURRENT_DATE
       WHERE user_id = $1
+        -- An admin may set a plan's allowance to 0. The reset branches below would
+        -- otherwise hand out the first claim of every new day regardless.
+        AND $2 > 0
         AND (
           mock_interview_reset_date IS NULL
           OR mock_interview_reset_date < CURRENT_DATE

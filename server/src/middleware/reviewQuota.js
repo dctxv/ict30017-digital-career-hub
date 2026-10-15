@@ -3,8 +3,9 @@
  * Responsibility: Enforce the free tier's daily resume review allowance against
  * the authenticated user, and report the remaining count to the frontend.
  *
- * Canonical limit: a free account may run FREE_DAILY_REVIEW_LIMIT resume
- * analyses per calendar day. Three numbers previously described this one limit
+ * Canonical limit: each plan's daily allowance is set by an admin in the
+ * tier_limits table (utils/tierLimits.js, which also holds the defaults used
+ * until the migration has run). Three numbers previously described this limit
  * (static "3 reviews remaining this month" text on the review page, "3 resume
  * reviews per day" on the register page, and 5 per hour per IP in the server),
  * and none of them agreed. This module is the only authority now; the frontend
@@ -18,9 +19,6 @@ import fs from 'fs';
 
 import pool from '../db.js';
 import { readTierLimit } from '../utils/tierLimits.js';
-
-/** Free tier allowance, per user, per calendar day. */
-export const FREE_DAILY_REVIEW_LIMIT = 10;
 
 /** Roles that bypass the daily cap regardless of tier. */
 const UNLIMITED_ROLES = new Set(['admin']);
@@ -113,6 +111,9 @@ async function claimReview(userId, limit) {
        END,
        resume_review_reset_date = CURRENT_DATE
      WHERE user_id = $1
+       -- An admin may set a plan's allowance to 0. The reset branches below would
+       -- otherwise hand out the first claim of every new day regardless.
+       AND $2 > 0
        AND (
          resume_review_reset_date IS NULL
          OR resume_review_reset_date < CURRENT_DATE

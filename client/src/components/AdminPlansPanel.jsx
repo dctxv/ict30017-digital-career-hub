@@ -102,7 +102,10 @@ export default function AdminPlansPanel({ onMessage, onError }) {
               <article className={`admin-tier-card admin-tier-card--${tier}`} key={tier}>
                 <div className="admin-tier-card__heading">
                   <h3>{t(`admin.plans.tier.${tier}`)}</h3>
-                  {tier === 'premium' && <span>{t('admin.plans.unlimitedBadge')}</span>}
+                  {/* From the values, not the plan name: Premium can be given a cap too. */}
+                  {[row.resume_reviews_daily, row.mock_interviews_daily].every(value => value === null || value === '') && (
+                    <span>{t('admin.plans.unlimitedBadge')}</span>
+                  )}
                 </div>
                 <label className="form-label">
                   {t('admin.plans.resumeLimit')}

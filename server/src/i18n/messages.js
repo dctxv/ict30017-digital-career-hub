@@ -39,11 +39,24 @@ export const BANGLA_MESSAGES = {
   'An account with this email already exists. Try logging in instead.':
     'এই ইমেইলে একটি অ্যাকাউন্ট আগে থেকেই আছে। বরং লগ ইন করে দেখুন।',
 
-  /* ── Daily allowances (the singular form; plurals are patterns below) ── */
-  'You have used your free resume review for today. Your allowance resets tomorrow.':
-    'আপনি আজকের ফ্রি রিজিউমে রিভিউটি ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।',
-  'You have used your free mock interview for today. Your allowance resets tomorrow.':
-    'আপনি আজকের ফ্রি মক ইন্টারভিউটি ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।',
+  /* ── Daily allowances (the singular form; plurals are patterns below) ──
+     Not "free": the limit now depends on the account's plan, set by an admin. */
+  'You have used your resume review for today. Your allowance resets tomorrow.':
+    'আপনি আজকের রিজিউমে রিভিউটি ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।',
+  'You have used your mock interview for today. Your allowance resets tomorrow.':
+    'আপনি আজকের মক ইন্টারভিউটি ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।',
+
+  /* ── Admin: plan limits and paid status ──────────────────── */
+  'Could not load tier limits.': 'প্ল্যানের সীমা লোড করা যায়নি।',
+  'Could not save tier limits.': 'প্ল্যানের সীমা সেভ করা যায়নি।',
+  'Unknown tier.': 'অজানা প্ল্যান।',
+  'Limits must be whole numbers from 0 to 10,000, or unlimited.':
+    'সীমা ০ থেকে ১০,০০০-এর মধ্যে পূর্ণসংখ্যা হতে হবে, অথবা আনলিমিটেড।',
+  'Could not load accounts.': 'অ্যাকাউন্টগুলো লোড করা যায়নি।',
+  'Invalid account id.': 'অ্যাকাউন্ট আইডিটি সঠিক নয়।',
+  'is_paid must be true or false.': 'is_paid অবশ্যই true বা false হতে হবে।',
+  'Account not found.': 'অ্যাকাউন্টটি পাওয়া যায়নি।',
+  'Could not update paid status.': 'পেমেন্টের অবস্থা আপডেট করা যায়নি।',
 
   /* ── Captcha, email verification and login code ──────────── */
   'Invalid request.': 'অনুরোধটি সঠিক নয়।',
@@ -227,16 +240,16 @@ export const BANGLA_PATTERNS = [
     build: ([, plans]) => `প্ল্যান অবশ্যই এগুলোর একটি হতে হবে: ${plans}।`,
   },
   {
-    match: /^You have used all (\d+) of your free resume reviews for today\. Your allowance resets tomorrow\.$/,
+    match: /^You have used all (\d+) of your resume reviews for today\. Your allowance resets tomorrow\.$/,
     build: ([, count]) =>
-      `আপনি আজকের ${toBengaliDigits(count)}টি ফ্রি রিজিউমে রিভিউই ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।`,
+      `আপনি আজকের ${toBengaliDigits(count)}টি রিজিউমে রিভিউই ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।`,
   },
   {
     // Worded to match the review rejection above, so the two limits read the
     // same way to a user who hits both.
-    match: /^You have used all (\d+) of your free mock interviews for today\. Your allowance resets tomorrow\.$/,
+    match: /^You have used all (\d+) of your mock interviews for today\. Your allowance resets tomorrow\.$/,
     build: ([, count]) =>
-      `আপনি আজকের ${toBengaliDigits(count)}টি ফ্রি মক ইন্টারভিউই ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।`,
+      `আপনি আজকের ${toBengaliDigits(count)}টি মক ইন্টারভিউই ব্যবহার করে ফেলেছেন। আগামীকাল আপনার কোটা আবার শুরু হবে।`,
   },
 ];
 

@@ -18,8 +18,8 @@ import {
   enforceDailyReviewLimit,
   readReviewQuota,
   refundReview,
-  FREE_DAILY_REVIEW_LIMIT,
 } from '../middleware/reviewQuota.js';
+import { readTierLimit } from '../utils/tierLimits.js';
 
 const router = express.Router();
 
@@ -250,11 +250,14 @@ const resumeRateLimit = rateLimit({
  */
 router.get('/quota', optionalAuth, async (req, res) => {
   if (!req.user || req.user.id === 'guest' || req.user.role === 'guest') {
+    // What a free account would get, so the sign-in prompt quotes the number
+    // an admin has actually set rather than a constant.
+    const limit = await readTierLimit('free', 'resume');
     return res.json({
       authenticated: false,
-      limit: FREE_DAILY_REVIEW_LIMIT,
+      limit,
       remaining: null,
-      unlimited: false,
+      unlimited: limit === null,
     });
   }
 
