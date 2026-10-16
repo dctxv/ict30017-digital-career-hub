@@ -255,6 +255,9 @@ export default {
   'resources.type.Course': 'Course',
   'resources.type.PDF': 'PDF',
 
+  'resources.sourceVerified': 'Verified source',
+  'resources.sourceUnverified': 'Unverified source',
+
   /* ── Career paths ────────────────────────────────────────────── */
   'careers.loading': 'Loading career paths...',
   'careers.title': 'Career path explorer',
@@ -528,6 +531,10 @@ export default {
   'admin.bilingualHint': 'Bangla fields are optional. Leave one blank and the site shows the English text for it until a translation is added.',
   'admin.disc.nameBn': 'Name (Bangla)',
   'admin.disc.descriptionBn': 'Description (Bangla)',
+  'admin.disc.group': 'Group',
+  'admin.disc.groupBn': 'Group (Bangla)',
+  'admin.disc.groupPlaceholder': 'e.g. Technology',
+  'admin.disc.groupHint': 'Shown as the top-level filter pill on Career Paths and Resources, with this discipline nested underneath it. Leave blank and this discipline is its own group.',
   'admin.path.descriptionBn': 'Description (Bangla)',
   'admin.path.industryBn': 'Industry (Bangla)',
   'admin.path.titleBn': 'Title (Bangla)',
@@ -585,6 +592,7 @@ export default {
   'admin.res.category': 'Category',
   'admin.res.selectCategory': 'Select category',
   'admin.res.url': 'URL',
+  'admin.res.sourceReliability': 'Source reliability',
   'admin.res.descEn': 'Description (English)',
   'admin.res.descBn': 'Description (Bangla)',
   'admin.res.updateButton': 'Update Resource',

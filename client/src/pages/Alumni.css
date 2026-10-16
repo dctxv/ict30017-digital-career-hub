@@ -24,6 +24,8 @@
 
 .alumni-head__filters { justify-content: center; }
 
+.alumni-head__filters--sub { margin-top: 12px; }
+
 .alumni-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

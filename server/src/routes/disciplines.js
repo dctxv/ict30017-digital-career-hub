@@ -17,6 +17,10 @@
  *   So `name` always comes back in English and `name_bn` travels beside it.
  *   The client renders name_bn and keeps filtering on name. Only `description`,
  *   which nothing joins on, resolves per language with a COALESCE fallback.
+ *
+ * group_name / group_name_bn (add_discipline_groups.sql) follow the same rule
+ * as name/name_bn, for the same reason: they are rendered, never filtered on,
+ * so both language columns travel together and the client picks one.
  */
 
 import express from 'express';
@@ -50,8 +54,9 @@ function descField(lang) {
 
 const NAME_MAX = 100;
 const DESCRIPTION_MAX = 500;
+const GROUP_NAME_MAX = 100;
 
-function validateDiscipline({ name, description, name_bn, description_bn }) {
+function validateDiscipline({ name, description, name_bn, description_bn, group_name, group_name_bn }) {
   if (typeof name !== 'string' || name.trim().length < 2) {
     return 'Name must be at least 2 characters.';
   }
@@ -63,6 +68,17 @@ function validateDiscipline({ name, description, name_bn, description_bn }) {
     if (typeof name_bn !== 'string') return 'Bangla name must be text.';
     if (name_bn.trim().length > NAME_MAX) {
       return `Bangla name must be ${NAME_MAX} characters or fewer.`;
+    }
+  }
+
+  // Optional: a discipline left ungrouped falls back to its own name as its
+  // group (see POST/PUT below), so this is never required.
+  for (const [label, value] of [['Group', group_name], ['Bangla group', group_name_bn]]) {
+    if (value !== undefined && value !== null && value !== '') {
+      if (typeof value !== 'string') return `${label} must be text.`;
+      if (value.trim().length > GROUP_NAME_MAX) {
+        return `${label} must be ${GROUP_NAME_MAX} characters or fewer.`;
+      }
     }
   }
 
@@ -94,7 +110,8 @@ router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT id, name, name_bn, ${descField(resolveLang(req.query.lang))} AS description,
-              description AS description_en, description_bn
+              description AS description_en, description_bn,
+              COALESCE(group_name, name) AS group_name, COALESCE(group_name_bn, name_bn) AS group_name_bn
          FROM disciplines ORDER BY id`
     );
     return res.json(result.rows);
@@ -114,7 +131,8 @@ router.get('/:id', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT id, name, name_bn, ${descField(resolveLang(req.query.lang))} AS description,
-              description AS description_en, description_bn
+              description AS description_en, description_bn,
+              COALESCE(group_name, name) AS group_name, COALESCE(group_name_bn, name_bn) AS group_name_bn
          FROM disciplines WHERE id = $1`,
       [id]
     );
@@ -139,11 +157,13 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO disciplines (name, description, name_bn, description_bn)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, name, name_bn, description, description_bn`,
+      `INSERT INTO disciplines (name, description, name_bn, description_bn, group_name, group_name_bn)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, name, name_bn, description, description_bn,
+                 COALESCE(group_name, name) AS group_name, COALESCE(group_name_bn, name_bn) AS group_name_bn`,
       [name.trim(), (description ?? '').trim(),
-       nullIfBlank(req.body?.name_bn), nullIfBlank(req.body?.description_bn)]
+       nullIfBlank(req.body?.name_bn), nullIfBlank(req.body?.description_bn),
+       nullIfBlank(req.body?.group_name), nullIfBlank(req.body?.group_name_bn)]
     );
     await recordAudit({
       req, action: 'create', entity: 'discipline',
@@ -181,11 +201,14 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 
     const result = await pool.query(
       `UPDATE disciplines
-          SET name = $1, description = $2, name_bn = $3, description_bn = $4
-        WHERE id = $5
-      RETURNING id, name, name_bn, description, description_bn`,
+          SET name = $1, description = $2, name_bn = $3, description_bn = $4,
+              group_name = $5, group_name_bn = $6
+        WHERE id = $7
+      RETURNING id, name, name_bn, description, description_bn,
+                COALESCE(group_name, name) AS group_name, COALESCE(group_name_bn, name_bn) AS group_name_bn`,
       [name.trim(), (description ?? '').trim(),
-       nullIfBlank(req.body?.name_bn), nullIfBlank(req.body?.description_bn), id]
+       nullIfBlank(req.body?.name_bn), nullIfBlank(req.body?.description_bn),
+       nullIfBlank(req.body?.group_name), nullIfBlank(req.body?.group_name_bn), id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Discipline not found.' });

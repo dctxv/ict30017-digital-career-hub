@@ -126,6 +126,33 @@
   margin-bottom: 16px;
 }
 
+/* Whether the source behind this resource was actually checked — see the
+   client's sourcing standard. Verified echoes the existing --accent-soft
+   "good" tint used elsewhere; unverified reuses the --warn- tokens rather
+   than introducing a third colour into the palette. */
+.res-card__reliability {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  margin-bottom: 16px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.res-card__reliability--verified {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.res-card__reliability--unverified {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  color: var(--warn-text);
+}
+
 /* Pushed to the bottom so the call to action sits on the same line across a row
    of cards whose descriptions differ in length. */
 .res-card__footer {

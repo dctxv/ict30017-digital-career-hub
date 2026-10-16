@@ -109,6 +109,20 @@ try {
 } catch (err) {
   console.error('');
   console.error(`[migrate] Failed: ${err.message}`);
+  // Temporary diagnostic: Postgres sends the offending table/column/detail
+  // separately from the message, but the plain message above doesn't show
+  // them. Print whatever the driver gives us so a "value too long" error
+  // names the actual column instead of leaving it a guess.
+  if (err.table || err.column || err.detail || err.schema || err.constraint) {
+    console.error('[migrate] Error detail:', {
+      schema: err.schema,
+      table: err.table,
+      column: err.column,
+      constraint: err.constraint,
+      detail: err.detail,
+      code: err.code,
+    });
+  }
   console.error('[migrate] Nothing further was applied. Fix the cause and run again —');
   console.error('[migrate] migrations already recorded will be skipped.');
   process.exitCode = 1;

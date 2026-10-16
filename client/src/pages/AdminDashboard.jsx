@@ -12,7 +12,7 @@ const RESOURCE_CATEGORIES = [
   'Skill Development',
 ]
 
-const emptyDisc = { name: '', description: '', name_bn: '', description_bn: '' }
+const emptyDisc = { name: '', description: '', name_bn: '', description_bn: '', group_name: '', group_name_bn: '' }
 const emptyPath = {
   title: '', industry: '', discipline: '', desc: '',
   skills: '', progression: '', salaryEntry: '', salarySenior: '',
@@ -20,7 +20,7 @@ const emptyPath = {
 }
 const emptyResource = {
   title_en: '', title_bn: '', description_en: '', description_bn: '',
-  type: '', discipline: '', category: '', url: '',
+  type: '', discipline: '', category: '', url: '', source_reliability: 'unverified',
 }
 const emptyAlumni = {
   full_name: '', institution: '', discipline: '', graduation_year: '',
@@ -366,6 +366,15 @@ export default function AdminDashboard() {
                     <label className="form-label">{t('admin.disc.description')}</label>
                     <textarea className="form-textarea" value={discForm.description} onChange={(e) => setDiscForm({ ...discForm, description: e.target.value })} rows="2" />
                   </div>
+                  {/* The group is what the Career Paths / Resources filter bar shows as
+                      the top-level pill; this discipline becomes one of its sub-items.
+                      Left blank, a discipline falls back to being its own group — see
+                      add_discipline_groups.sql — so this never blocks saving. */}
+                  <div className="form-group">
+                    <label className="form-label">{t('admin.disc.group')}</label>
+                    <input className="form-input" value={discForm.group_name} onChange={(e) => setDiscForm({ ...discForm, group_name: e.target.value })} placeholder={t('admin.disc.groupPlaceholder')} />
+                    <span className="field__hint">{t('admin.disc.groupHint')}</span>
+                  </div>
                   {/* Bangla is optional throughout: leaving a field blank stores
                       NULL, and the site falls back to the English text for it. */}
                   <p className="admin-hint">{t('admin.bilingualHint')}</p>
@@ -379,6 +388,10 @@ export default function AdminDashboard() {
                       <input className="form-input" lang="bn" value={discForm.description_bn} onChange={(e) => setDiscForm({ ...discForm, description_bn: e.target.value })} placeholder={t('admin.res.optionalPlaceholder')} />
                     </div>
                   </div>
+                  <div className="form-group">
+                    <label className="form-label">{t('admin.disc.groupBn')}</label>
+                    <input className="form-input" lang="bn" value={discForm.group_name_bn} onChange={(e) => setDiscForm({ ...discForm, group_name_bn: e.target.value })} placeholder={t('admin.res.optionalPlaceholder')} />
+                  </div>
                   <div className="form-buttons">
                     <button type="submit" className="btn-primary">{t(editingDiscId ? 'admin.disc.updateButton' : 'admin.disc.addButton')}</button>
                     {editingDiscId && <button type="button" className="btn-secondary" onClick={() => { setEditingDiscId(null); setDiscForm(emptyDisc) }}>{t('common.cancel')}</button>}
@@ -389,17 +402,18 @@ export default function AdminDashboard() {
                 <h2>{t('admin.disc.existing', { count: n(disciplines.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.table.description')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.actions')}</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.name')}</th><th>{t('admin.disc.group')}</th><th>{t('admin.table.description')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {disciplines.map(d => (
                       <tr key={d.id}>
                         <td>{d.id}</td>
                         <td><strong>{display(d.name, d.name_bn)}</strong></td>
+                        <td>{display(d.group_name, d.group_name_bn)}</td>
                         <td>{display(d.description, d.description_bn) || '-'}</td>
-                        <td>{translatedCell(d.name_bn, d.description_bn)}</td>
+                        <td>{translatedCell(d.name_bn, d.description_bn, d.group_name_bn)}</td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingDiscId(d.id); setDiscForm({ name: d.name, description: d.description_en ?? d.description ?? '', name_bn: d.name_bn ?? '', description_bn: d.description_bn ?? '' }) }}>{t('common.edit')}</button>
+                          <button className="btn-edit" onClick={() => { setEditingDiscId(d.id); setDiscForm({ name: d.name, description: d.description_en ?? d.description ?? '', name_bn: d.name_bn ?? '', description_bn: d.description_bn ?? '', group_name: d.group_name === d.name ? '' : (d.group_name ?? ''), group_name_bn: d.group_name_bn === d.name_bn ? '' : (d.group_name_bn ?? '') }) }}>{t('common.edit')}</button>
                           <button className="btn-delete" onClick={() => remove(`/api/disciplines/${d.id}`, 'admin.disc.confirmDelete', fetchDisciplines, 'admin.label.discipline')}>{t('common.delete')}</button>
                         </td>
                       </tr>
@@ -431,7 +445,7 @@ export default function AdminDashboard() {
                       <label className="form-label">{t('admin.path.discipline')}</label>
                       <select className="form-input" value={pathForm.discipline} onChange={(e) => setPathForm({ ...pathForm, discipline: e.target.value })} required>
                         <option value="">{t('admin.path.selectDiscipline')}</option>
-                        {disciplines.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                        {disciplines.map(d => <option key={d.id} value={d.name}>{display(d.name, d.name_bn)}</option>)}
                       </select>
                     </div>
                     <div className="form-group">
@@ -550,7 +564,7 @@ export default function AdminDashboard() {
                       <select className="form-input" value={resourceForm.discipline} onChange={(e) => setResourceForm({ ...resourceForm, discipline: e.target.value })} required>
                         <option value="">{t('admin.res.selectDiscipline')}</option>
                         <option value="All disciplines">{t('common.allDisciplines')}</option>
-                        {disciplines.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                        {disciplines.map(d => <option key={d.id} value={d.name}>{display(d.name, d.name_bn)}</option>)}
                       </select>
                     </div>
                   </div>
@@ -565,6 +579,18 @@ export default function AdminDashboard() {
                     <div className="form-group">
                       <label className="form-label">{t('admin.res.url')}</label>
                       <input className="form-input" type="url" value={resourceForm.url} onChange={(e) => setResourceForm({ ...resourceForm, url: e.target.value })} placeholder="https://..." required />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">{t('admin.res.sourceReliability')}</label>
+                      {/* Defaults to unverified (see emptyResource) so a new
+                          resource never shows as checked until someone has
+                          actually opened the link and confirmed it. */}
+                      <select className="form-input" value={resourceForm.source_reliability} onChange={(e) => setResourceForm({ ...resourceForm, source_reliability: e.target.value })}>
+                        <option value="unverified">{t('resources.sourceUnverified')}</option>
+                        <option value="verified">{t('resources.sourceVerified')}</option>
+                      </select>
                     </div>
                   </div>
                   <div className="form-group">
@@ -585,7 +611,7 @@ export default function AdminDashboard() {
                 <h2>{t('admin.res.existing', { count: n(resources.length) })}</h2>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.title')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.type')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.category')}</th><th>{t('admin.res.linkColumn')}</th><th>{t('admin.table.actions')}</th></tr>
+                    <tr><th>{t('admin.table.id')}</th><th>{t('admin.table.title')}</th><th>{t('admin.res.banglaColumn')}</th><th>{t('admin.table.type')}</th><th>{t('admin.table.discipline')}</th><th>{t('admin.table.category')}</th><th>{t('admin.res.sourceReliability')}</th><th>{t('admin.res.linkColumn')}</th><th>{t('admin.table.actions')}</th></tr>
                   </thead>
                   <tbody>
                     {resources.map(r => (
@@ -597,12 +623,17 @@ export default function AdminDashboard() {
                         <td>{r.discipline === 'All disciplines' ? t('common.allDisciplines') : disciplineLabel(r.discipline)}</td>
                         <td>{tc(`resources.category.${r.category}`, r.category)}</td>
                         <td>
+                          {r.source_reliability === 'verified'
+                            ? t('resources.sourceVerified')
+                            : <span className="admin-untranslated">{t('resources.sourceUnverified')}</span>}
+                        </td>
+                        <td>
                           {duplicateUrls.has(r.url)
                             ? <span className="admin-untranslated" title={r.url}>{t('admin.res.sharedUrl')}</span>
                             : ''}
                         </td>
                         <td>
-                          <button className="btn-edit" onClick={() => { setEditingResourceId(r.id); setResourceForm({ title_en: r.title_en, title_bn: r.title_bn ?? '', description_en: r.description_en, description_bn: r.description_bn ?? '', type: r.type, discipline: r.discipline, category: r.category, url: r.url }) }}>{t('common.edit')}</button>
+                          <button className="btn-edit" onClick={() => { setEditingResourceId(r.id); setResourceForm({ title_en: r.title_en, title_bn: r.title_bn ?? '', description_en: r.description_en, description_bn: r.description_bn ?? '', type: r.type, discipline: r.discipline, category: r.category, url: r.url, source_reliability: r.source_reliability ?? 'unverified' }) }}>{t('common.edit')}</button>
                           <button className="btn-delete" onClick={() => remove(`/api/resources/${r.id}`, 'admin.res.confirmDelete', fetchResources, 'admin.label.resource')}>{t('common.delete')}</button>
                         </td>
                       </tr>
@@ -634,7 +665,7 @@ export default function AdminDashboard() {
                       <label className="form-label">{t('admin.alum.discipline')}</label>
                       <select className="form-input" value={alumniForm.discipline} onChange={(e) => setAlumniForm({ ...alumniForm, discipline: e.target.value })} required>
                         <option value="">{t('admin.alum.selectDiscipline')}</option>
-                        {disciplines.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                        {disciplines.map(d => <option key={d.id} value={d.name}>{display(d.name, d.name_bn)}</option>)}
                       </select>
                     </div>
                     <div className="form-group">

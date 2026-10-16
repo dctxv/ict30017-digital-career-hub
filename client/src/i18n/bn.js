@@ -179,6 +179,9 @@ export default {
   'resources.type.Course': 'কোর্স',
   'resources.type.PDF': 'PDF',
 
+  'resources.sourceVerified': 'যাচাইকৃত উৎস',
+  'resources.sourceUnverified': 'অযাচাইকৃত উৎস',
+
   /* ── Career paths ────────────────────────────────────────────── */
   'careers.loading': 'ক্যারিয়ার পথ লোড হচ্ছে...',
   'careers.title': 'ক্যারিয়ার পথ এক্সপ্লোরার',
@@ -435,6 +438,10 @@ export default {
   'admin.bilingualHint': 'বাংলা ঘরগুলো ঐচ্ছিক। কোনো ঘর খালি রাখলে অনুবাদ যোগ না করা পর্যন্ত সাইটে সেটির ইংরেজি লেখাটিই দেখানো হবে।',
   'admin.disc.nameBn': 'নাম (বাংলা)',
   'admin.disc.descriptionBn': 'বিবরণ (বাংলা)',
+  'admin.disc.group': 'গ্রুপ',
+  'admin.disc.groupBn': 'গ্রুপ (বাংলা)',
+  'admin.disc.groupPlaceholder': 'যেমন: প্রযুক্তি',
+  'admin.disc.groupHint': 'ক্যারিয়ার পাথ ও রিসোর্স পেজে এটি উপরের ফিল্টার হিসেবে দেখানো হয়, আর এই বিষয়টি তার নিচে থাকে। খালি রাখলে এই বিষয়টি নিজেই একটি গ্রুপ হিসেবে গণ্য হবে।',
   'admin.path.descriptionBn': 'বিবরণ (বাংলা)',
   'admin.path.industryBn': 'ইন্ডাস্ট্রি (বাংলা)',
   'admin.path.titleBn': 'শিরোনাম (বাংলা)',
@@ -492,6 +499,7 @@ export default {
   'admin.res.category': 'ক্যাটাগরি',
   'admin.res.selectCategory': 'ক্যাটাগরি বাছুন',
   'admin.res.url': 'URL',
+  'admin.res.sourceReliability': 'উৎসের নির্ভরযোগ্যতা',
   'admin.res.descEn': 'বিবরণ (ইংরেজি)',
   'admin.res.descBn': 'বিবরণ (বাংলা)',
   'admin.res.updateButton': 'রিসোর্স হালনাগাদ করুন',

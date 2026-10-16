@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Search, ArrowUpRight } from 'lucide-react'
+import { Search, ArrowUpRight, ShieldCheck, ShieldAlert } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import { useLanguage } from '../context/LanguageContext'
 import { fetchList } from '../api/fetchList'
@@ -7,7 +7,22 @@ import './Resources.css'
 
 const CATEGORIES = ['All', 'Resume Writing', 'Interview Prep', 'Job Search', 'Soft Skills', 'Skill Development']
 
-const FALLBACK_DISCIPLINES = ['IT', 'Finance', 'Science', 'Engineering', 'Business', 'Arts', 'Education']
+// Discipline groups, client-side mirror of add_discipline_groups.sql: used
+// only when the API call fails and the hardcoded fallback list takes over,
+// and to seed the initial group synchronously (see `group` below). Bangla
+// labels are mirrored too (from seed_bangla_content.sql / the group UPDATEs
+// in add_discipline_groups.sql) so a language switch still works while the
+// API is down — otherwise falling back silently pinned the filter bar to
+// English regardless of `lang`.
+const FALLBACK_DISCIPLINES = [
+  { name: 'IT', name_bn: 'আইটি', group: 'Technology', group_bn: 'প্রযুক্তি ও বিজ্ঞান' },
+  { name: 'Engineering', name_bn: 'ইঞ্জিনিয়ারিং', group: 'Technology', group_bn: 'প্রযুক্তি ও বিজ্ঞান' },
+  { name: 'Science', name_bn: 'বিজ্ঞান', group: 'Technology', group_bn: 'প্রযুক্তি ও বিজ্ঞান' },
+  { name: 'Finance', name_bn: 'ফিন্যান্স', group: 'Business & Finance', group_bn: 'ব্যবসা ও অর্থনীতি' },
+  { name: 'Business', name_bn: 'ব্যবসা', group: 'Business & Finance', group_bn: 'ব্যবসা ও অর্থনীতি' },
+  { name: 'Arts', name_bn: 'কলা', group: 'Humanities & Education', group_bn: 'মানবিক ও শিক্ষা' },
+  { name: 'Education', name_bn: 'শিক্ষা', group: 'Humanities & Education', group_bn: 'মানবিক ও শিক্ষা' },
+]
 
 /* How many cards are shown before "load more". The button used to be decorative
    — it rendered on every list and did nothing, including on a list of six. */
@@ -21,6 +36,14 @@ export default function Resources() {
   const [disc, setDisc] = useState(
     () => localStorage.getItem('selectedDiscipline') || 'All disciplines'
   )
+  // Seeded from the same hand-off as `disc`, against the fallback list so the
+  // right group pill is already highlighted on the very first render rather
+  // than snapping into place once the API responds. Reconciled against the
+  // real data once it loads, below.
+  const [group, setGroup] = useState(() => {
+    const seeded = localStorage.getItem('selectedDiscipline')
+    return FALLBACK_DISCIPLINES.find(d => d.name === seeded)?.group ?? 'All'
+  })
   // Seeded from a preparation gap. A remediation step names a subject to learn,
   // and this is where the user lands with that subject already searched for —
   // read in the initialiser for the same reason the discipline is, so the filter
@@ -44,11 +67,17 @@ export default function Resources() {
   const narrow = (apply) => (value) => { apply(value); setVisible(PAGE_SIZE) }
   const chooseCategory = narrow(setCat)
   const chooseDiscipline = narrow(value => { setDisc(value); setCareerContext(null) })
+  // Changing the group resets the specific discipline to "all within this
+  // group", same as Career Paths — see that page for why group is a pure
+  // presentation filter rather than a value anything is stored against.
+  const chooseGroup = narrow(value => { setGroup(value); setDisc('All disciplines'); setCareerContext(null) })
   const search = narrow(setQuery)
-  // { name, label }: `name` is the English key resources are filtered by,
-  // `label` is what the pill shows. Collapsing the two would make a Bangla
-  // label match no resource row.
-  const [disciplines, setDisciplines] = useState([{ name: 'All disciplines', label: 'All disciplines' }])
+  // { name, label, group, groupLabel }: `name` is the English key resources
+  // are filtered by, `label` is what the pill shows. Collapsing name and
+  // label would make a Bangla label match no resource row.
+  const [disciplines, setDisciplines] = useState([
+    { name: 'All disciplines', label: 'All disciplines', group: 'All', groupLabel: 'All' },
+  ])
   const [resources, setResources] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -59,18 +88,36 @@ export default function Resources() {
       .then(data => {
         if (cancelled) return
         setDisciplines([
-          { name: 'All disciplines', label: t('common.allDisciplines') },
-          ...data.map(d => ({ name: d.name, label: (lang === 'bn' && d.name_bn) || d.name })),
+          { name: 'All disciplines', label: t('common.allDisciplines'), group: 'All', groupLabel: t('common.all') },
+          ...data.map(d => ({
+            name: d.name,
+            label: (lang === 'bn' && d.name_bn) || d.name,
+            group: d.group_name,
+            groupLabel: (lang === 'bn' && d.group_name_bn) || d.group_name,
+          })),
         ])
+        // Reconcile the group seeded from the fallback guess (or "All") against
+        // the real data, in case a hand-off discipline's actual group differs
+        // from what the synchronous fallback list assumed.
+        const real = data.find(d => d.name === disc)
+        if (real) setGroup(real.group_name)
       })
       .catch(() => {
         if (cancelled) return
         setDisciplines([
-          { name: 'All disciplines', label: t('common.allDisciplines') },
-          ...FALLBACK_DISCIPLINES.map(name => ({ name, label: name })),
+          { name: 'All disciplines', label: t('common.allDisciplines'), group: 'All', groupLabel: t('common.all') },
+          ...FALLBACK_DISCIPLINES.map(({ name, name_bn, group, group_bn }) => ({
+            name,
+            label: (lang === 'bn' && name_bn) || name,
+            group,
+            groupLabel: (lang === 'bn' && group_bn) || group,
+          })),
         ])
       })
     return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `disc` is read
+    // only to reconcile the initial hand-off; including it would refetch on
+    // every discipline click, which the discipline fetch has no reason to do.
   }, [lang, t])
 
   // Refetches when the language changes — the API resolves title and desc for
@@ -100,8 +147,39 @@ export default function Resources() {
     localStorage.removeItem('selectedResourceQuery')
   }, [])
 
+  // Map from discipline name to its group, built from whatever list is live
+  // (API or fallback) so a group pill can filter resources without the
+  // server needing to know what "group" means.
+  const groupOf = useMemo(() => {
+    const map = new Map()
+    for (const item of disciplines) {
+      if (item.name !== 'All disciplines') map.set(item.name, item.group)
+    }
+    return map
+  }, [disciplines])
+
+  // One pill per distinct group, in the order its first discipline appears —
+  // the admin dashboard's own ordering, not a resorted one.
+  const groups = useMemo(() => {
+    const seen = new Map()
+    seen.set('All', t('common.all'))
+    for (const item of disciplines) {
+      if (item.name === 'All disciplines') continue
+      if (!seen.has(item.group)) seen.set(item.group, item.groupLabel)
+    }
+    return [...seen.entries()].map(([name, label]) => ({ name, label }))
+  }, [disciplines, t])
+
+  // The sub-row offers only the disciplines inside the selected group, and is
+  // skipped while "All" is selected or the group has nothing to break down.
+  const disciplinesInGroup = useMemo(
+    () => disciplines.filter(item => item.name !== 'All disciplines' && item.group === group),
+    [disciplines, group],
+  )
+
   const filtered = useMemo(() => resources.filter(r => {
     const matchCat = cat === 'All' || r.category === cat
+    const matchGroup = group === 'All' || r.discipline === 'All disciplines' || groupOf.get(r.discipline) === group
     const matchDisc = disc === 'All disciplines' || r.discipline === disc || r.discipline === 'All disciplines'
     // Title and description both. A title-only match was adequate while every
     // search was typed by hand, and stopped being adequate once a preparation
@@ -112,8 +190,8 @@ export default function Resources() {
     const matchQuery = !needle
       || r.title.toLowerCase().includes(needle)
       || (r.desc ?? '').toLowerCase().includes(needle)
-    return matchCat && matchDisc && matchQuery
-  }), [resources, cat, disc, query])
+    return matchCat && matchGroup && matchDisc && matchQuery
+  }), [resources, cat, group, disc, groupOf, query])
 
   const shown = filtered.slice(0, visible)
   const labelFor = name => disciplines.find(d => d.name === name)?.label ?? name
@@ -153,18 +231,44 @@ export default function Resources() {
           </div>
 
           <div className="pill-row">
-            {disciplines.map(d => (
+            {groups.map(g => (
               <button
-                key={d.name}
+                key={g.name}
                 type="button"
-                className={`pill pill--sm${disc === d.name ? ' pill--on' : ''}`}
-                aria-pressed={disc === d.name}
-                onClick={() => chooseDiscipline(d.name)}
+                className={`pill pill--sm${group === g.name ? ' pill--on' : ''}`}
+                aria-pressed={group === g.name}
+                onClick={() => chooseGroup(g.name)}
               >
-                {d.label}
+                {g.label}
               </button>
             ))}
           </div>
+          {/* Only appears once a group narrows the list to more than one
+              discipline — "All" already shows everything, and a group with a
+              single discipline in it has nothing left to break down. */}
+          {disciplinesInGroup.length > 1 && (
+            <div className="pill-row">
+              <button
+                type="button"
+                className={`pill pill--sm${disc === 'All disciplines' ? ' pill--on' : ''}`}
+                aria-pressed={disc === 'All disciplines'}
+                onClick={() => chooseDiscipline('All disciplines')}
+              >
+                {t('common.all')}
+              </button>
+              {disciplinesInGroup.map(d => (
+                <button
+                  key={d.name}
+                  type="button"
+                  className={`pill pill--sm${disc === d.name ? ' pill--on' : ''}`}
+                  aria-pressed={disc === d.name}
+                  onClick={() => chooseDiscipline(d.name)}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -206,6 +310,24 @@ export default function Resources() {
                     <div className="res-card__tags">
                       <span className="tag tag--tint">{labelFor(r.discipline)}</span>
                       <span className="tag">{tc(`resources.category.${r.category}`, r.category)}</span>
+                    </div>
+
+                    {/* Per the client's standard: a student should be able to tell
+                        at a glance whether a resource's source was actually
+                        checked, not just assume every link is trustworthy. */}
+                    <div
+                      className={`res-card__reliability res-card__reliability--${r.source_reliability === 'verified' ? 'verified' : 'unverified'}`}
+                    >
+                      {r.source_reliability === 'verified' ? (
+                        <ShieldCheck size={13} />
+                      ) : (
+                        <ShieldAlert size={13} />
+                      )}
+                      <span>
+                        {r.source_reliability === 'verified'
+                          ? t('resources.sourceVerified')
+                          : t('resources.sourceUnverified')}
+                      </span>
                     </div>
 
                     <div className="res-card__footer">

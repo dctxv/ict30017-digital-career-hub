@@ -49,4 +49,11 @@ export const MIGRATION_ORDER = Object.freeze([
   'add_audit_log.sql',
   'relax_audit_log_for_security_events.sql',
   'create_login_events_table.sql',
+  'add_discipline_groups.sql',
+  'add_new_sector_career_paths.sql',
+  'add_new_sector_resources.sql',
+  'add_new_sector_bangla_content.sql',
+  'fix_tier1_resource_links.sql',
+  'add_resource_source_reliability.sql',
+  'backfill_resource_reliability.sql',
 ]);

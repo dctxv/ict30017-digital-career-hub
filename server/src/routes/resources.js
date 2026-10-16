@@ -28,6 +28,7 @@ const TITLE_MAX = 200;
 const DESCRIPTION_MAX = 2000;
 const URL_MAX = 2000;
 const SHORT_MAX = 100;
+const SOURCE_RELIABILITY_VALUES = ['verified', 'unverified'];
 
 // Builds the SELECT list for a language. `lang` is validated against
 // SUPPORTED_LANGUAGES before it reaches here, so it is never attacker-controlled
@@ -46,7 +47,8 @@ function selectFields(lang) {
     type,
     discipline,
     category,
-    url
+    url,
+    source_reliability
   `;
 }
 
@@ -119,6 +121,16 @@ function validateResource(body) {
     return 'URL must start with http:// or https://.';
   }
 
+  // Optional — admins marking a resource reliable/unverified. Left unset, the
+  // column's own DEFAULT 'unverified' applies, same as a brand-new resource
+  // nobody has reviewed yet.
+  const { source_reliability } = body;
+  if (source_reliability !== undefined && source_reliability !== null && source_reliability !== '') {
+    if (!SOURCE_RELIABILITY_VALUES.includes(source_reliability)) {
+      return `Source reliability must be one of: ${SOURCE_RELIABILITY_VALUES.join(', ')}.`;
+    }
+  }
+
   return null;
 }
 
@@ -138,6 +150,9 @@ function toParams(body) {
     body.discipline.trim(),
     body.category.trim(),
     body.url.trim(),
+    // Explicit INSERT/UPDATE column lists bypass the table's own DEFAULT, so
+    // an unset value is defaulted here instead — same end result either way.
+    SOURCE_RELIABILITY_VALUES.includes(body.source_reliability) ? body.source_reliability : 'unverified',
   ];
 }
 
@@ -205,8 +220,8 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const result = await pool.query(
       `INSERT INTO resources
-         (title_en, title_bn, description_en, description_bn, type, discipline, category, url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         (title_en, title_bn, description_en, description_bn, type, discipline, category, url, source_reliability)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING ${selectFields('en')}`,
       toParams(req.body)
     );
@@ -243,8 +258,9 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       `UPDATE resources
           SET title_en = $1, title_bn = $2,
               description_en = $3, description_bn = $4,
-              type = $5, discipline = $6, category = $7, url = $8
-        WHERE id = $9
+              type = $5, discipline = $6, category = $7, url = $8,
+              source_reliability = $9
+        WHERE id = $10
       RETURNING ${selectFields('en')}`,
       [...toParams(req.body), id]
     );
