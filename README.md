@@ -583,6 +583,14 @@ and content are already there. Two accounts are ready to sign in with:
 | Admin | resumetest@example.com | ResumeTest@123! |
 | Student | shalithatest@example.com | TestPass123! |
 
+> **You must change these before using this database for real.** The database
+> password above and the two account passwords are published in this
+> repository, so anyone who can read it can log in to the database and to the
+> admin account. After the handover: reset the database password in Supabase
+> (**Project Settings → Database → Reset database password**), put the new
+> connection string into `DATABASE_URL` on Vercel and in your own
+> `server/.env`, redeploy, and change or delete both test accounts.
+
 Migrations against this shared database still follow the one-person rule
 below; coordinate in the team channel before running one against it.
 
@@ -1007,8 +1015,11 @@ When the code moves to the client's own GitHub account and Vercel team:
 4. **Use the client's own credentials, not the team's.** Create new values
    under the client's accounts for `GOOGLE_AI_API_KEY`, `JWT_SECRET`, the SMTP
    login, and any optional keys. Do not copy the old ones across.
-5. **Database.** Either keep the existing hosted database and hand over its
+5. **Database.** Either keep the existing Supabase database and hand over its
    account, or create a new one under the client's account and run Step 1
-   against it. A new database starts with no user accounts.
+   against it. A new database starts with no user accounts. **If you keep the
+   existing one, its password must be changed** — it is written in Section 8
+   of this file. Reset it in Supabase, update `DATABASE_URL` on Vercel, and
+   redeploy. Change or delete the two test accounts listed there as well.
 6. **Turn off the old deployment** once the new one passes Step 4, and revoke
    the old API keys and app passwords.
