@@ -30,6 +30,8 @@ Swinburne ICT30017 capstone, project P83.
 6. [Every command, in one place](#6-every-command-in-one-place)
 7. [Troubleshooting](#7-troubleshooting)
 8. [Reference](#8-reference) — database, account area, preparation, appearance
+9. [Environment variables](#9-environment-variables) — every variable, required or not
+10. [Deploying to Vercel](#10-deploying-to-vercel) — and moving the project to a new owner
 
 ---
 
@@ -721,9 +723,9 @@ every case the interview carries on and the candidate types instead.
 `localhost` counts as one — which is the trap: dictation works all through
 development and then silently fails the first time the site is opened over
 plain `http` from another machine or a phone. **This has not been verified on
-a deployed site, because there is no deployment yet.** Whoever deploys it must
-serve the app over HTTPS and confirm the microphone prompt appears; the page
-will say "Speech to text needs a secure (HTTPS) connection" rather than fail
+a deployed site yet.** Vercel serves every deployment over HTTPS, so it should
+work there, but whoever deploys it must confirm the microphone prompt appears;
+the page will say "Speech to text needs a secure (HTTPS) connection" rather than fail
 silently if it does not.
 
 **The free tier is shared.** Groq's free Whisper allowance is per key, so it
@@ -793,3 +795,220 @@ silently. API error messages are translated server-side in
 
 See `docs/GIT_WORKFLOW.md` for the branch and pull-request process, and
 `.github/PULL_REQUEST_TEMPLATE.md` for what a PR must state.
+
+---
+
+## 9. Environment variables
+
+Every setting the server reads. Locally they go in `server/.env` (copied from
+`server/.env.example`); on Vercel they go in **Project → Settings →
+Environment Variables** (Section 10). Same names, same values, either way.
+Write values bare, with no quotes. The client (`client/`) reads no
+environment variables at all — everything below belongs to the server.
+
+### Required — the server will not start, or nobody can log in, without these
+
+| Variable | What it is | Example / where to get it |
+|---|---|---|
+| `GOOGLE_AI_API_KEY` | Google AI Studio key. Serves the resume review, chatbot, mock interview and gap analysis. | https://aistudio.google.com/apikey |
+| `AI_MODEL_FREE` | Model for guests and free accounts. Bare Google id, no `google/` prefix. | `gemini-3.6-flash` |
+| `AI_MODEL_PREMIUM` | Model for premium and admin accounts. | `gemini-3.6-flash` |
+| `JWT_SECRET` | Signs login sessions. 32+ random characters; the placeholder is refused. Changing it logs everyone out. | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `DATABASE_URL` | Connection string for a hosted Postgres. **Use this on Vercel.** When set, the `DB_*` variables are ignored. | `postgresql://user:pass@host:5432/db?sslmode=require` |
+
+For a **local** Postgres, leave `DATABASE_URL` unset and use these instead:
+
+| Variable | Default in `.env.example` |
+|---|---|
+| `DB_HOST` | `localhost` |
+| `DB_PORT` | `5432` |
+| `DB_NAME` | `career_hub_db` |
+| `DB_USER` | `postgres` |
+| `DB_PASSWORD` | the password chosen when installing PostgreSQL |
+
+### Database TLS
+
+A hosted database almost always requires TLS, and the error when it is missing
+does not mention TLS. Either keep `?sslmode=require` on the end of
+`DATABASE_URL` (most providers include it in the string they hand you), or set:
+
+| Variable | Values |
+|---|---|
+| `DB_SSL` | blank (local, no TLS) · `no-verify` (encrypted, certificate not checked) · `true` (encrypted and verified; needs `DB_SSL_CA`) |
+| `DB_SSL_CA` | Absolute path to the provider's CA certificate. Only with `DB_SSL=true`. |
+
+### Email — optional, but needed for verification and login codes
+
+With `SMTP_HOST` unset the site still works, but sign-in is by password alone,
+new accounts are not verified, and "forgot password" cannot send its link.
+See *Signing in, and email* in Section 4.
+
+| Variable | What it is | Example |
+|---|---|---|
+| `SMTP_HOST` | Mail server. Setting it turns email on. | `smtp.gmail.com` |
+| `SMTP_PORT` | `465` uses TLS from the start; anything else (default `587`) uses STARTTLS. | `465` |
+| `SMTP_USER` | Mail account login. | `careerhub@gmail.com` |
+| `SMTP_PASS` | Its password. For Gmail this must be an [app password](https://myaccount.google.com/apppasswords), not the normal one. | 16-character app password |
+| `SMTP_FROM` | Sender shown to users. | `Digital Career Hub <careerhub@gmail.com>` |
+| `CLIENT_ORIGIN` | Where links in emails point. On Vercel it defaults to the production domain, so it is only needed if that is wrong. | `https://careerhub.example.com` |
+| `EMAIL_TRANSPORT` | `console` prints emails to the server log instead of sending. Development only; ignored in production. | `console` |
+
+### Other optional features
+
+| Variable | Without it | Where to get it |
+|---|---|---|
+| `GROQ_API_KEY` | Live mock interview cannot transcribe speech; the record button is replaced by "type your answer". Everything else works. | https://console.groq.com/keys (free) |
+| `WHISPER_MODEL` | Uses `whisper-large-v3-turbo`. Only set it if Groq retires that model. | — |
+| `CURRENTS_API_KEY` | Homepage news feed shows a fixed set of curated links instead of live news. | https://currentsapi.services/ (free) |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | "Sign in with Google" is off. Both must be set. | Google Cloud Console → Credentials → OAuth client |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | "Sign in with GitHub" is off. Also needs the `passport-github2` package installed in `server/`. | GitHub → Settings → Developer settings → OAuth Apps |
+| `SERVER_URL` | OAuth callbacks go to `http://localhost:3000`. **Must be the public site address** (e.g. `https://careerhub.example.com`) if Google/GitHub sign-in is used on Vercel. | — |
+| `ALLOWED_ORIGINS` | Comma-separated list of extra origins allowed to call the API. On Vercel the deployment's own URLs are added automatically, so only set it for an extra custom domain. Setting it replaces the localhost defaults. | `https://careerhub.example.com` |
+| `PORT` | API listens on `3000`. Local only; Vercel ignores it. | — |
+
+OAuth redirect URLs to register with the provider:
+`<SERVER_URL>/api/oauth/google/callback` and
+`<SERVER_URL>/api/oauth/github/callback`.
+
+### Set automatically — do not add these yourself
+
+`VERCEL`, `VERCEL_URL`, `VERCEL_BRANCH_URL`, `VERCEL_PROJECT_PRODUCTION_URL`
+and `NODE_ENV` are provided by Vercel. `AI_MODEL` is the old single-model
+variable and is no longer read — remove it if it is still set.
+
+### Only for scripts and tests
+
+`OPENROUTER_API_KEY` and `COMPARE_BASE_URL` are used only by the model
+comparison script (`npm run compare-models`). `API_PROXY_TARGET`,
+`E2E_BASE_URL`, `E2E_API_ORIGIN`, `E2E_FAKE_API` and `PSQL_PATH` are for the
+client dev server and the Playwright tests. None of them are needed to run or
+deploy the site.
+
+---
+
+## 10. Deploying to Vercel
+
+The repository is already set up for Vercel: `vercel.json` at the root
+declares two services, `client` (the Vite build) and `server` (the Express
+API, entry point `server/src/app.js`), and routes `/api/*` to the server and
+everything else to the client. There is nothing to build by hand.
+
+### What you need first
+
+1. **A GitHub repository** holding this code (see *Moving the project to a new
+   owner* below).
+2. **A hosted PostgreSQL database** with a connection string — e.g. Neon,
+   Supabase, or Vercel's own Postgres integration. Vercel has no database of
+   its own; the server cannot use a local one.
+3. **A Google AI Studio key** (Section 2, Step 3).
+4. Optional: SMTP details, a Groq key, a Currents key (Section 9).
+
+### Step 1 — Set up the database (once, from your own computer)
+
+Vercel never runs migrations. The empty database has to be given its tables
+and content from a machine with this repository on it:
+
+```
+cd server
+npm install
+```
+
+Put the hosted database into `server/.env` — the same `.env` from Section 2,
+with `DATABASE_URL` added (and `DB_SSL=no-verify` if the string has no
+`sslmode`):
+
+```
+DATABASE_URL=postgresql://user:pass@host:5432/db?sslmode=require
+```
+
+Then:
+
+```
+npm run migrate          # creates every table and loads the content
+npm run check            # should end with "Everything checks out"
+```
+
+Run `npm run migrate` again, from one machine, whenever a pull request adds a
+file to `server/migrations/`. The deployed server logs
+`[schema] The database is behind the code` when this has been forgotten.
+
+### Step 2 — Create the Vercel project
+
+1. In Vercel, **Add New → Project** and import the GitHub repository.
+2. Leave **Root Directory** as the repository root, so `vercel.json` is used.
+   Do not override the build or output settings.
+3. Under **Settings → General → Node.js Version**, choose **22.x** or newer
+   (the code needs Node 22.12+).
+
+### Step 3 — Add the environment variables
+
+**Settings → Environment Variables.** Add each one for **Production** (and
+**Preview** if preview deployments should work too). Type values exactly,
+without quotes.
+
+Minimum for a working site:
+
+```
+GOOGLE_AI_API_KEY=...
+AI_MODEL_FREE=gemini-3.6-flash
+AI_MODEL_PREMIUM=gemini-3.6-flash
+JWT_SECRET=<a new 32+ character random string>
+DATABASE_URL=postgresql://...?sslmode=require
+```
+
+Strongly recommended, so email verification, login codes and password reset
+work:
+
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=...
+SMTP_PASS=<app password>
+SMTP_FROM=Digital Career Hub <...>
+```
+
+Optional: `GROQ_API_KEY` (voice answers in the live interview),
+`CURRENTS_API_KEY` (live news on the homepage), and the OAuth variables with
+`SERVER_URL` (Section 9).
+
+Environment variables only take effect on a new deployment. After adding or
+changing one, go to **Deployments**, open the latest, and choose **Redeploy**.
+
+### Step 4 — Check the deployment
+
+1. Open `https://<your-site>/api/health`. Expect `"ok":true` and
+   `"database":"connected"`. `"ok":false` means `DATABASE_URL` or TLS is
+   wrong.
+2. Open the site, register an account, and send the chatbot a question. A
+   streamed answer means the AI variables are right.
+3. If email is configured, register a second account and check that the
+   verification email arrives.
+4. Promote your own account to admin (Section 4), running the `UPDATE` against
+   the hosted database — through the provider's SQL console, or
+   `psql "<DATABASE_URL>" -c "UPDATE users SET role = 'admin' WHERE email = 'you@example.com';"`.
+
+Server errors appear under **Deployments → (deployment) → Logs** (or the
+project's **Logs** tab), with the same `[startup]`, `[ai-upstream]`, `[db]`
+and `[schema]` prefixes described in Section 7.
+
+### Moving the project to a new owner
+
+When the code moves to the client's own GitHub account and Vercel team:
+
+1. **Move the code.** Either transfer the repository (GitHub → Settings →
+   Danger Zone → Transfer ownership), or create a new repository and push the
+   `main` branch to it. Pull requests and issues only come across with a
+   transfer.
+2. **Update the two links** that name the old repository: the CI badge at the
+   top of this file and the `git clone` URL in Section 2, Step 2.
+3. **Create a new Vercel project** under the client's account from the new
+   repository (Steps 2–4 above). A Vercel project cannot follow a repository
+   to a different account.
+4. **Use the client's own credentials, not the team's.** Create new values
+   under the client's accounts for `GOOGLE_AI_API_KEY`, `JWT_SECRET`, the SMTP
+   login, and any optional keys. Do not copy the old ones across.
+5. **Database.** Either keep the existing hosted database and hand over its
+   account, or create a new one under the client's account and run Step 1
+   against it. A new database starts with no user accounts.
+6. **Turn off the old deployment** once the new one passes Step 4, and revoke
+   the old API keys and app passwords.
